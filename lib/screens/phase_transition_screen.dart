@@ -121,21 +121,25 @@ class _PhaseTransitionScreenState extends State<PhaseTransitionScreen>
     await Future<void>.delayed(const Duration(milliseconds: 400));
 
     // 2. Phase number scale-in
+    if (!mounted) return;
     _phaseNumberController.forward();
     await Future<void>.delayed(const Duration(milliseconds: 600));
 
     // 3. Content slide + typewriter title
+    if (!mounted) return;
     _contentController.forward();
     _startTypewriter();
     await Future<void>.delayed(const Duration(milliseconds: 800));
 
     // 4. Rewards stagger
+    if (!mounted) return;
     _rewardsController.forward();
     await Future<void>.delayed(
       Duration(milliseconds: 200 + widget.transition.rewards.length * 200),
     );
 
     // 5. CTA button
+    if (!mounted) return;
     _ctaController.forward();
   }
 
@@ -150,6 +154,10 @@ class _PhaseTransitionScreenState extends State<PhaseTransitionScreen>
 
     int titleIdx = 0;
     _titleTimer = Timer.periodic(const Duration(milliseconds: 60), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
       if (titleIdx >= fullTitle.length) {
         timer.cancel();
         _startDescriptionTypewriter(fullDescription);

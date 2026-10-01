@@ -21,9 +21,12 @@ class _TrendingScreenState extends State<TrendingScreen> {
   @override
   void initState() {
     super.initState();
-    final provider = context.read<TrendingProvider>();
-    provider.loadFeed();
-    provider.loadPipelineStatus();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final provider = context.read<TrendingProvider>();
+      provider.loadFeed();
+      provider.loadPipelineStatus();
+    });
   }
 
   @override

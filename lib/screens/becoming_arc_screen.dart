@@ -37,9 +37,12 @@ class _BecomingArcScreenState extends State<BecomingArcScreen>
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
 
-    final provider = context.read<BecomingArcProvider>();
-    provider.loadArcs();
-    provider.loadUserProgress('user_1');
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final provider = context.read<BecomingArcProvider>();
+      provider.loadArcs();
+      provider.loadUserProgress('user_1');
+    });
   }
 
   @override

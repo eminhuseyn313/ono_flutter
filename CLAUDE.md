@@ -104,7 +104,7 @@ DailyCoachTip(id, title, content, lane, laneColorValue, date, isBookmarked)
 
 ## All Routes
 
-Bottom nav tabs: `/home`, `/progress`, `/journal`, `/profile`
+Bottom nav tabs: `/home` (Today), `/plan`, `/playbook`, `/profile` (Me). `/progress` and `/journal` stay in the shell, reached from Playbook.
 
 All available routes:
 ```
@@ -122,8 +122,11 @@ All available routes:
 /settings, /onboarding-flow, /dashboard, /achievement-hub, /analytics,
 /weekly-review-flow, /social-feed, /habit-streaks, /daily-checkin,
 /ai-coach, /content-library, /community-challenges, /home, /progress,
-/journal, /profile
+/journal, /profile, /plan, /playbook, /manifesto, /protocols, /evidence,
+/library, /style, /career, /weekly-coaching, /features
 ```
+
+`/phase-transition` and `/arc-layer` fall back to sample data when opened without `extra`.
 
 ## Personalized Content Layer
 
@@ -139,36 +142,29 @@ Contains Emin's personalized data that should be wired into mock gateways:
 - `eminWeeklyReviewQuestions` — 12 weekly review questions
 - `eminAssessmentProfile` — Map of assessment answers
 
-## Pending Work
+## Roadmap status
 
-### 1. Wire Content Layer into Mock Gateways
-The personalized content in `lib/data/emin_personal_content.dart` needs to be integrated:
+All items done:
+1. **Content layer wired** — executive blueprint, actions seeding, morning ritual, coach tips (rotated by program day), Product Architect role model, Product Leader journey.
+2. **Feature discovery** — grid lives at `/features` (linked from Today and Playbook) instead of inside the home screen.
+3. **Personal operating system + redesign** — see "Personal operating system" above.
+4. **Quality** — 0 analyzer errors; `flutter test` green. `test/widget_test.dart` signs in and opens every route, failing on any runtime error (overflow excluded — the test font is wider than real fonts). Run it after touching screens.
 
-- **`lib/gateways/mock_blueprint_gateway.dart`**: When archetypeId is 'executive', use `eminBlueprint` domains to generate `BlueprintLane` objects with `BlueprintAction` items (map each domain's action strings into BlueprintActions)
-- **`lib/gateways/mock_actions_gateway.dart`**: Has `seedFromBlueprint()` — ensure it works with the personalized blueprint data
-- **Morning ritual provider/gateway**: Wire `eminMorningRitual` steps into the ritual system
-- **AI coach provider/gateway**: Wire `eminCoachTips` into the coach tip system
-- **Role model data source**: Add `productArchitectRoleModel` to available role models
-- **Journey data source**: Add `productLeaderJourney` to available journeys
+Still to do: run on a physical iPhone (needs macOS + Xcode; see below). Production mode still has only 5 Supabase gateways — the rest are mock.
 
-### 2. Feature Discovery Grid
-Add a scrollable grid to `lib/screens/home_screen.dart` (currently 1553 lines) that shows all app features as tappable cards, so every screen can be discovered and tested. Each card should navigate to its route.
-
-### 3. Build for iOS Testing
-After wiring is complete, build and deploy to iPhone for testing:
+### Build for iOS testing
 ```bash
-cd ~/Downloads/ono_flutter
-flutter clean
-flutter pub get
-flutter build ios --debug
-# Then open in Xcode:
-open ios/Runner.xcworkspace
-# Or run directly:
-flutter run
+git pull && git checkout main-ntyuqf
+flutter upgrade          # older Flutter can't launch on iOS 27 simulators
+flutter clean && flutter pub get
+open ios/Runner.xcworkspace   # set your Team under Signing & Capabilities once
+flutter run --release     # with the iPhone plugged in and trusted
 ```
+
+Fonts are bundled (`assets/google_fonts/`), so the app looks right offline.
 
 ## File Structure Notes
 
-- `home_screen.dart` is ~1553 lines with: header, progress hero, lane scores, active journey, challenges, today's actions, explore journeys, daily wisdom
+- `home_screen.dart` is the Today screen (~600 lines): now card, ritual, Daily 10, priorities, inputs, training, coach note, protocol
 - Mock gateways contain static data per archetype — the 'executive' archetype paths need personalized content
 - `PrebuiltRituals` class has `morning()` and `evening()` factory methods

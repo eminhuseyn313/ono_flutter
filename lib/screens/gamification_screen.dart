@@ -408,6 +408,7 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
   Widget build(
       BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Container(
+      height: maxExtent,
       color: AppColors.background,
       child: TabBar(
         controller: tabController,

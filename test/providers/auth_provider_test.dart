@@ -33,6 +33,14 @@ void main() {
 }
 
 class FakeAuthGateway implements AuthGateway {
+
+  @override
+  Future<AuthResult> signInWithApple() async =>
+      const AuthResult(error: 'not implemented');
+
+  @override
+  Future<AuthResult> signInWithGoogle() async =>
+      const AuthResult(error: 'not implemented');
   FakeAuthGateway({Session? session}) : _session = session;
 
   final Session? _session;

@@ -38,8 +38,12 @@ class _BrotherhoodScreenState extends State<BrotherhoodScreen>
       curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
     ));
 
-    final provider = context.read<BrotherhoodProvider>();
-    provider.loadSquad().then((_) => _entranceController.forward());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<BrotherhoodProvider>().loadSquad().then((_) {
+        if (mounted) _entranceController.forward();
+      });
+    });
   }
 
   @override

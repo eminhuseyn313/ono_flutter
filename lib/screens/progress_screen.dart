@@ -47,7 +47,10 @@ class _ProgressScreenState extends State<ProgressScreen>
     super.didChangeDependencies();
     if (!_loaded) {
       _loaded = true;
-      _loadAll();
+      // Load after the first frame — providers notify synchronously.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _loadAll();
+      });
     }
   }
 

@@ -25,7 +25,9 @@ class _WakzChallengesScreenState extends State<WakzChallengesScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
-    _loadData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _loadData();
+    });
   }
 
   void _loadData() {

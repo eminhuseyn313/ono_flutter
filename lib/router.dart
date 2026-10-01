@@ -311,11 +311,13 @@ GoRouter createRouter(AuthProvider authProvider) {
       GoRoute(
         path: '/arc-layer',
         pageBuilder: (_, state) {
-          final extra = state.extra as Map<String, dynamic>;
+          // Opened without data (e.g. from the feature grid): show the
+          // identity layer of the seeded arc.
+          final extra = state.extra as Map<String, dynamic>? ?? const {};
           return CustomTransitionPage(
             child: ArcLayerScreen(
-              layer: extra['layer'] as ArcLayer,
-              arcId: extra['arcId'] as String,
+              layer: extra['layer'] as ArcLayer? ?? ArcLayer.identity,
+              arcId: extra['arcId'] as String? ?? PrebuiltArcs.kobeArc.id,
             ),
             transitionsBuilder: _fadeTransition,
           );
@@ -383,7 +385,20 @@ GoRouter createRouter(AuthProvider authProvider) {
       GoRoute(
         path: '/phase-transition',
         pageBuilder: (_, state) {
-          final transition = state.extra as PhaseTransition;
+          // Opened without data (e.g. from the feature grid): preview the
+          // Foundation → Construction step of the Product Leader Path.
+          final transition = state.extra as PhaseTransition? ??
+              PhaseTransition(
+                fromPhase: 1,
+                toPhase: 2,
+                arcId: 'product_leader_path',
+                unlockedAt: DateTime.now(),
+                milestoneTitle: 'Foundation complete',
+                milestoneDescription:
+                    'Sleep, ritual and protocols installed. Construction begins: '
+                    'domain depth, first artifact, presence every day.',
+                rewards: const ['🏆', '⚡'],
+              );
           return CustomTransitionPage(
             child: PhaseTransitionScreen(transition: transition),
             transitionsBuilder: _fadeTransition,

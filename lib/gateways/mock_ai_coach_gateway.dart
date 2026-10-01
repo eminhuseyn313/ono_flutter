@@ -1,6 +1,7 @@
 import '../data/emin_personal_content.dart';
 import '../models/ai_coach.dart';
 import 'ai_coach_gateway.dart';
+import 'mock_personal_system_gateway.dart';
 
 class MockAiCoachGateway implements AiCoachGateway {
   @override
@@ -69,7 +70,7 @@ class MockAiCoachGateway implements AiCoachGateway {
           isRead: true,
         ),
       ],
-      dailyTip: _todaysTip(),
+      dailyTip: _todaysTip(await MockPersonalSystemGateway.programDay()),
       preferredTone: CoachTone.motivational,
       streakDays: 14,
       overallScore: 72.5,
@@ -102,11 +103,13 @@ class MockAiCoachGateway implements AiCoachGateway {
     await Future.delayed(const Duration(milliseconds: 150));
   }
 
-  /// Rotates through [eminCoachTips], one per calendar day.
-  DailyCoachTip _todaysTip() {
+  /// Rotates through [eminCoachTips] by program day, so the AI Coach and
+  /// the Today screen show the same tip (falls back to the calendar day).
+  DailyCoachTip _todaysTip(int? programDay) {
     final now = DateTime.now();
-    final dayNumber =
-        DateTime.utc(now.year, now.month, now.day).millisecondsSinceEpoch ~/
+    final dayNumber = programDay != null
+        ? programDay - 1
+        : DateTime.utc(now.year, now.month, now.day).millisecondsSinceEpoch ~/
             Duration.millisecondsPerDay;
     final tip = eminCoachTips[dayNumber % eminCoachTips.length];
     final lane = tip.lane.isEmpty

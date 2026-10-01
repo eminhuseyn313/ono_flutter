@@ -35,7 +35,9 @@ class _BlueprintLoadingScreenState extends State<BlueprintLoadingScreen>
       vsync: this,
     )..repeat();
 
-    _generateBlueprint();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _generateBlueprint();
+    });
   }
 
   Future<void> _generateBlueprint() async {

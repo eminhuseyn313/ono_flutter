@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../gateways/profile_gateway.dart';
+import '../data/emin_system.dart';
 
 class UserProfileProvider extends ChangeNotifier {
   final ProfileGateway _gateway;
@@ -52,8 +53,11 @@ class UserProfileProvider extends ChangeNotifier {
   // -- Complete onboarding → persist profile --------------------------------
 
   Future<void> completeOnboarding(String userId) async {
+    final archetypeId = _pendingArchetypeId ?? 'executive';
     final newProfile = UserProfile(
-      archetypeId: _pendingArchetypeId ?? 'executive',
+      archetypeId: archetypeId,
+      // The executive path is Emin's personal program.
+      displayName: archetypeId == 'executive' ? EminIdentity.name : null,
       assessmentAnswers: Map.of(_pendingAnswers),
       onboardingComplete: true,
       createdAt: DateTime.now(),

@@ -10,6 +10,14 @@ import 'package:ono/providers/auth_provider.dart';
 // Hand-rolled mock — no codegen needed
 // ---------------------------------------------------------------------------
 class MockAuthGateway implements AuthGateway {
+
+  @override
+  Future<AuthResult> signInWithApple() async =>
+      const AuthResult(error: 'not implemented');
+
+  @override
+  Future<AuthResult> signInWithGoogle() async =>
+      const AuthResult(error: 'not implemented');
   // Stubs ----------------------------------------------------------------
   Session? sessionToRecover;
   AuthResult? signUpResult;
@@ -341,6 +349,14 @@ void main() {
 // Helper gateway that throws on recoverSession
 // ---------------------------------------------------------------------------
 class _ThrowingRecoverGateway implements AuthGateway {
+
+  @override
+  Future<AuthResult> signInWithApple() async =>
+      const AuthResult(error: 'not implemented');
+
+  @override
+  Future<AuthResult> signInWithGoogle() async =>
+      const AuthResult(error: 'not implemented');
   @override
   Future<Session?> recoverSession() async {
     throw Exception('Storage corrupted');

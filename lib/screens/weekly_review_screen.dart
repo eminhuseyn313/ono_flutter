@@ -42,7 +42,10 @@ class _WeeklyReviewScreenState extends State<WeeklyReviewScreen>
     super.didChangeDependencies();
     if (!_loaded) {
       _loaded = true;
-      _loadData();
+      // Load after the first frame — providers notify synchronously.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _loadData();
+      });
     }
   }
 

@@ -32,7 +32,9 @@ class _BlueprintScreenState extends State<BlueprintScreen> {
         // (e.g. just generated on the loading screen)
         final bp = context.read<BlueprintProvider>();
         if (bp.blueprint == null) {
-          bp.loadBlueprint(userId);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) bp.loadBlueprint(userId);
+          });
         }
       }
     }
@@ -259,49 +261,49 @@ class _BlueprintScreenState extends State<BlueprintScreen> {
         border: Border.all(color: AppColors.divider),
       ),
       child: Theme(
-        data: ThemeData(
-          dividerColor: Colors.transparent,
-          colorScheme: const ColorScheme.dark(),
-        ),
-        child: ExpansionTile(
-          leading: Text(emoji, style: const TextStyle(fontSize: 24)),
-          title: Text(
-            lane.name,
-            style: const TextStyle(
-              color: AppColors.white,
-              fontWeight: FontWeight.w700,
-              fontSize: 16,
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: Material(
+          type: MaterialType.transparency,
+          child: ExpansionTile(
+            leading: Text(emoji, style: const TextStyle(fontSize: 24)),
+            title: Text(
+              lane.name,
+              style: const TextStyle(
+                color: AppColors.white,
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
+              ),
             ),
-          ),
-          subtitle: Text(
-            lane.description,
-            style: const TextStyle(color: AppColors.purple, fontSize: 12),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          trailing: const Icon(Icons.expand_more, color: AppColors.grey),
-          children: lane.actions
-              .map((action) => ListTile(
-                    leading: const Icon(Icons.arrow_forward_ios,
-                        color: AppColors.purple, size: 14),
-                    title: Text(
-                      action.title,
-                      style: const TextStyle(
-                        color: AppColors.greyLight,
-                        fontSize: 14,
+            subtitle: Text(
+              lane.description,
+              style: const TextStyle(color: AppColors.purple, fontSize: 12),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            trailing: const Icon(Icons.expand_more, color: AppColors.grey),
+            children: lane.actions
+                .map((action) => ListTile(
+                      leading: const Icon(Icons.arrow_forward_ios,
+                          color: AppColors.purple, size: 14),
+                      title: Text(
+                        action.title,
+                        style: const TextStyle(
+                          color: AppColors.greyLight,
+                          fontSize: 14,
+                        ),
                       ),
-                    ),
-                    subtitle: action.subtitle != null
-                        ? Text(
-                            action.subtitle!,
-                            style: const TextStyle(
-                              color: AppColors.grey,
-                              fontSize: 12,
-                            ),
-                          )
-                        : null,
-                  ))
-              .toList(),
+                      subtitle: action.subtitle != null
+                          ? Text(
+                              action.subtitle!,
+                              style: const TextStyle(
+                                color: AppColors.grey,
+                                fontSize: 12,
+                              ),
+                            )
+                          : null,
+                    ))
+                .toList(),
+          ),
         ),
       ),
     );
@@ -317,45 +319,46 @@ class _BlueprintScreenState extends State<BlueprintScreen> {
         border: Border.all(color: AppColors.divider),
       ),
       child: Theme(
-        data: ThemeData(
-          dividerColor: Colors.transparent,
-          colorScheme: const ColorScheme.dark(),
-        ),
-        child: ExpansionTile(
-          leading: Text(domain.emoji, style: const TextStyle(fontSize: 24)),
-          title: Text(
-            domain.name,
-            style: TextStyle(
-              color: domain.active ? AppColors.white : AppColors.grey,
-              fontWeight: FontWeight.w700,
-              fontSize: 16,
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: Material(
+          type: MaterialType.transparency,
+          child: ExpansionTile(
+            leading: Text(domain.emoji, style: const TextStyle(fontSize: 24)),
+            title: Text(
+              domain.name,
+              style: TextStyle(
+                color: domain.active ? AppColors.white : AppColors.grey,
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
+              ),
             ),
-          ),
-          subtitle: Text(
-            domain.active ? 'Active lane' : 'Coming soon',
-            style: TextStyle(
-              color: domain.active ? AppColors.purple : AppColors.grey,
-              fontSize: 12,
+            subtitle: Text(
+              domain.active ? 'Active lane' : 'Coming soon',
+              style: TextStyle(
+                color: domain.active ? AppColors.purple : AppColors.grey,
+                fontSize: 12,
+              ),
             ),
-          ),
-          trailing: domain.active
-              ? const Icon(Icons.expand_more, color: AppColors.grey)
-              : const Icon(Icons.lock_outline, color: AppColors.grey, size: 18),
-          children: domain.active
-              ? domain.actions
-                  .map((action) => ListTile(
-                        leading: const Icon(Icons.arrow_forward_ios,
-                            color: AppColors.purple, size: 14),
-                        title: Text(
-                          action,
-                          style: const TextStyle(
-                            color: AppColors.greyLight,
-                            fontSize: 14,
+            trailing: domain.active
+                ? const Icon(Icons.expand_more, color: AppColors.grey)
+                : const Icon(Icons.lock_outline,
+                    color: AppColors.grey, size: 18),
+            children: domain.active
+                ? domain.actions
+                    .map((action) => ListTile(
+                          leading: const Icon(Icons.arrow_forward_ios,
+                              color: AppColors.purple, size: 14),
+                          title: Text(
+                            action,
+                            style: const TextStyle(
+                              color: AppColors.greyLight,
+                              fontSize: 14,
+                            ),
                           ),
-                        ),
-                      ))
-                  .toList()
-              : [],
+                        ))
+                    .toList()
+                : [],
+          ),
         ),
       ),
     );

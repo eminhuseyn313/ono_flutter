@@ -78,7 +78,13 @@ class _HabitStreakScreenState extends State<HabitStreakScreen> {
             );
           }
 
-          final data = provider.streakData!;
+          final data = provider.streakData;
+          // First frame, before the post-frame load has started.
+          if (data == null) {
+            return const Center(
+              child: CircularProgressIndicator(color: AppColors.purple),
+            );
+          }
           final streak = data.streak;
 
           return RefreshIndicator(

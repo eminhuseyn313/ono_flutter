@@ -33,12 +33,15 @@ class _RadioScreenState extends State<RadioScreen>
     _tabController = TabController(length: 3, vsync: this);
     _selectedRoleModelId = widget.roleModelId;
 
-    final provider = context.read<RadioProvider>();
-    if (widget.roleModelId != null) {
-      provider.loadPlaylist(widget.roleModelId!);
-    } else {
-      provider.loadAllPlaylists();
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final provider = context.read<RadioProvider>();
+      if (widget.roleModelId != null) {
+        provider.loadPlaylist(widget.roleModelId!);
+      } else {
+        provider.loadAllPlaylists();
+      }
+    });
   }
 
   @override

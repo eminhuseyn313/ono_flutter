@@ -13,6 +13,20 @@ import 'personal_system_gateway.dart';
 class MockPersonalSystemGateway implements PersonalSystemGateway {
   String _key(String userId) => 'personal_system_$userId';
 
+  /// Device-wide program start, readable by other gateways (e.g. the coach
+  /// tip rotation) without depending on this one.
+  static const programStartKey = 'ono_program_start';
+
+  /// Day number of the program on this device (1-based), or null if the
+  /// program hasn't been started yet.
+  static Future<int?> programDay() async {
+    final prefs = await SharedPreferences.getInstance();
+    final start = DateTime.tryParse(prefs.getString(programStartKey) ?? '');
+    if (start == null) return null;
+    final now = DateTime.now();
+    return DateTime(now.year, now.month, now.day).difference(start).inDays + 1;
+  }
+
   @override
   Future<PersonalSystemState> load(String userId) async {
     await Future.delayed(const Duration(milliseconds: 150));
@@ -47,5 +61,7 @@ class MockPersonalSystemGateway implements PersonalSystemGateway {
   Future<void> save(String userId, PersonalSystemState state) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_key(userId), jsonEncode(state.toJson()));
+    await prefs.setString(
+        programStartKey, state.programStart.toIso8601String());
   }
 }
