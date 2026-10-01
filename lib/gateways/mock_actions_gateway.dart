@@ -4,15 +4,27 @@ import 'blueprint_gateway.dart';
 /// Offline mock for development — generates today's actions from the
 /// saved blueprint and tracks completion in memory.
 class MockActionsGateway implements ActionsGateway {
+  MockActionsGateway({BlueprintGateway? blueprintGateway})
+      : _blueprintGateway = blueprintGateway;
+
+  /// Personal blueprints can hold many actions per lane; only the first few
+  /// of each lane become today's checklist.
+  static const maxDailyActionsPerLane = 2;
+
+  final BlueprintGateway? _blueprintGateway;
   final List<DailyAction> _actions = [];
   int _streak = 0;
   bool _initialised = false;
+  Blueprint? _seededFrom;
 
   /// Seed today's actions from a blueprint (call once after blueprint loads).
   void seedFromBlueprint(Blueprint blueprint) {
     _actions.clear();
+    _seededFrom = blueprint;
     var i = 0;
-    for (final action in blueprint.allActions) {
+    final actions = blueprint.lanes
+        .expand((lane) => lane.actions.take(maxDailyActionsPerLane));
+    for (final action in actions) {
       _actions.add(DailyAction(
         id: action.id,
         title: action.title,
@@ -27,6 +39,10 @@ class MockActionsGateway implements ActionsGateway {
 
   @override
   Future<List<DailyAction>> loadTodayActions(String userId) async {
+    final blueprint = await _blueprintGateway?.loadBlueprint(userId);
+    if (blueprint != null && !identical(blueprint, _seededFrom)) {
+      seedFromBlueprint(blueprint);
+    }
     if (!_initialised) {
       // Return sample actions if no blueprint loaded yet
       return const [

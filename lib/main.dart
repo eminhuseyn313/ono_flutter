@@ -308,9 +308,9 @@ class _OnoAppState extends State<OnoApp> {
     // Gateways (mock — run offline, no backend needed)
     _authGateway = MockAuthGateway();
     _profileGateway = MockProfileGateway();
-    _actionsGateway = MockActionsGateway();
-    _progressGateway = MockProgressGateway();
     _blueprintGateway = MockBlueprintGateway();
+    _actionsGateway = MockActionsGateway(blueprintGateway: _blueprintGateway);
+    _progressGateway = MockProgressGateway();
     _reflectionsGateway = MockReflectionsGateway();
     _apprenticeGateway = MockApprenticeGateway();
     _timeCapsuleGateway = MockTimeCapsuleGateway();

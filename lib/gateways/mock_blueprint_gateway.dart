@@ -1,3 +1,5 @@
+import '../data/emin_personal_content.dart';
+import '../models/models.dart';
 import 'blueprint_gateway.dart';
 
 /// Offline mock that returns a static blueprint — no Claude API key needed.
@@ -37,7 +39,7 @@ class MockBlueprintGateway implements BlueprintGateway {
   String _titleFor(String id) {
     switch (id) {
       case 'executive':
-        return 'The Executive Edge';
+        return eminArchetype.title;
       case 'athlete':
         return 'Peak Performance Protocol';
       case 'creative':
@@ -54,7 +56,7 @@ class MockBlueprintGateway implements BlueprintGateway {
   String _summaryFor(String id) {
     switch (id) {
       case 'executive':
-        return 'A focused plan to sharpen your leadership, decision-making, and presence.';
+        return eminArchetype.description;
       case 'athlete':
         return 'Train your mind and body for peak performance on and off the field.';
       case 'creative':
@@ -69,6 +71,7 @@ class MockBlueprintGateway implements BlueprintGateway {
   }
 
   List<BlueprintLane> _lanesFor(String archetypeId) {
+    if (archetypeId == 'executive') return _personalLanes(archetypeId);
     return [
       BlueprintLane(
         id: 'mind',
@@ -155,5 +158,72 @@ class MockBlueprintGateway implements BlueprintGateway {
         ],
       ),
     ];
+  }
+
+  // ── Personalised content (executive / Emin) ─────────────────────────────
+
+  /// Core lane each personal domain counts toward.
+  static const _domainLane = {
+    'Product Craft': 'skill',
+    'Domain Intelligence': 'skill',
+    'Mental Performance': 'mind',
+    'Physical Foundation': 'body',
+    'Executive Presence': 'social',
+  };
+
+  static const _weekdayPrefixes = ['Mon:', 'Tue:', 'Wed:', 'Thu:', 'Fri:'];
+
+  /// Maps [eminBlueprint] domains to blueprint lanes. Each action string
+  /// "Title — detail" becomes a [BlueprintAction] with title and subtitle.
+  /// Weekday-tagged actions ("Mon: …") are only kept on their own day.
+  List<BlueprintLane> _personalLanes(String archetypeId) {
+    final today = DateTime.now().weekday; // 1 = Monday
+    return eminBlueprint.where((d) => d.active).map((domain) {
+      final laneId = _domainLane[domain.name] ?? 'skill';
+      final slug = domain.name.toLowerCase().replaceAll(' ', '_');
+      final actions = <BlueprintAction>[];
+      for (final raw in domain.actions) {
+        final dayIdx = _weekdayPrefixes.indexWhere(raw.startsWith);
+        if (dayIdx != -1 && dayIdx + 1 != today) continue;
+        final parts = raw.split(' — ');
+        actions.add(BlueprintAction(
+          id: '${archetypeId}_${slug}_${actions.length}',
+          title: parts.first.trim(),
+          subtitle: parts.length > 1 ? parts.sublist(1).join(' — ').trim() : null,
+          laneId: laneId,
+          durationMinutes: _minutesIn(raw) ?? 15,
+          orderIndex: actions.length,
+        ));
+      }
+      return BlueprintLane(
+        id: laneId,
+        name: domain.name,
+        description: _domainDescription(domain),
+        actions: actions,
+      );
+    }).toList();
+  }
+
+  String _domainDescription(BlueprintDomain domain) {
+    switch (domain.name) {
+      case 'Product Craft':
+        return 'Sharper thinking, sharper artifacts';
+      case 'Domain Intelligence':
+        return 'Own identity, payments and ecosystem strategy';
+      case 'Mental Performance':
+        return 'Composure and confidence under pressure';
+      case 'Physical Foundation':
+        return 'Training, sleep and nutrition that fuel the work';
+      case 'Executive Presence':
+        return 'Belong in every room';
+      default:
+        return '${domain.actions.length} actions';
+    }
+  }
+
+  /// Pulls "15 min" style durations out of an action string, if present.
+  int? _minutesIn(String text) {
+    final match = RegExp(r'(\d+)\s*min').firstMatch(text);
+    return match == null ? null : int.tryParse(match.group(1)!);
   }
 }
