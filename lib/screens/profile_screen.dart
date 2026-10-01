@@ -101,7 +101,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     final skillActions = actions.where((a) => a.lane == 'skill').toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0C14),
+      backgroundColor: const Color(0xFF0C0D0F),
       body: Stack(
         children: [
           // Ambient gradient background
@@ -111,9 +111,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Color(0xFF0F0A1E),
-                  Color(0xFF0A0C14),
-                  Color(0xFF0A1014),
+                  Color(0xFF111214),
+                  Color(0xFF0C0D0F),
+                  Color(0xFF0E1012),
                 ],
               ),
             ),
@@ -149,8 +149,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    const Color(0xFF4AD9FF).withValues(alpha: 0.08),
-                    const Color(0xFF4AD9FF).withValues(alpha: 0.0),
+                    const Color(0xFF8EA4D2).withValues(alpha: 0.08),
+                    const Color(0xFF8EA4D2).withValues(alpha: 0.0),
                   ],
                 ),
               ),

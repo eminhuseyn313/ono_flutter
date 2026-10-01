@@ -79,7 +79,7 @@ class MockAnalyticsGateway implements AnalyticsGateway {
     final lanes = [
       _buildLane(
         name: 'Mind',
-        color: 0xFF8B5CF6,
+        color: 0xFFC8894A,
         icon: Icons.psychology.codePoint,
         score: 72,
         trend: 5,
@@ -87,7 +87,7 @@ class MockAnalyticsGateway implements AnalyticsGateway {
       ),
       _buildLane(
         name: 'Body',
-        color: 0xFF22D3EE,
+        color: 0xFF7C9CC4,
         icon: Icons.fitness_center.codePoint,
         score: 85,
         trend: 12,
@@ -95,7 +95,7 @@ class MockAnalyticsGateway implements AnalyticsGateway {
       ),
       _buildLane(
         name: 'Social',
-        color: 0xFF34D399,
+        color: 0xFF7DB495,
         icon: Icons.people.codePoint,
         score: 58,
         trend: -3,
@@ -103,7 +103,7 @@ class MockAnalyticsGateway implements AnalyticsGateway {
       ),
       _buildLane(
         name: 'Skill',
-        color: 0xFFF59E0B,
+        color: 0xFFE2B354,
         icon: Icons.auto_awesome.codePoint,
         score: 67,
         trend: 8,
@@ -150,14 +150,14 @@ class MockAnalyticsGateway implements AnalyticsGateway {
     final pointCount = period == AnalyticsPeriod.week ? 7 : 30;
 
     final laneConfigs = {
-      'Mind': (color: 0xFF8B5CF6, icon: Icons.psychology.codePoint, score: 72.0, trend: 5.0),
-      'Body': (color: 0xFF22D3EE, icon: Icons.fitness_center.codePoint, score: 85.0, trend: 12.0),
-      'Social': (color: 0xFF34D399, icon: Icons.people.codePoint, score: 58.0, trend: -3.0),
-      'Skill': (color: 0xFFF59E0B, icon: Icons.auto_awesome.codePoint, score: 67.0, trend: 8.0),
+      'Mind': (color: 0xFFC8894A, icon: Icons.psychology.codePoint, score: 72.0, trend: 5.0),
+      'Body': (color: 0xFF7C9CC4, icon: Icons.fitness_center.codePoint, score: 85.0, trend: 12.0),
+      'Social': (color: 0xFF7DB495, icon: Icons.people.codePoint, score: 58.0, trend: -3.0),
+      'Skill': (color: 0xFFE2B354, icon: Icons.auto_awesome.codePoint, score: 67.0, trend: 8.0),
     };
 
     final config = laneConfigs[laneName] ??
-        (color: 0xFF8B5CF6, icon: Icons.psychology.codePoint, score: 50.0, trend: 0.0);
+        (color: 0xFFC8894A, icon: Icons.psychology.codePoint, score: 50.0, trend: 0.0);
 
     return _buildLane(
       name: laneName,

@@ -430,15 +430,15 @@ class OnboardingLanes {
   static Color colorForLane(String laneId) {
     switch (laneId) {
       case 'mind':
-        return const Color(0xFF8B5CF6);
+        return const Color(0xFFC8894A);
       case 'body':
-        return const Color(0xFF22D3EE);
+        return const Color(0xFF7C9CC4);
       case 'social':
-        return const Color(0xFF34D399);
+        return const Color(0xFF7DB495);
       case 'skill':
-        return const Color(0xFFF59E0B);
+        return const Color(0xFFE2B354);
       default:
-        return const Color(0xFF8B5CF6);
+        return const Color(0xFFC8894A);
     }
   }
 

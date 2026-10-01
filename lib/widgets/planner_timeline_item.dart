@@ -73,7 +73,7 @@ class _PlannerTimelineItemState extends State<PlannerTimelineItem>
     }
     switch (widget.item.type) {
       case PlannerItemType.breakTime:
-        return const Color(0xFF9AA6B2);
+        return const Color(0xFF8E8A82);
       case PlannerItemType.custom:
         return AppColors.purple;
       default:
@@ -84,11 +84,11 @@ class _PlannerTimelineItemState extends State<PlannerTimelineItem>
   Color get _priorityColor {
     switch (widget.item.priority) {
       case PlannerPriority.high:
-        return const Color(0xFFEF4444);
+        return const Color(0xFFE0605A);
       case PlannerPriority.medium:
-        return const Color(0xFFF59E0B);
+        return const Color(0xFFE2B354);
       case PlannerPriority.low:
-        return const Color(0xFF34D399);
+        return const Color(0xFF7DB495);
     }
   }
 
@@ -102,12 +102,12 @@ class _PlannerTimelineItemState extends State<PlannerTimelineItem>
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 24),
         decoration: BoxDecoration(
-          color: const Color(0xFFEF4444).withValues(alpha: 0.15),
+          color: const Color(0xFFE0605A).withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(12),
         ),
         child: const Icon(
           Icons.delete_outline_rounded,
-          color: Color(0xFFEF4444),
+          color: Color(0xFFE0605A),
           size: 24,
         ),
       ),

@@ -179,13 +179,13 @@ enum ChallengeLane {
   int get colorValue {
     switch (this) {
       case ChallengeLane.mind:
-        return 0xFF8B5CF6;
+        return 0xFFC8894A;
       case ChallengeLane.body:
-        return 0xFF22D3EE;
+        return 0xFF7C9CC4;
       case ChallengeLane.soul:
-        return 0xFF34D399;
+        return 0xFF7DB495;
       case ChallengeLane.discipline:
-        return 0xFFF59E0B;
+        return 0xFFE2B354;
     }
   }
 

@@ -150,7 +150,7 @@ class _HeroSection extends StatelessWidget {
           },
           child: ShaderMask(
             shaderCallback: (bounds) => const LinearGradient(
-              colors: [AppColors.purple, AppColors.cyan],
+              colors: [AppColors.purpleSoft, AppColors.purple],
             ).createShader(bounds),
             child: const Icon(Icons.person_outline, size: 64, color: Colors.white),
           ),

@@ -56,7 +56,7 @@ class MockSocialFeedGateway implements SocialFeedGateway {
         content:
             'Crushed my morning workout — 5am cold plunge + 45min lifting session. Body feels electric.',
         highlightValue: null,
-        colorValue: 0xFF22D3EE, // cyan
+        colorValue: 0xFF7C9CC4, // cyan
         iconCodePoint: 0xe5d5, // Icons.fitness_center
         createdAt: now.subtract(const Duration(minutes: 23)),
         likeCount: 34,
@@ -96,7 +96,7 @@ class MockSocialFeedGateway implements SocialFeedGateway {
         content:
             'Just hit Level 5 Warrior! The grind pays off. Every rep, every page, every early morning led here.',
         highlightValue: 'Level 5 reached!',
-        colorValue: 0xFF8B5CF6, // purple
+        colorValue: 0xFFC8894A, // purple
         iconCodePoint: 0xe838, // Icons.emoji_events
         createdAt: now.subtract(const Duration(hours: 2)),
         likeCount: 45,
@@ -144,7 +144,7 @@ class MockSocialFeedGateway implements SocialFeedGateway {
         content:
             '14-day streak and counting. No days off. Mind lane and Body lane every single day.',
         highlightValue: '14-day streak!',
-        colorValue: 0xFF34D399, // green
+        colorValue: 0xFF7DB495, // green
         iconCodePoint: 0xe80e, // Icons.local_fire_department
         createdAt: now.subtract(const Duration(hours: 4)),
         likeCount: 28,
@@ -176,7 +176,7 @@ class MockSocialFeedGateway implements SocialFeedGateway {
         content:
             'This week taught me that consistency > intensity. Small steps compound. One percent better every day beats burning out trying to do everything at once.',
         highlightValue: null,
-        colorValue: 0xFFC4B5FD, // purpleSoft
+        colorValue: 0xFFE8C9A3, // purpleSoft
         iconCodePoint: 0xe3ae, // Icons.lightbulb
         createdAt: now.subtract(const Duration(hours: 6)),
         likeCount: 19,
@@ -191,7 +191,7 @@ class MockSocialFeedGateway implements SocialFeedGateway {
         content:
             "Who's joining the 30-day Mind lane challenge? Let's go! Daily meditation + journaling. Drop a comment if you're in.",
         highlightValue: '30-day challenge',
-        colorValue: 0xFFF59E0B, // warning
+        colorValue: 0xFFE2B354, // warning
         iconCodePoint: 0xf06bb, // Icons.bolt
         createdAt: now.subtract(const Duration(hours: 8)),
         likeCount: 38,
@@ -206,7 +206,7 @@ class MockSocialFeedGateway implements SocialFeedGateway {
         content:
             "Finished reading Atomic Habits. Mind lane XP feels different when you're actually applying what you learn.",
         highlightValue: null,
-        colorValue: 0xFF22D3EE, // cyan
+        colorValue: 0xFF7C9CC4, // cyan
         iconCodePoint: 0xe866, // Icons.menu_book
         createdAt: now.subtract(const Duration(hours: 12)),
         likeCount: 22,
@@ -221,7 +221,7 @@ class MockSocialFeedGateway implements SocialFeedGateway {
         content:
             'Hit 100 total workouts logged. Started 4 months ago barely able to do 10 pushups. Now repping 50 easy.',
         highlightValue: '100 workouts!',
-        colorValue: 0xFF8B5CF6, // purple
+        colorValue: 0xFFC8894A, // purple
         iconCodePoint: 0xe838, // Icons.emoji_events
         createdAt: now.subtract(const Duration(hours: 18)),
         likeCount: 41,
@@ -236,7 +236,7 @@ class MockSocialFeedGateway implements SocialFeedGateway {
         content:
             "Realized I've been neglecting the Soul lane. Time to balance out. Gratitude practice starts tomorrow.",
         highlightValue: null,
-        colorValue: 0xFFC4B5FD, // purpleSoft
+        colorValue: 0xFFE8C9A3, // purpleSoft
         iconCodePoint: 0xe3ae, // Icons.lightbulb
         createdAt: now.subtract(const Duration(days: 1)),
         likeCount: 15,
@@ -251,7 +251,7 @@ class MockSocialFeedGateway implements SocialFeedGateway {
         content:
             '7-day Body lane streak! First full week without missing. Feels like a superpower.',
         highlightValue: '7-day streak!',
-        colorValue: 0xFF34D399, // green
+        colorValue: 0xFF7DB495, // green
         iconCodePoint: 0xe80e, // Icons.local_fire_department
         createdAt: now.subtract(const Duration(days: 1, hours: 6)),
         likeCount: 3,
@@ -347,23 +347,23 @@ class MockSocialFeedGateway implements SocialFeedGateway {
     int icon;
     switch (type) {
       case PostType.win:
-        color = 0xFF22D3EE;
+        color = 0xFF7C9CC4;
         icon = 0xe5d5; // fitness_center
         break;
       case PostType.milestone:
-        color = 0xFF8B5CF6;
+        color = 0xFFC8894A;
         icon = 0xe838; // emoji_events
         break;
       case PostType.streak:
-        color = 0xFF34D399;
+        color = 0xFF7DB495;
         icon = 0xe80e; // local_fire_department
         break;
       case PostType.reflection:
-        color = 0xFFC4B5FD;
+        color = 0xFFE8C9A3;
         icon = 0xe3ae; // lightbulb
         break;
       case PostType.challenge:
-        color = 0xFFF59E0B;
+        color = 0xFFE2B354;
         icon = 0xf06bb; // bolt
         break;
     }

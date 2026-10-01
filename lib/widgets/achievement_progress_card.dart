@@ -34,7 +34,7 @@ class AchievementProgressCard extends StatelessWidget {
   Color _categoryColor(AchievementCategory category) {
     switch (category) {
       case AchievementCategory.streak:
-        return const Color(0xFFEF4444);
+        return const Color(0xFFE0605A);
       case AchievementCategory.actions:
         return AppColors.green;
       case AchievementCategory.lanes:

@@ -58,7 +58,7 @@ class _CouncilResponseCardState extends State<CouncilResponseCard>
   Color _toneColor(CouncilTone tone) {
     switch (tone) {
       case CouncilTone.toughLove:
-        return const Color(0xFFEF4444);
+        return const Color(0xFFE0605A);
       case CouncilTone.philosophical:
         return AppColors.purpleSoft;
       case CouncilTone.practical:
@@ -73,7 +73,7 @@ class _CouncilResponseCardState extends State<CouncilResponseCard>
   Color _toneBadgeBackground(CouncilTone tone) {
     switch (tone) {
       case CouncilTone.toughLove:
-        return const Color(0xFFEF4444).withValues(alpha: 0.15);
+        return const Color(0xFFE0605A).withValues(alpha: 0.15);
       case CouncilTone.philosophical:
         return AppColors.purpleSoft.withValues(alpha: 0.15);
       case CouncilTone.practical:

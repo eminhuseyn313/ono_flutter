@@ -57,15 +57,15 @@ extension ArcLayerX on ArcLayer {
   Color get color {
     switch (this) {
       case ArcLayer.identity:
-        return const Color(0xFF8B5CF6);
+        return const Color(0xFFC8894A);
       case ArcLayer.habit:
-        return const Color(0xFFF97316);
+        return const Color(0xFFD9774A);
       case ArcLayer.knowledge:
-        return const Color(0xFF06B6D4);
+        return const Color(0xFF6A89B0);
       case ArcLayer.challenge:
-        return const Color(0xFFEF4444);
+        return const Color(0xFFE0605A);
       case ArcLayer.reflection:
-        return const Color(0xFF10B981);
+        return const Color(0xFF6FA386);
     }
   }
 

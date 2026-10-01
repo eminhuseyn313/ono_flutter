@@ -677,7 +677,7 @@ class _SettingsScreenState extends State<SettingsScreen>
             fontWeight: FontWeight.w500,
           ),
         ),
-        backgroundColor: success ? AppColors.green : const Color(0xFFEF4444),
+        backgroundColor: success ? AppColors.green : const Color(0xFFE0605A),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.all(16),
@@ -698,7 +698,7 @@ class _SettingsScreenState extends State<SettingsScreen>
             children: [
               const Icon(
                 Icons.warning_amber_rounded,
-                color: Color(0xFFEF4444),
+                color: Color(0xFFE0605A),
                 size: 24,
               ),
               const SizedBox(width: 10),
@@ -750,7 +750,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      backgroundColor: const Color(0xFFEF4444),
+                      backgroundColor: const Color(0xFFE0605A),
                       behavior: SnackBarBehavior.floating,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -765,7 +765,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFFEF4444),
+                  color: const Color(0xFFE0605A),
                 ),
               ),
             ),

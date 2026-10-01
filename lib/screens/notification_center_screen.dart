@@ -296,7 +296,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen>
   Color _typeColor(NotificationType type) {
     switch (type) {
       case NotificationType.streakRisk:
-        return const Color(0xFFF97316);
+        return const Color(0xFFD9774A);
       case NotificationType.roleModel:
         return AppColors.purple;
       case NotificationType.socialProof:

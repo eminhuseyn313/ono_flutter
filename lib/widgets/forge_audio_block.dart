@@ -58,12 +58,12 @@ class _ForgeAudioBlockState extends State<ForgeAudioBlock> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A1C2E) : Colors.white,
+        color: isDark ? const Color(0xFF1B1D22) : Colors.white,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: isDark
-              ? const Color(0xFF8B5CF6).withValues(alpha: 0.3)
-              : const Color(0xFF8B5CF6).withValues(alpha: 0.15),
+              ? const Color(0xFFC8894A).withValues(alpha: 0.3)
+              : const Color(0xFFC8894A).withValues(alpha: 0.15),
         ),
       ),
       child: Column(
@@ -76,12 +76,12 @@ class _ForgeAudioBlockState extends State<ForgeAudioBlock> {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF8B5CF6).withValues(alpha: 0.15),
+                  color: const Color(0xFFC8894A).withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
                   Icons.headphones,
-                  color: Color(0xFF8B5CF6),
+                  color: Color(0xFFC8894A),
                   size: 20,
                 ),
               ),
@@ -121,7 +121,7 @@ class _ForgeAudioBlockState extends State<ForgeAudioBlock> {
                   width: 44,
                   height: 44,
                   decoration: const BoxDecoration(
-                    color: Color(0xFF8B5CF6),
+                    color: Color(0xFFC8894A),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -144,7 +144,7 @@ class _ForgeAudioBlockState extends State<ForgeAudioBlock> {
                             ? Colors.white.withValues(alpha: 0.1)
                             : Colors.grey.shade200,
                         valueColor: const AlwaysStoppedAnimation<Color>(
-                          Color(0xFF8B5CF6),
+                          Color(0xFFC8894A),
                         ),
                       ),
                     ),
@@ -186,13 +186,13 @@ class _ForgeAudioBlockState extends State<ForgeAudioBlock> {
                         ? Icons.expand_less
                         : Icons.expand_more,
                     size: 18,
-                    color: const Color(0xFF8B5CF6),
+                    color: const Color(0xFFC8894A),
                   ),
                   const SizedBox(width: 4),
                   Text(
                     _showTranscript ? 'Hide Transcript' : 'Show Transcript',
                     style: const TextStyle(
-                      color: Color(0xFF8B5CF6),
+                      color: Color(0xFFC8894A),
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),

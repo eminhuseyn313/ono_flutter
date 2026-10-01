@@ -43,17 +43,17 @@ enum CheckinMood {
   int get colorValue {
     switch (this) {
       case CheckinMood.terrible:
-        return 0xFFEF4444;
+        return 0xFFE0605A;
       case CheckinMood.low:
-        return 0xFFF97316;
+        return 0xFFD9774A;
       case CheckinMood.neutral:
-        return 0xFFFBBF24;
+        return 0xFFE8C46A;
       case CheckinMood.good:
-        return 0xFF34D399;
+        return 0xFF7DB495;
       case CheckinMood.great:
-        return 0xFF22D3EE;
+        return 0xFF7C9CC4;
       case CheckinMood.amazing:
-        return 0xFF8B5CF6;
+        return 0xFFC8894A;
     }
   }
 }
@@ -94,13 +94,13 @@ enum FocusArea {
   int get colorValue {
     switch (this) {
       case FocusArea.mind:
-        return 0xFF8B5CF6;
+        return 0xFFC8894A;
       case FocusArea.body:
-        return 0xFF22D3EE;
+        return 0xFF7C9CC4;
       case FocusArea.social:
-        return 0xFF34D399;
+        return 0xFF7DB495;
       case FocusArea.skill:
-        return 0xFFF59E0B;
+        return 0xFFE2B354;
     }
   }
 

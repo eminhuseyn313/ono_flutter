@@ -1091,7 +1091,7 @@ class _ReadyToGoStepState extends State<_ReadyToGoStep>
           AppColors.purpleSoft,
           AppColors.cyan,
           AppColors.green,
-          const Color(0xFFF59E0B),
+          const Color(0xFFE2B354),
         ][_random.nextInt(5)],
       ));
     }
@@ -1198,7 +1198,7 @@ class _ReadyToGoStepState extends State<_ReadyToGoStep>
                 value: profile.schedule != null
                     ? '${profile.schedule!.activeDays.length} days/week'
                     : '5 days/week',
-                color: const Color(0xFFF59E0B),
+                color: const Color(0xFFE2B354),
                 delay: 4,
               ),
               const SizedBox(height: 40),

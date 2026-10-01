@@ -83,7 +83,7 @@ class _PowerRankingsScreenState extends State<PowerRankingsScreen>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Icon(Icons.error_outline,
-                      color: Color(0xFFEF4444), size: 48),
+                      color: Color(0xFFE0605A), size: 48),
                   const SizedBox(height: 16),
                   Text(
                     provider.error!,
@@ -457,7 +457,7 @@ class _PowerRankingsScreenState extends State<PowerRankingsScreen>
     final delta = digest.scoreDelta;
     final isPositive = delta > 0;
     final color =
-        isPositive ? const Color(0xFF34D399) : const Color(0xFFEF4444);
+        isPositive ? const Color(0xFF7DB495) : const Color(0xFFE0605A);
     final icon = isPositive ? Icons.trending_up : Icons.trending_down;
 
     if (delta == 0) {
@@ -957,7 +957,7 @@ class _PowerRankingsScreenState extends State<PowerRankingsScreen>
             children: [
               Icon(
                 Icons.lightbulb_outline_rounded,
-                color: Color(0xFFF59E0B),
+                color: Color(0xFFE2B354),
                 size: 20,
               ),
               SizedBox(width: 8),

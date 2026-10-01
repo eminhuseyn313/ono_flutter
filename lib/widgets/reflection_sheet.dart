@@ -113,7 +113,7 @@ class _ReflectionSheetState extends State<ReflectionSheet>
       case 'body':
         return AppColors.green;
       case 'social':
-        return const Color(0xFFF97316);
+        return const Color(0xFFD9774A);
       case 'skill':
         return AppColors.cyan;
       default:

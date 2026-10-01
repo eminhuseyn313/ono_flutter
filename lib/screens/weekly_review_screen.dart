@@ -105,7 +105,7 @@ class _WeeklyReviewScreenState extends State<WeeklyReviewScreen>
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFF0F0A1E), Color(0xFF0A0C14), Color(0xFF0A1014)],
+            colors: [Color(0xFF111214), Color(0xFF0C0D0F), Color(0xFF0E1012)],
           ),
         ),
         child: Stack(
@@ -649,8 +649,8 @@ class _WeeklyReviewScreenState extends State<WeeklyReviewScreen>
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                AppColors.purple.withValues(alpha: 0.12),
-                AppColors.cyan.withValues(alpha: 0.06),
+                AppColors.purpleSoft.withValues(alpha: 0.12),
+                AppColors.purple.withValues(alpha: 0.06),
               ],
             ),
             borderRadius: BorderRadius.circular(20),

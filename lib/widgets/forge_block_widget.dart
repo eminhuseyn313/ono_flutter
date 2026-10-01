@@ -103,8 +103,8 @@ class _ForgeBlockWidgetState extends State<ForgeBlockWidget> {
             bgColor = AppColors.green.withValues(alpha: 0.1);
             borderColor = AppColors.green.withValues(alpha: 0.4);
           } else if (showResult && isSelected && !isCorrect) {
-            bgColor = const Color(0xFFEF4444).withValues(alpha: 0.1);
-            borderColor = const Color(0xFFEF4444).withValues(alpha: 0.4);
+            bgColor = const Color(0xFFE0605A).withValues(alpha: 0.1);
+            borderColor = const Color(0xFFE0605A).withValues(alpha: 0.4);
           } else if (isSelected) {
             bgColor = AppColors.purple.withValues(alpha: 0.1);
             borderColor = AppColors.purple;
@@ -146,7 +146,7 @@ class _ForgeBlockWidgetState extends State<ForgeBlockWidget> {
                           color: AppColors.green, size: 20),
                     if (showResult && isSelected && !isCorrect)
                       const Icon(Icons.cancel,
-                          color: Color(0xFFEF4444), size: 20),
+                          color: Color(0xFFE0605A), size: 20),
                   ],
                 ),
               ),
@@ -300,8 +300,8 @@ class _ForgeBlockWidgetState extends State<ForgeBlockWidget> {
             bgColor = AppColors.green.withValues(alpha: 0.1);
             borderColor = AppColors.green.withValues(alpha: 0.4);
           } else if (answered && isSelected && !isCorrect) {
-            bgColor = const Color(0xFFEF4444).withValues(alpha: 0.1);
-            borderColor = const Color(0xFFEF4444).withValues(alpha: 0.4);
+            bgColor = const Color(0xFFE0605A).withValues(alpha: 0.1);
+            borderColor = const Color(0xFFE0605A).withValues(alpha: 0.4);
           }
 
           return Padding(
@@ -389,8 +389,8 @@ class _ForgeBlockWidgetState extends State<ForgeBlockWidget> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.purple.withValues(alpha: 0.12),
-            AppColors.cyan.withValues(alpha: 0.08),
+            AppColors.purpleSoft.withValues(alpha: 0.12),
+            AppColors.purple.withValues(alpha: 0.08),
           ],
         ),
         borderRadius: BorderRadius.circular(16),

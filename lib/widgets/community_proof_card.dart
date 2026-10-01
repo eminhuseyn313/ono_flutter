@@ -172,7 +172,7 @@ class CommunityProofCard extends StatelessWidget {
                             ? Icons.favorite
                             : Icons.favorite_border,
                         color: proof.isLiked
-                            ? const Color(0xFFEF4444)
+                            ? const Color(0xFFE0605A)
                             : AppColors.grey,
                         size: 18,
                       ),
@@ -181,7 +181,7 @@ class CommunityProofCard extends StatelessWidget {
                         '\${proof.likesCount}',
                         style: TextStyle(
                           color: proof.isLiked
-                              ? const Color(0xFFEF4444)
+                              ? const Color(0xFFE0605A)
                               : AppColors.grey,
                           fontSize: 13,
                           fontWeight: FontWeight.w500,

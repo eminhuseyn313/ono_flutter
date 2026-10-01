@@ -231,7 +231,7 @@ class FeedPostCard extends StatelessWidget {
                             ? Icons.favorite
                             : Icons.favorite_border,
                         color: post.isLikedByMe
-                            ? const Color(0xFFEF4444)
+                            ? const Color(0xFFE0605A)
                             : AppColors.grey,
                         size: 20,
                       ),
@@ -240,7 +240,7 @@ class FeedPostCard extends StatelessWidget {
                         '${post.likeCount}',
                         style: GoogleFonts.plusJakartaSans(
                           color: post.isLikedByMe
-                              ? const Color(0xFFEF4444)
+                              ? const Color(0xFFE0605A)
                               : AppColors.grey,
                           fontSize: 13,
                           fontWeight: FontWeight.w500,

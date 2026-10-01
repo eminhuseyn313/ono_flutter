@@ -124,7 +124,7 @@ class _NotificationBannerState extends State<NotificationBanner>
       case 'body':
         return AppColors.green;
       case 'social':
-        return const Color(0xFFF97316);
+        return const Color(0xFFD9774A);
       case 'skill':
         return AppColors.cyan;
       default:
@@ -135,7 +135,7 @@ class _NotificationBannerState extends State<NotificationBanner>
   Color _typeColor(NotificationType type) {
     switch (type) {
       case NotificationType.streakRisk:
-        return const Color(0xFFF97316);
+        return const Color(0xFFD9774A);
       case NotificationType.roleModel:
         return AppColors.purple;
       case NotificationType.socialProof:

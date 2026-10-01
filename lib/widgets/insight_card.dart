@@ -30,10 +30,10 @@ class InsightCard extends StatelessWidget {
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
         decoration: BoxDecoration(
-          color: const Color(0xFFEF4444).withValues(alpha: 0.2),
+          color: const Color(0xFFE0605A).withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(16),
         ),
-        child: const Icon(Icons.close, color: Color(0xFFEF4444)),
+        child: const Icon(Icons.close, color: Color(0xFFE0605A)),
       ),
       child: GestureDetector(
         onTap: onTap,

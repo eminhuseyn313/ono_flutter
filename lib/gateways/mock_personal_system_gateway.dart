@@ -1,0 +1,51 @@
+import 'dart:convert';
+
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../data/emin_system.dart';
+import '../models/personal_system.dart';
+import 'personal_system_gateway.dart';
+
+/// Device-local implementation: the whole state is one JSON blob in
+/// SharedPreferences, so check-offs survive restarts in both mock and
+/// production builds. First load seeds the evidence archive with the
+/// "knowledge others don't have" items from the profile.
+class MockPersonalSystemGateway implements PersonalSystemGateway {
+  String _key(String userId) => 'personal_system_$userId';
+
+  @override
+  Future<PersonalSystemState> load(String userId) async {
+    await Future.delayed(const Duration(milliseconds: 150));
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_key(userId));
+    if (raw != null) {
+      try {
+        return PersonalSystemState.fromJson(
+            jsonDecode(raw) as Map<String, dynamic>);
+      } catch (_) {
+        // Corrupt blob — fall through to a fresh seed.
+      }
+    }
+    final now = DateTime.now();
+    final seeded = PersonalSystemState(
+      programStart: DateTime(now.year, now.month, now.day),
+      evidence: [
+        for (var i = 0; i < evidenceSeeds.length; i++)
+          EvidenceItem(
+            id: 'seed_$i',
+            section: 'knowledge',
+            text: evidenceSeeds[i],
+            createdAt: now,
+          ),
+      ],
+    );
+    await save(userId, seeded);
+    return seeded;
+  }
+
+  @override
+  Future<void> save(String userId, PersonalSystemState state) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_key(userId), jsonEncode(state.toJson()));
+  }
+}

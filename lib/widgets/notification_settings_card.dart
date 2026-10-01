@@ -103,8 +103,8 @@ class _NotificationSettingsCardState extends State<NotificationSettingsCard>
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
                                   colors: [
-                                    AppColors.purple.withValues(alpha: 0.25),
-                                    AppColors.cyan.withValues(alpha: 0.15),
+                                    AppColors.purpleSoft.withValues(alpha: 0.25),
+                                    AppColors.purple.withValues(alpha: 0.15),
                                   ],
                                 ),
                                 borderRadius: BorderRadius.circular(13),
@@ -215,7 +215,7 @@ class _CategoryChip extends StatelessWidget {
   Color _color(NotificationType type) {
     switch (type) {
       case NotificationType.streakRisk:
-        return const Color(0xFFF97316);
+        return const Color(0xFFD9774A);
       case NotificationType.roleModel:
         return AppColors.purple;
       case NotificationType.socialProof:

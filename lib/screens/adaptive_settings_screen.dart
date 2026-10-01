@@ -117,8 +117,8 @@ class _AdaptiveSettingsScreenState extends State<AdaptiveSettingsScreen> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.purple.withValues(alpha: 0.15),
-            AppColors.cyan.withValues(alpha: 0.08),
+            AppColors.purpleSoft.withValues(alpha: 0.15),
+            AppColors.purple.withValues(alpha: 0.08),
           ],
         ),
         borderRadius: BorderRadius.circular(20),
@@ -424,7 +424,7 @@ class _AdaptiveSettingsScreenState extends State<AdaptiveSettingsScreen> {
       statusColor = AppColors.green;
       statusText = 'Excelling';
     } else if (perf.isStruggling) {
-      statusColor = const Color(0xFFEF4444);
+      statusColor = const Color(0xFFE0605A);
       statusText = 'Struggling';
     } else {
       statusColor = AppColors.grey;

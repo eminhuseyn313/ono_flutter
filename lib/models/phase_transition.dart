@@ -75,7 +75,7 @@ class ArcPhaseInfo {
       description:
           'Lay the groundwork. Build awareness, set intentions, and '
           'establish the daily rhythms that will carry you forward.',
-      themeColor: Color(0xFF8B5CF6), // purple — identity / start
+      themeColor: Color(0xFFC8894A), // purple — identity / start
     ),
     ArcPhaseInfo(
       phaseNumber: 2,
@@ -84,7 +84,7 @@ class ArcPhaseInfo {
       description:
           'Intensify your practice. Challenge yourself, deepen knowledge, '
           'and turn early habits into unshakeable patterns.',
-      themeColor: Color(0xFF06B6D4), // cyan — knowledge / expansion
+      themeColor: Color(0xFF6A89B0), // cyan — knowledge / expansion
     ),
     ArcPhaseInfo(
       phaseNumber: 3,
@@ -93,7 +93,7 @@ class ArcPhaseInfo {
       description:
           'Push to the peak. Integrate all layers, face your hardest '
           'challenges, and solidify the person you have become.',
-      themeColor: Color(0xFFF97316), // orange — habit / fire
+      themeColor: Color(0xFFD9774A), // orange — habit / fire
     ),
   ];
 

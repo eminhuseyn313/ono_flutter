@@ -1,19 +1,24 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../theme/app_theme.dart';
 
-/// Shell widget with a floating, animated bottom navigation bar.
+/// Shell widget with a solid, docked bottom navigation bar.
+///
+/// Tabs: Today · Plan · Playbook · Me. Journal and Progress stay in the
+/// shell (reachable from Playbook) but have no tab of their own.
 class MainScreen extends StatelessWidget {
   final Widget child;
 
   const MainScreen({super.key, required this.child});
 
-  static const _tabs = ['/home', '/progress', '/journal', '/profile'];
+  static const _tabs = ['/home', '/plan', '/playbook', '/profile'];
 
   int _currentIndex(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
+    if (location.startsWith('/journal') || location.startsWith('/progress')) {
+      return 2;
+    }
     final index = _tabs.indexWhere((t) => location.startsWith(t));
     return index < 0 ? 0 : index;
   }
@@ -26,10 +31,10 @@ class MainScreen extends StatelessWidget {
       backgroundColor: AppColors.background,
       body: child,
       extendBody: true,
-      bottomNavigationBar: _FloatingNavBar(
+      bottomNavigationBar: _NavBar(
         currentIndex: index,
         onTap: (i) {
-          HapticFeedback.lightImpact();
+          HapticFeedback.selectionClick();
           context.go(_tabs[i]);
         },
       ),
@@ -37,79 +42,44 @@ class MainScreen extends StatelessWidget {
   }
 }
 
-class _FloatingNavBar extends StatelessWidget {
+class _NavBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
 
-  const _FloatingNavBar({
-    required this.currentIndex,
-    required this.onTap,
-  });
+  const _NavBar({required this.currentIndex, required this.onTap});
+
+  static const _items = [
+    (Icons.wb_sunny_outlined, Icons.wb_sunny_rounded, 'Today'),
+    (Icons.calendar_today_outlined, Icons.calendar_today_rounded, 'Plan'),
+    (Icons.menu_book_outlined, Icons.menu_book_rounded, 'Playbook'),
+    (Icons.person_outline_rounded, Icons.person_rounded, 'Me'),
+  ];
 
   @override
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        bottom: bottomPadding + 12,
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.background,
+        border: Border(top: BorderSide(color: AppColors.divider)),
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-          child: Container(
-            height: 68,
-            decoration: BoxDecoration(
-              color: AppColors.card.withValues(alpha: 0.85),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: AppColors.divider.withValues(alpha: 0.6),
+      padding: EdgeInsets.only(bottom: bottomPadding, top: 6),
+      child: SizedBox(
+        height: 58,
+        child: Row(
+          children: [
+            for (var i = 0; i < _items.length; i++)
+              Expanded(
+                child: _NavItem(
+                  icon: _items[i].$1,
+                  activeIcon: _items[i].$2,
+                  label: _items[i].$3,
+                  isActive: currentIndex == i,
+                  onTap: () => onTap(i),
+                ),
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.3),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _NavItem(
-                  icon: Icons.home_outlined,
-                  activeIcon: Icons.home_rounded,
-                  label: 'Home',
-                  isActive: currentIndex == 0,
-                  onTap: () => onTap(0),
-                ),
-                _NavItem(
-                  icon: Icons.bar_chart_outlined,
-                  activeIcon: Icons.bar_chart_rounded,
-                  label: 'Progress',
-                  isActive: currentIndex == 1,
-                  onTap: () => onTap(1),
-                ),
-                _NavItem(
-                  icon: Icons.book_outlined,
-                  activeIcon: Icons.book_rounded,
-                  label: 'Journal',
-                  isActive: currentIndex == 2,
-                  onTap: () => onTap(2),
-                ),
-                _NavItem(
-                  icon: Icons.person_outline_rounded,
-                  activeIcon: Icons.person_rounded,
-                  label: 'Profile',
-                  isActive: currentIndex == 3,
-                  onTap: () => onTap(3),
-                ),
-              ],
-            ),
-          ),
+          ],
         ),
       ),
     );
@@ -133,46 +103,33 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final color = isActive ? AppColors.white : AppColors.grey;
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: 72,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeOut,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: isActive
-                ? AppColors.purple.withValues(alpha: 0.15)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(16),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: isActive ? 18 : 0,
+            height: 2,
+            margin: const EdgeInsets.only(bottom: 8),
+            decoration: BoxDecoration(
+              color: AppColors.accent,
+              borderRadius: BorderRadius.circular(2),
+            ),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 200),
-                child: Icon(
-                  isActive ? activeIcon : icon,
-                  key: ValueKey(isActive),
-                  color: isActive ? AppColors.purple : AppColors.grey,
-                  size: isActive ? 26 : 24,
-                ),
-              ),
-              const SizedBox(height: 4),
-              AnimatedDefaultTextStyle(
-                duration: const Duration(milliseconds: 200),
-                style: TextStyle(
-                  color: isActive ? AppColors.purple : AppColors.grey,
-                  fontSize: isActive ? 11 : 10,
-                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                ),
-                child: Text(label),
-              ),
-            ],
+          Icon(isActive ? activeIcon : icon, color: color, size: 22),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: AppText.small(color: color).copyWith(
+              fontSize: 11,
+              fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

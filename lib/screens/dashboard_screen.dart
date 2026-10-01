@@ -288,7 +288,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           children: [
             Icon(
               Icons.error_outline_rounded,
-              color: const Color(0xFFEF4444),
+              color: const Color(0xFFE0605A),
               size: 48,
             ),
             const SizedBox(height: 16),
@@ -402,10 +402,10 @@ class _DashboardScreenState extends State<DashboardScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
+        color: const Color(0xFFE2B354).withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: const Color(0xFFF59E0B).withValues(alpha: 0.3),
+          color: const Color(0xFFE2B354).withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -414,7 +414,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         children: [
           const Icon(
             Icons.local_fire_department_rounded,
-            color: Color(0xFFF59E0B),
+            color: Color(0xFFE2B354),
             size: 20,
           ),
           const SizedBox(width: 6),
@@ -423,7 +423,7 @@ class _DashboardScreenState extends State<DashboardScreen>
             style: GoogleFonts.plusJakartaSans(
               fontSize: 16,
               fontWeight: FontWeight.w800,
-              color: const Color(0xFFF59E0B),
+              color: const Color(0xFFE2B354),
             ),
           ),
         ],

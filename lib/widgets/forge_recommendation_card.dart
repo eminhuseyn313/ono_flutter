@@ -21,12 +21,12 @@ class ForgeRecommendationCard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final laneColors = {
-      'mind': const Color(0xFF8B5CF6),
-      'body': const Color(0xFF10B981),
-      'social': const Color(0xFF06B6D4),
-      'skill': const Color(0xFFF59E0B),
+      'mind': const Color(0xFFC8894A),
+      'body': const Color(0xFF6FA386),
+      'social': const Color(0xFF6A89B0),
+      'skill': const Color(0xFFE2B354),
     };
-    final color = laneColors[course?.lane ?? ''] ?? const Color(0xFF8B5CF6);
+    final color = laneColors[course?.lane ?? ''] ?? const Color(0xFFC8894A);
 
     final basisLabels = {
       RecommendationBasis.laneScore: 'Based on your lane scores',
@@ -48,7 +48,7 @@ class ForgeRecommendationCard extends StatelessWidget {
         width: 220,
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1A1C2E) : Colors.white,
+          color: isDark ? const Color(0xFF1B1D22) : Colors.white,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: isDark
@@ -169,11 +169,11 @@ class ForgeRecommendationCard extends StatelessWidget {
 
   Widget _difficultyChip(String difficulty, bool isDark) {
     final colors = {
-      'beginner': const Color(0xFF10B981),
-      'intermediate': const Color(0xFFF59E0B),
-      'advanced': const Color(0xFFEF4444),
+      'beginner': const Color(0xFF6FA386),
+      'intermediate': const Color(0xFFE2B354),
+      'advanced': const Color(0xFFE0605A),
     };
-    final color = colors[difficulty] ?? const Color(0xFF8B5CF6);
+    final color = colors[difficulty] ?? const Color(0xFFC8894A);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),

@@ -114,7 +114,7 @@ class QuickAccessCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: const Color(0xFFEF4444),
+        color: const Color(0xFFE0605A),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(

@@ -93,15 +93,15 @@ enum VisionCategory {
   int get colorValue {
     switch (this) {
       case VisionCategory.mind:
-        return 0xFF8B5CF6;
+        return 0xFFC8894A;
       case VisionCategory.body:
-        return 0xFF22D3EE;
+        return 0xFF7C9CC4;
       case VisionCategory.social:
-        return 0xFF34D399;
+        return 0xFF7DB495;
       case VisionCategory.skill:
-        return 0xFFF59E0B;
+        return 0xFFE2B354;
       case VisionCategory.life:
-        return 0xFFEF4444;
+        return 0xFFE0605A;
     }
   }
 

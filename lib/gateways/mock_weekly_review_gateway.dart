@@ -56,7 +56,7 @@ class MockWeeklyReviewGateway implements WeeklyReviewGateway {
       laneScores: [
         const LaneReviewScore(
           laneName: 'Mind',
-          colorValue: 0xFF8B5CF6,
+          colorValue: 0xFFC8894A,
           iconCodePoint: 0xe0f0,
           score: 8.0,
           actionsCompleted: 5,
@@ -64,7 +64,7 @@ class MockWeeklyReviewGateway implements WeeklyReviewGateway {
         ),
         const LaneReviewScore(
           laneName: 'Body',
-          colorValue: 0xFF34D399,
+          colorValue: 0xFF7DB495,
           iconCodePoint: 0xe566,
           score: 7.5,
           actionsCompleted: 4,
@@ -72,7 +72,7 @@ class MockWeeklyReviewGateway implements WeeklyReviewGateway {
         ),
         const LaneReviewScore(
           laneName: 'Social',
-          colorValue: 0xFF22D3EE,
+          colorValue: 0xFF7C9CC4,
           iconCodePoint: 0xe7fb,
           score: 5.0,
           actionsCompleted: 2,
@@ -80,7 +80,7 @@ class MockWeeklyReviewGateway implements WeeklyReviewGateway {
         ),
         const LaneReviewScore(
           laneName: 'Skill',
-          colorValue: 0xFFF59E0B,
+          colorValue: 0xFFE2B354,
           iconCodePoint: 0xe80c,
           score: 7.0,
           actionsCompleted: 3,
@@ -162,7 +162,7 @@ class MockWeeklyReviewGateway implements WeeklyReviewGateway {
           laneScores: [
             LaneReviewScore(
               laneName: 'Mind',
-              colorValue: 0xFF8B5CF6,
+              colorValue: 0xFFC8894A,
               iconCodePoint: 0xe0f0,
               score: 5.0 + (i % 4),
               actionsCompleted: 3 + (i % 3),
@@ -170,7 +170,7 @@ class MockWeeklyReviewGateway implements WeeklyReviewGateway {
             ),
             LaneReviewScore(
               laneName: 'Body',
-              colorValue: 0xFF34D399,
+              colorValue: 0xFF7DB495,
               iconCodePoint: 0xe566,
               score: 4.0 + (i % 5),
               actionsCompleted: 2 + (i % 4),
@@ -178,7 +178,7 @@ class MockWeeklyReviewGateway implements WeeklyReviewGateway {
             ),
             LaneReviewScore(
               laneName: 'Social',
-              colorValue: 0xFF22D3EE,
+              colorValue: 0xFF7C9CC4,
               iconCodePoint: 0xe7fb,
               score: 3.0 + (i % 4),
               actionsCompleted: 1 + (i % 3),
@@ -186,7 +186,7 @@ class MockWeeklyReviewGateway implements WeeklyReviewGateway {
             ),
             LaneReviewScore(
               laneName: 'Skill',
-              colorValue: 0xFFF59E0B,
+              colorValue: 0xFFE2B354,
               iconCodePoint: 0xe80c,
               score: 5.0 + (i % 3),
               actionsCompleted: 2 + (i % 3),

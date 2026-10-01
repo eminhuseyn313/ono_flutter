@@ -149,7 +149,7 @@ class TrendingProfileCard extends StatelessWidget {
         ? AppColors.green
         : days >= 2
             ? AppColors.warning
-            : const Color(0xFFEF4444);
+            : const Color(0xFFE0605A);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -169,7 +169,7 @@ class TrendingProfileCard extends StatelessWidget {
   }
 
   Color get _reasonColor => switch (profile.trendingReason) {
-        TrendingReason.viralMoment => const Color(0xFFFF6B35),
+        TrendingReason.viralMoment => const Color(0xFFD9774A),
         TrendingReason.achievement => AppColors.warning,
         TrendingReason.comeback => AppColors.green,
         TrendingReason.controversy => const Color(0xFFE040FB),

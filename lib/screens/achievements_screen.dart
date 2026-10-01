@@ -60,7 +60,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
       case AchievementCategory.milestones:
         return AppColors.purple;
       case AchievementCategory.special:
-        return const Color(0xFFEF4444);
+        return const Color(0xFFE0605A);
     }
   }
 
@@ -109,9 +109,9 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Color(0xFF0F0A1E),
-                  Color(0xFF0A0C14),
-                  Color(0xFF0A1014),
+                  Color(0xFF111214),
+                  Color(0xFF0C0D0F),
+                  Color(0xFF0E1012),
                 ],
               ),
             ),

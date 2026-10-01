@@ -20,7 +20,7 @@ class _MoodTimelineState extends State<MoodTimeline> {
   Color _moodColor(VaultMood mood) {
     switch (mood) {
       case VaultMood.onFire:
-        return const Color(0xFFEF4444);
+        return const Color(0xFFE0605A);
       case VaultMood.motivated:
         return AppColors.green;
       case VaultMood.neutral:

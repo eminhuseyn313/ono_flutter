@@ -166,9 +166,9 @@ class _PlanCompletionRingState extends State<PlanCompletionRing>
   }
 
   Color _blockColor(double completion) {
-    if (completion >= 0.8) return const Color(0xFF34D399);
-    if (completion >= 0.5) return const Color(0xFF22D3EE);
-    if (completion > 0) return const Color(0xFFF59E0B);
+    if (completion >= 0.8) return const Color(0xFF7DB495);
+    if (completion >= 0.5) return const Color(0xFF7C9CC4);
+    if (completion > 0) return const Color(0xFFE2B354);
     return AppColors.grey;
   }
 }
@@ -188,7 +188,7 @@ class _CompletionRingPainter extends CustomPainter {
     final radius = (size.width - strokeWidth) / 2;
 
     final backgroundPaint = Paint()
-      ..color = const Color(0xFF202B3F)
+      ..color = const Color(0xFF272A30)
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
@@ -202,9 +202,9 @@ class _CompletionRingPainter extends CustomPainter {
       startAngle: -math.pi / 2,
       endAngle: 3 * math.pi / 2,
       colors: const [
-        Color(0xFF8B5CF6),
-        Color(0xFF22D3EE),
-        Color(0xFF34D399),
+        Color(0xFFC8894A),
+        Color(0xFF7C9CC4),
+        Color(0xFF7DB495),
       ],
       stops: const [0.0, 0.5, 1.0],
       transform: const GradientRotation(-math.pi / 2),

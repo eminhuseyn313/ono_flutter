@@ -19,7 +19,7 @@ class ReviewGoalCard extends StatelessWidget {
   Color _priorityColor() {
     switch (goal.priority) {
       case 1:
-        return const Color(0xFFEF4444);
+        return const Color(0xFFE0605A);
       case 2:
         return AppColors.warning;
       default:
@@ -165,14 +165,14 @@ class ReviewGoalCard extends StatelessWidget {
         background: Container(
           margin: const EdgeInsets.only(bottom: 10),
           decoration: BoxDecoration(
-            color: const Color(0xFFEF4444).withValues(alpha: 0.2),
+            color: const Color(0xFFE0605A).withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(14),
           ),
           alignment: Alignment.centerRight,
           padding: const EdgeInsets.only(right: 20),
           child: const Icon(
             Icons.delete_outline,
-            color: Color(0xFFEF4444),
+            color: Color(0xFFE0605A),
             size: 22,
           ),
         ),

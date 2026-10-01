@@ -14,7 +14,7 @@ class EnergySlider extends StatelessWidget {
   });
 
   Color _trackColor() {
-    if (value < 0.25) return const Color(0xFFEF4444);
+    if (value < 0.25) return const Color(0xFFE0605A);
     if (value < 0.5) return AppColors.warning;
     if (value < 0.75) return AppColors.green;
     return AppColors.cyan;
@@ -89,10 +89,10 @@ class EnergySlider extends StatelessWidget {
                             borderRadius: BorderRadius.circular(4),
                             gradient: const LinearGradient(
                               colors: [
-                                Color(0xFFEF4444),
-                                Color(0xFFF59E0B),
-                                Color(0xFF34D399),
-                                Color(0xFF22D3EE),
+                                Color(0xFFE0605A),
+                                Color(0xFFE2B354),
+                                Color(0xFF7DB495),
+                                Color(0xFF7C9CC4),
                               ],
                             ),
                           ),
@@ -105,7 +105,7 @@ class EnergySlider extends StatelessWidget {
                             borderRadius: BorderRadius.circular(4),
                             gradient: LinearGradient(
                               colors: [
-                                const Color(0xFFEF4444),
+                                const Color(0xFFE0605A),
                                 color,
                               ],
                             ),

@@ -146,14 +146,14 @@ class _LaneRankCardState extends State<LaneRankCard>
         borderRadius: BorderRadius.circular(12),
         gradient: isFirst
             ? const LinearGradient(
-                colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
+                colors: [Color(0xFFD9B45E), Color(0xFFD9A040)],
               )
             : null,
         color: isFirst ? null : AppColors.cardLight,
         boxShadow: isFirst
             ? [
                 BoxShadow(
-                  color: const Color(0xFFFFD700).withValues(alpha: 0.3),
+                  color: const Color(0xFFD9B45E).withValues(alpha: 0.3),
                   blurRadius: 8,
                 ),
               ]

@@ -398,7 +398,7 @@ class _CreateCapsuleSheetState extends State<CreateCapsuleSheet>
                         gradient: const LinearGradient(
                           colors: [
                             AppColors.purple,
-                            Color(0xFF7C3AED),
+                            Color(0xFFA86D35),
                           ],
                         ),
                         borderRadius: BorderRadius.circular(16),
@@ -481,7 +481,7 @@ class _CreateCapsuleSheetState extends State<CreateCapsuleSheet>
       case 'body':
         return AppColors.green;
       case 'social':
-        return const Color(0xFFF97316);
+        return const Color(0xFFD9774A);
       case 'skill':
         return AppColors.cyan;
       default:

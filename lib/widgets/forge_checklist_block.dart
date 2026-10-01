@@ -49,16 +49,16 @@ class _ForgeChecklistBlockState extends State<ForgeChecklistBlock> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A1C2E) : Colors.white,
+        color: isDark ? const Color(0xFF1B1D22) : Colors.white,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: isDark
               ? (allDone
-                  ? const Color(0xFF10B981).withValues(alpha: 0.4)
-                  : const Color(0xFFF59E0B).withValues(alpha: 0.3))
+                  ? const Color(0xFF6FA386).withValues(alpha: 0.4)
+                  : const Color(0xFFE2B354).withValues(alpha: 0.3))
               : (allDone
-                  ? const Color(0xFF10B981).withValues(alpha: 0.3)
-                  : const Color(0xFFF59E0B).withValues(alpha: 0.15)),
+                  ? const Color(0xFF6FA386).withValues(alpha: 0.3)
+                  : const Color(0xFFE2B354).withValues(alpha: 0.15)),
         ),
       ),
       child: Column(
@@ -72,8 +72,8 @@ class _ForgeChecklistBlockState extends State<ForgeChecklistBlock> {
                 height: 36,
                 decoration: BoxDecoration(
                   color: (allDone
-                          ? const Color(0xFF10B981)
-                          : const Color(0xFFF59E0B))
+                          ? const Color(0xFF6FA386)
+                          : const Color(0xFFE2B354))
                       .withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -82,8 +82,8 @@ class _ForgeChecklistBlockState extends State<ForgeChecklistBlock> {
                       ? Icons.check_circle
                       : Icons.checklist,
                   color: allDone
-                      ? const Color(0xFF10B981)
-                      : const Color(0xFFF59E0B),
+                      ? const Color(0xFF6FA386)
+                      : const Color(0xFFE2B354),
                   size: 20,
                 ),
               ),
@@ -105,8 +105,8 @@ class _ForgeChecklistBlockState extends State<ForgeChecklistBlock> {
                 ),
                 decoration: BoxDecoration(
                   color: (allDone
-                          ? const Color(0xFF10B981)
-                          : const Color(0xFFF59E0B))
+                          ? const Color(0xFF6FA386)
+                          : const Color(0xFFE2B354))
                       .withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -114,8 +114,8 @@ class _ForgeChecklistBlockState extends State<ForgeChecklistBlock> {
                   '$completedCount/${items.length}',
                   style: TextStyle(
                     color: allDone
-                        ? const Color(0xFF10B981)
-                        : const Color(0xFFF59E0B),
+                        ? const Color(0xFF6FA386)
+                        : const Color(0xFFE2B354),
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
                   ),
@@ -148,8 +148,8 @@ class _ForgeChecklistBlockState extends State<ForgeChecklistBlock> {
                   : Colors.grey.shade200,
               valueColor: AlwaysStoppedAnimation<Color>(
                 allDone
-                    ? const Color(0xFF10B981)
-                    : const Color(0xFFF59E0B),
+                    ? const Color(0xFF6FA386)
+                    : const Color(0xFFE2B354),
               ),
             ),
           ),
@@ -171,12 +171,12 @@ class _ForgeChecklistBlockState extends State<ForgeChecklistBlock> {
                       margin: const EdgeInsets.only(top: 1),
                       decoration: BoxDecoration(
                         color: checked
-                            ? const Color(0xFF10B981)
+                            ? const Color(0xFF6FA386)
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(6),
                         border: Border.all(
                           color: checked
-                              ? const Color(0xFF10B981)
+                              ? const Color(0xFF6FA386)
                               : isDark
                                   ? const Color(0xFF3A3C4E)
                                   : Colors.grey.shade400,

@@ -175,7 +175,7 @@ class _VisionGoalCardState extends State<VisionGoalCard>
         badgeColor = AppColors.green;
         label = 'Done';
       case GoalStatus.paused:
-        badgeColor = const Color(0xFFF59E0B);
+        badgeColor = const Color(0xFFE2B354);
         label = 'Paused';
     }
 

@@ -55,15 +55,15 @@ enum VaultMood {
   Color get color {
     switch (this) {
       case VaultMood.onFire:
-        return const Color(0xFFEF4444);
+        return const Color(0xFFE0605A);
       case VaultMood.motivated:
-        return const Color(0xFF34D399);
+        return const Color(0xFF7DB495);
       case VaultMood.neutral:
-        return const Color(0xFF22D3EE);
+        return const Color(0xFF7C9CC4);
       case VaultMood.tired:
-        return const Color(0xFFF59E0B);
+        return const Color(0xFFE2B354);
       case VaultMood.struggling:
-        return const Color(0xFF8B5CF6);
+        return const Color(0xFFC8894A);
     }
   }
 }

@@ -121,13 +121,13 @@ enum RewardRarity {
   Color get color {
     switch (this) {
       case RewardRarity.common:
-        return const Color(0xFF9AA6B2);
+        return const Color(0xFF8E8A82);
       case RewardRarity.rare:
         return const Color(0xFF3B82F6);
       case RewardRarity.epic:
-        return const Color(0xFF8B5CF6);
+        return const Color(0xFFC8894A);
       case RewardRarity.legendary:
-        return const Color(0xFFF59E0B);
+        return const Color(0xFFE2B354);
     }
   }
 }

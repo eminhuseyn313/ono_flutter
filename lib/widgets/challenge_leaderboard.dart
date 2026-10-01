@@ -120,7 +120,7 @@ class ChallengeLeaderboard extends StatelessWidget {
                 ? Icon(
                     Icons.emoji_events,
                     color: rank == 1
-                        ? const Color(0xFFFFD700)
+                        ? const Color(0xFFD9B45E)
                         : rank == 2
                             ? const Color(0xFFC0C0C0)
                             : const Color(0xFFCD7F32),

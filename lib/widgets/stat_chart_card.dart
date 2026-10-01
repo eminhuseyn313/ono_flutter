@@ -90,7 +90,7 @@ class StatChartCard extends StatelessWidget {
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.arrow_downward, size: 14, color: const Color(0xFFEF4444)),
+            Icon(Icons.arrow_downward, size: 14, color: const Color(0xFFE0605A)),
           ],
         );
       case TrendDirection.neutral:

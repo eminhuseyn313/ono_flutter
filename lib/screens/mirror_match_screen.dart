@@ -206,8 +206,8 @@ class _MirrorMatchScreenState extends State<MirrorMatchScreen> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.cyan.withValues(alpha: 0.15),
-            AppColors.purple.withValues(alpha: 0.1),
+            AppColors.purple.withValues(alpha: 0.15),
+            AppColors.purpleDark.withValues(alpha: 0.1),
           ],
         ),
         borderRadius: BorderRadius.circular(20),

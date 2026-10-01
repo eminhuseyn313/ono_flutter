@@ -449,14 +449,14 @@ class _PlannerScreenState extends State<PlannerScreen> {
                 '🏆',
                 '${stats.bestPlanStreak}',
                 'Best Streak',
-                const Color(0xFFF59E0B),
+                const Color(0xFFE2B354),
               ),
               const SizedBox(width: 10),
               _buildStatCard(
                 '📊',
                 stats.formattedCompletionRate,
                 'Avg Complete',
-                const Color(0xFF34D399),
+                const Color(0xFF7DB495),
               ),
             ],
           ),
@@ -467,7 +467,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
                 '📅',
                 '${stats.totalPlannedDays}',
                 'Days Planned',
-                const Color(0xFF22D3EE),
+                const Color(0xFF7C9CC4),
               ),
               const SizedBox(width: 10),
               _buildStatCard(
@@ -1214,9 +1214,9 @@ class _AddItemSheetState extends State<_AddItemSheet> {
           children: PlannerPriority.values.map((priority) {
             final isSelected = _selectedPriority == priority;
             final color = switch (priority) {
-              PlannerPriority.high => const Color(0xFFEF4444),
-              PlannerPriority.medium => const Color(0xFFF59E0B),
-              PlannerPriority.low => const Color(0xFF34D399),
+              PlannerPriority.high => const Color(0xFFE0605A),
+              PlannerPriority.medium => const Color(0xFFE2B354),
+              PlannerPriority.low => const Color(0xFF7DB495),
             };
             return Padding(
               padding: const EdgeInsets.only(right: 8),

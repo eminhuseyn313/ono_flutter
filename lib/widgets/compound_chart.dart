@@ -307,8 +307,8 @@ class _CompoundChartPainter extends CustomPainter {
         Offset(chart.left, 0),
         Offset(chart.right, 0),
         [
+          AppColors.purpleSoft.withValues(alpha: 0.3),
           AppColors.purple.withValues(alpha: 0.3),
-          AppColors.cyan.withValues(alpha: 0.3),
         ],
       )
       ..strokeWidth = 8
@@ -328,8 +328,8 @@ class _CompoundChartPainter extends CustomPainter {
           Offset(0, chart.top),
           Offset(0, chart.bottom),
           [
-            AppColors.purple.withValues(alpha: 0.12),
-            AppColors.cyan.withValues(alpha: 0.02),
+            AppColors.purpleSoft.withValues(alpha: 0.12),
+            AppColors.purple.withValues(alpha: 0.02),
           ],
         );
       canvas.drawPath(fillPath, fillPaint);
@@ -340,7 +340,7 @@ class _CompoundChartPainter extends CustomPainter {
       ..shader = ui.Gradient.linear(
         Offset(chart.left, 0),
         Offset(chart.right, 0),
-        [AppColors.purple, AppColors.cyan],
+        [AppColors.purpleSoft, AppColors.purple],
       )
       ..strokeWidth = 2.5
       ..style = PaintingStyle.stroke

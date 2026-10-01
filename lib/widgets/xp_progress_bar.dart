@@ -126,7 +126,7 @@ class _XpProgressBarState extends State<XpProgressBar>
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(widget.height / 2),
                 gradient: const LinearGradient(
-                  colors: [AppColors.purple, AppColors.cyan],
+                  colors: [AppColors.purpleSoft, AppColors.purple],
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
                 ),

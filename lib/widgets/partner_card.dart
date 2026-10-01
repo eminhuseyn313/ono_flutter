@@ -166,7 +166,7 @@ class PartnerCard extends StatelessWidget {
                 children: [
                   _StatItem(
                     icon: Icons.local_fire_department_rounded,
-                    iconColor: const Color(0xFFFF6B35),
+                    iconColor: const Color(0xFFD9774A),
                     value: '${partner.sharedStreak}',
                     label: 'Streak',
                   ),

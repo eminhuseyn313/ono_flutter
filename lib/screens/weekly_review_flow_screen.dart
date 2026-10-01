@@ -258,7 +258,7 @@ class _WeeklyReviewFlowScreenState extends State<WeeklyReviewFlowScreen>
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Icon(Icons.error_outline,
-                        color: Color(0xFFEF4444), size: 48),
+                        color: Color(0xFFE0605A), size: 48),
                     const SizedBox(height: 16),
                     Text(
                       'Failed to load review',
@@ -1194,8 +1194,8 @@ class _WeeklyReviewFlowScreenState extends State<WeeklyReviewFlowScreen>
                         shape: BoxShape.circle,
                         gradient: LinearGradient(
                           colors: [
+                            AppColors.purpleSoft,
                             AppColors.purple,
-                            AppColors.cyan,
                           ],
                         ),
                       ),
@@ -1435,7 +1435,7 @@ class _WeeklyReviewFlowScreenState extends State<WeeklyReviewFlowScreen>
     required ValueChanged<int> onChanged,
   }) {
     final priorities = [
-      (1, 'High', const Color(0xFFEF4444)),
+      (1, 'High', const Color(0xFFE0605A)),
       (2, 'Medium', AppColors.warning),
       (3, 'Low', AppColors.grey),
     ];
@@ -1516,7 +1516,7 @@ class _DiamondChartPainter extends CustomPainter {
 
     // Draw grid lines
     final gridPaint = Paint()
-      ..color = const Color(0xFF202B3F)
+      ..color = const Color(0xFF272A30)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 0.5;
 
@@ -1567,13 +1567,13 @@ class _DiamondChartPainter extends CustomPainter {
 
     // Fill
     final fillPaint = Paint()
-      ..color = const Color(0xFF8B5CF6).withValues(alpha: 0.15)
+      ..color = const Color(0xFFC8894A).withValues(alpha: 0.15)
       ..style = PaintingStyle.fill;
     canvas.drawPath(scorePath, fillPaint);
 
     // Stroke
     final strokePaint = Paint()
-      ..color = const Color(0xFF8B5CF6)
+      ..color = const Color(0xFFC8894A)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
     canvas.drawPath(scorePath, strokePaint);

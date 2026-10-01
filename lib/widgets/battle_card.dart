@@ -158,7 +158,7 @@ class BattleCard extends StatelessWidget {
                     progress: battle.opponentProgress,
                     target: battle.targetCount,
                     progressPercent: battle.opponentProgressPercent,
-                    color: const Color(0xFFEF4444),
+                    color: const Color(0xFFE0605A),
                     isLeading: !isWinning && !isTied,
                     showCrown: battle.isFinished &&
                         battle.winnerId == 'opponent',
@@ -177,7 +177,7 @@ class BattleCard extends StatelessWidget {
                     ? AppColors.success.withValues(alpha: 0.1)
                     : isTied
                         ? AppColors.warning.withValues(alpha: 0.1)
-                        : const Color(0xFFEF4444).withValues(alpha: 0.1),
+                        : const Color(0xFFE0605A).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
@@ -195,7 +195,7 @@ class BattleCard extends StatelessWidget {
                       ? AppColors.success
                       : isTied
                           ? AppColors.warning
-                          : const Color(0xFFEF4444),
+                          : const Color(0xFFE0605A),
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),

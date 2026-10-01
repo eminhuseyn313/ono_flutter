@@ -216,8 +216,8 @@ class _VaultScreenState extends State<VaultScreen>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              AppColors.purple.withValues(alpha: 0.15),
-              AppColors.cyan.withValues(alpha: 0.08),
+              AppColors.purpleSoft.withValues(alpha: 0.15),
+              AppColors.purple.withValues(alpha: 0.08),
             ],
           ),
           borderRadius: BorderRadius.circular(20),
@@ -239,7 +239,7 @@ class _VaultScreenState extends State<VaultScreen>
               '${stats.currentWritingStreak}',
               'Day Streak',
               Icons.local_fire_department_rounded,
-              const Color(0xFFEF4444),
+              const Color(0xFFE0605A),
             ),
             _buildStatDivider(),
             _buildStatItem(

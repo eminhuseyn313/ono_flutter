@@ -57,7 +57,7 @@ class _HabitStreakScreenState extends State<HabitStreakScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.error_outline,
-                      color: const Color(0xFFEF4444), size: 48),
+                      color: const Color(0xFFE0605A), size: 48),
                   const SizedBox(height: 12),
                   Text(
                     'Failed to load streak data',

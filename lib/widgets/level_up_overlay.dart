@@ -53,7 +53,7 @@ class _LevelUpOverlayState extends State<LevelUpOverlay>
           AppColors.purpleSoft,
           AppColors.cyan,
           AppColors.green,
-          const Color(0xFFF59E0B),
+          const Color(0xFFE2B354),
         ][_random.nextInt(5)],
       ));
     }
@@ -173,8 +173,8 @@ class _LevelUpOverlayState extends State<LevelUpOverlay>
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                             colors: [
-                              Color(0xFF8B5CF6),
-                              Color(0xFF6D28D9),
+                              Color(0xFFC8894A),
+                              Color(0xFFA86D35),
                             ],
                           ),
                           boxShadow: [
@@ -206,7 +206,7 @@ class _LevelUpOverlayState extends State<LevelUpOverlay>
                         children: [
                           ShaderMask(
                             shaderCallback: (bounds) => const LinearGradient(
-                              colors: [Color(0xFFC4B5FD), Color(0xFF8B5CF6)],
+                              colors: [Color(0xFFE8C9A3), Color(0xFFC8894A)],
                             ).createShader(bounds),
                             child: const Text(
                               'LEVEL UP!',

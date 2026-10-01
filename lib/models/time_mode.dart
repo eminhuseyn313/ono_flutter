@@ -120,11 +120,11 @@ class TimeModeConfig {
     emoji: '🌅',
     gradient: [
       Color(0xFF1A0533), // deep violet
-      Color(0xFF4C1D95), // purple dark
+      Color(0xFF4A2F18), // purple dark
       Color(0xFFD97706), // amber
-      Color(0xFFFBBF24), // warm gold
+      Color(0xFFE8C46A), // warm gold
     ],
-    accentColor: Color(0xFFFBBF24),
+    accentColor: Color(0xFFE8C46A),
     hourStart: 4,
     hourEnd: 7,
     quotePool: [
@@ -148,11 +148,11 @@ class TimeModeConfig {
     displayName: 'Day',
     emoji: '☀️',
     gradient: [
-      Color(0xFF0A0C14), // background
-      Color(0xFF121826), // card
-      Color(0xFF1B2336), // card light
+      Color(0xFF0C0D0F), // background
+      Color(0xFF15171B), // card
+      Color(0xFF1E2126), // card light
     ],
-    accentColor: Color(0xFF8B5CF6), // purple accent (standard)
+    accentColor: Color(0xFFC8894A), // purple accent (standard)
     hourStart: 7,
     hourEnd: 18,
     quotePool: [
@@ -179,9 +179,9 @@ class TimeModeConfig {
       Color(0xFF0F172A), // dark blue-grey
       Color(0xFF581C87), // deep purple
       Color(0xFFB45309), // warm orange-brown
-      Color(0xFFEF4444), // sunset red
+      Color(0xFFE0605A), // sunset red
     ],
-    accentColor: Color(0xFFF59E0B), // warm amber
+    accentColor: Color(0xFFE2B354), // warm amber
     hourStart: 18,
     hourEnd: 21,
     quotePool: [
@@ -206,10 +206,10 @@ class TimeModeConfig {
     emoji: '🌙',
     gradient: [
       Color(0xFF030712), // near black
-      Color(0xFF0A0C14), // background
+      Color(0xFF0C0D0F), // background
       Color(0xFF1E1B4B), // indigo midnight
     ],
-    accentColor: Color(0xFFFBBF24), // amber
+    accentColor: Color(0xFFE8C46A), // amber
     hourStart: 21,
     hourEnd: 4,
     quotePool: [

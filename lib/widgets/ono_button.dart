@@ -90,9 +90,9 @@ class _OnoButtonState extends State<OnoButton>
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          Color(0xFF8B5CF6),
-                          Color(0xFF7C3AED),
-                          Color(0xFF6D28D9),
+                          Color(0xFFC8894A),
+                          Color(0xFFA86D35),
+                          Color(0xFFA86D35),
                         ],
                       ),
                 color: widget.isSecondary ? AppColors.card : null,
@@ -102,7 +102,7 @@ class _OnoButtonState extends State<OnoButton>
                 boxShadow: _isEnabled && !widget.isSecondary
                     ? [
                         BoxShadow(
-                          color: const Color(0xFF8B5CF6).withValues(alpha: 0.4),
+                          color: const Color(0xFFC8894A).withValues(alpha: 0.4),
                           blurRadius: 20,
                           offset: const Offset(0, 8),
                           spreadRadius: -4,

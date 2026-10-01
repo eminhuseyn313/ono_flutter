@@ -80,7 +80,7 @@ class SettingsTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDanger = type == SettingsTileType.danger;
-    final dangerColor = const Color(0xFFEF4444);
+    final dangerColor = const Color(0xFFE0605A);
 
     final Color resolvedIconColor =
         isDanger ? dangerColor : (iconColor ?? AppColors.purple);
@@ -177,7 +177,7 @@ class SettingsTile extends StatelessWidget {
         return Icon(
           Icons.chevron_right_rounded,
           size: 20,
-          color: const Color(0xFFEF4444).withValues(alpha: 0.6),
+          color: const Color(0xFFE0605A).withValues(alpha: 0.6),
         );
     }
   }

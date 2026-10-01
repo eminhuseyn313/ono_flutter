@@ -142,7 +142,7 @@ class _LaneProgressChartState extends State<LaneProgressChart>
                   decoration: BoxDecoration(
                     color: isPositive
                         ? AppColors.success.withValues(alpha: 0.15)
-                        : const Color(0xFFEF4444).withValues(alpha: 0.15),
+                        : const Color(0xFFE0605A).withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -155,7 +155,7 @@ class _LaneProgressChartState extends State<LaneProgressChart>
                         size: 12,
                         color: isPositive
                             ? AppColors.success
-                            : const Color(0xFFEF4444),
+                            : const Color(0xFFE0605A),
                       ),
                       const SizedBox(width: 2),
                       Text(
@@ -165,7 +165,7 @@ class _LaneProgressChartState extends State<LaneProgressChart>
                           fontWeight: FontWeight.w600,
                           color: isPositive
                               ? AppColors.success
-                              : const Color(0xFFEF4444),
+                              : const Color(0xFFE0605A),
                         ),
                       ),
                     ],

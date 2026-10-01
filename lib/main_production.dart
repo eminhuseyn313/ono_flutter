@@ -167,6 +167,8 @@ import 'providers/daily_checkin_provider.dart';
 import 'gateways/ai_coach_gateway.dart';
 import 'gateways/mock_ai_coach_gateway.dart'; // TODO: SupabaseAiCoachGateway
 import 'providers/ai_coach_provider.dart';
+import 'gateways/mock_personal_system_gateway.dart';
+import 'providers/personal_system_provider.dart';
 import 'gateways/content_library_gateway.dart';
 import 'gateways/mock_content_library_gateway.dart'; // TODO: SupabaseContentLibraryGateway
 import 'providers/content_library_provider.dart';
@@ -195,7 +197,7 @@ void main() async {
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.light,
-      systemNavigationBarColor: Color(0xFF1A1A2E),
+      systemNavigationBarColor: Color(0xFF1B1D22),
       systemNavigationBarIconBrightness: Brightness.light,
     ),
   );
@@ -344,6 +346,7 @@ class _OnoAppState extends State<OnoApp> {
 
   // ── Sprint 13 Providers ─────────────────────────────────────────────
   late final AiCoachProvider _aiCoachProvider;
+  late final PersonalSystemProvider _personalSystemProvider;
   late final ContentLibraryProvider _contentLibraryProvider;
   late final CommunityChallengeProvider _communityChallengeProvider;
 
@@ -490,6 +493,8 @@ class _OnoAppState extends State<OnoApp> {
 
     // ── Sprint 13 Providers ────────────────────────────────────────────
     _aiCoachProvider = AiCoachProvider(gateway: _aiCoachGateway);
+    _personalSystemProvider = PersonalSystemProvider(
+        gateway: MockPersonalSystemGateway());
     _contentLibraryProvider = ContentLibraryProvider(gateway: _contentLibraryGateway);
     _communityChallengeProvider = CommunityChallengeProvider(gateway: _communityChallengeGateway);
 
@@ -717,6 +722,8 @@ class _OnoAppState extends State<OnoApp> {
         Provider<DailyCheckinGateway>.value(value: _dailyCheckinGateway),
 
         // ── Sprint 13 ─────────────────────────────────────────────────
+        ChangeNotifierProvider<PersonalSystemProvider>.value(
+            value: _personalSystemProvider),
         ChangeNotifierProvider<AiCoachProvider>.value(
             value: _aiCoachProvider),
         Provider<AiCoachGateway>.value(value: _aiCoachGateway),

@@ -46,7 +46,7 @@ class _CompoundEffectScreenState extends State<CompoundEffectScreen>
     'social': _LaneData(
       emoji: '\u{1F5E3}',
       name: 'Social',
-      color: const Color(0xFFF97316),
+      color: const Color(0xFFD9774A),
       score: 58,
       sparkline: [45, 48, 50, 52, 55, 56, 58],
     ),
@@ -302,7 +302,7 @@ class _CompoundEffectScreenState extends State<CompoundEffectScreen>
                                 gradient: LinearGradient(
                                   begin: Alignment.topCenter,
                                   end: Alignment.bottomCenter,
-                                  colors: [AppColors.purple, AppColors.cyan],
+                                  colors: [AppColors.purpleSoft, AppColors.purple],
                                 ),
                               ),
                             ),
@@ -387,8 +387,8 @@ class _CompoundEffectScreenState extends State<CompoundEffectScreen>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  AppColors.purple.withValues(alpha: 0.08),
-                  AppColors.cyan.withValues(alpha: 0.04),
+                  AppColors.purpleSoft.withValues(alpha: 0.08),
+                  AppColors.purple.withValues(alpha: 0.04),
                 ],
               ),
             ),

@@ -94,9 +94,9 @@ class _SignInScreenState extends State<SignInScreen>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF0F0A1E),
-              Color(0xFF0A0C14),
-              Color(0xFF0A1014),
+              Color(0xFF111214),
+              Color(0xFF0C0D0F),
+              Color(0xFF0E1012),
             ],
           ),
         ),
@@ -280,18 +280,18 @@ class _SignInScreenState extends State<SignInScreen>
                             padding: const EdgeInsets.all(12),
                             margin: const EdgeInsets.only(bottom: 12),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFEF4444)
+                              color: const Color(0xFFE0605A)
                                   .withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: const Color(0xFFEF4444)
+                                color: const Color(0xFFE0605A)
                                     .withValues(alpha: 0.3),
                               ),
                             ),
                             child: Row(
                               children: [
                                 Icon(Icons.error_outline,
-                                    color: const Color(0xFFEF4444)
+                                    color: const Color(0xFFE0605A)
                                         .withValues(alpha: 0.8),
                                     size: 18),
                                 const SizedBox(width: 10),
@@ -299,7 +299,7 @@ class _SignInScreenState extends State<SignInScreen>
                                   child: Text(
                                     auth.errorMessage!,
                                     style: TextStyle(
-                                      color: const Color(0xFFEF4444)
+                                      color: const Color(0xFFE0605A)
                                           .withValues(alpha: 0.9),
                                       fontSize: 13,
                                     ),

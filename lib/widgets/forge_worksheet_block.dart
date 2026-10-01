@@ -60,12 +60,12 @@ class _ForgeWorksheetBlockState extends State<ForgeWorksheetBlock> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A1C2E) : Colors.white,
+        color: isDark ? const Color(0xFF1B1D22) : Colors.white,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: isDark
-              ? const Color(0xFF06B6D4).withValues(alpha: 0.3)
-              : const Color(0xFF06B6D4).withValues(alpha: 0.15),
+              ? const Color(0xFF6A89B0).withValues(alpha: 0.3)
+              : const Color(0xFF6A89B0).withValues(alpha: 0.15),
         ),
       ),
       child: Column(
@@ -78,12 +78,12 @@ class _ForgeWorksheetBlockState extends State<ForgeWorksheetBlock> {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF06B6D4).withValues(alpha: 0.15),
+                  color: const Color(0xFF6A89B0).withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
                   Icons.edit_note,
-                  color: Color(0xFF06B6D4),
+                  color: Color(0xFF6A89B0),
                   size: 20,
                 ),
               ),
@@ -105,7 +105,7 @@ class _ForgeWorksheetBlockState extends State<ForgeWorksheetBlock> {
                     vertical: 3,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                    color: const Color(0xFF6FA386).withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Row(
@@ -113,14 +113,14 @@ class _ForgeWorksheetBlockState extends State<ForgeWorksheetBlock> {
                     children: [
                       Icon(
                         Icons.check_circle,
-                        color: Color(0xFF10B981),
+                        color: Color(0xFF6FA386),
                         size: 14,
                       ),
                       SizedBox(width: 3),
                       Text(
                         'Done',
                         style: TextStyle(
-                          color: Color(0xFF10B981),
+                          color: Color(0xFF6FA386),
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
                         ),
@@ -188,14 +188,14 @@ class _ForgeWorksheetBlockState extends State<ForgeWorksheetBlock> {
                         borderRadius: BorderRadius.circular(10),
                         borderSide: BorderSide(
                           color: isDark
-                              ? const Color(0xFF2A2C3E)
+                              ? const Color(0xFF2A2D33)
                               : Colors.grey.shade300,
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide: const BorderSide(
-                          color: Color(0xFF06B6D4),
+                          color: Color(0xFF6A89B0),
                         ),
                       ),
                     ),
@@ -213,7 +213,7 @@ class _ForgeWorksheetBlockState extends State<ForgeWorksheetBlock> {
               child: ElevatedButton(
                 onPressed: _handleSubmit,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF06B6D4),
+                  backgroundColor: const Color(0xFF6A89B0),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(

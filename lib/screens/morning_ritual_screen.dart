@@ -197,7 +197,7 @@ class _MorningRitualScreenState extends State<MorningRitualScreen>
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFF0F0A1E), Color(0xFF0A0C14), Color(0xFF0D0B1A)],
+            colors: [Color(0xFF111214), Color(0xFF0C0D0F), Color(0xFF0D0B1A)],
           ),
         ),
         child: SafeArea(
@@ -437,8 +437,8 @@ class _MorningRitualScreenState extends State<MorningRitualScreen>
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        AppColors.cyan.withValues(alpha: 0.3),
-                        AppColors.purple.withValues(alpha: 0.1),
+                        AppColors.purple.withValues(alpha: 0.3),
+                        AppColors.purpleDark.withValues(alpha: 0.1),
                       ],
                     ),
                     border: Border.all(
@@ -494,7 +494,7 @@ class _MorningRitualScreenState extends State<MorningRitualScreen>
                       horizontal: 32, vertical: 16),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
+                      colors: [Color(0xFFC8894A), Color(0xFFA86D35)],
                     ),
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
@@ -577,7 +577,7 @@ class _MorningRitualScreenState extends State<MorningRitualScreen>
                           horizontal: 32, vertical: 16),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
+                          colors: [Color(0xFFC8894A), Color(0xFFA86D35)],
                         ),
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
@@ -688,7 +688,7 @@ class _MorningRitualScreenState extends State<MorningRitualScreen>
               height: 58,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF8B5CF6), Color(0xFF7C3AED), Color(0xFF6D28D9)],
+                  colors: [Color(0xFFC8894A), Color(0xFFA86D35), Color(0xFFA86D35)],
                 ),
                 borderRadius: BorderRadius.circular(18),
                 boxShadow: [
@@ -762,7 +762,7 @@ class _MorningRitualScreenState extends State<MorningRitualScreen>
                 height: 50,
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
+                    colors: [Color(0xFFC8894A), Color(0xFFA86D35)],
                   ),
                   borderRadius: BorderRadius.circular(14),
                 ),

@@ -203,7 +203,7 @@ class VaultEntryCard extends StatelessWidget {
                                   : Icons.favorite_border,
                               size: 20,
                               color: entry.isFavorite
-                                  ? const Color(0xFFEF4444)
+                                  ? const Color(0xFFE0605A)
                                   : AppColors.grey.withValues(alpha: 0.5),
                             ),
                           ),

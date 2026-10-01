@@ -98,9 +98,9 @@ class _OnboardingWelcomeScreenState extends State<OnboardingWelcomeScreen>
             end: Alignment.bottomRight,
             stops: [0.0, 0.5, 1.0],
             colors: [
-              Color(0xFF0F0A1E),
-              Color(0xFF0A0C14),
-              Color(0xFF0A1014),
+              Color(0xFF111214),
+              Color(0xFF0C0D0F),
+              Color(0xFF0E1012),
             ],
           ),
         ),
@@ -184,7 +184,7 @@ class _OnboardingWelcomeScreenState extends State<OnboardingWelcomeScreen>
                                 children: [
                                   ShaderMask(
                                     shaderCallback: (bounds) => const LinearGradient(
-                                      colors: [Color(0xFFC4B5FD), Color(0xFF8B5CF6)],
+                                      colors: [Color(0xFFE8C9A3), Color(0xFFC8894A)],
                                     ).createShader(bounds),
                                     child: const Text(
                                       'ONO',
@@ -297,7 +297,7 @@ class _OnboardingWelcomeScreenState extends State<OnboardingWelcomeScreen>
                                   _LanePill(
                                     emoji: '🗣',
                                     label: 'Social',
-                                    color: const Color(0xFFF97316),
+                                    color: const Color(0xFFD9774A),
                                     delay: 2,
                                     controller: _pillsController,
                                   ),

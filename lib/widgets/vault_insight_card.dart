@@ -16,8 +16,8 @@ class VaultInsightCard extends StatelessWidget {
     switch (insight.type) {
       case InsightType.pattern:
         return [
-          AppColors.purple.withValues(alpha: 0.3),
-          AppColors.cyan.withValues(alpha: 0.1),
+          AppColors.purpleSoft.withValues(alpha: 0.3),
+          AppColors.purple.withValues(alpha: 0.1),
         ];
       case InsightType.milestone:
         return [
@@ -26,12 +26,12 @@ class VaultInsightCard extends StatelessWidget {
         ];
       case InsightType.suggestion:
         return [
-          AppColors.cyan.withValues(alpha: 0.3),
-          AppColors.purple.withValues(alpha: 0.1),
+          AppColors.purple.withValues(alpha: 0.3),
+          AppColors.purpleDark.withValues(alpha: 0.1),
         ];
       case InsightType.streak:
         return [
-          const Color(0xFFEF4444).withValues(alpha: 0.3),
+          const Color(0xFFE0605A).withValues(alpha: 0.3),
           AppColors.warning.withValues(alpha: 0.1),
         ];
     }
@@ -46,7 +46,7 @@ class VaultInsightCard extends StatelessWidget {
       case InsightType.suggestion:
         return AppColors.cyan.withValues(alpha: 0.4);
       case InsightType.streak:
-        return const Color(0xFFEF4444).withValues(alpha: 0.4);
+        return const Color(0xFFE0605A).withValues(alpha: 0.4);
     }
   }
 
@@ -59,7 +59,7 @@ class VaultInsightCard extends StatelessWidget {
       case InsightType.suggestion:
         return AppColors.cyan;
       case InsightType.streak:
-        return const Color(0xFFEF4444);
+        return const Color(0xFFE0605A);
     }
   }
 

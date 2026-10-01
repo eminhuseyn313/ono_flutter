@@ -109,8 +109,8 @@ class _LegacyScoreCardState extends State<LegacyScoreCard>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  AppColors.purple.withValues(alpha: 0.22),
-                  AppColors.cyan.withValues(alpha: 0.08),
+                  AppColors.purpleSoft.withValues(alpha: 0.22),
+                  AppColors.purple.withValues(alpha: 0.08),
                 ],
               ),
               border: Border.all(

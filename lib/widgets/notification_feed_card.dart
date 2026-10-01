@@ -78,7 +78,7 @@ class _NotificationFeedCardState extends State<NotificationFeedCard>
       case NotificationType.socialProof:
         return AppColors.cyan;
       case NotificationType.milestone:
-        return const Color(0xFF10B981); // emerald
+        return const Color(0xFF6FA386); // emerald
       case NotificationType.reminder:
         return AppColors.grey;
     }

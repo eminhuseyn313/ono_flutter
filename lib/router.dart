@@ -91,6 +91,18 @@ import 'screens/ai_coach_screen.dart';
 import 'screens/content_library_screen.dart';
 import 'screens/community_challenge_screen.dart';
 
+// Personal system
+import 'screens/plan_screen.dart';
+import 'screens/playbook_screen.dart';
+import 'screens/manifesto_screen.dart';
+import 'screens/protocols_screen.dart';
+import 'screens/evidence_archive_screen.dart';
+import 'screens/library_screen.dart';
+import 'screens/style_screen.dart';
+import 'screens/career_screen.dart';
+import 'screens/weekly_coaching_screen.dart';
+import 'screens/features_screen.dart';
+
 GoRouter createRouter(AuthProvider authProvider) {
   return GoRouter(
     refreshListenable: authProvider,
@@ -650,6 +662,64 @@ GoRouter createRouter(AuthProvider authProvider) {
         ),
       ),
 
+      // ── Personal system detail pages ──
+      GoRoute(
+        path: '/manifesto',
+        pageBuilder: (_, __) => const CustomTransitionPage(
+          child: ManifestoScreen(),
+          transitionsBuilder: _fadeTransition,
+        ),
+      ),
+      GoRoute(
+        path: '/protocols',
+        pageBuilder: (_, __) => const CustomTransitionPage(
+          child: ProtocolsScreen(),
+          transitionsBuilder: _fadeTransition,
+        ),
+      ),
+      GoRoute(
+        path: '/evidence',
+        pageBuilder: (_, __) => const CustomTransitionPage(
+          child: EvidenceArchiveScreen(),
+          transitionsBuilder: _fadeTransition,
+        ),
+      ),
+      GoRoute(
+        path: '/library',
+        pageBuilder: (_, __) => const CustomTransitionPage(
+          child: LibraryScreen(),
+          transitionsBuilder: _fadeTransition,
+        ),
+      ),
+      GoRoute(
+        path: '/style',
+        pageBuilder: (_, __) => const CustomTransitionPage(
+          child: StyleScreen(),
+          transitionsBuilder: _fadeTransition,
+        ),
+      ),
+      GoRoute(
+        path: '/career',
+        pageBuilder: (_, __) => const CustomTransitionPage(
+          child: CareerScreen(),
+          transitionsBuilder: _fadeTransition,
+        ),
+      ),
+      GoRoute(
+        path: '/weekly-coaching',
+        pageBuilder: (_, __) => const CustomTransitionPage(
+          child: WeeklyCoachingScreen(),
+          transitionsBuilder: _fadeTransition,
+        ),
+      ),
+      GoRoute(
+        path: '/features',
+        pageBuilder: (_, __) => const CustomTransitionPage(
+          child: FeaturesScreen(),
+          transitionsBuilder: _fadeTransition,
+        ),
+      ),
+
       // ── Main app (bottom nav shell) ──
       ShellRoute(
         builder: (_, state, child) => MainScreen(child: child),
@@ -658,6 +728,18 @@ GoRouter createRouter(AuthProvider authProvider) {
             path: '/home',
             pageBuilder: (_, __) => const NoTransitionPage(
               child: HomeScreen(),
+            ),
+          ),
+          GoRoute(
+            path: '/plan',
+            pageBuilder: (_, __) => const NoTransitionPage(
+              child: PlanScreen(),
+            ),
+          ),
+          GoRoute(
+            path: '/playbook',
+            pageBuilder: (_, __) => const NoTransitionPage(
+              child: PlaybookScreen(),
             ),
           ),
           GoRoute(

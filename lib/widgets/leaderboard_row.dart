@@ -92,7 +92,7 @@ class LeaderboardRow extends StatelessWidget {
   Color get _rankColor {
     switch (entry.rank) {
       case 1:
-        return const Color(0xFFFFD700);
+        return const Color(0xFFD9B45E);
       case 2:
         return const Color(0xFFC0C0C0);
       case 3:

@@ -27,7 +27,7 @@ class _ForgeAnalyticsScreenState extends State<ForgeAnalyticsScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0A0C14) : Colors.grey.shade50,
+      backgroundColor: isDark ? const Color(0xFF0C0D0F) : Colors.grey.shade50,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -51,7 +51,7 @@ class _ForgeAnalyticsScreenState extends State<ForgeAnalyticsScreen> {
           if (provider.loading) {
             return const Center(
               child: CircularProgressIndicator(
-                color: Color(0xFF8B5CF6),
+                color: Color(0xFFC8894A),
               ),
             );
           }
@@ -129,7 +129,7 @@ class _ForgeAnalyticsScreenState extends State<ForgeAnalyticsScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
+          colors: [Color(0xFFC8894A), Color(0xFFA86D35)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -183,11 +183,11 @@ class _ForgeAnalyticsScreenState extends State<ForgeAnalyticsScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A1C2E) : Colors.white,
+        color: isDark ? const Color(0xFF1B1D22) : Colors.white,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: isDark
-              ? const Color(0xFF2A2C3E)
+              ? const Color(0xFF2A2D33)
               : Colors.grey.shade200,
         ),
       ),
@@ -197,7 +197,7 @@ class _ForgeAnalyticsScreenState extends State<ForgeAnalyticsScreen> {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: const Color(0xFFFF6B35).withValues(alpha: 0.15),
+              color: const Color(0xFFD9774A).withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Center(
@@ -237,12 +237,12 @@ class _ForgeAnalyticsScreenState extends State<ForgeAnalyticsScreen> {
 
   Widget _buildLaneCard(String lane, ForgeLaneStats stats, bool isDark) {
     final laneColors = {
-      'mind': const Color(0xFF8B5CF6),
-      'body': const Color(0xFF10B981),
-      'social': const Color(0xFF06B6D4),
-      'skill': const Color(0xFFF59E0B),
+      'mind': const Color(0xFFC8894A),
+      'body': const Color(0xFF6FA386),
+      'social': const Color(0xFF6A89B0),
+      'skill': const Color(0xFFE2B354),
     };
-    final color = laneColors[lane] ?? const Color(0xFF8B5CF6);
+    final color = laneColors[lane] ?? const Color(0xFFC8894A);
     final laneEmojis = {
       'mind': '🧠',
       'body': '💪',
@@ -253,7 +253,7 @@ class _ForgeAnalyticsScreenState extends State<ForgeAnalyticsScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A1C2E) : Colors.white,
+        color: isDark ? const Color(0xFF1B1D22) : Colors.white,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: isDark
@@ -315,7 +315,7 @@ class _ForgeAnalyticsScreenState extends State<ForgeAnalyticsScreen> {
               Expanded(
                 child: _topicChip(
                   '💪 Strong: ${stats.strongestTopic}',
-                  const Color(0xFF10B981),
+                  const Color(0xFF6FA386),
                   isDark,
                 ),
               ),
@@ -323,7 +323,7 @@ class _ForgeAnalyticsScreenState extends State<ForgeAnalyticsScreen> {
               Expanded(
                 child: _topicChip(
                   '🎯 Focus: ${stats.weakestTopic}',
-                  const Color(0xFFF59E0B),
+                  const Color(0xFFE2B354),
                   isDark,
                 ),
               ),
@@ -336,21 +336,21 @@ class _ForgeAnalyticsScreenState extends State<ForgeAnalyticsScreen> {
 
   Widget _buildCourseProgressCard(ForgeCourse course, bool isDark) {
     final laneColors = {
-      'mind': const Color(0xFF8B5CF6),
-      'body': const Color(0xFF10B981),
-      'social': const Color(0xFF06B6D4),
-      'skill': const Color(0xFFF59E0B),
+      'mind': const Color(0xFFC8894A),
+      'body': const Color(0xFF6FA386),
+      'social': const Color(0xFF6A89B0),
+      'skill': const Color(0xFFE2B354),
     };
-    final color = laneColors[course.lane] ?? const Color(0xFF8B5CF6);
+    final color = laneColors[course.lane] ?? const Color(0xFFC8894A);
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A1C2E) : Colors.white,
+        color: isDark ? const Color(0xFF1B1D22) : Colors.white,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: isDark
-              ? const Color(0xFF2A2C3E)
+              ? const Color(0xFF2A2D33)
               : Colors.grey.shade200,
         ),
       ),
@@ -418,11 +418,11 @@ class _ForgeAnalyticsScreenState extends State<ForgeAnalyticsScreen> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A1C2E) : Colors.white,
+        color: isDark ? const Color(0xFF1B1D22) : Colors.white,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: isDark
-              ? const Color(0xFF2A2C3E)
+              ? const Color(0xFF2A2D33)
               : Colors.grey.shade200,
         ),
       ),

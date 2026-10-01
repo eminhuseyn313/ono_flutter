@@ -279,7 +279,7 @@ class _CommentSheetState extends State<CommentSheet> {
                         : Icons.favorite_border,
                     size: 14,
                     color: comment.isLikedByMe
-                        ? const Color(0xFFEF4444)
+                        ? const Color(0xFFE0605A)
                         : AppColors.grey,
                   ),
                   const SizedBox(width: 4),

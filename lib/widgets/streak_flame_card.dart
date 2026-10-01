@@ -44,10 +44,10 @@ class _StreakFlameCardState extends State<StreakFlameCard>
   bool get _isRecord => widget.currentStreak >= widget.longestStreak;
 
   Color _flameColor() {
-    if (widget.currentStreak >= 30) return const Color(0xFFEF4444);
+    if (widget.currentStreak >= 30) return const Color(0xFFE0605A);
     if (widget.currentStreak >= 14) return AppColors.warning;
     if (widget.currentStreak >= 7) return const Color(0xFFFB923C);
-    return const Color(0xFFFBBF24);
+    return const Color(0xFFE8C46A);
   }
 
   @override
@@ -96,7 +96,7 @@ class _StreakFlameCardState extends State<StreakFlameCard>
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  const Color(0xFFFBBF24),
+                  const Color(0xFFE8C46A),
                   flameColor,
                   AppColors.purple,
                 ],

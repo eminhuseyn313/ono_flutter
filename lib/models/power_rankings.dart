@@ -35,13 +35,13 @@ enum RankTrend {
   Color get color {
     switch (this) {
       case RankTrend.up:
-        return const Color(0xFF34D399);
+        return const Color(0xFF7DB495);
       case RankTrend.down:
-        return const Color(0xFFEF4444);
+        return const Color(0xFFE0605A);
       case RankTrend.stable:
-        return const Color(0xFF9AA6B2);
+        return const Color(0xFF8E8A82);
       case RankTrend.newEntry:
-        return const Color(0xFF22D3EE);
+        return const Color(0xFF7C9CC4);
     }
   }
 
@@ -82,30 +82,30 @@ enum PerformanceTier {
   Color get color {
     switch (this) {
       case PerformanceTier.elite:
-        return const Color(0xFF8B5CF6);
+        return const Color(0xFFC8894A);
       case PerformanceTier.strong:
-        return const Color(0xFF34D399);
+        return const Color(0xFF7DB495);
       case PerformanceTier.growing:
-        return const Color(0xFF22D3EE);
+        return const Color(0xFF7C9CC4);
       case PerformanceTier.needsWork:
-        return const Color(0xFFF59E0B);
+        return const Color(0xFFE2B354);
       case PerformanceTier.inactive:
-        return const Color(0xFF9AA6B2);
+        return const Color(0xFF8E8A82);
     }
   }
 
   Color get glowColor {
     switch (this) {
       case PerformanceTier.elite:
-        return const Color(0xFF8B5CF6).withValues(alpha: 0.4);
+        return const Color(0xFFC8894A).withValues(alpha: 0.4);
       case PerformanceTier.strong:
-        return const Color(0xFF34D399).withValues(alpha: 0.4);
+        return const Color(0xFF7DB495).withValues(alpha: 0.4);
       case PerformanceTier.growing:
-        return const Color(0xFF22D3EE).withValues(alpha: 0.4);
+        return const Color(0xFF7C9CC4).withValues(alpha: 0.4);
       case PerformanceTier.needsWork:
-        return const Color(0xFFF59E0B).withValues(alpha: 0.4);
+        return const Color(0xFFE2B354).withValues(alpha: 0.4);
       case PerformanceTier.inactive:
-        return const Color(0xFF9AA6B2).withValues(alpha: 0.4);
+        return const Color(0xFF8E8A82).withValues(alpha: 0.4);
     }
   }
 
@@ -205,22 +205,22 @@ class LaneRanking {
   Color get laneColor {
     switch (lane.toLowerCase()) {
       case 'mind':
-        return const Color(0xFF8B5CF6);
+        return const Color(0xFFC8894A);
       case 'body':
-        return const Color(0xFF22D3EE);
+        return const Color(0xFF7C9CC4);
       case 'social':
-        return const Color(0xFF34D399);
+        return const Color(0xFF7DB495);
       case 'skill':
-        return const Color(0xFFF59E0B);
+        return const Color(0xFFE2B354);
       default:
-        return const Color(0xFF9AA6B2);
+        return const Color(0xFF8E8A82);
     }
   }
 
   Color get laneColorDark {
     switch (lane.toLowerCase()) {
       case 'mind':
-        return const Color(0xFF4C1D95);
+        return const Color(0xFF4A2F18);
       case 'body':
         return const Color(0xFF164E63);
       case 'social':

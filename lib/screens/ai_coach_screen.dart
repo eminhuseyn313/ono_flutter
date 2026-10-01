@@ -329,7 +329,7 @@ class _ScoreRingPainter extends CustomPainter {
       false,
       Paint()
         ..shader = const LinearGradient(
-          colors: [AppColors.purple, AppColors.cyan],
+          colors: [AppColors.purpleSoft, AppColors.purple],
         ).createShader(rect)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 6

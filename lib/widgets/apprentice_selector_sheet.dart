@@ -60,7 +60,7 @@ class _ApprenticeSelectorSheetState extends State<ApprenticeSelectorSheet>
   static const Map<String, Color> _laneColors = {
     'mind': AppColors.purple,
     'body': AppColors.green,
-    'social': Color(0xFFF97316),
+    'social': Color(0xFFD9774A),
     'skill': AppColors.cyan,
   };
 
@@ -291,7 +291,7 @@ class _ApprenticeSelectorSheetState extends State<ApprenticeSelectorSheet>
         decoration: BoxDecoration(
           gradient: enabled
               ? const LinearGradient(
-                  colors: [AppColors.purple, Color(0xFF7C3AED)],
+                  colors: [AppColors.purple, Color(0xFFA86D35)],
                 )
               : null,
           color: enabled ? null : AppColors.cardLight,

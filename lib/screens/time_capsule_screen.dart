@@ -566,12 +566,12 @@ class _CapsuleRevealDialogState extends State<_CapsuleRevealDialog>
                 ),
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
-                  color: const Color(0xFFFFD700).withValues(alpha: 0.3),
+                  color: const Color(0xFFD9B45E).withValues(alpha: 0.3),
                   width: 1,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFFFFD700).withValues(alpha: 0.1),
+                    color: const Color(0xFFD9B45E).withValues(alpha: 0.1),
                     blurRadius: 40,
                     spreadRadius: 5,
                   ),
@@ -617,7 +617,7 @@ class _CapsuleRevealDialogState extends State<_CapsuleRevealDialog>
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
+                            colors: [Color(0xFFD9B45E), Color(0xFFD9A040)],
                           ),
                           borderRadius: BorderRadius.circular(14),
                         ),
@@ -625,7 +625,7 @@ class _CapsuleRevealDialogState extends State<_CapsuleRevealDialog>
                           child: Text(
                             'Break the seal ✨',
                             style: TextStyle(
-                              color: Color(0xFF1A1500),
+                              color: Color(0xFF17140F),
                               fontSize: 17,
                               fontWeight: FontWeight.w700,
                             ),

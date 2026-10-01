@@ -682,7 +682,7 @@ class _AccountabilityScreenState extends State<AccountabilityScreen>
         children: [
           _HeroStat(
             icon: Icons.local_fire_department_rounded,
-            iconColor: const Color(0xFFFF6B35),
+            iconColor: const Color(0xFFD9774A),
             value: '${stats.longestStreak}',
             label: 'Best Streak',
           ),
@@ -1031,7 +1031,7 @@ class _AccountabilityScreenState extends State<AccountabilityScreen>
         break;
       case ProofType.streak:
         proofIcon = Icons.local_fire_department_rounded;
-        proofColor = const Color(0xFFFF6B35);
+        proofColor = const Color(0xFFD9774A);
         break;
     }
 
@@ -1146,7 +1146,7 @@ class _AccountabilityScreenState extends State<AccountabilityScreen>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: const Color(0xFFFF6B35).withValues(alpha: 0.1),
+                color: const Color(0xFFD9774A).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Row(
@@ -1154,14 +1154,14 @@ class _AccountabilityScreenState extends State<AccountabilityScreen>
                 children: [
                   const Icon(
                     Icons.local_fire_department_rounded,
-                    color: Color(0xFFFF6B35),
+                    color: Color(0xFFD9774A),
                     size: 20,
                   ),
                   const SizedBox(width: 6),
                   Text(
                     '${proof.content} day streak',
                     style: const TextStyle(
-                      color: Color(0xFFFF6B35),
+                      color: Color(0xFFD9774A),
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                     ),

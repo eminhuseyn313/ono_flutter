@@ -186,10 +186,10 @@ class _ChartPainter extends CustomPainter {
   void _drawTierThresholds(
       Canvas canvas, Size size, double chartWidth, double chartHeight) {
     final thresholds = [
-      (85.0, const Color(0xFF8B5CF6)),
-      (70.0, const Color(0xFF34D399)),
-      (50.0, const Color(0xFF22D3EE)),
-      (30.0, const Color(0xFFF59E0B)),
+      (85.0, const Color(0xFFC8894A)),
+      (70.0, const Color(0xFF7DB495)),
+      (50.0, const Color(0xFF7C9CC4)),
+      (30.0, const Color(0xFFE2B354)),
     ];
 
     for (final threshold in thresholds) {
@@ -222,7 +222,7 @@ class _ChartPainter extends CustomPainter {
         text: TextSpan(
           text: '$label',
           style: TextStyle(
-            color: const Color(0xFF9AA6B2).withValues(alpha: 0.5),
+            color: const Color(0xFF8E8A82).withValues(alpha: 0.5),
             fontSize: 10,
           ),
         ),
@@ -266,8 +266,8 @@ class _ChartPainter extends CustomPainter {
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter,
       colors: [
-        const Color(0xFF8B5CF6).withValues(alpha: 0.25 * animationValue),
-        const Color(0xFF8B5CF6).withValues(alpha: 0.0),
+        const Color(0xFFC8894A).withValues(alpha: 0.25 * animationValue),
+        const Color(0xFFC8894A).withValues(alpha: 0.0),
       ],
     );
 
@@ -302,7 +302,7 @@ class _ChartPainter extends CustomPainter {
     }
 
     final paint = Paint()
-      ..color = const Color(0xFF8B5CF6)
+      ..color = const Color(0xFFC8894A)
       ..strokeWidth = 2.5
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
@@ -322,14 +322,14 @@ class _ChartPainter extends CustomPainter {
 
       if (isHighlighted) {
         final glowPaint = Paint()
-          ..color = const Color(0xFF8B5CF6).withValues(alpha: 0.3)
+          ..color = const Color(0xFFC8894A).withValues(alpha: 0.3)
           ..style = PaintingStyle.fill;
         canvas.drawCircle(Offset(x, y), 8, glowPaint);
       }
 
       final dotPaint = Paint()
         ..color =
-            isHighlighted ? const Color(0xFF8B5CF6) : const Color(0xFFC4B5FD)
+            isHighlighted ? const Color(0xFFC8894A) : const Color(0xFFE8C9A3)
         ..style = PaintingStyle.fill;
       canvas.drawCircle(Offset(x, y), isHighlighted ? 5 : 3, dotPaint);
 
@@ -339,8 +339,8 @@ class _ChartPainter extends CustomPainter {
             text: '${history[i].overallScore}',
             style: TextStyle(
               color: isHighlighted
-                  ? const Color(0xFFF8FAFC)
-                  : const Color(0xFF9AA6B2).withValues(alpha: 0.7),
+                  ? const Color(0xFFF3EFE7)
+                  : const Color(0xFF8E8A82).withValues(alpha: 0.7),
               fontSize: isHighlighted ? 11 : 9,
               fontWeight:
                   isHighlighted ? FontWeight.w700 : FontWeight.w500,
@@ -370,7 +370,7 @@ class _ChartPainter extends CustomPainter {
         text: TextSpan(
           text: 'W$weekNum',
           style: TextStyle(
-            color: const Color(0xFF9AA6B2).withValues(alpha: 0.5),
+            color: const Color(0xFF8E8A82).withValues(alpha: 0.5),
             fontSize: 9,
           ),
         ),

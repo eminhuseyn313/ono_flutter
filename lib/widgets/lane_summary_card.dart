@@ -122,7 +122,7 @@ class LaneSummaryCard extends StatelessWidget {
         break;
       case 'down':
         trendIcon = Icons.trending_down_rounded;
-        trendColor = const Color(0xFFEF4444);
+        trendColor = const Color(0xFFE0605A);
         break;
       case 'stable':
       default:

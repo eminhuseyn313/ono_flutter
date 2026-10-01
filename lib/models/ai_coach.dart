@@ -38,15 +38,15 @@ enum InsightType {
   int get colorValue {
     switch (this) {
       case InsightType.pattern:
-        return 0xFF8B5CF6;
+        return 0xFFC8894A;
       case InsightType.nudge:
-        return 0xFF22D3EE;
+        return 0xFF7C9CC4;
       case InsightType.tip:
-        return 0xFFF59E0B;
+        return 0xFFE2B354;
       case InsightType.celebration:
-        return 0xFF34D399;
+        return 0xFF7DB495;
       case InsightType.warning:
-        return 0xFFEF4444;
+        return 0xFFE0605A;
     }
   }
 }

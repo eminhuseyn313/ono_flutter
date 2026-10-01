@@ -97,7 +97,7 @@ class _NotificationBadgeState extends State<NotificationBadge>
                       width: 10,
                       height: 10,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF97316),
+                        color: const Color(0xFFD9774A),
                         shape: BoxShape.circle,
                         border: Border.all(
                           color: AppColors.background,
@@ -105,7 +105,7 @@ class _NotificationBadgeState extends State<NotificationBadge>
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFFF97316)
+                            color: const Color(0xFFD9774A)
                                 .withValues(alpha: 0.6),
                             blurRadius: 6,
                           ),
@@ -119,7 +119,7 @@ class _NotificationBadgeState extends State<NotificationBadge>
                       ),
                       constraints: const BoxConstraints(minWidth: 18),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF97316),
+                        color: const Color(0xFFD9774A),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: AppColors.background,
@@ -127,7 +127,7 @@ class _NotificationBadgeState extends State<NotificationBadge>
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFFF97316)
+                            color: const Color(0xFFD9774A)
                                 .withValues(alpha: 0.55),
                             blurRadius: 6,
                           ),

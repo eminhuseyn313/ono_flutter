@@ -43,7 +43,7 @@ class CheckInCard extends StatelessWidget {
   Color _moodColor(CheckInMood mood) {
     switch (mood) {
       case CheckInMood.fired:
-        return const Color(0xFFFF6B35);
+        return const Color(0xFFD9774A);
       case CheckInMood.steady:
         return AppColors.green;
       case CheckInMood.struggling:
@@ -155,7 +155,7 @@ class CheckInCard extends StatelessWidget {
                     children: [
                       const Icon(
                         Icons.local_fire_department_rounded,
-                        color: Color(0xFFFF6B35),
+                        color: Color(0xFFD9774A),
                         size: 14,
                       ),
                       const SizedBox(width: 4),

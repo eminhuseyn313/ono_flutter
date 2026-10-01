@@ -135,8 +135,8 @@ class AccountHeaderCard extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
+                  AppColors.purpleSoft,
                   AppColors.purple,
-                  AppColors.cyan,
                 ],
               ),
               boxShadow: [

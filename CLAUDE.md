@@ -33,26 +33,30 @@ Models → Gateways (abstract + mock impl) → Providers (ChangeNotifier) → Sc
 - **Font**: Google Fonts Plus Jakarta Sans
 
 ### Theme & Colors
-Use `AppColors` class. Dark theme with glassmorphic cards.
+Use `AppColors` (+ `AppText`, `AppSpace`) from `lib/theme/app_theme.dart`. "Architect" palette: charcoal surfaces, ivory text, one cognac accent, steel-navy secondary. Flat bordered cards (no neon, no glass). Field names kept from the old palette — `purple*` is now the cognac accent family, `cyan` is steel blue.
 
 ```dart
-AppColors.background   // 0xFF0A0C14
-AppColors.card         // 0xFF121826
-AppColors.cardLight    // 0xFF1B2336
-AppColors.purple       // 0xFF8B5CF6 (primary accent)
-AppColors.purpleSoft   // 0xFFC4B5FD
-AppColors.purpleDark   // 0xFF4C1D95
-AppColors.cyan         // 0xFF22D3EE
-AppColors.green        // 0xFF34D399
-AppColors.white        // 0xFFF8FAFC
-AppColors.grey         // 0xFF9AA6B2
-AppColors.greyLight    // 0xFFD5DEE8
-AppColors.success      // 0xFF34D399
-AppColors.warning      // 0xFFF59E0B
-AppColors.divider      // 0xFF202B3F
+AppColors.background   // 0xFF0C0D0F
+AppColors.card         // 0xFF15171B
+AppColors.cardLight    // 0xFF1E2126
+AppColors.purple       // 0xFFC8894A (primary accent — cognac; alias AppColors.accent)
+AppColors.purpleSoft   // 0xFFE8C9A3
+AppColors.purpleDark   // 0xFF4A2F18
+AppColors.cyan         // 0xFF7C9CC4 (steel; alias AppColors.steel)
+AppColors.green        // 0xFF7DB495
+AppColors.white        // 0xFFF3EFE7 (ivory text)
+AppColors.grey         // 0xFF8E8A82
+AppColors.greyLight    // 0xFFCFCAC1
+AppColors.warning      // 0xFFE2B354
+AppColors.divider      // 0xFF272A30
+AppColors.danger       // 0xFFE0605A
+AppColors.mind/body/skill/social, AppColors.lane('mind')  // lane colors
 ```
 
-**There is NO `AppColors.error`** — use `Color(0xFFEF4444)` directly.
+Text on the accent uses `AppColors.ink` (dark). Shared widgets for new screens: `lib/widgets/ono_ui.dart` (`OnoPage`, `OnoCard`, `SectionHeader`, `CheckRow`, `ScoreRing`, `Tag`, …).
+
+### Personal operating system
+Bottom tabs: Today (`/home`) · Plan (`/plan`) · Playbook (`/playbook`) · Me (`/profile`). Content lives in `lib/data/emin_system.dart` (schedule, gym plan, rotations, library, protocols, style, career, Daily 10). State (checks, priorities, evidence, Sunday reports) goes through `PersonalSystemProvider(gateway: ...)` → `MockPersonalSystemGateway` (SharedPreferences). Detail routes: `/manifesto`, `/protocols`, `/evidence`, `/library`, `/style`, `/career`, `/weekly-coaching`, `/features`.
 
 ### Supabase
 - Project ID: `kkgkbfxvovrtmnoezcha`

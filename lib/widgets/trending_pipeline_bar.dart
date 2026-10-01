@@ -46,12 +46,12 @@ class TrendingPipelineBar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
         color: hasError
-            ? const Color(0xFFEF4444).withValues(alpha: 0.1)
+            ? const Color(0xFFE0605A).withValues(alpha: 0.1)
             : AppColors.card,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: hasError
-              ? const Color(0xFFEF4444).withValues(alpha: 0.3)
+              ? const Color(0xFFE0605A).withValues(alpha: 0.3)
               : AppColors.purple.withValues(alpha: 0.2),
         ),
       ),
@@ -62,7 +62,7 @@ class TrendingPipelineBar extends StatelessWidget {
             _PulsingDot(color: AppColors.cyan)
           else if (hasError)
             Icon(Icons.error_outline,
-                size: 16, color: const Color(0xFFEF4444))
+                size: 16, color: const Color(0xFFE0605A))
           else
             Icon(Icons.bolt, size: 16, color: AppColors.purple),
           const SizedBox(width: 8),
@@ -73,7 +73,7 @@ class TrendingPipelineBar extends StatelessWidget {
               _buildStatusText(lastRunAgo, nextRunIn, hasError),
               style: TextStyle(
                 color: hasError
-                    ? const Color(0xFFEF4444)
+                    ? const Color(0xFFE0605A)
                     : AppColors.greyLight,
                 fontSize: 12,
                 fontWeight: FontWeight.w500,

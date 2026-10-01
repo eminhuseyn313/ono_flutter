@@ -114,7 +114,7 @@ class _TimeCapsuleCardState extends State<TimeCapsuleCard>
       case 'body':
         return AppColors.green;
       case 'social':
-        return const Color(0xFFF97316);
+        return const Color(0xFFD9774A);
       case 'skill':
         return AppColors.cyan;
       default:
@@ -344,13 +344,13 @@ class _TimeCapsuleCardState extends State<TimeCapsuleCard>
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: const Color(0xFFFFD700)
+                color: const Color(0xFFD9B45E)
                     .withValues(alpha: _glowAnimation!.value),
                 width: 1.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFFFFD700)
+                  color: const Color(0xFFD9B45E)
                       .withValues(alpha: _glowAnimation!.value * 0.2),
                   blurRadius: 24,
                   spreadRadius: 2,
@@ -372,7 +372,7 @@ class _TimeCapsuleCardState extends State<TimeCapsuleCard>
                   end: Alignment.bottomRight,
                   colors: [
                     AppColors.card.withValues(alpha: 0.9),
-                    const Color(0xFF1A1500).withValues(alpha: 0.4),
+                    const Color(0xFF17140F).withValues(alpha: 0.4),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(20),
@@ -389,14 +389,14 @@ class _TimeCapsuleCardState extends State<TimeCapsuleCard>
                         ),
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
+                            colors: [Color(0xFFD9B45E), Color(0xFFD9A040)],
                           ),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: const Text(
                           'Ready to open! ✨',
                           style: TextStyle(
-                            color: Color(0xFF1A1500),
+                            color: Color(0xFF17140F),
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
                           ),
@@ -442,7 +442,7 @@ class _TimeCapsuleCardState extends State<TimeCapsuleCard>
                         ),
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
+                            colors: [Color(0xFFD9B45E), Color(0xFFD9A040)],
                           ),
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -452,13 +452,13 @@ class _TimeCapsuleCardState extends State<TimeCapsuleCard>
                             const Icon(
                               Icons.auto_awesome_rounded,
                               size: 16,
-                              color: Color(0xFF1A1500),
+                              color: Color(0xFF17140F),
                             ),
                             const SizedBox(width: 6),
                             const Text(
                               'Open',
                               style: TextStyle(
-                                color: Color(0xFF1A1500),
+                                color: Color(0xFF17140F),
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700,
                               ),

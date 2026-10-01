@@ -51,7 +51,7 @@ class _GamificationScreenState extends State<GamificationScreen>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.error_outline, color: Color(0xFFEF4444), size: 48),
+                  Icon(Icons.error_outline, color: Color(0xFFE0605A), size: 48),
                   const SizedBox(height: 16),
                   Text(
                     provider.error!,
@@ -162,7 +162,7 @@ class _GamificationScreenState extends State<GamificationScreen>
           gradient: claimed
               ? null
               : const LinearGradient(
-                  colors: [AppColors.purple, AppColors.cyan],
+                  colors: [AppColors.purpleSoft, AppColors.purple],
                 ),
           color: claimed ? AppColors.cardLight : null,
           borderRadius: BorderRadius.circular(12),
@@ -358,8 +358,8 @@ class _GamificationScreenState extends State<GamificationScreen>
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
                                   colors: [
-                                    AppColors.purple.withValues(alpha: 0.7),
-                                    AppColors.cyan,
+                                    AppColors.purpleSoft.withValues(alpha: 0.7),
+                                    AppColors.purple,
                                   ],
                                   begin: Alignment.bottomCenter,
                                   end: Alignment.topCenter,
@@ -529,7 +529,7 @@ class _OverviewTab extends StatelessWidget {
                       child: Container(
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [AppColors.purple, AppColors.cyan],
+                            colors: [AppColors.purpleSoft, AppColors.purple],
                           ),
                           borderRadius: BorderRadius.circular(7),
                         ),
@@ -723,7 +723,7 @@ class _OverviewTab extends StatelessWidget {
                         gradient: LinearGradient(
                           colors: challenge.isCompleted
                               ? [AppColors.green, AppColors.green]
-                              : [AppColors.purple, AppColors.cyan],
+                              : [AppColors.purpleSoft, AppColors.purple],
                         ),
                         borderRadius: BorderRadius.circular(4),
                       ),

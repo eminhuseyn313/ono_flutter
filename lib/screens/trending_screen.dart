@@ -131,7 +131,7 @@ class _TrendingScreenState extends State<TrendingScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.error_outline, size: 48,
-              color: const Color(0xFFEF4444).withValues(alpha: 0.7)),
+              color: const Color(0xFFE0605A).withValues(alpha: 0.7)),
           const SizedBox(height: 16),
           Text(
             'Something went wrong',
@@ -339,10 +339,10 @@ class _TrendingCard extends StatelessWidget {
         padding: const EdgeInsets.only(right: 24),
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         decoration: BoxDecoration(
-          color: const Color(0xFFEF4444).withValues(alpha: 0.2),
+          color: const Color(0xFFE0605A).withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(16),
         ),
-        child: const Icon(Icons.close, color: Color(0xFFEF4444)),
+        child: const Icon(Icons.close, color: Color(0xFFE0605A)),
       ),
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),

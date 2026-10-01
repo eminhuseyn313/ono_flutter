@@ -199,7 +199,7 @@ class WakzChallengeCard extends StatelessWidget {
                         Icon(
                           Icons.timer_outlined,
                           color: challenge.isExpired
-                              ? const Color(0xFFEF4444)
+                              ? const Color(0xFFE0605A)
                               : AppColors.grey,
                           size: 14,
                         ),
@@ -208,7 +208,7 @@ class WakzChallengeCard extends StatelessWidget {
                           _formatTimeRemaining(),
                           style: TextStyle(
                             color: challenge.isExpired
-                                ? const Color(0xFFEF4444)
+                                ? const Color(0xFFE0605A)
                                 : AppColors.grey,
                             fontSize: 12,
                             fontWeight: FontWeight.w500,

@@ -24,6 +24,17 @@ class FeatureGroup {
 /// routes point at the executive archetype / personal content so they open
 /// with real data.
 const featureGroups = <FeatureGroup>[
+  FeatureGroup('Personal system', [
+    FeatureEntry('📜', 'Manifesto', '/manifesto'),
+    FeatureEntry('🗓', 'Plan', '/plan'),
+    FeatureEntry('⚡', 'Protocols', '/protocols'),
+    FeatureEntry('🗂', 'Evidence Archive', '/evidence'),
+    FeatureEntry('📚', 'Library', '/library'),
+    FeatureEntry('👔', 'Style System', '/style'),
+    FeatureEntry('📈', 'Career & Signal', '/career'),
+    FeatureEntry('📝', 'Sunday Report', '/weekly-coaching'),
+    FeatureEntry('📖', 'Playbook', '/playbook'),
+  ]),
   FeatureGroup('Daily', [
     FeatureEntry('☀️', 'Morning Ritual', '/morning-ritual'),
     FeatureEntry('▶️', 'Ritual Flow', '/ritual-flow/ritual_morning_default'),
@@ -87,14 +98,16 @@ const featureGroups = <FeatureGroup>[
 /// Grid of every feature as a tappable card, so each screen can be found
 /// and tested from the home tab. Collapsed to the first group by default.
 class FeatureDiscoveryGrid extends StatefulWidget {
-  const FeatureDiscoveryGrid({super.key});
+  final bool initiallyExpanded;
+
+  const FeatureDiscoveryGrid({super.key, this.initiallyExpanded = false});
 
   @override
   State<FeatureDiscoveryGrid> createState() => _FeatureDiscoveryGridState();
 }
 
 class _FeatureDiscoveryGridState extends State<FeatureDiscoveryGrid> {
-  bool _expanded = false;
+  late bool _expanded = widget.initiallyExpanded;
 
   int get _totalCount =>
       featureGroups.fold(0, (sum, g) => sum + g.entries.length);
