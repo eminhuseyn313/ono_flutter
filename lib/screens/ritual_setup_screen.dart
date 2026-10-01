@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/ritual.dart';
+import '../providers/auth_provider.dart';
 import '../providers/ritual_provider.dart';
 import '../theme/app_theme.dart';
 import 'ritual_flow_screen.dart';
@@ -12,8 +13,24 @@ import 'ritual_flow_screen.dart';
 ///
 /// Allows the user to toggle rituals on/off, set preferred times, reorder
 /// steps, add/remove optional steps, and preview the flow.
-class RitualSetupScreen extends StatelessWidget {
+class RitualSetupScreen extends StatefulWidget {
   const RitualSetupScreen({super.key});
+
+  @override
+  State<RitualSetupScreen> createState() => _RitualSetupScreenState();
+}
+
+class _RitualSetupScreenState extends State<RitualSetupScreen> {
+  @override
+  void initState() {
+    super.initState();
+    final userId = context.read<AuthProvider>().userId;
+    if (userId != null) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => context.read<RitualProvider>().loadRituals(userId),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

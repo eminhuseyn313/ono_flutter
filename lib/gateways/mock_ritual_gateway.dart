@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import '../data/emin_personal_content.dart';
 import '../models/ritual.dart';
 import 'ritual_gateway.dart';
 
@@ -19,7 +20,8 @@ class MockRitualGateway implements RitualGateway {
   }
 
   void _seed() {
-    final morning = PrebuiltRituals.morning(_defaultUserId);
+    final morning = PrebuiltRituals.morning(_defaultUserId)
+        .copyWith(steps: eminMorningRitual);
     final evening = PrebuiltRituals.evening(_defaultUserId);
     _rituals[morning.id] = morning;
     _rituals[evening.id] = evening;
@@ -62,6 +64,12 @@ class MockRitualGateway implements RitualGateway {
   @override
   Future<List<Ritual>> loadRituals(String userId) async {
     await _simulateLatency();
+    // Single-user mock: hand the seeded rituals to whoever signs in.
+    for (final entry in _rituals.entries.toList()) {
+      if (entry.value.userId == _defaultUserId) {
+        _rituals[entry.key] = entry.value.copyWith(userId: userId);
+      }
+    }
     return _rituals.values
         .where((r) => r.userId == userId)
         .toList();
