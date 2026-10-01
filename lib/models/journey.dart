@@ -1,3 +1,5 @@
+import '../data/emin_personal_content.dart';
+
 /// A multi-week transformation journey tied to a role model.
 /// Each journey has phases (e.g. "Foundation", "Building", "Mastery")
 /// with milestones that unlock as the user progresses.
@@ -125,6 +127,8 @@ List<JourneyMilestone> getMilestonesUpToDay(Journey journey, int day) {
 // ---------------------------------------------------------------------------
 
 final List<Journey> allJourneys = [
+  productLeaderJourney,
+
   // ---------------------------------------------------------------------
   // Kobe Bryant — The Mamba Path
   // ---------------------------------------------------------------------

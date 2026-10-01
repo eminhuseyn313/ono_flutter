@@ -1,3 +1,5 @@
+import '../data/emin_personal_content.dart';
+
 /// Role Model Journey System
 ///
 /// Users choose an iconic figure as inspiration and start a transformation
@@ -95,7 +97,13 @@ String sectorEmoji(RoleModelSector s) {
 
 // ─── ROLE MODELS DATABASE ────────────────────────────────────────────────────
 
-const allRoleModels = <RoleModel>[
+/// Every role model in the app, with the personal one featured first.
+final List<RoleModel> allRoleModels = [
+  productArchitectRoleModel,
+  ..._builtInRoleModels,
+];
+
+const _builtInRoleModels = <RoleModel>[
   // ══════════════════════════════════════════════════════════════════════════
   // MINDSET & PHILOSOPHY
   // ══════════════════════════════════════════════════════════════════════════
