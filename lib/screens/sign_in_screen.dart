@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -177,7 +177,8 @@ class _SignInScreenState extends State<SignInScreen>
 
                         // -- Social sign-in buttons -----------------------
                         const SizedBox(height: 28),
-                        if (Platform.isIOS) ...[
+                        if (!kIsWeb &&
+                            defaultTargetPlatform == TargetPlatform.iOS) ...[
                           _SocialButton(
                             label: 'Continue with Apple',
                             icon: Icons.apple,
@@ -252,8 +253,8 @@ class _SignInScreenState extends State<SignInScreen>
                               color: AppColors.grey,
                               size: 20,
                             ),
-                            onPressed: () =>
-                                setState(() => _obscurePassword = !_obscurePassword),
+                            onPressed: () => setState(
+                                () => _obscurePassword = !_obscurePassword),
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -279,23 +280,27 @@ class _SignInScreenState extends State<SignInScreen>
                             padding: const EdgeInsets.all(12),
                             margin: const EdgeInsets.only(bottom: 12),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFEF4444).withValues(alpha: 0.1),
+                              color: const Color(0xFFEF4444)
+                                  .withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: const Color(0xFFEF4444).withValues(alpha: 0.3),
+                                color: const Color(0xFFEF4444)
+                                    .withValues(alpha: 0.3),
                               ),
                             ),
                             child: Row(
                               children: [
                                 Icon(Icons.error_outline,
-                                    color: const Color(0xFFEF4444).withValues(alpha: 0.8),
+                                    color: const Color(0xFFEF4444)
+                                        .withValues(alpha: 0.8),
                                     size: 18),
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: Text(
                                     auth.errorMessage!,
                                     style: TextStyle(
-                                      color: const Color(0xFFEF4444).withValues(alpha: 0.9),
+                                      color: const Color(0xFFEF4444)
+                                          .withValues(alpha: 0.9),
                                       fontSize: 13,
                                     ),
                                   ),
@@ -308,7 +313,8 @@ class _SignInScreenState extends State<SignInScreen>
                         OnoButton(
                           label: 'Sign in',
                           isLoading: isLoading,
-                          onPressed: isLoading || !_isValid ? null : _handleSignIn,
+                          onPressed:
+                              isLoading || !_isValid ? null : _handleSignIn,
                           icon: Icons.arrow_forward_rounded,
                         ),
                         const SizedBox(height: 20),
@@ -317,8 +323,8 @@ class _SignInScreenState extends State<SignInScreen>
                             onTap: () => context.go('/sign-up'),
                             child: RichText(
                               text: const TextSpan(
-                                style:
-                                    TextStyle(color: AppColors.grey, fontSize: 14),
+                                style: TextStyle(
+                                    color: AppColors.grey, fontSize: 14),
                                 children: [
                                   TextSpan(text: "Don't have an account? "),
                                   TextSpan(

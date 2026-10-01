@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -226,7 +226,8 @@ class _SignUpScreenState extends State<SignUpScreen>
 
                         // -- Social sign-in buttons -----------------------
                         const SizedBox(height: 28),
-                        if (Platform.isIOS) ...[
+                        if (!kIsWeb &&
+                            defaultTargetPlatform == TargetPlatform.iOS) ...[
                           _SocialButton(
                             label: 'Continue with Apple',
                             icon: Icons.apple,
@@ -301,8 +302,8 @@ class _SignUpScreenState extends State<SignUpScreen>
                               color: AppColors.grey,
                               size: 20,
                             ),
-                            onPressed: () =>
-                                setState(() => _obscurePassword = !_obscurePassword),
+                            onPressed: () => setState(
+                                () => _obscurePassword = !_obscurePassword),
                           ),
                         ),
                         if (_passwordController.text.isNotEmpty) ...[
@@ -319,7 +320,8 @@ class _SignUpScreenState extends State<SignUpScreen>
                                     borderRadius: BorderRadius.circular(2),
                                     color: i < _passwordStrength
                                         ? _strengthColor
-                                        : AppColors.divider.withValues(alpha: 0.4),
+                                        : AppColors.divider
+                                            .withValues(alpha: 0.4),
                                   ),
                                 ),
                               );
@@ -357,8 +359,8 @@ class _SignUpScreenState extends State<SignUpScreen>
                               color: AppColors.grey,
                               size: 20,
                             ),
-                            onPressed: () =>
-                                setState(() => _obscureConfirm = !_obscureConfirm),
+                            onPressed: () => setState(
+                                () => _obscureConfirm = !_obscureConfirm),
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -369,23 +371,27 @@ class _SignUpScreenState extends State<SignUpScreen>
                             padding: const EdgeInsets.all(12),
                             margin: const EdgeInsets.only(bottom: 12),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFEF4444).withValues(alpha: 0.1),
+                              color: const Color(0xFFEF4444)
+                                  .withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: const Color(0xFFEF4444).withValues(alpha: 0.3),
+                                color: const Color(0xFFEF4444)
+                                    .withValues(alpha: 0.3),
                               ),
                             ),
                             child: Row(
                               children: [
                                 Icon(Icons.error_outline,
-                                    color: const Color(0xFFEF4444).withValues(alpha: 0.8),
+                                    color: const Color(0xFFEF4444)
+                                        .withValues(alpha: 0.8),
                                     size: 18),
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: Text(
                                     auth.errorMessage!,
                                     style: TextStyle(
-                                      color: const Color(0xFFEF4444).withValues(alpha: 0.9),
+                                      color: const Color(0xFFEF4444)
+                                          .withValues(alpha: 0.9),
                                       fontSize: 13,
                                     ),
                                   ),
@@ -398,7 +404,8 @@ class _SignUpScreenState extends State<SignUpScreen>
                         OnoButton(
                           label: 'Create account',
                           isLoading: isLoading,
-                          onPressed: isLoading || !_isValid ? null : _handleSignUp,
+                          onPressed:
+                              isLoading || !_isValid ? null : _handleSignUp,
                           icon: Icons.arrow_forward_rounded,
                         ),
                         const SizedBox(height: 20),
@@ -407,8 +414,8 @@ class _SignUpScreenState extends State<SignUpScreen>
                             onTap: () => context.go('/sign-in'),
                             child: RichText(
                               text: const TextSpan(
-                                style:
-                                    TextStyle(color: AppColors.grey, fontSize: 14),
+                                style: TextStyle(
+                                    color: AppColors.grey, fontSize: 14),
                                 children: [
                                   TextSpan(text: 'Already have an account? '),
                                   TextSpan(

@@ -49,3 +49,6 @@ app.*.map.json
 
 # Local archives
 _to_delete_*.tar
+
+# Local Claude tooling
+.claude/
