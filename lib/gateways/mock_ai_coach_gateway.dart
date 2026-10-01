@@ -1,3 +1,4 @@
+import '../data/emin_personal_content.dart';
 import '../models/ai_coach.dart';
 import 'ai_coach_gateway.dart';
 
@@ -68,15 +69,7 @@ class MockAiCoachGateway implements AiCoachGateway {
           isRead: true,
         ),
       ],
-      dailyTip: DailyCoachTip(
-        id: 'tip_today',
-        title: 'The 2-Minute Rule',
-        content:
-            'When you don\'t feel like doing something, commit to just 2 minutes. Starting is the hardest part — once you begin, momentum takes over. Apply this to your Mind lane today: read for just 2 minutes.',
-        lane: 'Mind',
-        laneColorValue: 0xFF8B5CF6,
-        date: DateTime.now(),
-      ),
+      dailyTip: _todaysTip(),
       preferredTone: CoachTone.motivational,
       streakDays: 14,
       overallScore: 72.5,
@@ -107,5 +100,18 @@ class MockAiCoachGateway implements AiCoachGateway {
   @override
   Future<void> setPreferredTone(CoachTone tone) async {
     await Future.delayed(const Duration(milliseconds: 150));
+  }
+
+  /// Rotates through [eminCoachTips], one per calendar day.
+  DailyCoachTip _todaysTip() {
+    final now = DateTime.now();
+    final dayNumber =
+        DateTime.utc(now.year, now.month, now.day).millisecondsSinceEpoch ~/
+            Duration.millisecondsPerDay;
+    final tip = eminCoachTips[dayNumber % eminCoachTips.length];
+    final lane = tip.lane.isEmpty
+        ? tip.lane
+        : tip.lane[0].toUpperCase() + tip.lane.substring(1);
+    return tip.copyWith(lane: lane, date: now);
   }
 }
