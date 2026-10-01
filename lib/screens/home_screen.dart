@@ -16,6 +16,7 @@ import '../providers/progress_provider.dart';
 import '../gateways/actions_gateway.dart';
 import '../widgets/streak_celebration.dart';
 import '../models/challenge.dart';
+import '../widgets/feature_discovery_grid.dart';
 import '../widgets/reflection_sheet.dart';
 import '../widgets/shimmer_loading.dart';
 import '../widgets/staggered_list.dart';
@@ -383,6 +384,10 @@ class _HomeScreenState extends State<HomeScreen>
                               // ── EXPLORE JOURNEYS ────────────────
                               const SizedBox(height: 16),
                               _buildExploreJourneysCard(),
+
+                              // ── ALL FEATURES ────────────────────
+                              const SizedBox(height: 16),
+                              const FeatureDiscoveryGrid(),
 
                               // ── DAILY WISDOM ────────────────────
                               const SizedBox(height: 16),
