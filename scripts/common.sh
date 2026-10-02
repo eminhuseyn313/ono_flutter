@@ -12,11 +12,20 @@ if ! command -v flutter >/dev/null 2>&1; then
 fi
 
 say "Getting the latest version of the app (main)…"
+# Flutter and Xcode rewrite tracked files on every build (lock files, Xcode
+# project settings). Set them aside so they never block the update; they stay
+# recoverable with `git stash list` / `git stash pop`.
 if ! git diff --quiet || ! git diff --cached --quiet; then
-  say "You have local edits — keeping them and skipping the update."
+  git stash push -q -m "ONO launcher $(date '+%Y-%m-%d %H:%M'): files changed by Flutter/Xcode" \
+    && echo "Set aside files that Flutter/Xcode changed (saved in git stash)."
+fi
+git checkout -q main 2>/dev/null || say "Couldn't switch to main — using the current copy."
+BEFORE=$(git rev-parse --short HEAD)
+if git pull -q --ff-only origin main; then
+  AFTER=$(git rev-parse --short HEAD)
+  [ "$BEFORE" = "$AFTER" ] && echo "Already up to date ($AFTER)." || echo "Updated $BEFORE → $AFTER."
 else
-  git checkout -q main
-  git pull -q --ff-only origin main || say "Couldn't update from GitHub — using the copy you already have."
+  say "Couldn't update from GitHub — using the copy you already have ($BEFORE)."
 fi
 
 say "Installing packages…"
