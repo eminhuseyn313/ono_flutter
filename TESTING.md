@@ -4,7 +4,7 @@
 
 ```bash
 cd ~/Downloads/ono_flutter
-git fetch origin && git checkout main-ntyuqf && git pull
+git fetch origin && git checkout main && git pull
 flutter upgrade
 flutter clean && flutter pub get
 open ios/Runner.xcworkspace     # Runner → Signing & Capabilities → pick your Team (once)

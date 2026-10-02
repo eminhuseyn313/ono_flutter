@@ -155,7 +155,7 @@ Still to do: run on a physical iPhone (needs macOS + Xcode; see below). Producti
 
 ### Build for iOS testing
 ```bash
-git pull && git checkout main-ntyuqf
+git checkout main && git pull
 flutter upgrade          # older Flutter can't launch on iOS 27 simulators
 flutter clean && flutter pub get
 open ios/Runner.xcworkspace   # set your Team under Signing & Capabilities once
