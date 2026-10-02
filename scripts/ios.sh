@@ -36,7 +36,9 @@ booted_iphone() {
 # the Xcode that simctl comes from, xcode-select, /Applications, ~/Applications
 # and Spotlight, then AppleScript.
 open_simulator() {
-  open -b com.apple.iphonesimulator >/dev/null 2>&1 && return 0
+  local err
+  err=$(open -b com.apple.iphonesimulator 2>&1) && return 0
+  echo "  open by bundle id: ${err:-failed}"
   local dev app
   dev="$(dirname "$(dirname "$(dirname "$(xcrun --find simctl 2>/dev/null || echo /x/x/x/x)")")")"
   for app in \
@@ -45,8 +47,12 @@ open_simulator() {
     /Applications/Xcode*.app/Contents/Developer/Applications/Simulator.app \
     "$HOME"/Applications/Xcode*.app/Contents/Developer/Applications/Simulator.app \
     "$(mdfind "kMDItemCFBundleIdentifier == 'com.apple.iphonesimulator'" 2>/dev/null | head -1 || true)"; do
-    [ -n "$app" ] && [ -d "$app" ] && open "$app" && return 0
+    if [ -n "$app" ] && [ -d "$app" ]; then
+      err=$(open "$app" 2>&1) && return 0
+      echo "  open $app: ${err:-failed}"
+    fi
   done
+  echo "  Simulator.app not found under: $dev/Applications, $(xcode-select -p 2>/dev/null)/Applications, /Applications/Xcode*.app"
   osascript -e 'tell application id "com.apple.iphonesimulator" to activate' >/dev/null 2>&1 && return 0
   say "Couldn't open the Simulator window by itself. Press ⌘-Space, type Simulator, press Enter — ONO will appear in it."
   return 0
