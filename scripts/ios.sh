@@ -54,7 +54,14 @@ open_simulator() {
   done
   echo "  Simulator.app not found under: $dev/Applications, $(xcode-select -p 2>/dev/null)/Applications, /Applications/Xcode*.app"
   osascript -e 'tell application id "com.apple.iphonesimulator" to activate' >/dev/null 2>&1 && return 0
-  say "Couldn't open the Simulator window by itself. Press ⌘-Space, type Simulator, press Enter — ONO will appear in it."
+  say "Your Xcode has no Simulator app, so the app runs but there is no window to show it."
+  cat <<'EOF'
+Fix it once, then run this again:
+  1. Xcode → Open Developer Tool → Simulator. If that opens, you're done.
+  2. Otherwise Xcode → Settings → Components: install iOS.
+  3. Still missing: delete Xcode and install it again from the App Store.
+Or test on your iPhone instead:  bash "Install on my iPhone.command"
+EOF
   return 0
 }
 
