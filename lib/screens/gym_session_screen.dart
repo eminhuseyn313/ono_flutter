@@ -1,0 +1,270 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
+import '../data/emin_system.dart';
+import '../providers/personal_system_provider.dart';
+import '../theme/app_theme.dart';
+import '../widgets/ono_ui.dart';
+
+/// Set-by-set logger for Day A / B / C. Pre-fills last session's weights so
+/// progression is visible, flags new bests, and marks the session done.
+class GymSessionScreen extends StatefulWidget {
+  final String? dayId;
+  const GymSessionScreen({super.key, this.dayId});
+
+  @override
+  State<GymSessionScreen> createState() => _GymSessionScreenState();
+}
+
+class _SetRow {
+  final TextEditingController kg;
+  final TextEditingController reps;
+  _SetRow(String kg, String reps)
+      : kg = TextEditingController(text: kg),
+        reps = TextEditingController(text: reps);
+}
+
+class _GymSessionScreenState extends State<GymSessionScreen> {
+  late GymDay _day;
+  final Map<String, List<_SetRow>> _sets = {};
+  bool _zone2 = false;
+  bool _initialised = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_initialised) return;
+    _initialised = true;
+    final system = context.read<PersonalSystemProvider>();
+    _day = widget.dayId == null
+        ? system.nextGymDay(DateTime.now()).day
+        : gymPlan.firstWhere((g) => g.id == widget.dayId,
+            orElse: () => gymPlan.first);
+    final last = system.lastSessionFor(_day.id);
+    final lastByName = <String, List<Map<String, dynamic>>>{};
+    for (final e in (last?.data['exercises'] as List? ?? const [])) {
+      final m = Map<String, dynamic>.from(e as Map);
+      lastByName[m['name'] as String] =
+          (m['sets'] as List).map((s) => Map<String, dynamic>.from(s as Map)).toList();
+    }
+    for (final ex in _day.exercises) {
+      final spec = _parse(ex.sets);
+      final prev = lastByName[ex.name];
+      _sets[ex.name] = List.generate(
+        prev?.length ?? spec.$1,
+        (i) => _SetRow(
+          prev == null ? '' : _fmt(prev[i]['kg']),
+          prev == null ? '${spec.$2}' : _fmt(prev[i]['reps']),
+        ),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    for (final rows in _sets.values) {
+      for (final r in rows) {
+        r.kg.dispose();
+        r.reps.dispose();
+      }
+    }
+    super.dispose();
+  }
+
+  static String _fmt(Object? v) {
+    if (v == null) return '';
+    final n = (v as num).toDouble();
+    return n == n.roundToDouble() ? n.toInt().toString() : n.toString();
+  }
+
+  /// "3×12" → (3, 12); "3×45 sec" → (3, 45).
+  static (int, int) _parse(String spec) {
+    final m = RegExp(r'(\d+)\s*×\s*(\d+)').firstMatch(spec);
+    if (m == null) return (3, 12);
+    return (int.parse(m.group(1)!), int.parse(m.group(2)!));
+  }
+
+  void _save() {
+    final system = context.read<PersonalSystemProvider>();
+    final exercises = <Map<String, dynamic>>[];
+    final prs = <String>[];
+    for (final ex in _day.exercises) {
+      final rows = _sets[ex.name]!;
+      final sets = <Map<String, dynamic>>[];
+      for (final r in rows) {
+        final kg = double.tryParse(r.kg.text.replaceAll(',', '.'));
+        final reps = int.tryParse(r.reps.text);
+        if (reps == null && kg == null) continue;
+        sets.add({'kg': kg ?? 0, 'reps': reps ?? 0});
+      }
+      if (sets.isEmpty) continue;
+      final top = sets.map((s) => (s['kg'] as num).toDouble()).reduce(
+          (a, b) => a > b ? a : b);
+      if (top > 0 && top > system.bestLift(ex.name)) prs.add(ex.name);
+      exercises.add({'name': ex.name, 'sets': sets});
+    }
+    if (exercises.isEmpty) {
+      toast(context, 'Enter at least one set.');
+      return;
+    }
+    system.saveGymSession(DateTime.now(), _day.id, exercises, zone2: _zone2);
+    HapticFeedback.heavyImpact();
+    toast(
+        context,
+        prs.isEmpty
+            ? 'Day ${_day.letter} logged. ${system.gymSessionsInWeek(DateTime.now())}/3 this week.'
+            : 'Logged — new best: ${prs.join(', ')}');
+    context.canPop() ? context.pop() : context.go('/home');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final system = context.watch<PersonalSystemProvider>();
+    final last = system.lastSessionFor(_day.id);
+    final loggedToday = system
+        .logsOn(DateTime.now(), 'gym')
+        .any((l) => l.str('day') == _day.id);
+
+    return OnoPage(
+      showBack: true,
+      eyebrow: 'Day ${_day.letter} · RA-safe',
+      title: _day.name,
+      subtitle: last == null
+          ? 'First time logging this day — enter what you lift today.'
+          : 'Pre-filled from ${weekdayName(last.date.weekday)} ${shortDate(last.date)}. Beat one number.',
+      bottomBar: PrimaryButton('Finish session',
+          icon: Icons.check_rounded, onPressed: _save),
+      children: [
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            for (final g in gymPlan)
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: ChoiceChip(
+                  label: Text('${g.letter} · ${g.name}'),
+                  selected: g.id == _day.id,
+                  showCheckmark: false,
+                  selectedColor: AppColors.cardLight,
+                  onSelected: (_) => context.pushReplacement('/gym/${g.id}'),
+                ),
+              ),
+          ],
+        ),
+        if (loggedToday) ...[
+          const SizedBox(height: 12),
+          OnoCard(
+            accent: AppColors.body,
+            padding: const EdgeInsets.all(14),
+            child: Text(
+                'Already logged today. Finishing again adds a second session.',
+                style: AppText.small(color: AppColors.greyLight)),
+          ),
+        ],
+        const SizedBox(height: 8),
+        for (final ex in _day.exercises) _exercise(ex, system),
+        const SizedBox(height: 8),
+        OnoCard(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+          child: CheckRow(
+            checked: _zone2,
+            title: _day.finisher,
+            subtitle: 'Conversational pace — builds the energy base.',
+            lane: 'body',
+            onChanged: (v) => setState(() => _zone2 = v),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _exercise(Exercise ex, PersonalSystemProvider system) {
+    final rows = _sets[ex.name]!;
+    final best = system.bestLift(ex.name);
+    final spec = _parse(ex.sets);
+    final allHit = rows.isNotEmpty &&
+        rows.every((r) => (int.tryParse(r.reps.text) ?? 0) >= spec.$2);
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: OnoCard(
+        accent: ex.keyLift ? AppColors.accent : null,
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(ex.name,
+                      style: AppText.heading(
+                          color: ex.keyLift
+                              ? AppColors.accent
+                              : AppColors.white)),
+                ),
+                Text(ex.sets, style: AppText.small()),
+              ],
+            ),
+            if (ex.note != null)
+              Text(ex.note!, style: AppText.small().copyWith(fontSize: 12)),
+            if (best > 0)
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Text(
+                    'Best ${_fmt(best)} kg${allHit ? ' · all reps hit — add 2.5 kg next time' : ''}',
+                    style: AppText.small(
+                            color: allHit ? AppColors.body : AppColors.grey)
+                        .copyWith(fontSize: 12)),
+              ),
+            const SizedBox(height: 8),
+            for (var i = 0; i < rows.length; i++)
+              Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Row(
+                  children: [
+                    SizedBox(
+                        width: 26,
+                        child: Text('${i + 1}', style: AppText.small())),
+                    Expanded(child: _num(rows[i].kg, 'kg')),
+                    const SizedBox(width: 8),
+                    Expanded(
+                        child: _num(rows[i].reps,
+                            ex.sets.contains('sec') ? 'sec' : 'reps')),
+                  ],
+                ),
+              ),
+            TextButton.icon(
+              onPressed: () => setState(() => rows.add(_SetRow(
+                  rows.isEmpty ? '' : rows.last.kg.text,
+                  rows.isEmpty ? '${spec.$2}' : rows.last.reps.text))),
+              style: TextButton.styleFrom(padding: EdgeInsets.zero),
+              icon: const Icon(Icons.add_rounded, size: 18),
+              label: const Text('Set'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _num(TextEditingController c, String suffix) => TextField(
+        controller: c,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        textAlign: TextAlign.center,
+        style: AppText.number(size: 16),
+        onChanged: (_) => setState(() {}),
+        decoration: InputDecoration(
+          isDense: true,
+          hintText: '–',
+          // suffixText hides on empty fields; the unit should always show.
+          suffixIcon: Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: Text(suffix, style: AppText.small()),
+          ),
+          suffixIconConstraints: const BoxConstraints(minWidth: 0),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        ),
+      );
+}

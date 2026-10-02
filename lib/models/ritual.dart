@@ -73,14 +73,23 @@ class RitualStep {
         subtitle: json['subtitle'] as String,
         lane: RitualLane.values.byName(json['lane'] as String),
         durationSeconds: json['durationSeconds'] as int,
-        iconData: IconData(
-          json['iconCodePoint'] as int,
-          fontFamily: json['iconFontFamily'] as String?,
-        ),
+        // Icons must be compile-time constants for icon tree-shaking, so
+        // stored steps map back to one of the ritual icons by code point.
+        iconData: _ritualIcons.firstWhere(
+            (i) => i.codePoint == json['iconCodePoint'],
+            orElse: () => Icons.self_improvement),
         instruction: json['instruction'] as String,
         isOptional: json['isOptional'] as bool? ?? false,
       );
 }
+
+const _ritualIcons = [
+  Icons.water_drop,
+  Icons.auto_stories,
+  Icons.flag_outlined,
+  Icons.self_improvement,
+  Icons.record_voice_over,
+];
 
 // ---------------------------------------------------------------------------
 // Ritual

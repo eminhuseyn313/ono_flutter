@@ -1,121 +1,20 @@
 // ============================================================
-// EMIN HUSEYNZADE — ONO PERSONAL DEVELOPMENT CONTENT LAYER
+// EMIN HUSEYNZADE — RITUAL STEPS AND DAILY COACH NOTES
 // ============================================================
-// lib/data/emin_personal_content.dart
+// Structured profile content lives in emin_system.dart; this file holds
+// the morning ritual steps and the 30 Month-1 coach notes.
 // ============================================================
 
 import 'package:flutter/material.dart';
-import '../models/models.dart';
-import '../models/daily_checkin.dart';
 import '../models/ritual.dart';
-import '../models/role_model.dart';
-import '../models/journey.dart';
 import '../models/ai_coach.dart';
-
-// ============================================================
-// 1. YOUR ARCHETYPE — The Product Leader
-// ============================================================
-
-final Archetype eminArchetype = Archetype(
-  id: 'executive',
-  emoji: '🏆',
-  title: 'The Product Leader',
-  tagline: 'Builds what others can\'t see yet',
-  description:
-      'Strategic, technically fluent, and building toward global recognition. '
-      'You operate at the intersection of identity, payments, and ecosystem strategy — '
-      'a domain almost nobody in your region understands. '
-      'Your path: Senior PO → Head of Product → CPO or Founder.',
-);
-
-// ============================================================
-// 2. YOUR BLUEPRINT DOMAINS
-// ============================================================
-
-final List<BlueprintDomain> eminBlueprint = [
-  BlueprintDomain(
-    name: 'Product Craft',
-    emoji: '💼',
-    active: true,
-    actions: [
-      'BLUF every output — decision first, reasons second, always',
-      'Six-questions-deep prep before every meeting with Ali or senior stakeholders',
-      'One framework per week — Feynman write after: close notes, explain from memory',
-      'Anki review — 5 min at breakfast, 5 cards per week added',
-      'One artifact per month — PR/FAQ, OST, strategy doc, or 6-pager',
-      'Commute podcast by day — Lenny\'s, Acquired, Knowledge Project, Fintech Brainfood, Fintech Leaders',
-    ],
-  ),
-  BlueprintDomain(
-    name: 'Domain Intelligence',
-    emoji: '🌐',
-    active: true,
-    actions: [
-      'Mon: CIAM Compass (guptadeepak.com/ciam-compass) — identity and agent identity',
-      'Tue: Stratechery — platform and ecosystem strategy',
-      'Wed: Lenny\'s Newsletter — product craft and leadership',
-      'Thu: Product Compass — modern PM frameworks',
-      'Fri: Fintech Brainfood — fintech and payments',
-      'Sat: Primary sources — Kaspi, Stripe, Visa, Auth0 blogs',
-      'Sun: Personal synthesis — write 3 domain insights in journal',
-      'One domain insight written per day — one sentence in journal',
-      'Own this thesis: agent identity is the next frontier of merchant ecosystems',
-    ],
-  ),
-  BlueprintDomain(
-    name: 'Mental Performance',
-    emoji: '🧠',
-    active: true,
-    actions: [
-      'Read manifesto — 2 min while drinking first water every morning',
-      'Physiological sigh before every high-pressure moment — 30 seconds',
-      'Say "I am excited" before every high-stakes interaction — not "calm down"',
-      'Evidence Archive — add 5 items every Sunday, read every Monday',
-      'Pennebaker writing — 15 min every Tuesday for 4 consecutive weeks',
-      'Six-questions-deep — write 6 hardest questions before every Ali meeting',
-      'Deliberate pause — one breath before answering anything challenging',
-    ],
-  ),
-  BlueprintDomain(
-    name: 'Physical Foundation',
-    emoji: '💪',
-    active: true,
-    actions: [
-      'Gym 3x per week — Mon Push / Wed Pull / Thu Legs (RA-shoulder safe)',
-      'Face pulls 3×15 every session — builds posture and shoulder health',
-      'Zone 2 cooldown 15 min after every gym session — conversational pace',
-      'Protein 150g daily — critical for beta thalassemia and recomposition',
-      'Water 2.5L daily — dehydration measurably impairs cognition',
-      'In bed 10:30pm — sleep is the foundation everything else runs on',
-      'Nasal strip every night — improves sleep architecture immediately',
-      'Supplements: Vitamin D3 2000IU + Creatine 5g + Omega-3 2g at breakfast',
-      'Magnesium Glycinate 400mg before bed — sleep quality and stress response',
-      'Body recomposition target: 76-78kg from current 83kg over 5-6 months',
-    ],
-  ),
-  BlueprintDomain(
-    name: 'Executive Presence',
-    emoji: '👔',
-    active: true,
-    actions: [
-      'Outfit check before leaving — "Do I belong in every room today?"',
-      'Still body in every meeting — feet flat, hands still, no phone',
-      'Downward vocal inflection on statements — not seeking permission',
-      'Deliberate pause — one breath before every answer',
-      'Beard edge-up every Sunday evening — 10 min, sharp lines',
-      'LinkedIn: 2 posts per week from Month 2 — domain insight + craft',
-      'Professional headshot — book this month',
-      'Build advisory board: 5 seats — internal sponsor, external PM, domain expert, founder, peer',
-    ],
-  ),
-];
 
 // ============================================================
 // 3. YOUR MORNING RITUAL SEQUENCE
 // ============================================================
 
 final List<RitualStep> eminMorningRitual = [
-  RitualStep(
+  const RitualStep(
     id: 'water',
     title: 'First water',
     subtitle: 'Hydration affects cognitive function within minutes',
@@ -124,7 +23,7 @@ final List<RitualStep> eminMorningRitual = [
     iconData: Icons.water_drop,
     instruction: '500ml water immediately on waking. Before coffee. Before phone.',
   ),
-  RitualStep(
+  const RitualStep(
     id: 'manifesto',
     title: 'Read your manifesto',
     subtitle: 'Identity-based priming anchors your day',
@@ -141,7 +40,7 @@ final List<RitualStep> eminMorningRitual = [
         'I study my domain. I speak from position, not permission.\n\n'
         'Today I build something permanent. Not performing. Building.',
   ),
-  RitualStep(
+  const RitualStep(
     id: 'three_priorities',
     title: '3 priorities for today',
     subtitle: 'Reduces decision fatigue throughout the day',
@@ -152,7 +51,7 @@ final List<RitualStep> eminMorningRitual = [
         'Write exactly 3 things that must happen today. Not a to-do list. '
         '3 outcomes. Write them in the Three priorities card on Today.',
   ),
-  RitualStep(
+  const RitualStep(
     id: 'sigh',
     title: 'Physiological sigh',
     subtitle: 'Fastest method to activate parasympathetic nervous system',
@@ -163,7 +62,7 @@ final List<RitualStep> eminMorningRitual = [
         'Double inhale through nose (big breath, then squeeze more air in), '
         'then long slow exhale through mouth until empty. Repeat 3 times.',
   ),
-  RitualStep(
+  const RitualStep(
     id: 'identity',
     title: 'Say your statement',
     subtitle: 'Verbal commitment increases follow-through',
@@ -173,233 +72,6 @@ final List<RitualStep> eminMorningRitual = [
     instruction: 'Say aloud: "Today I build something permanent."',
   ),
 ];
-
-// ============================================================
-// 4. YOUR ROLE MODEL — "The Product Architect"
-// ============================================================
-
-final RoleModel productArchitectRoleModel = RoleModel(
-  id: 'product_architect',
-  name: 'The Product Architect',
-  emoji: '🏗️',
-  sector: RoleModelSector.technology,
-  tagline: 'Built from zero. Known globally.',
-  bio:
-      'Started as a senior PO in an emerging market nobody had heard of. '
-      'Built the identity layer of his country\'s first integrated digital ecosystem. '
-      'Became the world\'s most recognized voice on B2B merchant identity. '
-      'Headhunted by Revolut. Eventually built his own company. '
-      'This is the person you are becoming.',
-  philosophy:
-      'Depth before visibility. Foundation before structure. '
-      'Build what only you can build — from where only you stand.',
-  philosophyQuote:
-      '"The person who knows what\'s coming before others do — '
-      'and can explain why it matters — owns the room."',
-  keyDisciplines: [
-    'Domain mastery — 15 min daily compounds into world-class expertise',
-    'BLUF communication — decision first, always',
-    'Zone 2 training — energy is cognitive capital',
-    'Deliberate presence — still body, pause, downward inflection',
-    'Evidence-based confidence — archive what you build',
-  ],
-  journeyDays: 30,
-  dailyActions: [
-    JourneyAction(
-      title: 'Morning manifesto',
-      subtitle: 'Read your identity statement before anything else',
-      lane: 'mind',
-    ),
-    JourneyAction(
-      title: 'Domain scan',
-      subtitle: 'Read your assigned domain source for today — 15 min',
-      lane: 'skill',
-    ),
-    JourneyAction(
-      title: 'BLUF in action',
-      subtitle: 'Apply BLUF to at least one work output today',
-      lane: 'skill',
-    ),
-    JourneyAction(
-      title: 'Physiological sigh',
-      subtitle: 'Use it before your most challenging moment today',
-      lane: 'mind',
-    ),
-    JourneyAction(
-      title: 'Presence practice',
-      subtitle: 'Still body + deliberate pause in every meeting today',
-      lane: 'social',
-    ),
-    JourneyAction(
-      title: 'Evidence archive',
-      subtitle: 'Add one item to your evidence archive today',
-      lane: 'mind',
-    ),
-  ],
-);
-
-// ============================================================
-// 5. YOUR 30-DAY JOURNEY — "The Product Leader Path"
-// ============================================================
-
-final Journey productLeaderJourney = Journey(
-  id: 'product_leader_path',
-  roleModelId: 'product_architect',
-  title: 'The Product Leader Path',
-  description:
-      'Month 1 of your 18-month transformation. '
-      'Not motivation. Not hype. A specific system that builds '
-      'the biological foundation, installs the daily protocols, '
-      'and starts showing the world a different version of you.',
-  totalDays: 30,
-  rewards: ['🏆', '⚡', '🌍', '💎'],
-  phases: [
-    JourneyPhase(
-      id: 'phase_foundation',
-      title: 'Week 1-2: Foundation',
-      description:
-          'Fix the biological base. Install the daily systems. '
-          'Stop the energy leak. Start showing up differently.',
-      startDay: 1,
-      endDay: 10,
-      motivationalQuote:
-          '"You cannot build a skyscraper on a cracked foundation. '
-          'Fix the base first. Everything else follows."',
-      milestones: [
-        JourneyMilestone(
-          id: 'm_day1',
-          title: 'Day 1: System Installed',
-          description: 'Completed your first morning ritual and read the manifesto',
-          emoji: '🌱',
-          requiredDay: 1,
-          type: MilestoneType.completion,
-        ),
-        JourneyMilestone(
-          id: 'm_day3',
-          title: 'Day 3: Sigh Master',
-          description: 'Used the physiological sigh before 3 different pressure moments',
-          emoji: '🫁',
-          requiredDay: 3,
-          type: MilestoneType.special,
-        ),
-        JourneyMilestone(
-          id: 'm_day5',
-          title: 'Day 5: First Domain Win',
-          description: 'Completed 5 consecutive morning domain scans',
-          emoji: '🌐',
-          requiredDay: 5,
-          type: MilestoneType.streak,
-        ),
-        JourneyMilestone(
-          id: 'm_day7',
-          title: 'Day 7: First Week Complete',
-          description: 'Seven days. The foundation is being built.',
-          emoji: '🔥',
-          requiredDay: 7,
-          type: MilestoneType.streak,
-        ),
-        JourneyMilestone(
-          id: 'm_day10',
-          title: 'Day 10: BLUF Installed',
-          description: 'Applied BLUF structure to 10 work outputs',
-          emoji: '📢',
-          requiredDay: 10,
-          type: MilestoneType.completion,
-        ),
-      ],
-    ),
-    JourneyPhase(
-      id: 'phase_construction',
-      title: 'Week 3-4: Construction',
-      description:
-          'Domain knowledge building. Communication architecture. '
-          'First artifact produced. Presence practiced daily.',
-      startDay: 11,
-      endDay: 22,
-      motivationalQuote:
-          '"The person who reads 15 minutes on their domain daily '
-          'for 52 weeks reads the equivalent of 25 books per year. '
-          'You are that person now."',
-      milestones: [
-        JourneyMilestone(
-          id: 'm_day14',
-          title: 'Day 14: Two Weeks Locked In',
-          description: '14-day streak. The habits are forming.',
-          emoji: '⚡',
-          requiredDay: 14,
-          type: MilestoneType.streak,
-        ),
-        JourneyMilestone(
-          id: 'm_day16',
-          title: 'Day 16: Evidence Archive Built',
-          description: '30+ items in your evidence archive',
-          emoji: '📋',
-          requiredDay: 16,
-          type: MilestoneType.special,
-        ),
-        JourneyMilestone(
-          id: 'm_day20',
-          title: 'Day 20: First Six-Questions',
-          description: 'Completed six-questions-deep prep before an executive meeting',
-          emoji: '🎯',
-          requiredDay: 20,
-          type: MilestoneType.special,
-        ),
-        JourneyMilestone(
-          id: 'm_day22',
-          title: 'Day 22: Domain Voice',
-          description:
-              'Can explain Mastercard Agent Pay, FAPI 2.0, and Kaspi\'s merchant strategy in plain language',
-          emoji: '🌐',
-          requiredDay: 22,
-          type: MilestoneType.special,
-        ),
-      ],
-    ),
-    JourneyPhase(
-      id: 'phase_signal',
-      title: 'Week 5: First Signal',
-      description:
-          'The world starts to see something different. '
-          'LinkedIn updated. Headshot taken or booked. '
-          'First artifact complete. You walk into rooms differently.',
-      startDay: 23,
-      endDay: 30,
-      motivationalQuote:
-          '"Month 1 changes nothing visible to others. '
-          'It changes everything internal. '
-          'The visible change is coming. This is the work that makes it permanent."',
-      milestones: [
-        JourneyMilestone(
-          id: 'm_day25',
-          title: 'Day 25: LinkedIn Transformed',
-          description: 'New headline live. New photo planned or taken.',
-          emoji: '💼',
-          requiredDay: 25,
-          type: MilestoneType.special,
-        ),
-        JourneyMilestone(
-          id: 'm_day28',
-          title: 'Day 28: First Artifact',
-          description: 'PR/FAQ or strategy document completed and ready to share',
-          emoji: '📄',
-          requiredDay: 28,
-          type: MilestoneType.completion,
-        ),
-        JourneyMilestone(
-          id: 'm_day30',
-          title: 'Day 30: Month 1 Complete',
-          description:
-              '30 days. Foundation built. Systems running. '
-              'The person in the mirror has started to change.',
-          emoji: '🏆',
-          requiredDay: 30,
-          type: MilestoneType.completion,
-        ),
-      ],
-    ),
-  ],
-);
 
 // ============================================================
 // 6. YOUR DAILY COACH TIPS — 30 Days
@@ -577,26 +249,16 @@ final List<String> eminWeeklyReviewQuestions = [
   'Is there a real work situation I should bring to my coaching session?',
 ];
 
-// ============================================================
-// 8. ASSESSMENT PROFILE MAPPING
-// ============================================================
-
-Map<String, dynamic> eminAssessmentProfile = {
-  'archetype': 'executive',
-  'fitnessLevel': '3x per week',
-  'styleLevel': 'Developing',
-  'careerLevel': 'Senior',
-  'readingLevel': 'Weekly',
-  'socialConfidence': 'Okay',
-  'linkedinStatus': 'Basic',
-  'morningStatus': 'Chaotic',
-  'biggestWeakness': 'Consistency',
-  'admires': 'CEO/Founder',
-  'timeframe': '6 months',
-  'primaryLanes': ['skill', 'mind', 'body', 'social'],
-  'weeklyGoalHours': {'skill': 4.0, 'mind': 2.0, 'body': 3.0, 'social': 1.0},
-  'wakeUpTime': '06:00',
-  'bedTime': '22:30',
-  'preferredSessionLength': 30,
-  'activeDays': [0, 1, 2, 3, 4],
-};
+/// Coach note for a program day. Days 1–30 follow the Month-1 sequence;
+/// after that only notes that don't name a specific day or week repeat.
+DailyCoachTip coachTipForDay(int programDay) {
+  if (programDay >= 1 && programDay <= eminCoachTips.length) {
+    return eminCoachTips[programDay - 1];
+  }
+  final evergreen = eminCoachTips
+      .where((t) =>
+          !RegExp(r'\b(Day|Week|Month) ?\d', caseSensitive: false)
+              .hasMatch('${t.title} ${t.content}'))
+      .toList();
+  return evergreen[(programDay - 1) % evergreen.length];
+}

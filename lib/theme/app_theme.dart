@@ -12,33 +12,40 @@ import 'package:google_fonts/google_fonts.dart';
 /// steel-blue secondary. Prefer the semantic aliases ([accent], [ink], …) in
 /// new code.
 class AppColors {
-  static const Color background = Color(0xFF0C0D0F);
-  static const Color card = Color(0xFF15171B);
-  static const Color cardLight = Color(0xFF1E2126);
+  static const Color background = Color(0xFF0B0C0E);
+  static const Color card = Color(0xFF14161A);
+  static const Color cardLight = Color(0xFF1B1E23);
   static const Color purple = Color(0xFFC8894A);
   static const Color purpleSoft = Color(0xFFE8C9A3);
   static const Color purpleDark = Color(0xFF4A2F18);
   static const Color cyan = Color(0xFF7C9CC4);
-  static const Color green = Color(0xFF7DB495);
+  static const Color green = Color(0xFF86B49A);
   static const Color white = Color(0xFFF3EFE7);
-  static const Color grey = Color(0xFF8E8A82);
-  static const Color greyLight = Color(0xFFCFCAC1);
-  static const Color success = Color(0xFF7DB495);
+  static const Color grey = Color(0xFFA39E95);
+  static const Color greyLight = Color(0xFFD3CEC5);
+  static const Color success = Color(0xFF86B49A);
   static const Color warning = Color(0xFFE2B354);
-  static const Color divider = Color(0xFF272A30);
+  static const Color divider = Color(0xFF24272D);
 
   // ── Semantic aliases ──
+  /// Cognac — reserved for "now", "you" and the one primary action.
   static const Color accent = purple;
   static const Color accentSoft = purpleSoft;
   static const Color accentDeep = purpleDark;
+  static const Color accentPressed = Color(0xFFA86D35);
   static const Color steel = cyan;
-  static const Color ink = Color(0xFF0C0D0F);
+
+  /// Navy from the wardrobe — hero bands (Day Dial, Spine).
+  static const Color navy = Color(0xFF18222F);
+  static const Color navyLight = Color(0xFF223042);
+  static const Color ink = Color(0xFF0B0C0E);
+  static const Color faint = Color(0xFF6E6A63);
   static const Color danger = Color(0xFFE0605A);
 
-  // ── Lane colors ──
-  static const Color mind = Color(0xFF8EA4D2);
-  static const Color body = Color(0xFF7DB495);
-  static const Color skill = Color(0xFFC8894A);
+  // ── Lane colors (one map, used everywhere) ──
+  static const Color mind = Color(0xFF8FA3C8);
+  static const Color body = Color(0xFF86B49A);
+  static const Color skill = Color(0xFF6FAFB3);
   static const Color social = Color(0xFFC49AC0);
 
   static Color lane(String lane) {
@@ -78,35 +85,44 @@ class AppColorsLight {
 /// Shared spacing / radius tokens.
 class AppSpace {
   static const double gutter = 20;
-  static const double radius = 18;
+  static const double radius = 16;
   static const double radiusSm = 12;
 }
 
-/// Type scale. Plus Jakarta Sans throughout; hierarchy comes from weight,
-/// size and letter-spacing rather than color.
+/// Type scale. Instrument Serif carries the voice (titles, manifesto, hero
+/// numbers); Plus Jakarta Sans carries the interface.
 class AppText {
   static TextStyle display({Color color = AppColors.white}) =>
-      GoogleFonts.plusJakartaSans(
+      GoogleFonts.instrumentSerif(
         color: color,
-        fontSize: 30,
-        height: 1.15,
-        fontWeight: FontWeight.w700,
-        letterSpacing: -0.8,
+        fontSize: 40,
+        height: 1.05,
+        letterSpacing: -0.4,
       );
 
   static TextStyle title({Color color = AppColors.white}) =>
-      GoogleFonts.plusJakartaSans(
+      GoogleFonts.instrumentSerif(
         color: color,
-        fontSize: 20,
+        fontSize: 28,
+        height: 1.15,
+      );
+
+  /// Serif at any size, for quotes and hero numbers.
+  static TextStyle serif(
+          {Color color = AppColors.white,
+          double size = 22,
+          FontStyle style = FontStyle.normal}) =>
+      GoogleFonts.instrumentSerif(
+        color: color,
+        fontSize: size,
         height: 1.25,
-        fontWeight: FontWeight.w700,
-        letterSpacing: -0.3,
+        fontStyle: style,
       );
 
   static TextStyle heading({Color color = AppColors.white}) =>
       GoogleFonts.plusJakartaSans(
         color: color,
-        fontSize: 16,
+        fontSize: 16.5,
         height: 1.3,
         fontWeight: FontWeight.w600,
         letterSpacing: -0.1,
@@ -115,7 +131,7 @@ class AppText {
   static TextStyle body({Color color = AppColors.greyLight}) =>
       GoogleFonts.plusJakartaSans(
         color: color,
-        fontSize: 14,
+        fontSize: 15.5,
         height: 1.5,
         fontWeight: FontWeight.w400,
       );
@@ -123,26 +139,26 @@ class AppText {
   static TextStyle small({Color color = AppColors.grey}) =>
       GoogleFonts.plusJakartaSans(
         color: color,
-        fontSize: 12.5,
+        fontSize: 13,
         height: 1.4,
         fontWeight: FontWeight.w500,
       );
 
-  /// Uppercase eyebrow label above sections.
+  /// Uppercase eyebrow label above sections. Use sparingly.
   static TextStyle eyebrow({Color color = AppColors.grey}) =>
       GoogleFonts.plusJakartaSans(
         color: color,
         fontSize: 11,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 1.6,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 1.3,
       );
 
   static TextStyle number({Color color = AppColors.white, double size = 28}) =>
       GoogleFonts.plusJakartaSans(
         color: color,
         fontSize: size,
-        fontWeight: FontWeight.w700,
-        letterSpacing: -1,
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.6,
         fontFeatures: const [FontFeature.tabularFigures()],
       );
 }

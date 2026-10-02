@@ -1,20 +1,46 @@
 import 'dart:async';
 
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show Session, User, AuthChangeEvent;
 
 import 'auth_gateway.dart';
 
-/// Offline mock gateway for development — no Supabase needed.
-/// Always starts unauthenticated so you see the onboarding flow.
+/// Offline gateway for development — no Supabase needed. Remembers the
+/// signed-in email on the device so the app reopens signed in.
 class MockAuthGateway implements AuthGateway {
   User? _user;
   Session? _session;
   final _controller = StreamController<AuthChangeEvent>.broadcast();
 
+  static const _key = 'mock_auth_email';
+
   @override
   Future<Session?> recoverSession() async {
-    // No persisted session — show onboarding
-    return null;
+    final prefs = await SharedPreferences.getInstance();
+    final email = prefs.getString(_key);
+    if (email == null) return null;
+    return (await _start(email, persist: false)).session;
+  }
+
+  Future<AuthResult> _start(String email, {bool persist = true}) async {
+    _user = User(
+      id: 'mock-user-001',
+      appMetadata: {},
+      userMetadata: {'email': email},
+      email: email,
+      aud: 'authenticated',
+      createdAt: DateTime.now().toIso8601String(),
+    );
+    _session = Session(
+      accessToken: 'mock-token',
+      tokenType: 'bearer',
+      user: _user!,
+    );
+    if (persist) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_key, email);
+    }
+    return AuthResult(user: _user, session: _session);
   }
 
   @override
@@ -22,19 +48,7 @@ class MockAuthGateway implements AuthGateway {
     required String email,
     required String password,
   }) async {
-    _user = User(
-      id: 'mock-user-001',
-      appMetadata: {},
-      userMetadata: {'email': email},
-      aud: 'authenticated',
-      createdAt: DateTime.now().toIso8601String(),
-    );
-    _session = Session(
-      accessToken: 'mock-token',
-      tokenType: 'bearer',
-      user: _user!,
-    );
-    return AuthResult(user: _user, session: _session);
+    return _start(email);
   }
 
   @override
@@ -42,25 +56,15 @@ class MockAuthGateway implements AuthGateway {
     required String email,
     required String password,
   }) async {
-    _user = User(
-      id: 'mock-user-001',
-      appMetadata: {},
-      userMetadata: {'email': email},
-      aud: 'authenticated',
-      createdAt: DateTime.now().toIso8601String(),
-    );
-    _session = Session(
-      accessToken: 'mock-token',
-      tokenType: 'bearer',
-      user: _user!,
-    );
-    return AuthResult(user: _user, session: _session);
+    return _start(email);
   }
 
   @override
   Future<void> signOut() async {
     _user = null;
     _session = null;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_key);
   }
 
   @override

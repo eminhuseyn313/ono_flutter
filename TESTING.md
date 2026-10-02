@@ -13,7 +13,7 @@
    Press `q` in that window to stop.
 
 If macOS says it can't open the file: right-click it → **Open** → **Open**.
-In the app, create an account with any email and a 6+ character password.
+In the app, tap **Begin** and create an account with any email and a 6+ character password.
 
 ## Real iPhone (optional)
 
@@ -29,38 +29,41 @@ flutter run --release           # iPhone plugged in, unlocked, "Trust this compu
 If Xcode says the developer isn't trusted: on the iPhone, Settings → General →
 VPN & Device Management → trust your Apple ID.
 
-Mock mode signs you in with any email and a password of 6+ characters.
-
-## 1. Onboarding (2 min)
-- [ ] Welcome → **Begin my transformation** → create an account
-- [ ] Pick **The Executive** → answer the assessment → blueprint shows your 5 domains
-- [ ] **Start my journey** lands on **Today**
+Mock mode signs you in with any email and a password o## 1. Commission (2 min)
+- [ ] Welcome → **Begin** → create an account → lands on **Commission · 1 of 5**
+- [ ] Identity card shows your role and the path (Senior PO → Global Manager)
+- [ ] Pick a start date (Today / Next Monday / any date) → "Program ends …" updates
+- [ ] Gym days: one day per A/B/C; enter today's weight
+- [ ] Reminders: toggle a few → iPhone asks for notification permission
+- [ ] **Hold to sign** the manifesto → Today
 
 ## 2. Today
-- [ ] Greeting, date and "Day 1 · Month 1 of 18" are correct
-- [ ] **Now** card shows the current block of your schedule; tapping opens Plan
-- [ ] Before 11:00: **Start the morning ritual** → 5 steps (water, manifesto, priorities, sigh, statement)
-- [ ] Tick a few of the **Daily 10** → score ring updates; kill and reopen the app → ticks are still there
-- [ ] Type **three priorities** → reopen the app → still there
-- [ ] Domain scan row opens today's source in Safari
-- [ ] On Mon/Wed/Thu: **Log session + Zone 2** → Plan → Train shows 1/3
+- [ ] Header: date · Day N · phase. Greeting matches the time of day
+- [ ] Day Dial: the needle sits on the current block of your schedule
+- [ ] Tick Daily 10 items → dial and count update; at 7/10 "Day held" appears
+- [ ] Arrows on items open the tool (sigh, scan, BLUF, read, Feynman, protein)
+- [ ] **Yesterday** switch lets you fix yesterday's ticks
+- [ ] Protein chips add grams; the item ticks itself at 150 g
+- [ ] Kill and reopen the app → everything is still there
 
-## 3. Plan
-- [ ] **Day**: timeline highlights the current block
-- [ ] **Week**: podcast, domain scan and evening plan per day; today highlighted
-- [ ] **Train**: Day A/B/C exercises, face pulls highlighted, RA "never" list
-- [ ] **Health**: tick bloodwork items; supplements and sleep rules
+## 3. Tools & logging
+- [ ] Morning ritual (from Today before 11:00): 5 steps → finishing ticks the manifesto
+- [ ] Sigh tool: run it → "uses" and mastery level go up; the sigh item is ticked
+- [ ] Gym: open Push → enter kg/reps → **Finish session** → next time the sets are pre-filled
+- [ ] Log tab: add weight, protein, a win, a note, a bloodwork value → they show on the timeline
 
-## 4. Playbook
-- [ ] Manifesto → **I've read it** ticks "Read manifesto" on Today
-- [ ] Protocols expand; BLUF shows before / after
-- [ ] Evidence Archive: 7 seeded items; add one; swipe left to delete
-- [ ] Sunday report: averages fill in; **Copy** puts the report on the clipboard
-- [ ] Library, Style (tick a wardrobe item), Career (copy the LinkedIn headline, tick a milestone)
+## 4. Program
+- [ ] Journey: the Spine shows 18 months; tap month 1 → unlocks, milestones, artifact
+- [ ] Schedule / Body / Reference tabs open and scroll
 
-## 5. Everything else
-- [ ] Today → **Explore every feature** → open a few cards in each group
-- [ ] AI Coach daily tip matches the "Carry this" note on Today
+## 5. Sunday report
+- [ ] Log → Sunday reports → fill the three text fields → **Send report → get brief**
+- [ ] The brief names your weakest Daily 10 items and coaches your work situation
+
+## 6. Me
+- [ ] Stats: day of 540, streak, best streak, days held; the heat map fills as you go
+- [ ] Settings: change start date, gym days, reminders; **Export backup** shares it;
+      **Restore from clipboard** brings a copied backup back
 
 ## Report back
 For anything wrong, send: screen name, what you tapped, what you expected, and a screenshot.

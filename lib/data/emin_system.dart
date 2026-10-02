@@ -127,8 +127,11 @@ class WardrobeItem {
   final int maxPrice;
   final String where;
 
-  const WardrobeItem(
-      this.id, this.week, this.item, this.minPrice, this.maxPrice, this.where);
+  /// Program month the purchase is due in.
+  final int month;
+
+  const WardrobeItem(this.id, this.week, this.item, this.minPrice,
+      this.maxPrice, this.where, this.month);
 }
 
 class Outfit {
@@ -165,7 +168,14 @@ class NonNegotiable {
   final String title;
   final String lane;
 
-  const NonNegotiable(this.id, this.title, this.lane);
+  /// 'morning' | 'day' | 'evening' — when it can be done.
+  final String when;
+
+  /// Guided tool that completes it (null = a plain tick).
+  final String? route;
+
+  const NonNegotiable(this.id, this.title, this.lane, this.when,
+      {this.route});
 }
 
 class LaneFocus {
@@ -430,9 +440,16 @@ const List<GymDay> gymPlan = [
   ),
 ];
 
-GymDay? gymDayFor(DateTime date) {
-  for (final d in gymPlan) {
-    if (d.weekday == date.weekday) return d;
+/// The gym day (A/B/C) that falls on [date]. [days] maps A, B, C to
+/// weekdays (default Mon / Wed / Thu, as in the profile).
+GymDay? gymDayFor(DateTime date,
+    [List<int> days = const [
+      DateTime.monday,
+      DateTime.wednesday,
+      DateTime.thursday
+    ]]) {
+  for (var i = 0; i < gymPlan.length && i < days.length; i++) {
+    if (days[i] == date.weekday) return gymPlan[i];
   }
   return null;
 }
@@ -781,21 +798,21 @@ const beardSpec = [
 ];
 
 const List<WardrobeItem> wardrobe = [
-  WardrobeItem('w1', 'Sat 1', 'Navy fine merino crewneck', 40, 50, 'Uniqlo online'),
+  WardrobeItem('w1', 'Sat 1', 'Navy fine merino crewneck', 40, 50, 'Uniqlo online', 1),
   WardrobeItem('w2', 'Sat 2', 'Charcoal merino + dark chinos (tailored)', 60, 70,
-      'Uniqlo + local tailor'),
-  WardrobeItem('w3', 'Sat 3', 'White Oxford shirt', 30, 50, 'Local or Massimo Dutti'),
+      'Uniqlo + local tailor', 1),
+  WardrobeItem('w3', 'Sat 3', 'White Oxford shirt', 30, 50, 'Local or Massimo Dutti', 1),
   WardrobeItem('w4', 'Sat 4', 'White minimal leather sneakers', 40, 70,
-      'Adidas Stan Smith'),
+      'Adidas Stan Smith', 1),
   WardrobeItem('w5', 'Sat 5–6', 'Navy unstructured blazer', 150, 200,
-      'Best Baku tailor'),
+      'Best Baku tailor', 2),
   WardrobeItem('w6', 'Sat 7', 'Dark brown suede loafers', 60, 100,
-      'Best local shoe shop'),
+      'Best local shoe shop', 2),
   WardrobeItem('w7', 'Sat 8', 'Skincare: Cetaphil + SPF50 + beard oil', 35, 35,
-      'Baku pharmacy'),
-  WardrobeItem('w8', 'Month 3', 'Dark overcoat', 150, 250, 'Tailor or store'),
-  WardrobeItem('w9', 'Month 3', 'Quality leather backpack', 80, 150, 'Leather shop'),
-  WardrobeItem('w10', 'Month 3', 'Charcoal suit (tailored)', 300, 400, 'Tailor'),
+      'Baku pharmacy', 2),
+  WardrobeItem('w8', 'Month 3', 'Dark overcoat', 150, 250, 'Tailor or store', 3),
+  WardrobeItem('w9', 'Month 3', 'Quality leather backpack', 80, 150, 'Leather shop', 3),
+  WardrobeItem('w10', 'Month 3', 'Charcoal suit (tailored)', 300, 400, 'Tailor', 3),
 ];
 
 const List<Outfit> outfits = [
@@ -945,16 +962,29 @@ const List<CareerMilestone> careerMilestones = [
 // ------------------------------------------------------------
 
 const List<NonNegotiable> nonNegotiables = [
-  NonNegotiable('manifesto', 'Read manifesto this morning', 'mind'),
-  NonNegotiable('sigh', 'Physiological sigh before pressure', 'mind'),
-  NonNegotiable('bluf', 'BLUF on at least one output', 'skill'),
-  NonNegotiable('pause', 'Deliberate pause practiced', 'social'),
-  NonNegotiable('scan', 'Domain scan — 15 min', 'skill'),
-  NonNegotiable('read', 'Read at lunch — 20 min', 'skill'),
-  NonNegotiable('feynman', 'Wrote from memory after reading', 'skill'),
-  NonNegotiable('protein', 'Protein-forward meals', 'body'),
-  NonNegotiable('caffeine', 'No caffeine after 1pm', 'body'),
-  NonNegotiable('bed', 'In bed by 10:30pm', 'body'),
+  NonNegotiable('manifesto', 'Read manifesto this morning', 'mind', 'morning',
+      route: '/manifesto'),
+  NonNegotiable('scan', 'Domain scan — 15 min', 'skill', 'morning',
+      route: '/tool/scan'),
+  NonNegotiable('sigh', 'Physiological sigh before pressure', 'mind', 'day',
+      route: '/tool/sigh'),
+  NonNegotiable('bluf', 'BLUF on at least one output', 'skill', 'day',
+      route: '/tool/bluf'),
+  NonNegotiable('pause', 'Deliberate pause practiced', 'social', 'day'),
+  NonNegotiable('read', 'Read at lunch — 20 min', 'skill', 'day',
+      route: '/tool/read'),
+  NonNegotiable('feynman', 'Wrote from memory after reading', 'skill', 'day',
+      route: '/tool/feynman'),
+  NonNegotiable('caffeine', 'No caffeine after 1pm', 'body', 'day'),
+  NonNegotiable('protein', 'Protein — 150g', 'body', 'evening',
+      route: '/log?add=protein'),
+  NonNegotiable('bed', 'In bed by 10:30pm', 'body', 'evening'),
+];
+
+const nonNegotiableGroups = [
+  ['morning', 'Morning'],
+  ['day', 'At work'],
+  ['evening', 'Evening'],
 ];
 
 // ------------------------------------------------------------
@@ -1000,3 +1030,252 @@ const evidenceSeeds = [
   'Building identity infrastructure for the first super-app ecosystem in the Caucasus',
   '110/110 cum laude Masters — Ca\' Foscari, Venice',
 ];
+
+// ------------------------------------------------------------
+// The 18-month journey
+// ------------------------------------------------------------
+
+const programMonths = 18;
+const programDays = programMonths * 30;
+
+class Phase {
+  final String id;
+  final String name;
+  final int fromMonth;
+  final int toMonth;
+  final String promise;
+
+  const Phase(this.id, this.name, this.fromMonth, this.toMonth, this.promise);
+
+  bool contains(int month) => month >= fromMonth && month <= toMonth;
+}
+
+const List<Phase> phases = [
+  Phase('foundation', 'Foundation', 1, 2,
+      'Fix the biological base. Install the system. Stop the energy leak.'),
+  Phase('craft', 'Craft', 3, 6,
+      'Domain depth, real artifacts, a wardrobe and a voice that match the role.'),
+  Phase('signal', 'Signal', 7, 12,
+      'The world starts to see it: thesis, talks, advisory board, following.'),
+  Phase('leverage', 'Leverage', 13, 18,
+      'Options and conversations. Decide the next role from strength.'),
+];
+
+Phase phaseFor(int month) =>
+    phases.firstWhere((p) => p.contains(month), orElse: () => phases.last);
+
+/// Role steps along the path, with the month each becomes realistic.
+const pathSteps = [
+  ['Senior PO', '1'],
+  ['Head of Product', '9'],
+  ['CPO / Tribe Lead', '15'],
+  ['Global Manager', '18'],
+];
+
+const Map<int, String> monthThemes = {
+  1: 'Sleep consistent, ritual installed, protocols in use.',
+  2: 'Bloodwork done. Zone 2 base. BLUF automatic. LinkedIn starts.',
+  3: 'Own the agentic-payments thesis. PR/FAQ written. Headshot taken.',
+  4: 'Advisory board first contacts. 15 posts published.',
+  5: 'Cloud fluency (AWS). Read Bir through 7 Powers.',
+  6: 'Full style capsule. 2,000+ followers. Signature thesis drafted.',
+  7: 'Thesis becomes a talk outline. Build in public.',
+  8: 'Deepen the advisory board. Ship the second big artifact.',
+  9: 'Advisory board 3 seats. Internal talk delivered. 5,000+ followers.',
+  10: 'PSPO certification. Conference talk material.',
+  11: 'Coach-ready: write your product principles.',
+  12: 'Conference CFP submitted. 8,000+ followers. Coach a junior PM.',
+  13: 'Map the options: promotion, international, founding.',
+  14: 'Conversations with people one role ahead.',
+  15: 'Make the case: a written narrative for the next role.',
+  16: 'Test the options in the market.',
+  17: 'Negotiate from evidence.',
+  18: 'Career decision made from strength.',
+};
+
+/// Suggested artifact for each month ("one artifact per month").
+const Map<int, String> monthArtifacts = {
+  1: 'Opportunity Solution Tree — entrepreneur integration',
+  2: 'Business ID strategy: diagnosis, guiding policy, coherent actions',
+  3: 'PR/FAQ for Business ID',
+  4: 'Product operating model — how Business ID decides',
+  5: '7 Powers analysis of Bir Ecosystem',
+  6: 'Signature thesis draft — agents & merchant identity',
+};
+
+String artifactFor(int month) =>
+    monthArtifacts[month] ?? 'One artifact: PR/FAQ, OST, strategy doc or 6-pager';
+
+/// A thing that becomes relevant in a given month.
+class Unlock {
+  final String kind; // book | novel | film | wardrobe | skincare | linkedin | artifact | certificate | milestone | protocol
+  final String title;
+  final String detail;
+  final String? route;
+  final String? doneKey;
+
+  const Unlock(this.kind, this.title, this.detail, {this.route, this.doneKey});
+}
+
+List<Unlock> unlocksFor(int month) {
+  final list = <Unlock>[];
+  for (final b in bookSchedule.where((b) => b.month == month)) {
+    list.add(Unlock('book', b.title, '${b.author} · ${b.chapters}',
+        route: '/library', doneKey: 'book:${b.title}'));
+  }
+  for (final b in fictionSchedule.where((b) => b.month == month)) {
+    list.add(Unlock('novel', b.title, b.why,
+        route: '/library', doneKey: 'book:${b.title}'));
+  }
+  if (month == 2) {
+    list.add(const Unlock('film', 'Steve Jobs (2015)',
+        'How a product leader communicates under pressure',
+        route: '/library', doneKey: 'film:Steve Jobs'));
+  }
+  for (final w in wardrobe.where((w) => w.month == month)) {
+    list.add(Unlock('wardrobe', w.item, '${w.week} · ${w.where}',
+        route: '/style', doneKey: 'wardrobe:${w.id}'));
+  }
+  if (month == 1) {
+    list.add(const Unlock('protocol', 'Pennebaker writing',
+        '15 min every Tuesday for 4 weeks',
+        route: '/tool/pennebaker'));
+    list.add(const Unlock('linkedin', 'New LinkedIn headline + About',
+        'Exact rewrites are ready to copy',
+        route: '/career', doneKey: 'li:headline'));
+  }
+  if (month == 2) {
+    list.add(const Unlock('linkedin', 'LinkedIn: 2 posts per week',
+        'Cadence starts this month', route: '/career'));
+  }
+  if (month == 3) {
+    list.add(const Unlock('skincare', 'Add niacinamide serum',
+        'The Ordinary — morning, after cleanser', route: '/style'));
+  }
+  if (month == 4) {
+    list.add(const Unlock('skincare', 'Add retinol 2–3 nights a week',
+        'Night only', route: '/style'));
+  }
+  for (final c in certificates.where((c) => _certStart(c) == month)) {
+    list.add(Unlock('certificate', c.name, '${c.org} · ${c.timing}',
+        route: '/career', doneKey: 'cert:${c.id}'));
+  }
+  list.add(Unlock('artifact', 'Artifact of the month', artifactFor(month),
+      route: '/tool/artifact'));
+  return list;
+}
+
+int _certStart(Certificate c) =>
+    int.tryParse(RegExp(r'\d+').firstMatch(c.timing)?.group(0) ?? '') ?? 99;
+
+// ------------------------------------------------------------
+// Reminders (local notifications)
+// ------------------------------------------------------------
+
+class ReminderDef {
+  final String id;
+  final String label;
+  final int hour;
+  final int minute;
+
+  /// null = every day; otherwise the weekdays it fires on.
+  final List<int>? weekdays;
+  final String route;
+  final bool defaultOn;
+
+  const ReminderDef(this.id, this.label, this.hour, this.minute,
+      {this.weekdays, required this.route, this.defaultOn = true});
+
+  String get timeLabel =>
+      '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+}
+
+const _weekdays = [
+  DateTime.monday,
+  DateTime.tuesday,
+  DateTime.wednesday,
+  DateTime.thursday,
+  DateTime.friday,
+];
+
+/// Gym reminder weekdays come from the user's gym days at runtime.
+const List<ReminderDef> reminderDefs = [
+  ReminderDef('wake', 'Wake — 500ml water', 6, 0, route: '/home'),
+  ReminderDef('ritual', 'Morning ritual', 6, 5,
+      route: '/ritual-flow/ritual_morning_default'),
+  ReminderDef('scan', 'Supplements + domain scan', 7, 45, route: '/tool/scan'),
+  ReminderDef('evidence_read', 'Read your evidence before the first meeting',
+      7, 55,
+      weekdays: [DateTime.monday], route: '/evidence'),
+  ReminderDef('read', 'Lunch read + Feynman', 12, 0,
+      weekdays: _weekdays, route: '/tool/read'),
+  ReminderDef('caffeine', 'Last coffee — nothing after 13:00', 12, 55,
+      weekdays: _weekdays, route: '/home', defaultOn: false),
+  ReminderDef('gym', 'Gym in 15 minutes', 18, 45, route: '/gym'),
+  ReminderDef('pennebaker', 'Pennebaker writing — 15 min', 21, 0,
+      weekdays: [DateTime.tuesday], route: '/tool/pennebaker'),
+  ReminderDef('winddown', 'Wind down — screens off, lay out the outfit', 22, 0,
+      route: '/home'),
+  ReminderDef('bed', 'Nasal strip. Lights out 22:30', 22, 25, route: '/home'),
+  ReminderDef('evidence_add', 'Add 5 items to the Evidence Archive', 18, 0,
+      weekdays: [DateTime.sunday], route: '/evidence'),
+  ReminderDef('report', 'Sunday report → next week\'s brief', 19, 0,
+      weekdays: [DateTime.sunday], route: '/weekly-coaching'),
+  ReminderDef('grooming', 'Beard edge-up, skincare, Monday outfit', 20, 30,
+      weekdays: [DateTime.sunday], route: '/style'),
+];
+
+// ------------------------------------------------------------
+// Protocol mastery
+// ------------------------------------------------------------
+
+/// [minimum uses, level name]
+const masteryLevels = [
+  [0, 'Not started'],
+  [1, 'Aware'],
+  [5, 'Practised'],
+  [20, 'Habitual'],
+  [60, 'Automatic'],
+];
+
+String masteryFor(int uses) {
+  var name = masteryLevels.first[1] as String;
+  for (final l in masteryLevels) {
+    if (uses >= (l[0] as int)) name = l[1] as String;
+  }
+  return name;
+}
+
+/// Uses needed to reach the next level, or null at the top.
+int? nextMasteryAt(int uses) {
+  for (final l in masteryLevels) {
+    if ((l[0] as int) > uses) return l[0] as int;
+  }
+  return null;
+}
+
+/// Protocol id → guided tool route.
+const protocolTools = {
+  'sigh': '/tool/sigh',
+  'excited': '/tool/excited',
+  'bluf': '/tool/bluf',
+  'six_deep': '/tool/sixq',
+  'feynman': '/tool/feynman',
+  'evidence': '/evidence',
+  'pause': '/tool/pause',
+  'still': '/tool/still',
+  'pennebaker': '/tool/pennebaker',
+};
+
+/// Protocol id → log type counted for mastery.
+const protocolLogTypes = {
+  'sigh': 'sigh',
+  'excited': 'excited',
+  'bluf': 'bluf',
+  'six_deep': 'sixq',
+  'feynman': 'feynman',
+  'evidence': 'evidence',
+  'pause': 'pause',
+  'still': 'still',
+  'pennebaker': 'pennebaker',
+};

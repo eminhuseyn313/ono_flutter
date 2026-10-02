@@ -162,6 +162,17 @@ Month gates unlock books, cadence, skincare and artifacts. Each month ends with 
   - Style swatches.
 - **Craft**: springs and haptics on check-offs, a "Day held" moment at 10/10, and a rebuilt ritual flow.
 
+## Status (2 Oct 2026)
+
+Phases 1–4 are built. What landed:
+
+- **Phase 1:** 310 legacy files deleted, so nothing fake is left. Commission onboarding. Local notifications. Ritual ticks the Daily 10. Time-aware Today with a Yesterday edit. Settings for start date, gym days, reminders, and export/restore. One name and one 18-month timeline.
+- **Phase 2:** Spine, month gates and month review (`/month/:m`). Instrument Serif and navy surfaces. Day Dial. Today / Program / Log / Me. Heat map and trends. Haptics, "Day held", and the rebuilt ritual.
+- **Phase 3:** Guided tools (`/tool/:id`) with mastery levels. Gym logger with progression and PRs. Logging for weight, protein, bloodwork, wins and notes.
+- **Phase 4:** Claude-written brief (`supabase/functions/weekly-brief`) with an on-device fallback. Supabase sync (`personal_system` + RLS). Deploying both needs the steps in `CLAUDE.md`.
+
+Not built, because they need Xcode and native targets: widgets, Apple Health, calendar prep, and encrypted health fields. RLS protects the cloud copy.
+
 ## Roadmap
 
 **Phase 1: honest & coherent (foundation)**

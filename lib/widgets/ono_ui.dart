@@ -7,9 +7,9 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../theme/app_theme.dart';
 
-/// Shared building blocks for the redesigned Today / Plan / Playbook
-/// surfaces. Flat, bordered surfaces; one accent; lane color only as a
-/// small signal (dot, bar), never as a fill.
+/// Shared building blocks. Flat hairline surfaces, one accent, lane color
+/// only as a small signal. Every screen uses these so the app reads as one
+/// product.
 
 class OnoCard extends StatelessWidget {
   final Widget child;
@@ -32,7 +32,7 @@ class OnoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final borderColor = highlight
-        ? AppColors.accent.withValues(alpha: 0.55)
+        ? AppColors.accent.withValues(alpha: 0.6)
         : AppColors.divider;
     final content = Padding(padding: padding, child: child);
     return Material(
@@ -76,7 +76,7 @@ class SectionHeader extends StatelessWidget {
     super.key,
     this.action,
     this.onAction,
-    this.padding = const EdgeInsets.fromLTRB(0, 28, 0, 12),
+    this.padding = const EdgeInsets.fromLTRB(0, 30, 0, 12),
   });
 
   @override
@@ -84,14 +84,18 @@ class SectionHeader extends StatelessWidget {
     return Padding(
       padding: padding,
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Expanded(child: Text(title.toUpperCase(), style: AppText.eyebrow())),
+          Expanded(child: Text(title, style: AppText.serif(size: 24))),
           if (action != null)
             GestureDetector(
               onTap: onAction,
-              child: Text(action!,
-                  style: AppText.small(color: AppColors.accent)
-                      .copyWith(fontWeight: FontWeight.w700)),
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 3),
+                child: Text(action!,
+                    style: AppText.small(color: AppColors.accent)
+                        .copyWith(fontWeight: FontWeight.w700)),
+              ),
             ),
         ],
       ),
@@ -126,25 +130,27 @@ class Tag extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = color ?? AppColors.grey;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: c.withValues(alpha: 0.12),
+        color: c.withValues(alpha: 0.13),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(label,
           style: AppText.small(color: c)
-              .copyWith(fontSize: 11, fontWeight: FontWeight.w700)),
+              .copyWith(fontSize: 12, fontWeight: FontWeight.w700)),
     );
   }
 }
 
-/// A row with a round check, title and optional subtitle.
+/// A row with a round check, title and optional subtitle. Checking springs
+/// the mark and gives a haptic tap.
 class CheckRow extends StatelessWidget {
   final bool checked;
   final String title;
   final String? subtitle;
   final String? lane;
   final ValueChanged<bool> onChanged;
+  final VoidCallback? onOpen;
   final EdgeInsetsGeometry padding;
 
   const CheckRow({
@@ -154,11 +160,13 @@ class CheckRow extends StatelessWidget {
     required this.onChanged,
     this.subtitle,
     this.lane,
-    this.padding = const EdgeInsets.symmetric(vertical: 11),
+    this.onOpen,
+    this.padding = const EdgeInsets.symmetric(vertical: 12),
   });
 
   @override
   Widget build(BuildContext context) {
+    final mark = lane == null ? AppColors.accent : AppColors.lane(lane!);
     return InkWell(
       onTap: () {
         HapticFeedback.lightImpact();
@@ -172,22 +180,30 @@ class CheckRow extends StatelessWidget {
               ? CrossAxisAlignment.center
               : CrossAxisAlignment.start,
           children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              width: 22,
-              height: 22,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: checked ? AppColors.accent : Colors.transparent,
-                border: Border.all(
-                  color: checked ? AppColors.accent : AppColors.grey,
-                  width: 1.5,
+            TweenAnimationBuilder<double>(
+              key: ValueKey(checked),
+              tween: Tween(begin: checked ? 0.6 : 1, end: 1),
+              duration: const Duration(milliseconds: 380),
+              curve: Curves.elasticOut,
+              builder: (_, scale, child) =>
+                  Transform.scale(scale: scale, child: child),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 160),
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: checked ? mark : Colors.transparent,
+                  border: Border.all(
+                    color: checked ? mark : AppColors.faint,
+                    width: 1.6,
+                  ),
                 ),
+                child: checked
+                    ? const Icon(Icons.check_rounded,
+                        size: 16, color: AppColors.ink)
+                    : null,
               ),
-              child: checked
-                  ? const Icon(Icons.check_rounded,
-                      size: 15, color: AppColors.ink)
-                  : null,
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -198,11 +214,7 @@ class CheckRow extends StatelessWidget {
                     title,
                     style: AppText.body(
                       color: checked ? AppColors.grey : AppColors.white,
-                    ).copyWith(
-                      fontWeight: FontWeight.w500,
-                      decoration: checked ? TextDecoration.lineThrough : null,
-                      decorationColor: AppColors.grey,
-                    ),
+                    ).copyWith(fontWeight: FontWeight.w500),
                   ),
                   if (subtitle != null) ...[
                     const SizedBox(height: 2),
@@ -211,10 +223,13 @@ class CheckRow extends StatelessWidget {
                 ],
               ),
             ),
-            if (lane != null) ...[
-              const SizedBox(width: 10),
-              LaneDot(lane!, size: 6),
-            ],
+            if (onOpen != null)
+              IconButton(
+                onPressed: onOpen,
+                visualDensity: VisualDensity.compact,
+                icon: const Icon(Icons.arrow_forward_rounded,
+                    size: 18, color: AppColors.grey),
+              ),
           ],
         ),
       ),
@@ -222,7 +237,7 @@ class CheckRow extends StatelessWidget {
   }
 }
 
-/// Thin progress ring drawn with CustomPaint.
+/// Ring progress drawn with CustomPaint.
 class ScoreRing extends StatelessWidget {
   final double progress;
   final double size;
@@ -234,7 +249,7 @@ class ScoreRing extends StatelessWidget {
     super.key,
     required this.progress,
     this.size = 64,
-    this.stroke = 5,
+    this.stroke = 8,
     this.color = AppColors.accent,
     this.center,
   });
@@ -246,7 +261,7 @@ class ScoreRing extends StatelessWidget {
       height: size,
       child: TweenAnimationBuilder<double>(
         tween: Tween(begin: 0, end: progress.clamp(0, 1)),
-        duration: const Duration(milliseconds: 500),
+        duration: const Duration(milliseconds: 600),
         curve: Curves.easeOutCubic,
         builder: (_, value, child) => CustomPaint(
           painter: _RingPainter(value, stroke, color),
@@ -267,20 +282,27 @@ class _RingPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final rect = Offset.zero & size;
-    final r = rect.deflate(stroke / 2);
-    final track = Paint()
-      ..color = AppColors.cardLight
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = stroke;
-    canvas.drawArc(r, 0, math.pi * 2, false, track);
+    final r = (Offset.zero & size).deflate(stroke / 2);
+    canvas.drawArc(
+        r,
+        0,
+        math.pi * 2,
+        false,
+        Paint()
+          ..color = AppColors.cardLight
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = stroke);
     if (progress <= 0) return;
-    final fg = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = stroke;
-    canvas.drawArc(r, -math.pi / 2, math.pi * 2 * progress, false, fg);
+    canvas.drawArc(
+        r,
+        -math.pi / 2,
+        math.pi * 2 * progress,
+        false,
+        Paint()
+          ..color = color
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round
+          ..strokeWidth = stroke);
   }
 
   @override
@@ -288,7 +310,7 @@ class _RingPainter extends CustomPainter {
       old.progress != progress || old.color != color;
 }
 
-/// Thin horizontal progress bar.
+/// Horizontal progress bar.
 class ThinBar extends StatelessWidget {
   final double value;
   final Color color;
@@ -298,24 +320,297 @@ class ThinBar extends StatelessWidget {
       {super.key,
       required this.value,
       this.color = AppColors.accent,
-      this.height = 4});
+      this.height = 6});
 
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(height),
-      child: LinearProgressIndicator(
-        value: value.clamp(0, 1),
-        minHeight: height,
-        backgroundColor: AppColors.cardLight,
-        valueColor: AlwaysStoppedAnimation(color),
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0, end: value.clamp(0, 1)),
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeOutCubic,
+        builder: (_, v, __) => LinearProgressIndicator(
+          value: v,
+          minHeight: height,
+          backgroundColor: AppColors.cardLight,
+          valueColor: AlwaysStoppedAnimation(color),
+        ),
       ),
     );
   }
 }
 
-/// Standard page: large title, optional subtitle, back button when pushed,
-/// slivers body, bottom padding that clears the floating nav bar.
+/// N segments, the first [filled] coloured — reads better than a bar for
+/// small counts (Daily 10, 3 gym sessions, 4 Pennebaker sessions).
+class TickSegments extends StatelessWidget {
+  final int total;
+  final int filled;
+  final Color color;
+  final double height;
+  final List<Color>? colors;
+
+  const TickSegments({
+    super.key,
+    required this.total,
+    required this.filled,
+    this.color = AppColors.accent,
+    this.height = 6,
+    this.colors,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        for (var i = 0; i < total; i++) ...[
+          Expanded(
+            child: AnimatedContainer(
+              duration: Duration(milliseconds: 200 + i * 30),
+              height: height,
+              decoration: BoxDecoration(
+                color: i < filled
+                    ? (colors != null ? colors![i] : color)
+                    : AppColors.cardLight,
+                borderRadius: BorderRadius.circular(height),
+              ),
+            ),
+          ),
+          if (i < total - 1) const SizedBox(width: 4),
+        ],
+      ],
+    );
+  }
+}
+
+/// Full-width primary action: cognac fill, ink text.
+class PrimaryButton extends StatelessWidget {
+  final String label;
+  final VoidCallback? onPressed;
+  final IconData? icon;
+  final bool loading;
+
+  const PrimaryButton(this.label,
+      {super.key, this.onPressed, this.icon, this.loading = false});
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = onPressed != null && !loading;
+    return SizedBox(
+      width: double.infinity,
+      height: 54,
+      child: FilledButton(
+        onPressed: enabled
+            ? () {
+                HapticFeedback.mediumImpact();
+                onPressed!();
+              }
+            : null,
+        style: FilledButton.styleFrom(
+          backgroundColor: AppColors.accent,
+          foregroundColor: AppColors.ink,
+          disabledBackgroundColor: AppColors.cardLight,
+          disabledForegroundColor: AppColors.grey,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        ),
+        child: loading
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                    strokeWidth: 2, color: AppColors.ink))
+            : Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (icon != null) ...[
+                    Icon(icon, size: 19),
+                    const SizedBox(width: 8),
+                  ],
+                  Text(label,
+                      style: AppText.heading(color: AppColors.ink)
+                          .copyWith(fontSize: 16)),
+                ],
+              ),
+      ),
+    );
+  }
+}
+
+/// Secondary action: hairline, ivory text.
+class GhostButton extends StatelessWidget {
+  final String label;
+  final VoidCallback? onPressed;
+  final IconData? icon;
+
+  const GhostButton(this.label, {super.key, this.onPressed, this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 48,
+      child: OutlinedButton(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.white,
+          side: const BorderSide(color: AppColors.divider),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(icon, size: 17),
+              const SizedBox(width: 8),
+            ],
+            Text(label,
+                style: AppText.small(color: AppColors.white)
+                    .copyWith(fontWeight: FontWeight.w600, fontSize: 14)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Segmented sub-navigation for long pages.
+class Segmented extends StatelessWidget {
+  final List<String> labels;
+  final int index;
+  final ValueChanged<int> onChanged;
+
+  const Segmented(
+      {super.key,
+      required this.labels,
+      required this.index,
+      required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.divider),
+      ),
+      child: Row(
+        children: [
+          for (var i = 0; i < labels.length; i++)
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  onChanged(i);
+                },
+                behavior: HitTestBehavior.opaque,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  decoration: BoxDecoration(
+                    color:
+                        i == index ? AppColors.cardLight : Colors.transparent,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    labels[i],
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppText.small(
+                      color: i == index ? AppColors.white : AppColors.grey,
+                    ).copyWith(fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Number + label tile.
+class StatTile extends StatelessWidget {
+  final String value;
+  final String label;
+  final String? unit;
+  final Color color;
+
+  const StatTile(this.value, this.label,
+      {super.key, this.unit, this.color = AppColors.white});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            Flexible(
+              child: Text(value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppText.number(size: 24, color: color)),
+            ),
+            if (unit != null) ...[
+              const SizedBox(width: 3),
+              Text(unit!, style: AppText.small()),
+            ],
+          ],
+        ),
+        const SizedBox(height: 2),
+        Text(label,
+            maxLines: 2,
+            style: AppText.small().copyWith(fontSize: 12)),
+      ],
+    );
+  }
+}
+
+/// Honest empty state.
+class EmptyNote extends StatelessWidget {
+  final String text;
+  final IconData icon;
+
+  const EmptyNote(this.text,
+      {super.key, this.icon = Icons.hourglass_empty_rounded});
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        child: Row(
+          children: [
+            Icon(icon, size: 18, color: AppColors.faint),
+            const SizedBox(width: 10),
+            Expanded(child: Text(text, style: AppText.small())),
+          ],
+        ),
+      );
+}
+
+class OnoBackButton extends StatelessWidget {
+  final IconData icon;
+  const OnoBackButton({super.key, this.icon = Icons.arrow_back_rounded});
+
+  @override
+  Widget build(BuildContext context) => IconButton(
+        onPressed: () =>
+            context.canPop() ? context.pop() : context.go('/home'),
+        icon: Icon(icon, color: AppColors.white),
+        style: IconButton.styleFrom(
+          backgroundColor: AppColors.card,
+          side: const BorderSide(color: AppColors.divider),
+        ),
+      );
+}
+
+/// Standard page: optional back button, eyebrow, serif title, subtitle,
+/// then children; bottom padding clears the nav bar.
 class OnoPage extends StatelessWidget {
   final String title;
   final String? eyebrow;
@@ -324,6 +619,7 @@ class OnoPage extends StatelessWidget {
   final bool showBack;
   final List<Widget>? actions;
   final Future<void> Function()? onRefresh;
+  final Widget? bottomBar;
 
   const OnoPage({
     super.key,
@@ -334,40 +630,31 @@ class OnoPage extends StatelessWidget {
     this.showBack = false,
     this.actions,
     this.onRefresh,
+    this.bottomBar,
   });
 
   @override
   Widget build(BuildContext context) {
     final bottom = MediaQuery.of(context).padding.bottom;
     final list = ListView(
-      padding: EdgeInsets.fromLTRB(
-          AppSpace.gutter, 8, AppSpace.gutter, bottom + 120),
+      padding: EdgeInsets.fromLTRB(AppSpace.gutter, 8, AppSpace.gutter,
+          bottomBar != null ? 24 : bottom + 110),
       children: [
         if (showBack || actions != null)
           Row(
             children: [
-              if (showBack)
-                IconButton(
-                  onPressed: () =>
-                      context.canPop() ? context.pop() : context.go('/home'),
-                  icon: const Icon(Icons.arrow_back_rounded,
-                      color: AppColors.white),
-                  style: IconButton.styleFrom(
-                    backgroundColor: AppColors.card,
-                    side: const BorderSide(color: AppColors.divider),
-                  ),
-                ),
+              if (showBack) const OnoBackButton(),
               const Spacer(),
               ...?actions,
             ],
           ),
-        SizedBox(height: showBack ? 16 : 12),
+        SizedBox(height: showBack || actions != null ? 14 : 10),
         if (eyebrow != null) ...[
           Text(eyebrow!.toUpperCase(),
               style: AppText.eyebrow(color: AppColors.accent)),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
         ],
-        Text(title, style: AppText.display()),
+        Text(title, style: showBack ? AppText.title() : AppText.display()),
         if (subtitle != null) ...[
           const SizedBox(height: 8),
           Text(subtitle!, style: AppText.body(color: AppColors.grey)),
@@ -377,6 +664,16 @@ class OnoPage extends StatelessWidget {
     );
     return Scaffold(
       backgroundColor: AppColors.background,
+      bottomNavigationBar: bottomBar == null
+          ? null
+          : Container(
+              padding: EdgeInsets.fromLTRB(20, 10, 20, bottom + 12),
+              decoration: const BoxDecoration(
+                color: AppColors.background,
+                border: Border(top: BorderSide(color: AppColors.divider)),
+              ),
+              child: bottomBar,
+            ),
       body: SafeArea(
         bottom: false,
         child: onRefresh == null
@@ -406,7 +703,7 @@ class IconTile extends StatelessWidget {
         width: size,
         height: size,
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.12),
+          color: color.withValues(alpha: 0.13),
           borderRadius: BorderRadius.circular(size * 0.3),
         ),
         child: Icon(icon, color: color, size: size * 0.5),
@@ -440,20 +737,81 @@ class KeyValueRow extends StatelessWidget {
       );
 }
 
+/// Single-line list row with icon, title, subtitle and chevron.
+class LinkRow extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String title;
+  final String? subtitle;
+  final String? trailing;
+  final VoidCallback onTap;
+
+  const LinkRow({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.onTap,
+    this.color = AppColors.grey,
+    this.subtitle,
+    this.trailing,
+  });
+
+  @override
+  Widget build(BuildContext context) => InkWell(
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onTap();
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+          child: Row(
+            children: [
+              IconTile(icon, color: color, size: 36),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: AppText.heading().copyWith(fontSize: 15.5)),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 1),
+                      Text(subtitle!,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppText.small()),
+                    ],
+                  ],
+                ),
+              ),
+              if (trailing != null) ...[
+                const SizedBox(width: 8),
+                Text(trailing!,
+                    style: AppText.small(color: AppColors.greyLight)
+                        .copyWith(fontWeight: FontWeight.w700)),
+              ],
+              const SizedBox(width: 4),
+              const Icon(Icons.chevron_right_rounded, color: AppColors.faint),
+            ],
+          ),
+        ),
+      );
+}
+
 Future<void> copyText(BuildContext context, String text,
     {String message = 'Copied'}) async {
   await Clipboard.setData(ClipboardData(text: text));
   HapticFeedback.lightImpact();
-  if (context.mounted) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
-  }
+  if (context.mounted) toast(context, message);
+}
+
+void toast(BuildContext context, String message) {
+  ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(SnackBar(content: Text(message)));
 }
 
 Future<void> openLink(String url) async {
-  final uri = Uri.parse(url);
-  await launchUrl(uri, mode: LaunchMode.externalApplication);
+  await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
 }
 
 String weekdayName(int weekday) => const [
@@ -480,3 +838,5 @@ String monthName(int month) => const [
       'November',
       'December'
     ][month - 1];
+
+String shortDate(DateTime d) => '${d.day} ${monthName(d.month).substring(0, 3)}';

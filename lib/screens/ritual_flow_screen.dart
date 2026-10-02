@@ -1,19 +1,22 @@
 import 'dart:async';
-import 'dart:math';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../data/emin_personal_content.dart';
+import '../data/emin_system.dart';
 import '../models/ritual.dart';
-import '../providers/ritual_provider.dart';
+import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
+import '../widgets/ono_ui.dart';
 
-/// Full-screen ritual flow — a timed PageView through each ritual step,
-/// ending with a celebration screen.
+/// The 06:05 morning ritual: water, manifesto, three priorities, sigh,
+/// statement. Finishing ticks the manifesto and sigh in the Daily 10 and
+/// saves the priorities to Today.
 class RitualFlowScreen extends StatefulWidget {
   final String ritualId;
-
   const RitualFlowScreen({super.key, required this.ritualId});
 
   @override
@@ -21,777 +24,223 @@ class RitualFlowScreen extends StatefulWidget {
 }
 
 class _RitualFlowScreenState extends State<RitualFlowScreen> {
-  late PageController _pageController;
-  bool _started = false;
+  final List<RitualStep> _steps = eminMorningRitual;
+  int _i = 0;
+  late int _left = _steps.first.durationSeconds;
+  Timer? _t;
+  final _started = DateTime.now();
+  bool _finished = false;
+  final _priorities = List.generate(3, (_) => TextEditingController());
 
   @override
   void initState() {
     super.initState();
-    _pageController = PageController();
-    _initRitual();
+    final p = context.read<PersonalSystemProvider>().prioritiesFor(DateTime.now());
+    for (var i = 0; i < 3; i++) {
+      _priorities[i].text = p[i];
+    }
+    _run();
   }
 
-  Future<void> _initRitual() async {
-    final provider = context.read<RitualProvider>();
-    await provider.startRitual(widget.ritualId);
-    if (mounted) setState(() => _started = true);
+  void _run() {
+    _t?.cancel();
+    _t = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted || _left <= 0) return;
+      setState(() => _left--);
+      if (_left == 0) HapticFeedback.mediumImpact();
+    });
   }
 
   @override
   void dispose() {
-    _pageController.dispose();
+    _t?.cancel();
+    for (final c in _priorities) {
+      c.dispose();
+    }
     super.dispose();
   }
 
-  void _goToPage(int index) {
-    _pageController.animateToPage(
-      index,
-      duration: const Duration(milliseconds: 500),
-      curve: Curves.easeInOutCubic,
-    );
+  void _next() {
+    HapticFeedback.selectionClick();
+    if (_steps[_i].id == 'three_priorities') _savePriorities();
+    if (_i == _steps.length - 1) {
+      _finish();
+      return;
+    }
+    setState(() {
+      _i++;
+      _left = _steps[_i].durationSeconds;
+    });
+    _run();
   }
 
-  void _onStepComplete() {
-    final provider = context.read<RitualProvider>();
-    provider.advanceStep();
-    final nextIndex = provider.currentStepIndex;
-    // +1 because page 0 is step 0, and the last page is the completion screen.
-    if (nextIndex >= provider.totalSteps) {
-      _goToPage(provider.totalSteps); // completion page
-    } else {
-      _goToPage(nextIndex);
+  void _savePriorities() {
+    final system = context.read<PersonalSystemProvider>();
+    for (var i = 0; i < 3; i++) {
+      system.setPriority(DateTime.now(), i, _priorities[i].text);
     }
   }
 
-  void _onSkip() {
-    final provider = context.read<RitualProvider>();
-    provider.skipStep();
-    final nextIndex = provider.currentStepIndex;
-    if (nextIndex >= provider.totalSteps) {
-      _goToPage(provider.totalSteps);
-    } else {
-      _goToPage(nextIndex);
-    }
-  }
-
-  Future<void> _onComplete() async {
-    final provider = context.read<RitualProvider>();
-    await provider.completeRitual();
-    if (mounted) Navigator.of(context).pop();
-  }
-
-  Future<bool> _onWillPop() async {
-    final provider = context.read<RitualProvider>();
-    if (!provider.isInProgress) return true;
-
-    final exit = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.card,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: Text(
-          'Exit ritual?',
-          style: Theme.of(ctx).textTheme.headlineMedium,
-        ),
-        content: Text(
-          'Progress will be lost.',
-          style: Theme.of(ctx).textTheme.bodyLarge,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(
-              'Stay',
-              style: TextStyle(color: AppColors.grey),
-            ),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(
-              'Exit',
-              style: TextStyle(color: AppColors.purple),
-            ),
-          ),
-        ],
-      ),
-    );
-
-    if (exit == true) {
-      provider.cancelRitual();
-    }
-    return exit ?? false;
+  void _finish() {
+    _t?.cancel();
+    final system = context.read<PersonalSystemProvider>();
+    final now = DateTime.now();
+    system.setCheck(now, 'manifesto', true);
+    system.logProtocolUse('sigh', text: 'Morning ritual');
+    system.addLog('ritual',
+        data: {'seconds': now.difference(_started).inSeconds});
+    HapticFeedback.heavyImpact();
+    setState(() => _finished = true);
   }
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: _onWillPop,
-      child: Scaffold(
-        backgroundColor: AppColors.background,
-        body: _started ? _buildFlow() : _buildLoading(),
+    final bottom = MediaQuery.of(context).padding.bottom;
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        bottom: false,
+        child: _finished ? _summary(bottom) : _step(bottom),
       ),
     );
   }
 
-  Widget _buildLoading() {
-    return const Center(
-      child: CircularProgressIndicator(color: AppColors.purple),
-    );
-  }
+  Widget _step(double bottom) {
+    final s = _steps[_i];
+    final lane = s.lane.name;
+    final color = AppColors.lane(lane);
+    final next = _i + 1 < _steps.length ? _steps[_i + 1].title : null;
+    final total = s.durationSeconds;
+    final mm = (_left ~/ 60).toString();
+    final ss = (_left % 60).toString().padLeft(2, '0');
 
-  Widget _buildFlow() {
-    return Consumer<RitualProvider>(
-      builder: (context, provider, _) {
-        if (provider.activeRitual == null) {
-          return const Center(
-            child: CircularProgressIndicator(color: AppColors.purple),
-          );
-        }
-
-        final steps = provider.activeRitual!.steps;
-        final totalPages = steps.length + 1; // steps + completion
-
-        return Stack(
-          children: [
-            // Gradient background
-            Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    AppColors.background,
-                    Color(0xFF111214),
-                    AppColors.background,
-                  ],
-                ),
-              ),
-            ),
-            // Ambient purple glow
-            Positioned(
-              top: -80,
-              right: -80,
-              child: Container(
-                width: 260,
-                height: 260,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      AppColors.purple.withValues(alpha: 0.15),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            SafeArea(
-              child: Column(
-                children: [
-                  _ProgressDots(
-                    total: steps.length,
-                    current: provider.currentStepIndex,
-                  ),
-                  Expanded(
-                    child: PageView.builder(
-                      controller: _pageController,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: totalPages,
-                      itemBuilder: (context, index) {
-                        if (index < steps.length) {
-                          return _StepPage(
-                            step: steps[index],
-                            stepIndex: index,
-                            totalSteps: steps.length,
-                            onComplete: _onStepComplete,
-                            onSkip: _onSkip,
-                          );
-                        }
-                        return _CompletionPage(
-                          session: provider.activeSession,
-                          ritual: provider.activeRitual!,
-                          onDone: _onComplete,
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Back button
-            Positioned(
-              top: MediaQuery.of(context).padding.top + 8,
-              left: 8,
-              child: IconButton(
-                icon: const Icon(Icons.close, color: AppColors.grey),
-                onPressed: () async {
-                  final shouldPop = await _onWillPop();
-                  if (shouldPop && mounted) Navigator.of(context).pop();
-                },
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Progress dots
-// ---------------------------------------------------------------------------
-
-class _ProgressDots extends StatelessWidget {
-  final int total;
-  final int current;
-
-  const _ProgressDots({required this.total, required this.current});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: List.generate(total, (i) {
-          final isActive = i == current;
-          final isDone = i < current;
-          return AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            width: isActive ? 24 : 8,
-            height: 8,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(4),
-              color: isDone
-                  ? AppColors.purple
-                  : isActive
-                      ? AppColors.purpleSoft
-                      : AppColors.grey.withValues(alpha: 0.3),
-            ),
-          );
-        }),
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Individual step page
-// ---------------------------------------------------------------------------
-
-class _StepPage extends StatefulWidget {
-  final RitualStep step;
-  final int stepIndex;
-  final int totalSteps;
-  final VoidCallback onComplete;
-  final VoidCallback onSkip;
-
-  const _StepPage({
-    required this.step,
-    required this.stepIndex,
-    required this.totalSteps,
-    required this.onComplete,
-    required this.onSkip,
-  });
-
-  @override
-  State<_StepPage> createState() => _StepPageState();
-}
-
-class _StepPageState extends State<_StepPage>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _timerController;
-  Timer? _autoAdvanceTimer;
-
-  @override
-  void initState() {
-    super.initState();
-    _timerController = AnimationController(
-      vsync: this,
-      duration: Duration(seconds: widget.step.durationSeconds),
-    );
-    _timerController.forward();
-    _autoAdvanceTimer = Timer(
-      Duration(seconds: widget.step.durationSeconds),
-      () {
-        if (mounted) widget.onComplete();
-      },
-    );
-  }
-
-  @override
-  void dispose() {
-    _timerController.dispose();
-    _autoAdvanceTimer?.cancel();
-    super.dispose();
-  }
-
-  Color _laneColor() {
-    switch (widget.step.lane) {
-      case RitualLane.mind:
-        return AppColors.purple;
-      case RitualLane.body:
-        return AppColors.cyan;
-      case RitualLane.social:
-        return AppColors.green;
-      case RitualLane.skill:
-        return AppColors.warning;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final laneColor = _laneColor();
-    final theme = Theme.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Spacer(flex: 1),
-          // Circular countdown around icon
-          SizedBox(
-            width: 140,
-            height: 140,
-            child: AnimatedBuilder(
-              animation: _timerController,
-              builder: (context, child) {
-                return CustomPaint(
-                  painter: _CountdownRingPainter(
-                    progress: _timerController.value,
-                    color: laneColor,
-                  ),
-                  child: child,
-                );
-              },
-              child: Center(
-                child: Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: laneColor.withValues(alpha: 0.15),
-                  ),
-                  child: Icon(
-                    widget.step.iconData,
-                    size: 44,
-                    color: laneColor,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 32),
-          // Lane pill
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              color: laneColor.withValues(alpha: 0.15),
-            ),
-            child: Text(
-              widget.step.lane.name.toUpperCase(),
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: laneColor,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 1.2,
-                fontSize: 12,
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          // Title
-          Text(
-            widget.step.title,
-            style: theme.textTheme.displaySmall?.copyWith(
-              color: AppColors.white,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            widget.step.subtitle,
-            style: theme.textTheme.bodyLarge?.copyWith(
-              color: AppColors.grey,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 32),
-          // Glassmorphic instruction card
-          ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-              child: Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  color: AppColors.white.withValues(alpha: 0.06),
-                  border: Border.all(
-                    color: AppColors.white.withValues(alpha: 0.1),
-                  ),
-                ),
-                child: Text(
-                  widget.step.instruction,
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: AppColors.greyLight,
-                    height: 1.6,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-          // Countdown text
-          AnimatedBuilder(
-            animation: _timerController,
-            builder: (context, _) {
-              final remaining = widget.step.durationSeconds -
-                  (_timerController.value * widget.step.durationSeconds)
-                      .round();
-              final m = remaining ~/ 60;
-              final s = remaining % 60;
-              return Text(
-                '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}',
-                style: theme.textTheme.headlineLarge?.copyWith(
-                  color: AppColors.white.withValues(alpha: 0.6),
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                ),
-              );
-            },
-          ),
-          const Spacer(flex: 2),
-          // Complete early / skip row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              if (widget.step.isOptional)
-                TextButton(
-                  onPressed: widget.onSkip,
-                  child: Text(
-                    'Skip',
-                    style: TextStyle(
-                      color: AppColors.grey.withValues(alpha: 0.6),
-                    ),
-                  ),
-                )
-              else
-                const SizedBox.shrink(),
-              ElevatedButton(
-                onPressed: widget.onComplete,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: laneColor.withValues(alpha: 0.2),
-                  foregroundColor: laneColor,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                child: const Text('Done'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-        ],
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Countdown ring painter
-// ---------------------------------------------------------------------------
-
-class _CountdownRingPainter extends CustomPainter {
-  final double progress;
-  final Color color;
-
-  _CountdownRingPainter({required this.progress, required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2 - 4;
-
-    // Track
-    final trackPaint = Paint()
-      ..color = color.withValues(alpha: 0.12)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 4
-      ..strokeCap = StrokeCap.round;
-    canvas.drawCircle(center, radius, trackPaint);
-
-    // Progress arc
-    final arcPaint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 4
-      ..strokeCap = StrokeCap.round;
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      -pi / 2,
-      2 * pi * progress,
-      false,
-      arcPaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_CountdownRingPainter old) => old.progress != progress;
-}
-
-// ---------------------------------------------------------------------------
-// Completion / celebration page
-// ---------------------------------------------------------------------------
-
-class _CompletionPage extends StatefulWidget {
-  final RitualSession? session;
-  final Ritual ritual;
-  final VoidCallback onDone;
-
-  const _CompletionPage({
-    required this.session,
-    required this.ritual,
-    required this.onDone,
-  });
-
-  @override
-  State<_CompletionPage> createState() => _CompletionPageState();
-}
-
-class _CompletionPageState extends State<_CompletionPage>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _celebrateController;
-  late Animation<double> _scaleAnim;
-  late Animation<double> _fadeAnim;
-
-  @override
-  void initState() {
-    super.initState();
-    _celebrateController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 800),
-    );
-    _scaleAnim = CurvedAnimation(
-      parent: _celebrateController,
-      curve: Curves.elasticOut,
-    );
-    _fadeAnim = CurvedAnimation(
-      parent: _celebrateController,
-      curve: Curves.easeIn,
-    );
-    _celebrateController.forward();
-  }
-
-  @override
-  void dispose() {
-    _celebrateController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final completedCount = widget.session?.stepsCompleted.length ?? 0;
-    final totalSteps = widget.ritual.steps.length;
-    final elapsed = widget.session != null
-        ? DateTime.now().difference(widget.session!.startedAt)
-        : Duration.zero;
-    final minutes = elapsed.inMinutes;
-    final seconds = elapsed.inSeconds % 60;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Spacer(flex: 2),
-          // Confetti-style burst
-          ScaleTransition(
-            scale: _scaleAnim,
-            child: FadeTransition(
-              opacity: _fadeAnim,
-              child: _ConfettiBurst(),
-            ),
-          ),
-          const SizedBox(height: 24),
-          ScaleTransition(
-            scale: _scaleAnim,
-            child: Icon(
-              Icons.check_circle,
-              size: 80,
-              color: AppColors.success,
-            ),
-          ),
-          const SizedBox(height: 24),
-          FadeTransition(
-            opacity: _fadeAnim,
-            child: Text(
-              'Ritual Complete',
-              style: theme.textTheme.displaySmall?.copyWith(
-                color: AppColors.white,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          const SizedBox(height: 8),
-          FadeTransition(
-            opacity: _fadeAnim,
-            child: Text(
-              widget.ritual.type == RitualType.morning
-                  ? 'Your morning is set. Go make it count.'
-                  : 'Your evening is at peace. Rest well.',
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: AppColors.grey,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          const SizedBox(height: 40),
-          // Stats row
-          FadeTransition(
-            opacity: _fadeAnim,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 32,
-                    vertical: 24,
-                  ),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    color: AppColors.white.withValues(alpha: 0.06),
-                    border: Border.all(
-                      color: AppColors.white.withValues(alpha: 0.1),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _StatColumn(
-                        value: '$completedCount/$totalSteps',
-                        label: 'Steps',
-                        color: AppColors.purple,
-                      ),
-                      Container(
-                        width: 1,
-                        height: 40,
-                        color: AppColors.divider,
-                      ),
-                      _StatColumn(
-                        value:
-                            '${minutes}m ${seconds.toString().padLeft(2, '0')}s',
-                        label: 'Duration',
-                        color: AppColors.cyan,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const Spacer(flex: 2),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: widget.onDone,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.purple,
-                foregroundColor: AppColors.white,
-                padding: const EdgeInsets.symmetric(vertical: 18),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
-              child: const Text('Done'),
-            ),
-          ),
-          const SizedBox(height: 32),
-        ],
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Stat column
-// ---------------------------------------------------------------------------
-
-class _StatColumn extends StatelessWidget {
-  final String value;
-  final String label;
-  final Color color;
-
-  const _StatColumn({
-    required this.value,
-    required this.label,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Column(
       children: [
-        Text(
-          value,
-          style: theme.textTheme.headlineMedium?.copyWith(color: color),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(8, 4, 20, 0),
+          child: Row(
+            children: [
+              IconButton(
+                onPressed: () =>
+                    context.canPop() ? context.pop() : context.go('/home'),
+                icon: const Icon(Icons.close_rounded, color: AppColors.grey),
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                  child: TickSegments(
+                      total: _steps.length, filled: _i + 1, height: 4)),
+            ],
+          ),
         ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: AppColors.grey,
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+            children: [
+              Text('STEP ${_i + 1} OF ${_steps.length} · ${lane.toUpperCase()}',
+                  style: AppText.eyebrow(color: color)),
+              const SizedBox(height: 8),
+              Text(s.title, style: AppText.display()),
+              const SizedBox(height: 6),
+              Text(s.subtitle, style: AppText.body(color: AppColors.grey)),
+              const SizedBox(height: 24),
+              Center(
+                child: ScoreRing(
+                  progress: 1 - _left / total,
+                  size: 170,
+                  stroke: 12,
+                  color: color,
+                  center: Text(_left == 0 ? '✓' : '$mm:$ss',
+                      style: AppText.number(size: 44)),
+                ),
+              ),
+              const SizedBox(height: 24),
+              if (s.id == 'manifesto')
+                for (final stanza in manifestoStanzas) ...[
+                  for (final line in stanza)
+                    Text(line,
+                        style: AppText.serif(
+                            size: 20,
+                            color: stanza == manifestoStanzas.last
+                                ? AppColors.accent
+                                : AppColors.white)),
+                  const SizedBox(height: 14),
+                ]
+              else if (s.id == 'three_priorities')
+                for (var i = 0; i < 3; i++)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: TextField(
+                      controller: _priorities[i],
+                      style: AppText.body(color: AppColors.white),
+                      decoration: InputDecoration(
+                        prefixText: '${i + 1}   ',
+                        hintText: const [
+                          'The outcome that matters most',
+                          'Second outcome',
+                          'Third outcome'
+                        ][i],
+                      ),
+                    ),
+                  )
+              else if (s.id == 'identity')
+                Text(EminIdentity.identityStatement,
+                    textAlign: TextAlign.center,
+                    style: AppText.serif(size: 30, color: AppColors.accent))
+              else
+                OnoCard(
+                  child: Text(s.instruction,
+                      style: AppText.body(color: AppColors.white)),
+                ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.fromLTRB(20, 8, 20, bottom + 16),
+          child: PrimaryButton(
+            next == null ? 'Finish ritual' : 'Next: $next',
+            icon: Icons.arrow_forward_rounded,
+            onPressed: _next,
           ),
         ),
       ],
     );
   }
-}
 
-// ---------------------------------------------------------------------------
-// Confetti burst — decorative radial dots
-// ---------------------------------------------------------------------------
-
-class _ConfettiBurst extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final colors = [
-      AppColors.purple,
-      AppColors.cyan,
-      AppColors.green,
-      AppColors.warning,
-      AppColors.purpleSoft,
-    ];
-    final random = Random(7);
-
-    return SizedBox(
-      width: 200,
-      height: 200,
-      child: Stack(
-        alignment: Alignment.center,
-        children: List.generate(20, (i) {
-          final angle = (2 * pi / 20) * i;
-          final radius = 50.0 + random.nextDouble() * 50;
-          final size = 4.0 + random.nextDouble() * 6;
-          return Positioned(
-            left: 100 + cos(angle) * radius - size / 2,
-            top: 100 + sin(angle) * radius - size / 2,
-            child: Container(
-              width: size,
-              height: size,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: colors[i % colors.length].withValues(alpha: 0.7),
-              ),
+  Widget _summary(double bottom) {
+    final secs = DateTime.now().difference(_started).inSeconds;
+    final system = context.watch<PersonalSystemProvider>();
+    return Padding(
+      padding: EdgeInsets.fromLTRB(24, 40, 24, bottom + 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('RITUAL COMPLETE', style: AppText.eyebrow(color: AppColors.accent)),
+          const SizedBox(height: 10),
+          Text('Today I build something permanent.', style: AppText.display()),
+          const SizedBox(height: 28),
+          OnoCard(
+            child: Row(
+              children: [
+                Expanded(
+                    child: StatTile('${_steps.length}/${_steps.length}', 'steps')),
+                Expanded(
+                    child: StatTile(
+                        '${secs ~/ 60}:${(secs % 60).toString().padLeft(2, '0')}',
+                        'minutes')),
+                Expanded(
+                    child: StatTile('${system.scoreFor(DateTime.now())}',
+                        'Daily 10 now',
+                        unit: '/10')),
+              ],
             ),
-          );
-        }),
+          ),
+          const SizedBox(height: 12),
+          Text('Manifesto and sigh are ticked. Your priorities are on Today.',
+              style: AppText.small()),
+          const Spacer(),
+          PrimaryButton('Back to Today',
+              onPressed: () => context.go('/home')),
+        ],
       ),
     );
   }

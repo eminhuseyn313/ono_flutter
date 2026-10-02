@@ -108,7 +108,7 @@ class _SignUpScreenState extends State<SignUpScreen>
     );
 
     if (mounted && auth.isAuthenticated) {
-      context.go('/archetype');
+      context.go('/commission');
     }
   }
 
@@ -151,24 +151,6 @@ class _SignUpScreenState extends State<SignUpScreen>
         ),
         child: Stack(
           children: [
-            // Ambient glow orb
-            Positioned(
-              top: -80,
-              right: -60,
-              child: Container(
-                width: 250,
-                height: 250,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      AppColors.purple.withValues(alpha: 0.15),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            ),
             SafeArea(
               child: FadeTransition(
                 opacity: _fadeIn,
@@ -199,28 +181,19 @@ class _SignUpScreenState extends State<SignUpScreen>
                           ),
                         ),
                         const SizedBox(height: 32),
-                        const Text(
+                        Text(
                           'ONO',
-                          style: TextStyle(
-                            color: AppColors.purpleSoft,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 4,
-                          ),
+                          style: AppText.serif(size: 22, color: AppColors.accent)
+                              .copyWith(letterSpacing: 5),
                         ),
                         const SizedBox(height: 16),
-                        const Text(
+                        Text(
                           'Create your\naccount',
-                          style: TextStyle(
-                            color: AppColors.white,
-                            fontSize: 36,
-                            fontWeight: FontWeight.w800,
-                            height: 1.1,
-                          ),
+                          style: AppText.display(),
                         ),
                         const SizedBox(height: 8),
                         const Text(
-                          'Start your transformation journey',
+                          'Day one starts here.',
                           style: TextStyle(color: AppColors.grey, fontSize: 15),
                         ),
 
@@ -413,15 +386,14 @@ class _SignUpScreenState extends State<SignUpScreen>
                           child: GestureDetector(
                             onTap: () => context.go('/sign-in'),
                             child: RichText(
-                              text: const TextSpan(
-                                style: TextStyle(
-                                    color: AppColors.grey, fontSize: 14),
-                                children: [
+                              text: TextSpan(
+                                style: AppText.small(),
+                                children: const [
                                   TextSpan(text: 'Already have an account? '),
                                   TextSpan(
                                     text: 'Sign in',
                                     style: TextStyle(
-                                      color: AppColors.purpleSoft,
+                                      color: AppColors.accent,
                                       fontWeight: FontWeight.w700,
                                     ),
                                   ),

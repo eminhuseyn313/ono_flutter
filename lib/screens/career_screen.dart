@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../data/emin_system.dart';
@@ -50,6 +51,33 @@ class CareerScreen extends StatelessWidget {
           ),
         ),
         const SectionHeader('LinkedIn — exact rewrites'),
+        OnoCard(
+          padding: EdgeInsets.zero,
+          child: Column(
+            children: [
+              LinkRow(
+                icon: Icons.campaign_outlined,
+                color: AppColors.skill,
+                title: 'Post log',
+                subtitle: system.programMonth >= 2
+                    ? '2 posts a week — log each one'
+                    : 'Cadence starts in month 2',
+                trailing: '${system.countOf('linkedin')}',
+                onTap: () => context.push('/tool/linkedin'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
+                icon: Icons.description_outlined,
+                color: AppColors.skill,
+                title: 'Artifact of the month',
+                subtitle: artifactFor(system.programMonth),
+                trailing: '${system.countOf('artifact')}',
+                onTap: () => context.push('/tool/artifact'),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
         const _CopyBlock(
           title: 'Headline',
           text: linkedinHeadline,

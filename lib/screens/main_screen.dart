@@ -5,20 +5,16 @@ import '../theme/app_theme.dart';
 
 /// Shell widget with a solid, docked bottom navigation bar.
 ///
-/// Tabs: Today · Plan · Playbook · Me. Journal and Progress stay in the
-/// shell (reachable from Playbook) but have no tab of their own.
+/// Tabs: Today · Program · Log · Me.
 class MainScreen extends StatelessWidget {
   final Widget child;
 
   const MainScreen({super.key, required this.child});
 
-  static const _tabs = ['/home', '/plan', '/playbook', '/profile'];
+  static const _tabs = ['/home', '/program', '/log', '/profile'];
 
   int _currentIndex(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
-    if (location.startsWith('/journal') || location.startsWith('/progress')) {
-      return 2;
-    }
     final index = _tabs.indexWhere((t) => location.startsWith(t));
     return index < 0 ? 0 : index;
   }
@@ -50,8 +46,8 @@ class _NavBar extends StatelessWidget {
 
   static const _items = [
     (Icons.wb_sunny_outlined, Icons.wb_sunny_rounded, 'Today'),
-    (Icons.calendar_today_outlined, Icons.calendar_today_rounded, 'Plan'),
-    (Icons.menu_book_outlined, Icons.menu_book_rounded, 'Playbook'),
+    (Icons.route_outlined, Icons.route_rounded, 'Program'),
+    (Icons.edit_note_outlined, Icons.edit_note_rounded, 'Log'),
     (Icons.person_outline_rounded, Icons.person_rounded, 'Me'),
   ];
 

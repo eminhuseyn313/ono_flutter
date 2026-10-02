@@ -1,174 +1,116 @@
-# ONO — Personal Transformation App
+# ONO — Emin's personal operating system
 
 ## What This Is
-ONO is a personal transformation app for young men (18-30) built in Flutter with Supabase backend. It has 4 development lanes: Mind, Body, Social, Skill. The app is built around archetypes, blueprints, daily actions, journeys, rituals, and AI coaching.
+ONO is the personal operating system of Emin Huseynzade: Senior Product Owner for Business ID at Bir Ecosystem (PASHA Financial Holding), Baku. Archetype: **The Product Architect**. It runs one 18-month program (540 days, four phases: Foundation 1–2, Craft 3–6, Signal 7–12, Leverage 13–18) across four lanes: Mind, Body, Skill, Social. Flutter app, Supabase backend.
 
-The primary test user is Emin Huseynzade (archetype: 'executive' / "The Product Leader"). His personalized content layer lives at `lib/data/emin_personal_content.dart`.
+Everything shown comes from his profile (encoded in `lib/data/emin_system.dart`) or from what he logs. **No sample or fake numbers anywhere.** That was the #1 finding in `docs/CRITIQUE.md`.
 
 ## Architecture
 
 ```
-Models → Gateways (abstract + mock impl) → Providers (ChangeNotifier) → Screens/Widgets
+Content (lib/data) ─┐
+Models → Gateways (abstract + mock/Supabase) → Providers (ChangeNotifier) → Screens/Widgets
+Services: ReminderService (local notifications), BriefGenerator (weekly brief)
 ```
 
-- **Models**: `lib/models/` — every model needs `copyWith`, `toJson`, `fromJson`
-- **Gateways**: `lib/gateways/` — abstract class + mock implementation. Mock gateways use `Future.delayed(Duration(milliseconds: 150-250))` for realistic async
-- **Providers**: `lib/providers/` — extend `ChangeNotifier`, injected via `Provider`
-- **Navigation**: GoRouter (`lib/router.dart`)
-- **State**: Provider package (ChangeNotifier pattern)
-- **Entry points**: `main.dart` (mock/offline mode), `main_production.dart` (Supabase/live)
+- **Content**:
+  - `lib/data/emin_system.dart`: schedule, gym plan, Daily 10 (`nonNegotiables`), rotations, library, protocols, style, career, journey (`phases`, `monthThemes`, `unlocksFor(month)`, `artifactFor`), reminders (`reminderDefs`), mastery levels.
+  - `lib/data/emin_personal_content.dart`: morning ritual steps, coach tips (`coachTipForDay`), weekly review questions.
+- **State**: `PersonalSystemProvider` (`lib/providers/personal_system_provider.dart`) holds everything:
+  - commission and start date;
+  - Daily 10 checks, priorities, done keys;
+  - logs (weight, protein, gym, protocols, notes, wins, bloodwork, …), evidence, Sunday reports, briefs;
+  - reminders, export/import.
+  It persists through `PersonalSystemGateway`:
+  - `MockPersonalSystemGateway`: SharedPreferences, offline.
+  - `SyncedPersonalSystemGateway`: local-first plus the Supabase `personal_system` table.
+- **Auth**: `AuthProvider(gateway:)` with `MockAuthGateway` (persists the email) or `SupabaseAuthGateway`.
+- **Navigation**: GoRouter, `createRouter()` in `lib/router.dart`. `appRoutes` lists every concrete route and is used by the smoke test.
+- **Entry points**: both build `OnoApp` (`lib/app.dart`).
+  - `main.dart` is offline: mock gateways, local notifications.
+  - `main_production.dart` is live: Supabase auth and sync, plus `RemoteBriefGenerator` → the `weekly-brief` edge function.
 
-## Critical Conventions — READ THESE
+## Critical Conventions
 
-### Provider Constructor Rules (causes crashes if wrong)
-- `TimeCapsuleProvider` takes a **positional** argument: `TimeCapsuleProvider(_gateway)`
-- `BlueprintProvider` takes a **positional** argument: `BlueprintProvider(_blueprintGateway)`
-- **All other providers** use named parameter: `SomeProvider(gateway: _gateway)`
+- Providers take a named `gateway:` (`PersonalSystemProvider(gateway: …, reminders: …, briefGenerator: …)`). `clock` can be overridden in tests.
+- **`withValues(alpha: 0.5)`, not `withOpacity`.** `PopScope` uses `onPopInvokedWithResult`.
+- **No `\$` escaping in strings.** Use `'text $variable'`.
+- **No chart packages.** All charts are `CustomPaint` (`lib/widgets/ono_charts.dart`).
+- Dates: use `dateKey`, `dayOnly`, `weekStartOf` from `lib/models/personal_system.dart`. A program month is a 30-day block from `programStart`.
+- Logs sort by the day they are for, then entry order (`logsOf` is newest first; `weightSeries` is oldest first).
+- Every new screen must fit iPhone SE (375×667) with the real fonts. The smoke test fails on overflow.
+- Every route a piece of content points to (`NonNegotiable.route`, `ReminderDef.route`, `Unlock.route`) must exist. The smoke test resolves each one.
 
-### Dart/Flutter Rules
-- **`withValues(alpha: 0.5)` NOT `withOpacity(0.5)`** — `withOpacity` is deprecated
-- **`PopScope`**: Use `onPopInvokedWithResult` callback, NOT `onPopInvokedWithPop`
-- **No `\$` escaping in strings** — use proper Dart string interpolation `'text $variable text'` (escaped `\${...}` renders literally on screen; Trending/Wakz/Forge had this bug)
-- **No external chart packages** — build all charts with `CustomPaint` / `CustomPainter`
-- **Font**: Google Fonts Plus Jakarta Sans
-
-### Theme & Colors
-Use `AppColors` (+ `AppText`, `AppSpace`) from `lib/theme/app_theme.dart`. "Architect" palette: charcoal surfaces, ivory text, one cognac accent, steel-navy secondary. Flat bordered cards (no neon, no glass). Field names kept from the old palette — `purple*` is now the cognac accent family, `cyan` is steel blue.
+### Theme
+`lib/theme/app_theme.dart`: `AppColors`, `AppText`, `AppSpace`, radius 16. Charcoal surfaces, ivory text, one cognac accent, navy for journey surfaces. Dark only.
 
 ```dart
-AppColors.background   // 0xFF0C0D0F
-AppColors.card         // 0xFF15171B
-AppColors.cardLight    // 0xFF1E2126
-AppColors.purple       // 0xFFC8894A (primary accent — cognac; alias AppColors.accent)
-AppColors.purpleSoft   // 0xFFE8C9A3
-AppColors.purpleDark   // 0xFF4A2F18
-AppColors.cyan         // 0xFF7C9CC4 (steel; alias AppColors.steel)
-AppColors.green        // 0xFF7DB495
-AppColors.white        // 0xFFF3EFE7 (ivory text)
-AppColors.grey         // 0xFF8E8A82
-AppColors.greyLight    // 0xFFCFCAC1
-AppColors.warning      // 0xFFE2B354
-AppColors.divider      // 0xFF272A30
-AppColors.danger       // 0xFFE0605A
-AppColors.mind/body/skill/social, AppColors.lane('mind')  // lane colors
+AppColors.background 0xFF0B0C0E · card 0xFF14161A · cardLight 0xFF1B1E23 · divider 0xFF24272D
+AppColors.accent (= purple) 0xFFC8894A · accentPressed 0xFFA86D35 · ink 0xFF0B0C0E (text on accent)
+AppColors.navy 0xFF18222F · navyLight 0xFF223042 · white 0xFFF3EFE7 · grey 0xFFA39E95 · faint 0xFF6E6A63
+AppColors.mind 0xFF8FA3C8 · body 0xFF86B49A · skill 0xFF6FAFB3 · social 0xFFC49AC0 · AppColors.lane('mind')
 ```
 
-Text on the accent uses `AppColors.ink` (dark). Shared widgets for new screens: `lib/widgets/ono_ui.dart` (`OnoPage`, `OnoCard`, `SectionHeader`, `CheckRow`, `ScoreRing`, `Tag`, …).
+Type:
+- Display and section titles use **Instrument Serif**: `AppText.display()`, `title()`, `serif(size:)`.
+- UI text uses **Plus Jakarta Sans**: `heading`, `body`, `small`, `eyebrow`, `number`.
+- Both fonts are bundled in `assets/google_fonts/`, so runtime fetching is off.
 
-### Personal operating system
-Bottom tabs: Today (`/home`) · Plan (`/plan`) · Playbook (`/playbook`) · Me (`/profile`). Content lives in `lib/data/emin_system.dart` (schedule, gym plan, rotations, library, protocols, style, career, Daily 10). State (checks, priorities, evidence, Sunday reports) goes through `PersonalSystemProvider(gateway: ...)` → `MockPersonalSystemGateway` (SharedPreferences). Detail routes: `/manifesto`, `/protocols`, `/evidence`, `/library`, `/style`, `/career`, `/weekly-coaching`, `/features`.
+Shared widgets:
+- `lib/widgets/ono_ui.dart`: `OnoPage`, `OnoCard`, `SectionHeader`, `CheckRow` (with haptics), `PrimaryButton`, `GhostButton`, `Segmented`, `StatTile`, `LinkRow`, `toast`, …
+- `lib/widgets/ono_charts.dart`: `DayDial`, `Spine`, `HeatGrid`, `TrendLine`, `WeekBars`.
 
-### Supabase
-- Project ID: `kkgkbfxvovrtmnoezcha`
-- Used in `main_production.dart` for live/production mode
+## Routes
 
-## Key Models
+Bottom tabs: **Today** `/home` · **Program** `/program?tab=0..3` (Journey/Schedule/Body/Reference) · **Log** `/log?add=weight|protein|win|note|blood` · **Me** `/profile`.
 
-### BlueprintDomain (`lib/models/models.dart`)
-```dart
-BlueprintDomain(name: String, emoji: String, actions: List<String>, active: bool)
-// NO 'lane' parameter
+```
+/splash /welcome /sign-up /sign-in /forgot-password /commission
+/manifesto /protocols /evidence /library /style /career /weekly-coaching
+/ritual-flow/:ritualId /gym /gym/:dayId (push|pull|legs) /month/:m (1–18)
+/tool/:id  sigh excited pause still bluf sixq read feynman scan pennebaker anki artifact(?month=) linkedin
 ```
 
-### RitualStep (`lib/models/ritual.dart`)
-```dart
-RitualStep(id, title, subtitle, lane: RitualLane, durationSeconds: int, iconData: IconData, instruction: String)
-// RitualLane enum: mind, body, social, skill
-// NO 'duration:' or 'why:' parameters
+Flow:
+- Sign-up → `/commission`, five steps: identity, start date, gym days and weight, reminders, hold to sign the manifesto.
+- Today redirects to `/commission` until the system is commissioned.
+
+## Behaviour worth knowing
+- **Today** is time-aware: morning, work, evening and Sunday modes, plus a Yesterday/Today switch (the 48-hour edit window). Its Day Dial shows the schedule as lane arcs.
+- **Daily 10**: 7/10 holds the day; streak counts days at 7+. Tools tick their item:
+  - sigh, bluf, pause, feynman, scan and read are ticked when the tool is used;
+  - finishing the ritual ticks the manifesto;
+  - protein ticks itself at 150 g.
+- **Sunday report** → `submitReport` → `BriefGenerator`:
+  - `DeviceBriefGenerator` is rule-based and uses real data only.
+  - `RemoteBriefGenerator` calls Claude via `supabase/functions/weekly-brief` and falls back to the device generator on any error.
+- **Reminders**: `plannedReminders()` builds weekly notifications from `reminderDefs` with today's content. `LocalReminderService` schedules them (flutter_local_notifications); tapping one opens its route. Web uses `NoopReminderService`.
+
+## Supabase (project `kkgkbfxvovrtmnoezcha`)
+Not deployed from this repo automatically. To turn on sync and the Claude-written brief:
+```bash
+supabase link --project-ref kkgkbfxvovrtmnoezcha
+supabase db push                                   # creates personal_system + RLS
+supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
+supabase functions deploy weekly-brief
+flutter run -t lib/main_production.dart
 ```
 
-### JourneyAction (`lib/models/role_model.dart`)
-```dart
-JourneyAction(title: String, subtitle: String, lane: String)
-// lane is a plain String like 'mind', 'skill' — NOT RitualLane enum
-// NO id, description, or xpReward parameters
-```
+## Testing
+- `flutter analyze` must report 0 issues.
+- `flutter test`:
+  - `test/widget_test.dart` covers first run (welcome → commission), then commissions and opens every route, plus all content links, at 393×852 and 375×667. It fails on any runtime error, overflow or dead route.
+  - `test/providers/personal_system_provider_test.dart` covers timeline, scores, streaks, protein, mastery, gym, month stats, briefs, export/import and reminders.
+- Manual: double-click `Test in Chrome.command` or `Test on iPhone Simulator.command` (they pull `main`; shared setup in `scripts/common.sh`). Checklist: `TESTING.md`.
+- The web build here needs `--no-web-resources-cdn` when the CDN is unreachable.
 
-### JourneyMilestone (`lib/models/journey.dart`)
-```dart
-MilestoneType enum: streak, completion, lane, special
-// NO 'actions' value in the enum
-```
-
-### Blueprint system (`lib/gateways/blueprint_gateway.dart`)
-```dart
-Blueprint(archetypeId, title, summary, lanes, generatedAt)
-BlueprintLane(id, name, description, actions)
-BlueprintAction(id, title, subtitle, laneId, durationMinutes, orderIndex)
-```
-
-### DailyCoachTip (`lib/models/ai_coach.dart`)
-```dart
-DailyCoachTip(id, title, content, lane, laneColorValue, date, isBookmarked)
-```
-
-## All Routes
-
-Bottom nav tabs: `/home` (Today), `/plan`, `/playbook`, `/profile` (Me). `/progress` and `/journal` stay in the shell, reached from Playbook.
-
-All available routes:
-```
-/splash, /welcome, /sign-up, /sign-in, /forgot-password,
-/archetype, /assessment/:archetypeId, /loading/:archetypeId,
-/blueprint/:archetypeId, /weekly-review, /role-models, /role-model/:id,
-/achievements, /heat-map, /morning-ritual, /lane-analytics, /monk-mode,
-/legacy-score, /notification-settings, /becoming-arc, /arc-layer,
-/arc/:arcId/assessment/:dayNumber, /notification-feed, /ghost-mode,
-/ritual-flow/:ritualId, /ritual-setup, /council, /phase-transition,
-/time-mode, /brotherhood, /radio, /radio/:roleModelId, /trending,
-/mirror-match, /forge, /forge/:courseId, /forge/:courseId/lesson/:lessonId,
-/adaptive-settings, /wakz-challenges, /forge-analytics, /accountability,
-/vault, /gamification, /planner, /vision-board, /power-rankings,
-/settings, /onboarding-flow, /dashboard, /achievement-hub, /analytics,
-/weekly-review-flow, /social-feed, /habit-streaks, /daily-checkin,
-/ai-coach, /content-library, /community-challenges, /home, /progress,
-/journal, /profile, /plan, /playbook, /manifesto, /protocols, /evidence,
-/library, /style, /career, /weekly-coaching, /features
-```
-
-`/phase-transition` and `/arc-layer` fall back to sample data when opened without `extra`.
-
-## Personalized Content Layer
-
-File: `lib/data/emin_personal_content.dart`
-
-Contains Emin's personalized data that should be wired into mock gateways:
-- `eminArchetype` — Archetype for 'executive'
-- `eminBlueprint` — 5 BlueprintDomains (Product Craft, Domain Intelligence, Mental Performance, Physical Foundation, Executive Presence)
-- `eminMorningRitual` — 5 RitualSteps for the morning sequence
-- `productArchitectRoleModel` — RoleModel with 6 JourneyActions
-- `productLeaderJourney` — Journey with 3 phases, 12 milestones over 30 days
-- `eminCoachTips` — 30 DailyCoachTips (one per day for a month)
-- `eminWeeklyReviewQuestions` — 12 weekly review questions
-- `eminAssessmentProfile` — Map of assessment answers
-
-## Roadmap status
-
-All items done:
-1. **Content layer wired** — executive blueprint, actions seeding, morning ritual, coach tips (rotated by program day), Product Architect role model, Product Leader journey.
-2. **Feature discovery** — grid lives at `/features` (linked from Today and Playbook) instead of inside the home screen.
-3. **Personal operating system + redesign** — see "Personal operating system" above.
-4. **Quality** — 0 analyzer errors; `flutter test` green. `test/widget_test.dart` signs in and opens every route at iPhone 15 and iPhone SE sizes, failing on any runtime error including layout overflow (it renders with the bundled Plus Jakarta Sans). Run it after touching screens.
-5. **Me tab** reads the Daily 10 (streak = days at 7+/10, today's score, week average, per-lane ticks).
-
-Still to do: run on a physical iPhone (needs macOS + Xcode; see below). Production mode still has only 5 Supabase gateways — the rest are mock.
-
-### Testing
-Double-click `Test in Chrome.command` (no Xcode) or `Test on iPhone Simulator.command` at the repo root; both pull `main`, get packages and run (shared setup in `scripts/common.sh`). Checklist: `TESTING.md`.
-
-### Build for a physical iPhone
+### Physical iPhone
 ```bash
 git checkout main && git pull
-flutter upgrade          # older Flutter can't launch on iOS 27 simulators
-flutter clean && flutter pub get
+flutter upgrade && flutter clean && flutter pub get
 open ios/Runner.xcworkspace   # set your Team under Signing & Capabilities once
-flutter run --release     # with the iPhone plugged in and trusted
+flutter run --release
 ```
 
-Fonts are bundled (`assets/google_fonts/`), so the app looks right offline.
-
-## File Structure Notes
-
-- `home_screen.dart` is the Today screen (~600 lines): now card, ritual, Daily 10, priorities, inputs, training, coach note, protocol
-- Mock gateways contain static data per archetype — the 'executive' archetype paths need personalized content
-- `PrebuiltRituals` class has `morning()` and `evening()` factory methods
+## Not built (needs Xcode / native targets)
+These can't be built or verified without macOS: Home Screen widgets (WidgetKit extension), Apple Health (HealthKit entitlement), calendar-based meeting prep (EventKit), and on-device encryption of health fields. Row-level security protects the cloud copy.

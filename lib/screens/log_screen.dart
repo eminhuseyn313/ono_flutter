@@ -1,0 +1,453 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
+import '../data/emin_system.dart';
+import '../models/personal_system.dart';
+import '../providers/personal_system_provider.dart';
+import '../theme/app_theme.dart';
+import '../widgets/ono_ui.dart';
+
+/// LOG — the record of what actually happened, newest first, plus quick
+/// entry for weight, protein, bloodwork, wins and notes.
+class LogScreen extends StatefulWidget {
+  final String? add;
+  const LogScreen({super.key, this.add});
+
+  @override
+  State<LogScreen> createState() => _LogScreenState();
+}
+
+const _filters = <String, Set<String>?>{
+  'All': null,
+  'Notes': {'feynman', 'scan', 'pennebaker', 'note', 'win', 'month_review'},
+  'Protocols': {'sigh', 'excited', 'bluf', 'sixq', 'pause', 'still', 'ritual', 'read', 'anki'},
+  'Body': {'weight', 'protein', 'gym', 'blood'},
+  'Career': {'linkedin', 'artifact'},
+};
+
+class _LogScreenState extends State<LogScreen> {
+  String _filter = 'All';
+  bool _opened = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_opened && widget.add != null) {
+      _opened = true;
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => _openAdd(context, widget.add!));
+    }
+  }
+
+  @override
+  void didUpdateWidget(LogScreen old) {
+    super.didUpdateWidget(old);
+    if (widget.add != null && widget.add != old.add) {
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => _openAdd(context, widget.add!));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final system = context.watch<PersonalSystemProvider>();
+    if (!system.isLoaded) {
+      return const Scaffold(backgroundColor: AppColors.background);
+    }
+    final entries = system.allLogs(_filters[_filter]);
+    final byDay = <String, List<LogEntry>>{};
+    for (final e in entries) {
+      byDay.putIfAbsent(dateKey(e.date), () => []).add(e);
+    }
+    return OnoPage(
+      eyebrow: system.allLogs().length == 1
+          ? '1 entry'
+          : '${system.allLogs().length} entries',
+      title: 'Log',
+      children: [
+        const SizedBox(height: 16),
+        SizedBox(
+          height: 40,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: [
+              for (final a in const [
+                ('weight', Icons.monitor_weight_outlined, 'Weight'),
+                ('protein', Icons.egg_alt_outlined, 'Protein'),
+                ('win', Icons.emoji_events_outlined, 'Win'),
+                ('note', Icons.edit_note_rounded, 'Note'),
+                ('blood', Icons.bloodtype_outlined, 'Bloodwork'),
+              ])
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: ActionChip(
+                    avatar: Icon(a.$2, size: 16, color: AppColors.accent),
+                    label: Text(a.$3),
+                    onPressed: () => _openAdd(context, a.$1),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+        OnoCard(
+          padding: EdgeInsets.zero,
+          child: Column(
+            children: [
+              LinkRow(
+                icon: Icons.inventory_2_outlined,
+                color: AppColors.steel,
+                title: 'Evidence Archive',
+                trailing: '${system.evidenceCount}',
+                onTap: () => context.push('/evidence'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
+                icon: Icons.assignment_outlined,
+                color: AppColors.accent,
+                title: 'Sunday reports & briefs',
+                trailing: '${system.briefs.length}',
+                onTap: () => context.push('/weekly-coaching'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
+                icon: Icons.campaign_outlined,
+                color: AppColors.skill,
+                title: 'LinkedIn posts',
+                trailing: '${system.countOf('linkedin')}',
+                onTap: () => context.push('/tool/linkedin'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
+                icon: Icons.description_outlined,
+                color: AppColors.skill,
+                title: 'Artifacts',
+                trailing: '${system.countOf('artifact')}',
+                onTap: () => context.push('/tool/artifact'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
+                icon: Icons.school_outlined,
+                color: AppColors.mind,
+                title: 'Anki',
+                onTap: () => context.push('/tool/anki'),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 22),
+        SizedBox(
+          height: 40,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: [
+              for (final f in _filters.keys)
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: ChoiceChip(
+                    label: Text(f),
+                    selected: _filter == f,
+                    showCheckmark: false,
+                    selectedColor: AppColors.cardLight,
+                    onSelected: (_) => setState(() => _filter = f),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        if (entries.isEmpty)
+          const EmptyNote(
+              'Nothing here yet. Every tool you use — sigh, BLUF, Feynman, gym — lands in this log.'),
+        for (final day in byDay.keys) ...[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(0, 18, 0, 8),
+            child: Text(_dayLabel(DateTime.parse(day)),
+                style: AppText.eyebrow()),
+          ),
+          OnoCard(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+            child: Column(
+              children: [
+                for (final e in byDay[day]!)
+                  Dismissible(
+                    key: ValueKey(e.id),
+                    direction: DismissDirection.endToStart,
+                    background: Container(
+                      alignment: Alignment.centerRight,
+                      child: const Icon(Icons.delete_outline_rounded,
+                          color: AppColors.danger),
+                    ),
+                    onDismissed: (_) => system.removeLog(e.id),
+                    child: _EntryRow(entry: e),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  String _dayLabel(DateTime d) {
+    final today = dayOnly(DateTime.now());
+    if (dateKey(d) == dateKey(today)) return 'TODAY';
+    if (dateKey(d) == dateKey(today.subtract(const Duration(days: 1)))) {
+      return 'YESTERDAY';
+    }
+    return '${weekdayName(d.weekday).toUpperCase()} · ${shortDate(d).toUpperCase()}';
+  }
+}
+
+class _EntryRow extends StatelessWidget {
+  final LogEntry entry;
+  const _EntryRow({required this.entry});
+
+  static const _meta = {
+    'weight': (Icons.monitor_weight_outlined, 'body', 'Weight'),
+    'protein': (Icons.egg_alt_outlined, 'body', 'Protein'),
+    'gym': (Icons.fitness_center_rounded, 'body', 'Gym'),
+    'blood': (Icons.bloodtype_outlined, 'body', 'Bloodwork'),
+    'sigh': (Icons.air_rounded, 'mind', 'Sigh'),
+    'excited': (Icons.bolt_rounded, 'mind', '"I am excited"'),
+    'pause': (Icons.pause_circle_outline_rounded, 'social', 'Pause'),
+    'still': (Icons.accessibility_new_rounded, 'social', 'Still body'),
+    'bluf': (Icons.vertical_align_top_rounded, 'skill', 'BLUF'),
+    'sixq': (Icons.layers_rounded, 'skill', '6Q prep'),
+    'feynman': (Icons.edit_rounded, 'skill', 'Feynman'),
+    'read': (Icons.menu_book_rounded, 'skill', 'Lunch read'),
+    'scan': (Icons.travel_explore_rounded, 'skill', 'Domain scan'),
+    'anki': (Icons.school_outlined, 'skill', 'Anki'),
+    'pennebaker': (Icons.history_edu_rounded, 'mind', 'Pennebaker'),
+    'ritual': (Icons.wb_sunny_outlined, 'mind', 'Morning ritual'),
+    'linkedin': (Icons.campaign_outlined, 'social', 'LinkedIn post'),
+    'artifact': (Icons.description_outlined, 'skill', 'Artifact'),
+    'win': (Icons.emoji_events_outlined, 'mind', 'Win'),
+    'note': (Icons.edit_note_rounded, 'mind', 'Note'),
+    'month_review': (Icons.fact_check_outlined, 'mind', 'Month review'),
+  };
+
+  String get _summary {
+    final e = entry;
+    switch (e.type) {
+      case 'weight':
+        return '${e.number('kg')} kg';
+      case 'protein':
+        return '+${e.number('g')} g';
+      case 'gym':
+        final d = gymPlan.firstWhere((g) => g.id == e.str('day'),
+            orElse: () => gymPlan.first);
+        return 'Day ${d.letter} ${d.name} · ${((e.number('volume') ?? 0) / 1000).toStringAsFixed(1)} t${e.data['zone2'] == true ? ' · Zone 2' : ''}';
+      case 'blood':
+        return '${e.str('test')}: ${e.number('value')} ${e.str('unit') ?? ''}';
+      case 'sixq':
+        return '${e.str('meeting')} with ${e.str('with')}${e.str('outcome') == null ? '' : ' · ${e.str('outcome')}'}';
+      case 'artifact':
+        return '${e.str('title')} · ${e.str('status')}';
+      case 'read':
+        return '${e.str('book')} · 20 min';
+      case 'anki':
+        return e.str('kind') == 'new'
+            ? '+${e.number('count')} new cards'
+            : 'Daily review';
+      case 'pennebaker':
+        return 'Session ${e.number('session') ?? ''} · 15 min';
+      case 'ritual':
+        return '5 steps · ${((e.number('seconds') ?? 0) / 60).toStringAsFixed(0)} min';
+      case 'month_review':
+        return 'Month ${e.number('month')}: ${e.text}';
+      default:
+        final extra = e.str('outcome');
+        final t = e.text.isEmpty ? 'Logged' : e.text;
+        return extra == null ? t : '$t · $extra';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final m = _meta[entry.type] ??
+        (Icons.circle_outlined, 'mind', entry.type);
+    final time =
+        '${entry.createdAt.hour.toString().padLeft(2, '0')}:${entry.createdAt.minute.toString().padLeft(2, '0')}';
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 11),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(m.$1, size: 18, color: AppColors.lane(m.$2)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(m.$3,
+                    style: AppText.small(color: AppColors.white)
+                        .copyWith(fontWeight: FontWeight.w700)),
+                const SizedBox(height: 2),
+                Text(_summary,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppText.small(color: AppColors.greyLight)),
+              ],
+            ),
+          ),
+          Text(time, style: AppText.small().copyWith(fontSize: 11)),
+        ],
+      ),
+    );
+  }
+}
+
+/// Bottom-sheet entry forms, also used from Today and Program.
+Future<void> _openAdd(BuildContext context, String kind) async {
+  final system = context.read<PersonalSystemProvider>();
+  final a = TextEditingController();
+  final b = TextEditingController();
+  var test = bloodwork.first;
+  var toEvidence = true;
+  var section = 'built';
+
+  const units = {
+    'Ferritin': 'ng/mL',
+    'Hemoglobin': 'g/dL',
+    'Vitamin D': 'ng/mL',
+    'Testosterone': 'ng/dL',
+    'TSH': 'mIU/L',
+  };
+
+  final title = switch (kind) {
+    'weight' => 'Weigh-in',
+    'protein' => 'Protein',
+    'blood' => 'Bloodwork result',
+    'win' => 'A win from today',
+    _ => 'Note',
+  };
+
+  await showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    builder: (ctx) => StatefulBuilder(
+      builder: (ctx, set) => Padding(
+        padding: EdgeInsets.fromLTRB(
+            20, 0, 20, MediaQuery.of(ctx).viewInsets.bottom + 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: AppText.title()),
+            const SizedBox(height: 16),
+            if (kind == 'weight')
+              TextField(
+                controller: a,
+                autofocus: true,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                style: AppText.number(size: 22),
+                decoration: InputDecoration(
+                    suffixText: 'kg',
+                    hintText: system.latestWeight?.toStringAsFixed(1) ?? '83'),
+              ),
+            if (kind == 'protein') ...[
+              TextField(
+                controller: a,
+                autofocus: true,
+                keyboardType: TextInputType.number,
+                style: AppText.number(size: 22),
+                decoration: const InputDecoration(suffixText: 'g'),
+              ),
+              const SizedBox(height: 8),
+              Text('${system.proteinFor(DateTime.now())} g so far today',
+                  style: AppText.small()),
+            ],
+            if (kind == 'blood') ...[
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  for (final t in bloodwork)
+                    ChoiceChip(
+                      label: Text(t),
+                      selected: test == t,
+                      onSelected: (_) => set(() => test = t),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: a,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                style: AppText.number(size: 22),
+                decoration: InputDecoration(suffixText: units[test]),
+              ),
+            ],
+            if (kind == 'win' || kind == 'note') ...[
+              TextField(
+                controller: a,
+                autofocus: true,
+                minLines: 3,
+                maxLines: 6,
+                style: AppText.body(color: AppColors.white),
+                decoration: InputDecoration(
+                    hintText: kind == 'win'
+                        ? 'What you did, where, and what it changed.'
+                        : 'Anything worth keeping.'),
+              ),
+              if (kind == 'win') ...[
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  value: toEvidence,
+                  onChanged: (v) => set(() => toEvidence = v),
+                  title: Text('Also add to the Evidence Archive',
+                      style: AppText.body()),
+                ),
+                if (toEvidence)
+                  Wrap(
+                    spacing: 6,
+                    children: [
+                      for (final s in evidenceSections)
+                        ChoiceChip(
+                          label: Text(s.title),
+                          selected: section == s.section,
+                          onSelected: (_) => set(() => section = s.section),
+                        ),
+                    ],
+                  ),
+              ],
+            ],
+            const SizedBox(height: 18),
+            PrimaryButton('Save', onPressed: () {
+              final now = DateTime.now();
+              final num = double.tryParse(a.text.replaceAll(',', '.'));
+              switch (kind) {
+                case 'weight':
+                  if (num == null) return;
+                  system.logWeight(num);
+                case 'protein':
+                  if (num == null) return;
+                  system.addProtein(now, num.round());
+                case 'blood':
+                  if (num == null) return;
+                  system.addLog('blood',
+                      data: {'test': test, 'value': num, 'unit': units[test]});
+                case 'win':
+                  if (a.text.trim().isEmpty) return;
+                  system.addLog('win', text: a.text.trim());
+                  if (toEvidence) system.addEvidence(section, a.text.trim());
+                default:
+                  if (a.text.trim().isEmpty) return;
+                  system.addLog('note', text: a.text.trim());
+              }
+              HapticFeedback.mediumImpact();
+              Navigator.pop(ctx);
+            }),
+          ],
+        ),
+      ),
+    ),
+  );
+  a.dispose();
+  b.dispose();
+}

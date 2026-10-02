@@ -32,17 +32,19 @@ class MockPersonalSystemGateway implements PersonalSystemGateway {
     await Future.delayed(const Duration(milliseconds: 150));
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString(_key(userId));
+    final now = DateTime.now();
     if (raw != null) {
       try {
         return PersonalSystemState.fromJson(
             jsonDecode(raw) as Map<String, dynamic>);
       } catch (_) {
-        // Corrupt blob — fall through to a fresh seed.
+        // Keep the unreadable blob so it can be recovered, then start fresh.
+        await prefs.setString('${_key(userId)}_corrupt_${now.millisecondsSinceEpoch}', raw);
       }
     }
-    final now = DateTime.now();
     final seeded = PersonalSystemState(
       programStart: DateTime(now.year, now.month, now.day),
+      commissioned: false,
       evidence: [
         for (var i = 0; i < evidenceSeeds.length; i++)
           EvidenceItem(

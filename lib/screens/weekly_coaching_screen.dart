@@ -6,8 +6,9 @@ import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
 
-/// Sunday report: the two numbers are filled from tracked data, the three
-/// answers are written. Saved per week and copyable as a coaching message.
+/// Sunday report → weekly brief. The two numbers fill themselves; three
+/// answers are written; the brief comes back with next week's tasks, a
+/// domain brief, coaching on the situation and plan adjustments.
 class WeeklyCoachingScreen extends StatefulWidget {
   const WeeklyCoachingScreen({super.key});
 
@@ -20,18 +21,19 @@ class _WeeklyCoachingScreenState extends State<WeeklyCoachingScreen> {
   final _hardest = TextEditingController();
   final _situation = TextEditingController();
   bool _initialised = false;
+  bool _editing = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_initialised) return;
     _initialised = true;
-    final existing =
+    final r =
         context.read<PersonalSystemProvider>().reportForWeek(DateTime.now());
-    if (existing != null) {
-      _best.text = existing.bestMoment;
-      _hardest.text = existing.hardestMoment;
-      _situation.text = existing.workSituation;
+    if (r != null) {
+      _best.text = r.bestMoment;
+      _hardest.text = r.hardestMoment;
+      _situation.text = r.workSituation;
     }
   }
 
@@ -43,127 +45,127 @@ class _WeeklyCoachingScreenState extends State<WeeklyCoachingScreen> {
     super.dispose();
   }
 
-  WeeklyReport _build(PersonalSystemProvider system) {
-    final now = DateTime.now();
-    return WeeklyReport(
-      id: 'wr_${dateKey(weekStartOf(now))}',
-      weekStart: weekStartOf(now),
-      nonNegotiableAverage: system.weekAverage(now),
-      gymSessions: system.gymSessionsInWeek(now),
-      bestMoment: _best.text.trim(),
-      hardestMoment: _hardest.text.trim(),
-      workSituation: _situation.text.trim(),
-      createdAt: now,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
     final now = DateTime.now();
+    final week = weekStartOf(now);
+    final nextWeek = week.add(const Duration(days: 7));
+    final report = system.reportForWeek(now);
+    final nextBrief = system.briefForWeek(nextWeek);
+    final thisBrief = system.briefForWeek(now);
+    final showForm = report == null || _editing;
     final avg = system.weekAverage(now);
     final gym = system.gymSessionsInWeek(now);
-    final past = system.reports
-        .where((r) => dateKey(r.weekStart) != dateKey(weekStartOf(now)))
-        .toList();
 
     return OnoPage(
       showBack: true,
-      eyebrow: 'Every Sunday evening',
+      eyebrow: 'Week of ${shortDate(week)}',
       title: 'Sunday report',
       subtitle:
-          'Report five things. The response: next week\'s tasks, a domain brief, coaching on one real situation, and plan adjustments.',
+          'Five things. The brief for next week comes straight back and is pinned to Today from Monday.',
       children: [
-        const SizedBox(height: 20),
-        Row(
-          children: [
-            Expanded(
-              child: _Metric(
-                label: '1 · Non-negotiables',
-                value: avg.toStringAsFixed(1),
-                unit: '/10 avg',
-                progress: avg / 10,
-                color: AppColors.accent,
+        if (thisBrief != null) ...[
+          const SectionHeader('This week\'s brief'),
+          _BriefView(brief: thisBrief),
+        ],
+        if (showForm) ...[
+          const SectionHeader('Report'),
+          Row(
+            children: [
+              Expanded(
+                child: OnoCard(
+                  child: StatTile(avg.toStringAsFixed(1),
+                      '1 · Daily 10 average', unit: '/10'),
+                ),
               ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _Metric(
-                label: '2 · Gym sessions',
-                value: '$gym',
-                unit: '/3',
-                progress: gym / 3,
-                color: AppColors.body,
+              const SizedBox(width: 10),
+              Expanded(
+                child: OnoCard(
+                  child: StatTile('$gym', '2 · Gym sessions', unit: '/3'),
+                ),
               ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _field(_best, '3 · Best moment of the week',
+              'What went right — be specific.'),
+          _field(_hardest, '4 · Hardest moment',
+              'What was hard, and what it revealed.'),
+          _field(_situation, '5 · One work situation to coach through',
+              'People, stakes, what you\'re unsure of.'),
+          const SizedBox(height: 6),
+          PrimaryButton(
+            system.isGeneratingBrief ? 'Writing your brief…' : 'Send report → get brief',
+            loading: system.isGeneratingBrief,
+            onPressed: () async {
+              final r = WeeklyReport(
+                id: 'wr_${dateKey(week)}',
+                weekStart: week,
+                nonNegotiableAverage: avg,
+                gymSessions: gym,
+                bestMoment: _best.text.trim(),
+                hardestMoment: _hardest.text.trim(),
+                workSituation: _situation.text.trim(),
+                createdAt: now,
+              );
+              final b = await system.submitReport(r);
+              if (!context.mounted) return;
+              setState(() => _editing = false);
+              toast(
+                  context,
+                  b == null
+                      ? 'Report saved. Brief failed: ${system.briefError}'
+                      : 'Brief for next week is ready.');
+            },
+          ),
+        ] else ...[
+          const SizedBox(height: 18),
+          OnoCard(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                const Icon(Icons.check_circle_rounded,
+                    color: AppColors.body),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                      'Report sent ${shortDate(report.createdAt)} · ${report.nonNegotiableAverage.toStringAsFixed(1)}/10 · gym ${report.gymSessions}/3',
+                      style: AppText.body()),
+                ),
+                TextButton(
+                    onPressed: () => setState(() => _editing = true),
+                    child: const Text('Edit')),
+              ],
             ),
-          ],
-        ),
-        const SizedBox(height: 6),
-        Text('Filled automatically from your Daily 10 and gym logs.',
-            style: AppText.small()),
-        const SectionHeader('3 · Best moment of the week'),
-        _Field(controller: _best, hint: 'What went right — be specific.'),
-        const SectionHeader('4 · Hardest moment'),
-        _Field(controller: _hardest, hint: 'What was hard, and what it revealed.'),
-        const SectionHeader('5 · Work situation to coach through'),
-        _Field(
-            controller: _situation,
-            hint: 'One real situation — people, stakes, what you\'re unsure of.'),
-        const SizedBox(height: 20),
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: () => copyText(
-                    context, _build(system).toCoachingMessage(),
-                    message: 'Report copied — paste it to your coach'),
-                icon: const Icon(Icons.copy_rounded, size: 18),
-                label: const Text('Copy'),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              flex: 2,
-              child: FilledButton(
-                onPressed: () {
-                  system.saveReport(_build(system));
-                  ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Week saved')));
-                },
-                child: const Text('Save this week'),
-              ),
-            ),
-          ],
-        ),
-        if (past.isNotEmpty) ...[
-          const SectionHeader('Past weeks'),
-          for (final r in past)
+          ),
+        ],
+        if (nextBrief != null) ...[
+          SectionHeader('Brief · week of ${shortDate(nextWeek)}'),
+          _BriefView(brief: nextBrief),
+          const SizedBox(height: 10),
+          GhostButton('Copy report + brief',
+              icon: Icons.copy_rounded,
+              onPressed: () => copyText(
+                  context,
+                  '${report?.toCoachingMessage() ?? ''}\n\n'
+                  '${nextBrief.headline}\n- ${nextBrief.tasks.join('\n- ')}')),
+        ],
+        if (system.briefs.length > 1) ...[
+          const SectionHeader('Earlier briefs'),
+          for (final b in system.briefs.where((b) =>
+              dateKey(b.weekStart) != dateKey(nextWeek) &&
+              dateKey(b.weekStart) != dateKey(week)))
             Padding(
-              padding: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.only(bottom: 8),
               child: OnoCard(
-                padding: const EdgeInsets.all(16),
-                onTap: () => copyText(context, r.toCoachingMessage()),
+                padding: const EdgeInsets.all(14),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Text('Week of ${r.weekStart.day} ${monthName(r.weekStart.month)}',
-                            style: AppText.heading()),
-                        const Spacer(),
-                        Tag('${r.nonNegotiableAverage.toStringAsFixed(1)}/10',
-                            color: AppColors.accent),
-                        const SizedBox(width: 6),
-                        Tag('Gym ${r.gymSessions}/3', color: AppColors.body),
-                      ],
-                    ),
-                    if (r.bestMoment.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Text(r.bestMoment,
-                          style: AppText.small(),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis),
-                    ],
+                    Text('Week of ${shortDate(b.weekStart)}',
+                        style: AppText.small()),
+                    Text(b.headline, style: AppText.heading()),
                   ],
                 ),
               ),
@@ -172,60 +174,95 @@ class _WeeklyCoachingScreenState extends State<WeeklyCoachingScreen> {
       ],
     );
   }
-}
 
-class _Metric extends StatelessWidget {
-  final String label;
-  final String value;
-  final String unit;
-  final double progress;
-  final Color color;
-
-  const _Metric({
-    required this.label,
-    required this.value,
-    required this.unit,
-    required this.progress,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) => OnoCard(
-        padding: const EdgeInsets.all(16),
+  Widget _field(TextEditingController c, String label, String hint) =>
+      Padding(
+        padding: const EdgeInsets.only(bottom: 14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label.toUpperCase(),
-                style: AppText.eyebrow().copyWith(fontSize: 10)),
-            const SizedBox(height: 10),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
-              children: [
-                Text(value, style: AppText.number(size: 28)),
-                const SizedBox(width: 4),
-                Text(unit, style: AppText.small()),
-              ],
+            Text(label.toUpperCase(), style: AppText.eyebrow()),
+            const SizedBox(height: 8),
+            TextField(
+              controller: c,
+              minLines: 3,
+              maxLines: 6,
+              style: AppText.body(color: AppColors.white),
+              decoration: InputDecoration(hintText: hint),
             ),
-            const SizedBox(height: 10),
-            ThinBar(value: progress, color: color),
           ],
         ),
       );
 }
 
-class _Field extends StatelessWidget {
-  final TextEditingController controller;
-  final String hint;
-
-  const _Field({required this.controller, required this.hint});
+class _BriefView extends StatelessWidget {
+  final WeeklyBrief brief;
+  const _BriefView({required this.brief});
 
   @override
-  Widget build(BuildContext context) => TextField(
-        controller: controller,
-        minLines: 3,
-        maxLines: 6,
-        style: AppText.body(color: AppColors.white),
-        decoration: InputDecoration(hintText: hint),
+  Widget build(BuildContext context) {
+    final system = context.watch<PersonalSystemProvider>();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        OnoCard(
+          color: AppColors.navy,
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                      brief.source == 'ai'
+                          ? Icons.auto_awesome_rounded
+                          : Icons.smartphone_rounded,
+                      size: 15,
+                      color: AppColors.accent),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                        brief.source == 'ai'
+                            ? 'WRITTEN BY YOUR AI COACH'
+                            : 'WRITTEN ON THIS DEVICE FROM YOUR DATA',
+                        style: AppText.eyebrow(color: AppColors.accent)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(brief.headline, style: AppText.serif(size: 24)),
+              const SizedBox(height: 8),
+              for (var i = 0; i < brief.tasks.length; i++)
+                CheckRow(
+                  checked: system.isDone('brief:${brief.id}:$i'),
+                  title: brief.tasks[i],
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  onChanged: (_) => system.toggleDone('brief:${brief.id}:$i'),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 10),
+        _section('Domain brief', brief.domainBrief),
+        _section('Coaching', brief.coaching),
+        if (brief.adjustments.isNotEmpty)
+          _section('Plan adjustments',
+              brief.adjustments.map((a) => '• $a').join('\n')),
+      ],
+    );
+  }
+
+  Widget _section(String title, String text) => Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: OnoCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title.toUpperCase(), style: AppText.eyebrow()),
+              const SizedBox(height: 8),
+              Text(text, style: AppText.body()),
+            ],
+          ),
+        ),
       );
 }

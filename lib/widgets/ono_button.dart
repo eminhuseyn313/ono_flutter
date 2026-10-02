@@ -83,31 +83,10 @@ class _OnoButtonState extends State<OnoButton>
             height: 58,
             child: Container(
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(18),
-                gradient: widget.isSecondary
-                    ? null
-                    : const LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Color(0xFFC8894A),
-                          Color(0xFFA86D35),
-                          Color(0xFFA86D35),
-                        ],
-                      ),
-                color: widget.isSecondary ? AppColors.card : null,
+                borderRadius: BorderRadius.circular(14),
+                color: widget.isSecondary ? AppColors.card : AppColors.accent,
                 border: widget.isSecondary
                     ? Border.all(color: AppColors.divider, width: 1)
-                    : null,
-                boxShadow: _isEnabled && !widget.isSecondary
-                    ? [
-                        BoxShadow(
-                          color: const Color(0xFFC8894A).withValues(alpha: 0.4),
-                          blurRadius: 20,
-                          offset: const Offset(0, 8),
-                          spreadRadius: -4,
-                        ),
-                      ]
                     : null,
               ),
               child: Center(
@@ -117,7 +96,7 @@ class _OnoButtonState extends State<OnoButton>
                         height: 22,
                         child: CircularProgressIndicator(
                           strokeWidth: 2.5,
-                          color: Colors.white,
+                          color: AppColors.ink,
                         ),
                       )
                     : Row(
@@ -126,8 +105,10 @@ class _OnoButtonState extends State<OnoButton>
                         children: [
                           Text(
                             widget.label,
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: widget.isSecondary
+                                  ? AppColors.white
+                                  : AppColors.ink,
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 0.3,
@@ -135,7 +116,11 @@ class _OnoButtonState extends State<OnoButton>
                           ),
                           if (widget.icon != null) ...[
                             const SizedBox(width: 10),
-                            Icon(widget.icon, size: 20, color: Colors.white),
+                            Icon(widget.icon,
+                                size: 20,
+                                color: widget.isSecondary
+                                    ? AppColors.white
+                                    : AppColors.ink),
                           ],
                         ],
                       ),

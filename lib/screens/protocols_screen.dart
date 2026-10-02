@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 import '../data/emin_system.dart';
+import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
 
@@ -58,6 +61,14 @@ class _ProtocolCardState extends State<_ProtocolCard> {
                     Text(p.name, style: AppText.heading()),
                     const SizedBox(height: 2),
                     Text(p.source, style: AppText.small()),
+                    const SizedBox(height: 6),
+                    Builder(builder: (context) {
+                      final system = context.watch<PersonalSystemProvider>();
+                      return Text(
+                          '${system.masteryOf(p.id)} · ${system.usesOf(p.id)} uses',
+                          style: AppText.small(color: AppColors.accent)
+                              .copyWith(fontWeight: FontWeight.w700));
+                    }),
                   ],
                 ),
               ),
@@ -67,6 +78,12 @@ class _ProtocolCardState extends State<_ProtocolCard> {
           ),
           const SizedBox(height: 12),
           Text(p.what, style: AppText.body(color: AppColors.white)),
+          if (protocolTools[p.id] != null) ...[
+            const SizedBox(height: 14),
+            GhostButton(p.id == 'evidence' ? 'Open archive' : 'Use now',
+                icon: Icons.play_arrow_rounded,
+                onPressed: () => context.push(protocolTools[p.id]!)),
+          ],
           AnimatedCrossFade(
             duration: const Duration(milliseconds: 200),
             crossFadeState:

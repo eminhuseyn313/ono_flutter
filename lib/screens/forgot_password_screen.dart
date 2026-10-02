@@ -75,23 +75,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
         ),
         child: Stack(
           children: [
-            Positioned(
-              top: -80,
-              left: -60,
-              child: Container(
-                width: 300,
-                height: 300,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      AppColors.purple.withValues(alpha: 0.12),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            ),
             SafeArea(
               child: FadeTransition(
                 opacity: _fadeIn,
@@ -119,14 +102,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                         ),
                       ),
                       const SizedBox(height: 32),
-                      const Text(
+                      Text(
                         'Reset\nPassword',
-                        style: TextStyle(
-                          color: AppColors.white,
-                          fontSize: 36,
-                          fontWeight: FontWeight.w800,
-                          height: 1.1,
-                        ),
+                        style: AppText.display(),
                       ),
                       const SizedBox(height: 12),
                       Text(

@@ -1,7 +1,4 @@
-import 'dart:convert';
-import 'dart:math';
 
-import 'package:crypto/crypto.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 // TODO: re-add sign_in_with_apple when a compatible version is available
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -139,10 +136,4 @@ class SupabaseAuthGateway implements AuthGateway {
   }
 
   // -- Helpers ------------------------------------------------------------
-
-  String _generateRandomString([int length = 32]) {
-    const charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
-    final random = Random.secure();
-    return List.generate(length, (_) => charset[random.nextInt(charset.length)]).join();
-  }
 }

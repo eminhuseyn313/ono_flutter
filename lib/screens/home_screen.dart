@@ -1,22 +1,22 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../data/emin_personal_content.dart';
 import '../data/emin_system.dart';
+import '../models/personal_system.dart';
 import '../providers/auth_provider.dart';
 import '../providers/personal_system_provider.dart';
-import '../providers/user_profile_provider.dart';
 import '../theme/app_theme.dart';
+import '../widgets/ono_charts.dart';
 import '../widgets/ono_ui.dart';
 
-/// TODAY — the daily operating screen.
-///
-/// Answers, in order: where am I in the day, what must I do (the Daily 10
-/// and 3 priorities), what am I feeding my mind today (podcast, domain scan,
-/// book), how do I train, and one idea to carry.
+/// TODAY — changes with the time of day: ritual first in the morning,
+/// tools for pressure moments at work, closing the day in the evening,
+/// the report on Sunday. Yesterday stays editable.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -24,10 +24,13 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
+enum _Mode { morning, work, evening, sunday }
+
 class _HomeScreenState extends State<HomeScreen> {
-  bool _loaded = false;
   Timer? _clock;
   DateTime _now = DateTime.now();
+  bool _yesterday = false;
+  int _lastScore = -1;
 
   @override
   void initState() {
@@ -35,29 +38,13 @@ class _HomeScreenState extends State<HomeScreen> {
     _clock = Timer.periodic(const Duration(minutes: 1), (_) {
       if (mounted) setState(() => _now = DateTime.now());
     });
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_loaded) {
-      _loaded = true;
-      _load();
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) => _load());
   }
 
   Future<void> _load() async {
-    final userId = context.read<AuthProvider>().userId;
     final system = context.read<PersonalSystemProvider>();
-    if (userId != null) {
-      final profile = context.read<UserProfileProvider>();
-      await profile.loadProfile(userId);
-      if (mounted && !profile.isOnboarded) {
-        context.go('/archetype');
-        return;
-      }
-    }
-    await system.load(userId);
+    await system.load(context.read<AuthProvider>().userId);
+    if (mounted && !system.isCommissioned) context.go('/commission');
   }
 
   @override
@@ -66,258 +53,544 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  String get _greeting {
-    final h = _now.hour;
-    if (h < 12) return 'Good morning';
-    if (h < 18) return 'Good afternoon';
-    return 'Good evening';
+  _Mode get _mode {
+    final m = _now.hour * 60 + _now.minute;
+    if (_now.weekday == DateTime.sunday && m >= 16 * 60) return _Mode.sunday;
+    if (m < 10 * 60 + 30) return _Mode.morning;
+    if (m < 18 * 60) return _Mode.work;
+    return _Mode.evening;
+  }
+
+  String get _greeting => switch (_mode) {
+        _Mode.morning => 'Good morning, ${EminIdentity.firstName}.',
+        _Mode.work => 'Stay deliberate, ${EminIdentity.firstName}.',
+        _Mode.evening => 'Good evening, ${EminIdentity.firstName}.',
+        _Mode.sunday => 'Sunday, ${EminIdentity.firstName}. Review the week.',
+      };
+
+  void _celebrate(PersonalSystemProvider system, DateTime date) {
+    final score = system.scoreFor(date);
+    if (_lastScore >= 0 && score > _lastScore) {
+      if (score == 10) {
+        HapticFeedback.heavyImpact();
+        _showHeld(context, perfect: true);
+      } else if (score == 7) {
+        HapticFeedback.heavyImpact();
+        _showHeld(context, perfect: false);
+      }
+    }
+    _lastScore = score;
   }
 
   @override
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
-    final today = DateTime(_now.year, _now.month, _now.day);
-
-    if (!system.isLoaded) {
+    if (!system.isLoaded || !system.isCommissioned) {
       return const Scaffold(
         backgroundColor: AppColors.background,
-        body: Center(
-          child: CircularProgressIndicator(strokeWidth: 2),
-        ),
+        body: Center(child: CircularProgressIndicator(strokeWidth: 2)),
       );
     }
 
-    final day = system.programDay;
-    final month = system.programMonth;
+    final today = dayOnly(_now);
+    final date =
+        _yesterday ? today.subtract(const Duration(days: 1)) : today;
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _celebrate(system, date));
 
-    return OnoPage(
-      eyebrow:
-          '${weekdayName(_now.weekday)} · ${_now.day} ${monthName(_now.month)}',
-      title: '$_greeting, ${EminIdentity.firstName}.',
-      subtitle: 'Day $day · Month $month of 18 · ${EminIdentity.archetype}',
-      actions: [
-        _StreakPill(streak: system.streak),
-        const SizedBox(width: 8),
-        IconButton(
-          onPressed: () => context.go('/profile'),
-          icon: const Icon(Icons.person_outline_rounded,
-              color: AppColors.white),
-          style: IconButton.styleFrom(
-            backgroundColor: AppColors.card,
-            side: const BorderSide(color: AppColors.divider),
+    final bottom = MediaQuery.of(context).padding.bottom;
+    final brief = system.briefForWeek(today);
+
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        bottom: false,
+        child: RefreshIndicator(
+          color: AppColors.accent,
+          backgroundColor: AppColors.card,
+          onRefresh: () async => setState(() => _now = DateTime.now()),
+          child: ListView(
+            padding: EdgeInsets.fromLTRB(
+                AppSpace.gutter, 12, AppSpace.gutter, bottom + 110),
+            children: [
+              _Header(
+                now: _now,
+                system: system,
+                greeting: _greeting,
+              ),
+              const SizedBox(height: 14),
+              _DateSwitch(
+                yesterday: _yesterday,
+                onChanged: (v) => setState(() {
+                  _yesterday = v;
+                  _lastScore = -1;
+                }),
+              ),
+              const SizedBox(height: 18),
+              if (!system.hasStarted)
+                _CountdownCard(days: system.daysUntilStart)
+              else ...[
+                Center(
+                  child: GestureDetector(
+                    onTap: () => context.go('/program?tab=1'),
+                    child: DayDial(
+                      now: _now,
+                      ticks: [
+                        for (final n in nonNegotiables)
+                          (lane: n.lane, done: system.isChecked(date, n.id))
+                      ],
+                      center: _DialCenter(
+                          now: _now, score: system.scoreFor(date)),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                if (!_yesterday) _ModeCard(mode: _mode, now: _now),
+              ],
+              if (brief != null && !_yesterday) ...[
+                const SizedBox(height: 12),
+                _BriefCard(brief: brief),
+              ],
+              const SectionHeader('Daily 10'),
+              _DailyTen(date: date),
+              SectionHeader(_mode == _Mode.evening && !_yesterday
+                  ? 'Did the three happen?'
+                  : 'Three priorities'),
+              _Priorities(
+                key: ValueKey(dateKey(date)),
+                date: date,
+                review: _mode == _Mode.evening || _yesterday,
+              ),
+              if (!_yesterday) ...[
+                const SectionHeader('Today\'s inputs'),
+                _InputsStrip(date: today, month: system.programMonth),
+                const SectionHeader('Body'),
+                _BodyCard(date: today),
+                const SectionHeader('Carry this'),
+                _CoachNote(day: system.programDay),
+              ],
+            ],
           ),
         ),
-      ],
-      onRefresh: () async => setState(() => _now = DateTime.now()),
-      children: [
-        const SizedBox(height: 24),
-        _NowCard(now: _now),
-        if (_now.hour < 11 && !system.isChecked(today, 'manifesto')) ...[
-          const SizedBox(height: 12),
-          const _RitualCard(),
-        ],
-        if (_now.weekday == DateTime.monday) ...[
-          const SizedBox(height: 12),
-          _NudgeCard(
-            icon: Icons.inventory_2_outlined,
-            title: 'Read your Evidence Archive',
-            body: 'Before your first meeting. ${system.evidenceCount} items of proof.',
-            route: '/evidence',
-          ),
-        ],
-        if (_now.weekday == DateTime.sunday) ...[
-          const SizedBox(height: 12),
-          _NudgeCard(
-            icon: Icons.assignment_outlined,
-            title: system.reportForWeek(today) == null
-                ? 'Sunday report is due'
-                : 'Sunday report sent',
-            body: 'Five answers. Get next week\'s plan back.',
-            route: '/weekly-coaching',
-          ),
-        ],
-        const SectionHeader('Daily 10'),
-        _DailyTen(date: today),
-        const SectionHeader('Three priorities'),
-        _Priorities(date: today),
-        const SectionHeader('Today\'s inputs'),
-        _InputsCard(date: today, month: month),
-        const SectionHeader('Training'),
-        _TrainingCard(date: today),
-        const SectionHeader('Carry this'),
-        _CoachNote(day: day),
-        const SizedBox(height: 12),
-        _ProtocolOfDay(day: day),
-        const SizedBox(height: 28),
-        Center(
-          child: TextButton.icon(
-            onPressed: () => context.push('/features'),
-            icon: const Icon(Icons.grid_view_rounded, size: 18),
-            label: const Text('Explore every feature'),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
 
-class _StreakPill extends StatelessWidget {
-  final int streak;
-  const _StreakPill({required this.streak});
+void _showHeld(BuildContext context, {required bool perfect}) {
+  showGeneralDialog(
+    context: context,
+    barrierDismissible: true,
+    barrierLabel: 'held',
+    barrierColor: Colors.black.withValues(alpha: 0.7),
+    transitionDuration: const Duration(milliseconds: 260),
+    pageBuilder: (ctx, _, __) {
+      Future.delayed(const Duration(milliseconds: 1500), () {
+        if (ctx.mounted && Navigator.of(ctx).canPop()) Navigator.of(ctx).pop();
+      });
+      return Center(
+        child: Material(
+          color: Colors.transparent,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ScoreRing(
+                progress: perfect ? 1 : 0.7,
+                size: 140,
+                stroke: 12,
+                center: Text(perfect ? '10' : '7',
+                    style: AppText.serif(size: 54, color: AppColors.accent)),
+              ),
+              const SizedBox(height: 20),
+              Text(perfect ? 'Ten of ten.' : 'Day held.',
+                  style: AppText.display()),
+              const SizedBox(height: 6),
+              Text(
+                  perfect
+                      ? 'Not performing. Building.'
+                      : 'Seven or more — the streak is safe.',
+                  style: AppText.body()),
+            ],
+          ),
+        ),
+      );
+    },
+    transitionBuilder: (_, a, __, child) => FadeTransition(
+      opacity: a,
+      child: ScaleTransition(
+          scale: Tween(begin: 0.92, end: 1.0)
+              .animate(CurvedAnimation(parent: a, curve: Curves.easeOutBack)),
+          child: child),
+    ),
+  );
+}
+
+class _Header extends StatelessWidget {
+  final DateTime now;
+  final PersonalSystemProvider system;
+  final String greeting;
+
+  const _Header(
+      {required this.now, required this.system, required this.greeting});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.divider),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.local_fire_department_rounded,
-              size: 16,
-              color: streak > 0 ? AppColors.accent : AppColors.grey),
-          const SizedBox(width: 4),
-          Text('$streak',
-              style: AppText.small(color: AppColors.white)
-                  .copyWith(fontWeight: FontWeight.w700)),
-        ],
-      ),
+    final day = system.hasStarted
+        ? 'Day ${system.programDay} · ${system.phase.name}'
+        : 'Starts in ${system.daysUntilStart}d';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                  '${weekdayName(now.weekday).substring(0, 3)} ${shortDate(now)} · $day',
+                  style: AppText.small(color: AppColors.grey)),
+            ),
+            GestureDetector(
+              onTap: () => context.go('/profile'),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.card,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.divider),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.local_fire_department_rounded,
+                        size: 15,
+                        color: system.streak > 0
+                            ? AppColors.accent
+                            : AppColors.faint),
+                    const SizedBox(width: 4),
+                    Text('${system.streak}',
+                        style: AppText.small(color: AppColors.white)
+                            .copyWith(fontWeight: FontWeight.w700)),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Text(greeting, style: AppText.title()),
+      ],
     );
   }
 }
 
-class _NowCard extends StatelessWidget {
+class _DateSwitch extends StatelessWidget {
+  final bool yesterday;
+  final ValueChanged<bool> onChanged;
+
+  const _DateSwitch({required this.yesterday, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        for (final y in [true, false])
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: ChoiceChip(
+              label: Text(y ? 'Yesterday' : 'Today'),
+              selected: yesterday == y,
+              showCheckmark: false,
+              selectedColor: AppColors.cardLight,
+              side: BorderSide(
+                  color: yesterday == y
+                      ? AppColors.greyLight
+                      : AppColors.divider),
+              labelStyle: AppText.small(
+                      color:
+                          yesterday == y ? AppColors.white : AppColors.grey)
+                  .copyWith(fontWeight: FontWeight.w700),
+              onSelected: (_) => onChanged(y),
+            ),
+          ),
+        if (yesterday)
+          Expanded(
+            child: Text('Fill in what you missed — bed, protein, Feynman.',
+                style: AppText.small().copyWith(fontSize: 11.5)),
+          ),
+      ],
+    );
+  }
+}
+
+class _DialCenter extends StatelessWidget {
   final DateTime now;
-  const _NowCard({required this.now});
+  final int score;
+  const _DialCenter({required this.now, required this.score});
 
   @override
   Widget build(BuildContext context) {
     final block = currentBlock(now);
-    final next = nextBlock(now);
-    final nowMin = now.hour * 60 + now.minute;
-    var span = next.minuteOfDay - block.minuteOfDay;
-    var elapsed = nowMin - block.minuteOfDay;
-    if (span <= 0) span += 24 * 60;
-    if (elapsed < 0) elapsed += 24 * 60;
-    final progress = (elapsed / span).clamp(0.0, 1.0);
-    final laneColor = AppColors.lane(block.lane);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text('${block.timeLabel} · NOW',
+            style: AppText.eyebrow(color: AppColors.accent)),
+        const SizedBox(height: 4),
+        Text(block.title,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            style: AppText.heading()),
+        const SizedBox(height: 6),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            Text('$score',
+                style: AppText.serif(
+                    size: 52,
+                    color: score >= 7 ? AppColors.accent : AppColors.white)),
+            Text('/10', style: AppText.small()),
+          ],
+        ),
+        Text(score >= 7 ? 'Day held' : '${7 - score} to hold the day',
+            style: AppText.small().copyWith(fontSize: 11.5)),
+      ],
+    );
+  }
+}
 
-    var detail = block.detail;
-    if (block.title == 'Drive') {
-      detail = '${podcastFor(now).title} — ${podcastFor(now).detail}';
-    } else if (block.title == 'Train or deep work') {
-      detail = eveningFocus(now.weekday);
+class _CountdownCard extends StatelessWidget {
+  final int days;
+  const _CountdownCard({required this.days});
+
+  @override
+  Widget build(BuildContext context) {
+    return OnoCard(
+      color: AppColors.navy,
+      padding: const EdgeInsets.all(22),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('DAY 1 IN $days ${days == 1 ? 'DAY' : 'DAYS'}',
+              style: AppText.eyebrow(color: AppColors.accent)),
+          const SizedBox(height: 10),
+          Text('Use the runway.', style: AppText.title()),
+          const SizedBox(height: 8),
+          Text(
+              'Book the bloodwork, order the navy merino, fill the Evidence Archive, and read the manifesto each morning so Day 1 isn\'t the first time.',
+              style: AppText.body()),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: GhostButton('Bloodwork',
+                    icon: Icons.bloodtype_outlined,
+                    onPressed: () => context.go('/program?tab=2')),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: GhostButton('Evidence',
+                    icon: Icons.inventory_2_outlined,
+                    onPressed: () => context.push('/evidence')),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// What this moment asks for.
+class _ModeCard extends StatelessWidget {
+  final _Mode mode;
+  final DateTime now;
+  const _ModeCard({required this.mode, required this.now});
+
+  @override
+  Widget build(BuildContext context) {
+    final system = context.watch<PersonalSystemProvider>();
+    final today = dayOnly(now);
+    switch (mode) {
+      case _Mode.morning:
+        final ritualDone = system.logsOn(today, 'ritual').isNotEmpty;
+        if (now.weekday == DateTime.monday && !ritualDone) {
+          return _action(
+            context,
+            eyebrow: 'Monday',
+            title: 'Ritual, then your evidence',
+            body:
+                'Five minutes of ritual, then read the ${system.evidenceCount} items of proof before the first meeting.',
+            cta: 'Start the ritual',
+            route: '/ritual-flow/ritual_morning_default',
+          );
+        }
+        return ritualDone
+            ? _action(
+                context,
+                eyebrow: 'Morning',
+                title: 'Desk at 07:45 — domain scan',
+                body:
+                    '${domainScanFor(now).title}: ${domainScanFor(now).detail}. 15 minutes, one insight saved.',
+                cta: 'Start the scan',
+                route: '/tool/scan',
+              )
+            : _action(
+                context,
+                eyebrow: 'Morning ritual · 5 min',
+                title: 'Water. Manifesto. Three priorities. Sigh. Statement.',
+                body: EminIdentity.identityStatement,
+                cta: 'Start the ritual',
+                route: '/ritual-flow/ritual_morning_default',
+              );
+      case _Mode.work:
+        return OnoCard(
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('BEFORE THE NEXT HARD MOMENT', style: AppText.eyebrow()),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  _tool(context, Icons.air_rounded, 'Sigh', '/tool/sigh',
+                      AppColors.mind),
+                  _tool(context, Icons.layers_rounded, '6Q prep',
+                      '/tool/sixq', AppColors.skill),
+                  _tool(context, Icons.vertical_align_top_rounded, 'BLUF',
+                      '/tool/bluf', AppColors.skill),
+                  _tool(context, Icons.pause_circle_outline_rounded, 'Pause',
+                      '/tool/pause', AppColors.social),
+                ],
+              ),
+            ],
+          ),
+        );
+      case _Mode.evening:
+        final gym = system.gymDayOn(today);
+        if (gym != null && !system.gymDone(today) && now.hour < 21) {
+          return _action(
+            context,
+            eyebrow: '19:00 · Day ${gym.letter}',
+            title: '${gym.name} — ${gym.exercises.length} exercises',
+            body: 'Face pulls 3×15 never skipped. Zone 2 cooldown 15 min.',
+            cta: 'Start session',
+            route: '/gym',
+          );
+        }
+        final tomorrow = today.add(const Duration(days: 1));
+        return _action(
+          context,
+          eyebrow: '22:00 · Close the day',
+          title: 'Tomorrow: ${outfitFor(tomorrow).occasion}',
+          body:
+              '${outfitFor(tomorrow).formula}. Lay it out, phone outside the bedroom, nasal strip, lights out 22:30.',
+          cta: 'Log a win from today',
+          route: '/log?add=win',
+        );
+      case _Mode.sunday:
+        final done = system.reportForWeek(now) != null;
+        return _action(
+          context,
+          eyebrow: 'Sunday report',
+          title: done ? 'Report sent — read your brief' : 'Five answers',
+          body: done
+              ? 'Next week\'s plan is pinned to Today from Monday.'
+              : 'Daily 10 average and gym count fill themselves. Your brief for next week comes back immediately.',
+          cta: done ? 'Open the brief' : 'Write the report',
+          route: '/weekly-coaching',
+        );
     }
+  }
 
+  Widget _tool(BuildContext context, IconData icon, String label,
+          String route, Color color) =>
+      Expanded(
+        child: GestureDetector(
+          onTap: () => context.push(route),
+          child: Column(
+            children: [
+              IconTile(icon, color: color, size: 48),
+              const SizedBox(height: 6),
+              Text(label,
+                  style: AppText.small(color: AppColors.white)
+                      .copyWith(fontWeight: FontWeight.w600)),
+            ],
+          ),
+        ),
+      );
+
+  Widget _action(BuildContext context,
+      {required String eyebrow,
+      required String title,
+      required String body,
+      required String cta,
+      required String route}) {
     return OnoCard(
       highlight: true,
-      onTap: () => context.go('/plan'),
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(eyebrow.toUpperCase(),
+              style: AppText.eyebrow(color: AppColors.accent)),
+          const SizedBox(height: 8),
+          Text(title, style: AppText.serif(size: 24)),
+          const SizedBox(height: 6),
+          Text(body, style: AppText.body()),
+          const SizedBox(height: 16),
+          PrimaryButton(cta,
+              icon: Icons.arrow_forward_rounded,
+              onPressed: () => context.push(route)),
+        ],
+      ),
+    );
+  }
+}
+
+class _BriefCard extends StatelessWidget {
+  final WeeklyBrief brief;
+  const _BriefCard({required this.brief});
+
+  @override
+  Widget build(BuildContext context) {
+    final system = context.watch<PersonalSystemProvider>();
+    final done = [
+      for (var i = 0; i < brief.tasks.length; i++)
+        system.isDone('brief:${brief.id}:$i')
+    ];
+    return OnoCard(
+      color: AppColors.navy,
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Text('NOW', style: AppText.eyebrow(color: AppColors.accent)),
-              const SizedBox(width: 8),
-              Text(block.timeLabel, style: AppText.eyebrow()),
+              Text('THIS WEEK\'S BRIEF',
+                  style: AppText.eyebrow(color: AppColors.accent)),
               const Spacer(),
-              Icon(block.icon, color: laneColor, size: 20),
+              Text('${done.where((d) => d).length}/${brief.tasks.length}',
+                  style: AppText.small(color: AppColors.white)
+                      .copyWith(fontWeight: FontWeight.w700)),
             ],
           ),
-          const SizedBox(height: 12),
-          Text(block.title, style: AppText.title()),
-          const SizedBox(height: 6),
-          Text(detail, style: AppText.body()),
-          const SizedBox(height: 16),
-          ThinBar(value: progress, color: laneColor, height: 3),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Text('Next  ', style: AppText.small()),
-              Text('${next.timeLabel}  ${next.title}',
-                  style: AppText.small(color: AppColors.greyLight)
-                      .copyWith(fontWeight: FontWeight.w600)),
-              const Spacer(),
-              const Icon(Icons.chevron_right_rounded,
-                  color: AppColors.grey, size: 18),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _RitualCard extends StatelessWidget {
-  const _RitualCard();
-
-  @override
-  Widget build(BuildContext context) {
-    final total =
-        eminMorningRitual.fold<int>(0, (s, r) => s + r.durationSeconds);
-    return OnoCard(
-      color: AppColors.accent.withValues(alpha: 0.08),
-      onTap: () => context.push('/ritual-flow/ritual_morning_default'),
-      child: Row(
-        children: [
-          const IconTile(Icons.wb_sunny_outlined),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Start the morning ritual', style: AppText.heading()),
-                const SizedBox(height: 2),
-                Text(
-                    'Water · manifesto · 3 priorities · sigh · statement — ${(total / 60).ceil()} min',
-                    style: AppText.small()),
-              ],
+          const SizedBox(height: 8),
+          Text(brief.headline, style: AppText.heading()),
+          const SizedBox(height: 4),
+          for (var i = 0; i < brief.tasks.length; i++)
+            CheckRow(
+              checked: done[i],
+              title: brief.tasks[i],
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              onChanged: (_) => system.toggleDone('brief:${brief.id}:$i'),
             ),
+          TextButton(
+            onPressed: () => context.push('/weekly-coaching'),
+            style: TextButton.styleFrom(padding: EdgeInsets.zero),
+            child: const Text('Domain brief & coaching →'),
           ),
-          const Icon(Icons.play_circle_fill_rounded,
-              color: AppColors.accent, size: 32),
-        ],
-      ),
-    );
-  }
-}
-
-class _NudgeCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String body;
-  final String route;
-
-  const _NudgeCard({
-    required this.icon,
-    required this.title,
-    required this.body,
-    required this.route,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return OnoCard(
-      onTap: () => context.push(route),
-      child: Row(
-        children: [
-          IconTile(icon, color: AppColors.steel),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: AppText.heading()),
-                const SizedBox(height: 2),
-                Text(body, style: AppText.small()),
-              ],
-            ),
-          ),
-          const Icon(Icons.chevron_right_rounded, color: AppColors.grey),
         ],
       ),
     );
@@ -332,49 +605,46 @@ class _DailyTen extends StatelessWidget {
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
     final score = system.scoreFor(date);
-    final verdict = score >= 9
-        ? 'Elite day.'
-        : score >= 7
-            ? 'Solid. Streak protected.'
-            : score >= 4
-                ? 'Keep stacking.'
-                : 'Start with one.';
-
     return OnoCard(
-      padding: const EdgeInsets.fromLTRB(18, 18, 18, 8),
+      padding: const EdgeInsets.fromLTRB(18, 16, 10, 6),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              ScoreRing(
-                progress: score / 10,
-                size: 58,
-                center: Text('$score',
-                    style: AppText.number(size: 20)),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('$score of 10 non-negotiables',
-                        style: AppText.heading()),
-                    const SizedBox(height: 2),
-                    Text(verdict, style: AppText.small()),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          const Divider(),
-          for (final n in nonNegotiables)
-            CheckRow(
-              checked: system.isChecked(date, n.id),
-              title: n.title,
-              lane: n.lane,
-              onChanged: (_) => system.toggleCheck(date, n.id),
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: TickSegments(
+              total: 10,
+              filled: 10,
+              height: 6,
+              colors: [
+                for (final n in nonNegotiables)
+                  system.isChecked(date, n.id)
+                      ? AppColors.lane(n.lane)
+                      : AppColors.cardLight
+              ],
             ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+              score >= 7
+                  ? '$score of 10 — held'
+                  : '$score of 10 · ${7 - score} more holds the day',
+              style: AppText.small()),
+          for (final g in nonNegotiableGroups) ...[
+            const SizedBox(height: 14),
+            Text(g[1].toUpperCase(), style: AppText.eyebrow()),
+            for (final n in nonNegotiables.where((n) => n.when == g[0]))
+              CheckRow(
+                checked: system.isChecked(date, n.id),
+                title: n.title,
+                lane: n.lane,
+                padding: const EdgeInsets.symmetric(vertical: 9),
+                onChanged: (_) => system.toggleCheck(date, n.id),
+                onOpen: n.route == null
+                    ? null
+                    : () => context.push(n.route!),
+              ),
+          ],
         ],
       ),
     );
@@ -383,25 +653,27 @@ class _DailyTen extends StatelessWidget {
 
 class _Priorities extends StatefulWidget {
   final DateTime date;
-  const _Priorities({required this.date});
+  final bool review;
+  const _Priorities({super.key, required this.date, required this.review});
 
   @override
   State<_Priorities> createState() => _PrioritiesState();
 }
 
 class _PrioritiesState extends State<_Priorities> {
-  late final List<TextEditingController> _controllers;
+  late final List<TextEditingController> _c;
 
   @override
   void initState() {
     super.initState();
-    final p = context.read<PersonalSystemProvider>().prioritiesFor(widget.date);
-    _controllers = List.generate(3, (i) => TextEditingController(text: p[i]));
+    final p =
+        context.read<PersonalSystemProvider>().prioritiesFor(widget.date);
+    _c = List.generate(3, (i) => TextEditingController(text: p[i]));
   }
 
   @override
   void dispose() {
-    for (final c in _controllers) {
+    for (final c in _c) {
       c.dispose();
     }
     super.dispose();
@@ -409,35 +681,51 @@ class _PrioritiesState extends State<_Priorities> {
 
   @override
   Widget build(BuildContext context) {
-    final system = context.read<PersonalSystemProvider>();
+    final system = context.watch<PersonalSystemProvider>();
+    final p = system.prioritiesFor(widget.date);
+    final anySet = p.any((x) => x.isNotEmpty);
+    if (widget.review && anySet) {
+      return OnoCard(
+        padding: const EdgeInsets.fromLTRB(18, 6, 18, 6),
+        child: Column(
+          children: [
+            for (var i = 0; i < 3; i++)
+              if (p[i].isNotEmpty)
+                CheckRow(
+                  checked: system.priorityDone(widget.date, i),
+                  title: p[i],
+                  onChanged: (_) => system.togglePriority(widget.date, i),
+                ),
+          ],
+        ),
+      );
+    }
     return OnoCard(
-      padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
+      padding: const EdgeInsets.fromLTRB(18, 12, 18, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Outcomes, not tasks. What must be true by 6pm?',
+          Text('Outcomes, not tasks. What must be true by 18:00?',
               style: AppText.small()),
-          const SizedBox(height: 6),
           for (var i = 0; i < 3; i++)
             Row(
               children: [
                 SizedBox(
-                  width: 22,
+                  width: 24,
                   child: Text('${i + 1}',
-                      style: AppText.number(
-                          size: 16, color: AppColors.accent)),
+                      style: AppText.serif(size: 20, color: AppColors.accent)),
                 ),
                 Expanded(
                   child: TextField(
-                    controller: _controllers[i],
+                    controller: _c[i],
                     style: AppText.body(color: AppColors.white),
-                    textInputAction: TextInputAction.done,
+                    textInputAction: TextInputAction.next,
                     onChanged: (v) => system.setPriority(widget.date, i, v),
                     decoration: InputDecoration(
                       hintText: const [
-                        'The one outcome that matters most',
+                        'The outcome that matters most',
                         'Second outcome',
-                        'Third outcome',
+                        'Third outcome'
                       ][i],
                       filled: false,
                       isDense: true,
@@ -457,10 +745,10 @@ class _PrioritiesState extends State<_Priorities> {
   }
 }
 
-class _InputsCard extends StatelessWidget {
+class _InputsStrip extends StatelessWidget {
   final DateTime date;
   final int month;
-  const _InputsCard({required this.date, required this.month});
+  const _InputsStrip({required this.date, required this.month});
 
   @override
   Widget build(BuildContext context) {
@@ -468,151 +756,137 @@ class _InputsCard extends StatelessWidget {
     final scan = domainScanFor(date);
     final book = currentBook(month);
     final outfit = outfitFor(date);
-
-    Widget row(IconData icon, Color color, String label, String title,
-        String detail,
-        {VoidCallback? onTap, IconData? trailing}) {
-      return InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-          child: Row(
-            children: [
-              IconTile(icon, color: color, size: 38),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(label.toUpperCase(),
-                        style: AppText.eyebrow().copyWith(fontSize: 10)),
-                    const SizedBox(height: 3),
-                    Text(title, style: AppText.heading()),
-                    const SizedBox(height: 1),
-                    Text(detail, style: AppText.small()),
-                  ],
-                ),
+    final tiles = [
+      (Icons.podcasts_rounded, AppColors.skill, 'Drive', podcast.title,
+          podcast.detail, null as String?),
+      (Icons.travel_explore_rounded, AppColors.steel, 'Scan · 07:45',
+          scan.title, scan.detail, '/tool/scan'),
+      (Icons.menu_book_rounded, AppColors.mind, 'Lunch read', book.title,
+          book.chapters, '/tool/read'),
+      (outfit.icon, AppColors.social, 'Wear', outfit.occasion, outfit.formula,
+          '/style'),
+    ];
+    return SizedBox(
+      height: 150,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: tiles.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        itemBuilder: (_, i) {
+          final t = tiles[i];
+          return SizedBox(
+            width: 170,
+            child: OnoCard(
+              padding: const EdgeInsets.all(14),
+              onTap: t.$6 == null ? null : () => context.push(t.$6!),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(t.$1, size: 18, color: t.$2),
+                      const SizedBox(width: 6),
+                      Text(t.$3.toUpperCase(),
+                          style: AppText.eyebrow().copyWith(fontSize: 10)),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Text(t.$4,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppText.heading().copyWith(fontSize: 15)),
+                  const SizedBox(height: 4),
+                  Expanded(
+                    child: Text(t.$5,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppText.small()),
+                  ),
+                ],
               ),
-              if (trailing != null)
-                Icon(trailing, color: AppColors.grey, size: 18),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return OnoCard(
-      padding: EdgeInsets.zero,
-      child: Column(
-        children: [
-          row(Icons.podcasts_rounded, AppColors.skill, 'Commute podcast',
-              podcast.title, podcast.detail),
-          const Divider(indent: 18, endIndent: 18),
-          row(Icons.travel_explore_rounded, AppColors.steel,
-              'Domain scan · 15 min', scan.title, scan.detail,
-              onTap: scan.url == null ? null : () => openLink(scan.url!),
-              trailing: scan.url == null ? null : Icons.north_east_rounded),
-          const Divider(indent: 18, endIndent: 18),
-          row(Icons.menu_book_rounded, AppColors.mind, 'Lunch read · 20 min',
-              book.title, '${book.author} · ${book.chapters}',
-              onTap: () => context.push('/library'),
-              trailing: Icons.chevron_right_rounded),
-          const Divider(indent: 18, endIndent: 18),
-          row(outfit.icon, AppColors.social, 'Wear', outfit.occasion,
-              outfit.formula,
-              onTap: () => context.push('/style'),
-              trailing: Icons.chevron_right_rounded),
-        ],
+            ),
+          );
+        },
       ),
     );
   }
 }
 
-class _TrainingCard extends StatelessWidget {
+class _BodyCard extends StatelessWidget {
   final DateTime date;
-  const _TrainingCard({required this.date});
+  const _BodyCard({required this.date});
 
   @override
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
-    final gym = gymDayFor(date);
+    final protein = system.proteinFor(date);
+    final weight = system.latestWeight;
+    final weighedThisWeek = system
+        .logsOf('weight')
+        .any((l) => !l.date.isBefore(weekStartOf(date)));
+    final gym = system.gymDayOn(date);
     final sessions = system.gymSessionsInWeek(date);
 
-    if (gym == null) {
-      return OnoCard(
-        onTap: () => context.go('/plan'),
-        child: Row(
-          children: [
-            const IconTile(Icons.self_improvement_rounded,
-                color: AppColors.body),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('No gym today', style: AppText.heading()),
-                  const SizedBox(height: 2),
-                  Text('19:00 — ${eveningFocus(date.weekday)}',
-                      style: AppText.small()),
-                ],
-              ),
-            ),
-            Text('$sessions/3', style: AppText.number(size: 18)),
-          ],
-        ),
-      );
-    }
-
-    final done = system.gymDone(date);
     return OnoCard(
-      onTap: () => context.go('/plan'),
+      padding: const EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const IconTile(Icons.fitness_center_rounded,
-                  color: AppColors.body),
-              const SizedBox(width: 14),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Day ${gym.letter} — ${gym.name}',
-                        style: AppText.heading()),
-                    const SizedBox(height: 2),
-                    Text(
-                        '19:00 · ${gym.exercises.length} exercises · RA-safe · $sessions/3 this week',
-                        style: AppText.small()),
-                  ],
-                ),
+                child: StatTile('$protein', 'protein today',
+                    unit: '/150 g',
+                    color: protein >= 150 ? AppColors.body : AppColors.white),
+              ),
+              Expanded(
+                child: StatTile(
+                    weight == null ? '—' : weight.toStringAsFixed(1),
+                    'latest weight',
+                    unit: 'kg'),
+              ),
+              Expanded(
+                child: StatTile('$sessions', 'gym this week', unit: '/3'),
               ),
             ],
           ),
+          const SizedBox(height: 12),
+          ThinBar(
+              value: protein / 150,
+              color: protein >= 150 ? AppColors.body : AppColors.accent),
           const SizedBox(height: 14),
           Wrap(
-            spacing: 6,
-            runSpacing: 6,
+            spacing: 8,
+            runSpacing: 8,
             children: [
-              for (final e in gym.exercises.take(4)) Tag(e.name),
-              Tag('+ ${gym.exercises.length - 4} more'),
-              const Tag('Face pulls 3×15', color: AppColors.accent),
+              for (final g in [20, 30, 40])
+                ActionChip(
+                  label: Text('+$g g protein'),
+                  onPressed: () {
+                    HapticFeedback.selectionClick();
+                    system.addProtein(date, g);
+                  },
+                ),
+              if (!weighedThisWeek)
+                ActionChip(
+                  avatar: const Icon(Icons.monitor_weight_outlined, size: 16),
+                  label: const Text('Weigh-in'),
+                  onPressed: () => context.push('/log?add=weight'),
+                ),
+              ActionChip(
+                avatar: Icon(
+                    system.gymDone(date)
+                        ? Icons.check_rounded
+                        : Icons.fitness_center_rounded,
+                    size: 16),
+                label: Text(gym == null
+                    ? 'Extra session'
+                    : system.gymDone(date)
+                        ? 'Day ${gym.letter} logged'
+                        : 'Day ${gym.letter} · ${gym.name}'),
+                onPressed: () => context.push('/gym'),
+              ),
             ],
-          ),
-          const SizedBox(height: 14),
-          SizedBox(
-            width: double.infinity,
-            child: done
-                ? OutlinedButton.icon(
-                    onPressed: () => system.toggleGym(date),
-                    icon: const Icon(Icons.check_rounded,
-                        color: AppColors.body, size: 18),
-                    label: const Text('Session logged'),
-                  )
-                : FilledButton(
-                    onPressed: () => system.toggleGym(date),
-                    child: const Text('Log session + Zone 2'),
-                  ),
           ),
         ],
       ),
@@ -620,65 +894,42 @@ class _TrainingCard extends StatelessWidget {
   }
 }
 
-class _CoachNote extends StatelessWidget {
+class _CoachNote extends StatefulWidget {
   final int day;
   const _CoachNote({required this.day});
 
   @override
-  Widget build(BuildContext context) {
-    final tip = eminCoachTips[(day - 1) % eminCoachTips.length];
-    return OnoCard(
-      accent: AppColors.lane(tip.lane),
-      onTap: () => context.push('/ai-coach'),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text('DAY ${((day - 1) % 30) + 1} · ${tip.lane.toUpperCase()}',
-                  style: AppText.eyebrow(color: AppColors.lane(tip.lane))),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text(tip.title, style: AppText.heading()),
-          const SizedBox(height: 8),
-          Text(tip.content, style: AppText.body()),
-        ],
-      ),
-    );
-  }
+  State<_CoachNote> createState() => _CoachNoteState();
 }
 
-class _ProtocolOfDay extends StatelessWidget {
-  final int day;
-  const _ProtocolOfDay({required this.day});
+class _CoachNoteState extends State<_CoachNote> {
+  bool _open = false;
 
   @override
   Widget build(BuildContext context) {
-    final p = protocols[(day - 1) % protocols.length];
+    final tip = coachTipForDay(widget.day < 1 ? 1 : widget.day);
     return OnoCard(
-      onTap: () => context.push('/protocols'),
-      child: Row(
+      accent: AppColors.lane(tip.lane),
+      onTap: () => setState(() => _open = !_open),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          IconTile(p.icon, color: AppColors.lane(p.lane)),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('PROTOCOL OF THE DAY',
-                    style: AppText.eyebrow().copyWith(fontSize: 10)),
-                const SizedBox(height: 3),
-                Text(p.name, style: AppText.heading()),
-                const SizedBox(height: 2),
-                Text(p.what,
-                    style: AppText.small(),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis),
-              ],
+          Text(tip.lane.toUpperCase(),
+              style: AppText.eyebrow(color: AppColors.lane(tip.lane))),
+          const SizedBox(height: 8),
+          Text(tip.title, style: AppText.serif(size: 22)),
+          const SizedBox(height: 8),
+          Text(tip.content,
+              maxLines: _open ? null : 2,
+              overflow: _open ? null : TextOverflow.ellipsis,
+              style: AppText.body()),
+          if (!_open)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text('Read',
+                  style: AppText.small(color: AppColors.accent)
+                      .copyWith(fontWeight: FontWeight.w700)),
             ),
-          ),
-          const Icon(Icons.chevron_right_rounded, color: AppColors.grey),
         ],
       ),
     );

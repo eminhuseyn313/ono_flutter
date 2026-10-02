@@ -102,24 +102,6 @@ class _SignInScreenState extends State<SignInScreen>
         ),
         child: Stack(
           children: [
-            // Ambient glow orb
-            Positioned(
-              top: -80,
-              left: -60,
-              child: Container(
-                width: 250,
-                height: 250,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      AppColors.purple.withValues(alpha: 0.15),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            ),
             SafeArea(
               child: FadeTransition(
                 opacity: _fadeIn,
@@ -150,28 +132,19 @@ class _SignInScreenState extends State<SignInScreen>
                           ),
                         ),
                         const SizedBox(height: 32),
-                        const Text(
+                        Text(
                           'ONO',
-                          style: TextStyle(
-                            color: AppColors.purpleSoft,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 4,
-                          ),
+                          style: AppText.serif(size: 22, color: AppColors.accent)
+                              .copyWith(letterSpacing: 5),
                         ),
                         const SizedBox(height: 16),
-                        const Text(
+                        Text(
                           'Welcome\nback',
-                          style: TextStyle(
-                            color: AppColors.white,
-                            fontSize: 36,
-                            fontWeight: FontWeight.w800,
-                            height: 1.1,
-                          ),
+                          style: AppText.display(),
                         ),
                         const SizedBox(height: 8),
                         const Text(
-                          'Continue your transformation',
+                          'Pick up where you left the system.',
                           style: TextStyle(color: AppColors.grey, fontSize: 15),
                         ),
 
@@ -322,15 +295,14 @@ class _SignInScreenState extends State<SignInScreen>
                           child: GestureDetector(
                             onTap: () => context.go('/sign-up'),
                             child: RichText(
-                              text: const TextSpan(
-                                style: TextStyle(
-                                    color: AppColors.grey, fontSize: 14),
-                                children: [
+                              text: TextSpan(
+                                style: AppText.small(),
+                                children: const [
                                   TextSpan(text: "Don't have an account? "),
                                   TextSpan(
                                     text: 'Sign up',
                                     style: TextStyle(
-                                      color: AppColors.purpleSoft,
+                                      color: AppColors.accent,
                                       fontWeight: FontWeight.w700,
                                     ),
                                   ),
