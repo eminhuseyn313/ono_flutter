@@ -1,6 +1,21 @@
-# ONO — iPhone test checklist
+# ONO — test checklist
 
-## Install
+## Start here (easiest)
+
+1. **First time only — get the new launchers.** Open **Terminal** and paste:
+   ```bash
+   cd ~/Downloads/ono_flutter && git checkout main && git pull
+   ```
+2. In **Finder**, open the `ono_flutter` folder and **double-click** one of:
+   - **`Test in Chrome.command`** — opens the app in Chrome. No Xcode needed. Quickest.
+   - **`Test on iPhone Simulator.command`** — opens a virtual iPhone. Needs Xcode.
+3. A Terminal window shows progress. The first start takes 1–5 minutes.
+   Press `q` in that window to stop.
+
+If macOS says it can't open the file: right-click it → **Open** → **Open**.
+In the app, create an account with any email and a 6+ character password.
+
+## Real iPhone (optional)
 
 ```bash
 cd ~/Downloads/ono_flutter

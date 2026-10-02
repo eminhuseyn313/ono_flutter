@@ -153,7 +153,10 @@ All items done:
 
 Still to do: run on a physical iPhone (needs macOS + Xcode; see below). Production mode still has only 5 Supabase gateways — the rest are mock.
 
-### Build for iOS testing
+### Testing
+Double-click `Test in Chrome.command` (no Xcode) or `Test on iPhone Simulator.command` at the repo root; both pull `main`, get packages and run (shared setup in `scripts/common.sh`). Checklist: `TESTING.md`.
+
+### Build for a physical iPhone
 ```bash
 git checkout main && git pull
 flutter upgrade          # older Flutter can't launch on iOS 27 simulators
