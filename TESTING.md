@@ -1,13 +1,6 @@
 # ONO — test checklist
 
-## Easiest: open the link (no Xcode, no Terminal)
-
-Open **https://claude.ai/artifact/PrmHk7YA9w96nyZhesjKbt** on your iPhone (Safari) or laptop while
-signed in to claude.ai. It is the full app running in the browser; data stays in that browser.
-Sign up with any email and a 6+ character password (not "Continue with Google").
-On iPhone: Share → **Add to Home Screen** to open it like an app.
-
-## Run it on your Mac
+## Simulator on your Mac
 
 1. **First time only — get the new launchers.** Open **Terminal** and paste:
    ```bash
@@ -24,21 +17,19 @@ If Terminal says "Syncing files to device" but no iPhone window appears: press
 ⌘-Space, type **Simulator**, press Enter — the app is already running in it.
 In the app, tap **Begin** and create an account with any email and a 6+ character password.
 
-## Real iPhone (optional)
+## Real iPhone
+Plug the iPhone in, unlock it, and double-click **`Install on my iPhone.command`**.
+It walks you through Trust, Developer Mode and the one-time signing step.
+App Store / TestFlight steps: see `RELEASE.md`.
 
-```bash
-cd ~/Downloads/ono_flutter
-git fetch origin && git checkout main && git pull
-flutter upgrade
-flutter clean && flutter pub get
-open ios/Runner.xcworkspace     # Runner → Signing & Capabilities → pick your Team (once)
-flutter run --release           # iPhone plugged in, unlocked, "Trust this computer"
-```
+## Browser link (no Xcode)
 
-If Xcode says the developer isn't trusted: on the iPhone, Settings → General →
-VPN & Device Management → trust your Apple ID.
+Open **https://claude.ai/artifact/PrmHk7YA9w96nyZhesjKbt** on your iPhone (Safari) or laptop while
+signed in to claude.ai. It is the full app running in the browser; data stays in that browser.
+Sign up with any email and a 6+ character password (not "Continue with Google").
+On iPhone: Share → **Add to Home Screen** to open it like an app.
 
-Mock mode signs you in with any email and a password o## 1. Commission (2 min)
+## 1. Commission (2 min)
 - [ ] Welcome → **Begin** → create an account → lands on **Commission · 1 of 5**
 - [ ] Identity card shows your role and the path (Senior PO → Global Manager)
 - [ ] Pick a start date (Today / Next Monday / any date) → "Program ends …" updates

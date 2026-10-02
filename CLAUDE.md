@@ -104,13 +104,11 @@ flutter run -t lib/main_production.dart
 - Manual: double-click `Test in Chrome.command` or `Test on iPhone Simulator.command` (they pull `main`; shared setup in `scripts/common.sh`). Checklist: `TESTING.md`.
 - The web build here needs `--no-web-resources-cdn` when the CDN is unreachable.
 
-### Physical iPhone
-```bash
-git checkout main && git pull
-flutter upgrade && flutter clean && flutter pub get
-open ios/Runner.xcworkspace   # set your Team under Signing & Capabilities once
-flutter run --release
-```
+### Physical iPhone & release
+- `Install on my iPhone.command` installs a release build on a plugged-in iPhone. Shared iOS helpers live in `scripts/ios.sh`.
+- `RELEASE.md` covers TestFlight and the App Store.
+- Bundle ID `com.eminhuseynzade.ono`, iPhone only, team `XYY5Y3F4W5`.
+- The icon is rendered from the Day Dial motif; regenerate every size if it changes.
 
 ## Not built (needs Xcode / native targets)
 These can't be built or verified without macOS: Home Screen widgets (WidgetKit extension), Apple Health (HealthKit entitlement), calendar-based meeting prep (EventKit), and on-device encryption of health fields. Row-level security protects the cloud copy.
