@@ -13,6 +13,8 @@
    Press `q` in that window to stop.
 
 If macOS says it can't open the file: right-click it → **Open** → **Open**.
+If Terminal says "Syncing files to device" but no iPhone window appears: press
+⌘-Space, type **Simulator**, press Enter — the app is already running in it.
 In the app, tap **Begin** and create an account with any email and a 6+ character password.
 
 ## Real iPhone (optional)

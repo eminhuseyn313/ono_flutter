@@ -21,18 +21,28 @@ if [ -z "$DEVICE" ]; then
   [ -n "$DEVICE" ] || fail "No iPhone simulator found. Open Xcode → Settings → Platforms and install an iOS simulator."
   xcrun simctl boot "$DEVICE" >/dev/null 2>&1 || true
 fi
-# Simulator.app lives inside Xcode (Xcode.app, Xcode-beta.app, …), so open it
-# by path rather than by name.
-SIM_APP="$(xcode-select -p 2>/dev/null)/Applications/Simulator.app"
-if [ ! -d "$SIM_APP" ]; then
-  SIM_APP=$(ls -d /Applications/Xcode*.app/Contents/Developer/Applications/Simulator.app 2>/dev/null | head -1 || true)
-fi
-if [ -n "$SIM_APP" ] && [ -d "$SIM_APP" ]; then
-  open "$SIM_APP"
-else
-  flutter emulators --launch apple_ios_simulator >/dev/null 2>&1 \
-    || say "Couldn't open the Simulator window automatically — open Xcode, then Xcode menu → Open Developer Tool → Simulator."
-fi
+# Simulator.app lives inside whichever Xcode is installed (Xcode.app,
+# Xcode-beta.app, ~/Applications, …). Try, in order: its bundle id, the Xcode
+# that simctl itself comes from, xcode-select, any Xcode in /Applications,
+# then a Spotlight search.
+open_simulator() {
+  open -b com.apple.iphonesimulator >/dev/null 2>&1 && return 0
+  local dev candidates
+  dev="$(dirname "$(dirname "$(dirname "$(xcrun --find simctl 2>/dev/null)")")")"
+  candidates=(
+    "$dev/Applications/Simulator.app"
+    "$(xcode-select -p 2>/dev/null)/Applications/Simulator.app"
+    /Applications/Xcode*.app/Contents/Developer/Applications/Simulator.app
+    "$HOME"/Applications/Xcode*.app/Contents/Developer/Applications/Simulator.app
+    "$(mdfind "kMDItemCFBundleIdentifier == 'com.apple.iphonesimulator'" 2>/dev/null | head -1)"
+  )
+  for app in "${candidates[@]}"; do
+    [ -n "$app" ] && [ -d "$app" ] && open "$app" && return 0
+  done
+  flutter emulators --launch apple_ios_simulator >/dev/null 2>&1
+}
+open_simulator \
+  || say "Couldn't open the Simulator window automatically. Press ⌘-Space, type Simulator, press Enter — ONO will appear in it."
 
 say "Building and launching ONO (first build takes a few minutes)…"
 echo "Press q in this window to stop."
