@@ -156,7 +156,7 @@ class MockForgeGateway implements ForgeGateway {
     List<String> answers,
   ) async {
     await Future.delayed(const Duration(milliseconds: 200));
-    final key = '\${courseId}_\${lessonId}_\${blockId}';
+    final key = '${courseId}_${lessonId}_${blockId}';
     _worksheetAnswers[key] = answers;
   }
 
@@ -168,7 +168,7 @@ class MockForgeGateway implements ForgeGateway {
     int itemIndex,
   ) async {
     await Future.delayed(const Duration(milliseconds: 150));
-    final key = '\${courseId}_\${lessonId}_\${blockId}';
+    final key = '${courseId}_${lessonId}_${blockId}';
     final course = _courses.firstWhere((c) => c.id == courseId);
     final lesson = course.lessons.firstWhere((l) => l.id == lessonId);
     final block = lesson.blocks.firstWhere((b) => b.id == blockId);

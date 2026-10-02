@@ -360,7 +360,7 @@ class MockWakzGateway implements WakzGateway {
     await Future.delayed(const Duration(milliseconds: 250));
     final index = _activeChallenges.indexWhere((c) => c.id == challengeId);
     if (index == -1) {
-      throw Exception('Challenge not found: \$challengeId');
+      throw Exception('Challenge not found: $challengeId');
     }
     final updated = _activeChallenges[index].copyWith(
       isVerified: true,
@@ -381,7 +381,7 @@ class MockWakzGateway implements WakzGateway {
     await Future.delayed(const Duration(milliseconds: 150));
     final index = _communityFeed.indexWhere((p) => p.id == proofId);
     if (index == -1) {
-      throw Exception('Proof not found: \$proofId');
+      throw Exception('Proof not found: $proofId');
     }
     final proof = _communityFeed[index];
     final updated = proof.copyWith(
@@ -397,7 +397,7 @@ class MockWakzGateway implements WakzGateway {
       String challengeId, String opponentType) async {
     await Future.delayed(const Duration(milliseconds: 230));
     final battle = ChallengeBattle(
-      id: 'battle_new_\${DateTime.now().millisecondsSinceEpoch}',
+      id: 'battle_new_${DateTime.now().millisecondsSinceEpoch}',
       challengeId: challengeId,
       opponentName: 'SwiftEagle',
       opponentEmoji: '\u{1F985}',
@@ -442,7 +442,7 @@ class MockWakzGateway implements WakzGateway {
     await Future.delayed(const Duration(milliseconds: 200));
     final index = _activeChallenges.indexWhere((c) => c.id == challengeId);
     if (index == -1) {
-      throw Exception('Challenge not found: \$challengeId');
+      throw Exception('Challenge not found: $challengeId');
     }
     final updated = _activeChallenges[index].copyWith(
       isCompleted: true,

@@ -19,12 +19,12 @@ class TrendingPipelineBar extends StatelessWidget {
   String _formatDuration(Duration duration) {
     if (duration.isNegative) return 'now';
     if (duration.inDays > 0) {
-      return '\${duration.inDays}d \${duration.inHours.remainder(24)}h';
+      return '${duration.inDays}d ${duration.inHours.remainder(24)}h';
     }
     if (duration.inHours > 0) {
-      return '\${duration.inHours}h \${duration.inMinutes.remainder(60)}m';
+      return '${duration.inHours}h ${duration.inMinutes.remainder(60)}m';
     }
-    return '\${duration.inMinutes}m';
+    return '${duration.inMinutes}m';
   }
 
   @override
@@ -116,14 +116,14 @@ class TrendingPipelineBar extends StatelessWidget {
       return 'AI Pipeline scanning...';
     }
     if (hasError) {
-      return 'Pipeline error: \${status!.lastError}';
+      return 'Pipeline error: ${status!.lastError}';
     }
     final parts = <String>[];
     if (lastRunAgo != null) {
-      parts.add('Last scan: \${_formatDuration(lastRunAgo)} ago');
+      parts.add('Last scan: ${_formatDuration(lastRunAgo)} ago');
     }
     if (nextRunIn != null) {
-      parts.add('Next: \${_formatDuration(nextRunIn)}');
+      parts.add('Next: ${_formatDuration(nextRunIn)}');
     }
     return parts.join(' · ');
   }

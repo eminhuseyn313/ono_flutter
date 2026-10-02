@@ -37,12 +37,12 @@ class LibraryScreen extends StatelessWidget {
               const SizedBox(height: 2),
               Text(current.author, style: AppText.body()),
               const SizedBox(height: 12),
-              Row(
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
                 children: [
                   Tag(current.chapters, color: AppColors.accent),
-                  const SizedBox(width: 6),
                   const Tag('20 min at lunch'),
-                  const SizedBox(width: 6),
                   const Tag('+ 5 min Feynman'),
                 ],
               ),

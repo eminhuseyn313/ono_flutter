@@ -115,9 +115,9 @@ class _GradientProgressRingState extends State<GradientProgressRing>
             strokeWidth: widget.strokeWidth,
             gradientColors: widget.gradientColors ??
                 const [
-                  Color(0xFF6C63FF),
-                  Color(0xFF9B8FFF),
-                  Color(0xFFB8A9FF),
+                  Color(0xFFA86D35),
+                  Color(0xFFC8894A),
+                  Color(0xFFE8C9A3),
                 ],
             trackColor: AppColors.divider,
           ),

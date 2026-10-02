@@ -254,7 +254,7 @@ class _BrotherhoodScreenState extends State<BrotherhoodScreen>
     BrotherhoodProvider provider,
   ) {
     return SizedBox(
-      height: 220,
+      height: 272,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),

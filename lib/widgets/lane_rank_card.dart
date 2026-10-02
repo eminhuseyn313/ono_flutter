@@ -210,10 +210,18 @@ class _LaneRankCardState extends State<LaneRankCard>
             ),
           ),
         ),
-        const Spacer(),
-        FadeTransition(
-          opacity: _fadeAnimation,
-          child: _buildTrendIndicator(ranking),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: FadeTransition(
+              opacity: _fadeAnimation,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: _buildTrendIndicator(ranking),
+              ),
+            ),
+          ),
         ),
       ],
     );

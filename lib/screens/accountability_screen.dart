@@ -738,7 +738,10 @@ class _AccountabilityScreenState extends State<AccountabilityScreen>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text('Requests'),
+                    const Flexible(
+                      child: Text('Requests',
+                          maxLines: 1, overflow: TextOverflow.ellipsis),
+                    ),
                     if (provider.requests.isNotEmpty) ...[
                       const SizedBox(width: 6),
                       Container(

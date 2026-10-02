@@ -259,15 +259,13 @@ class _PlannerTimelineItemState extends State<PlannerTimelineItem>
                   ],
                 ),
                 const SizedBox(height: 4),
-                Row(
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
                   children: [
                     _buildDurationBadge(),
-                    const SizedBox(width: 8),
                     _buildTypeBadge(),
-                    if (widget.item.lane != null) ...[
-                      const SizedBox(width: 8),
-                      _buildLaneBadge(),
-                    ],
+                    if (widget.item.lane != null) _buildLaneBadge(),
                   ],
                 ),
               ],

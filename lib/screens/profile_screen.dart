@@ -9,7 +9,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
 import '../providers/auth_provider.dart';
 import '../providers/user_profile_provider.dart';
-import '../providers/daily_actions_provider.dart';
+import '../providers/personal_system_provider.dart';
+import '../data/emin_system.dart';
 import '../providers/achievement_provider.dart';
 import '../models/role_model.dart';
 import '../models/achievement.dart';
@@ -36,6 +37,13 @@ class _ProfileScreenState extends State<ProfileScreen>
   void initState() {
     super.initState();
     _loadJourneyData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context
+          .read<PersonalSystemProvider>()
+          .load(context.read<AuthProvider>().userId);
+      context.read<AchievementProvider>().loadAll();
+    });
 
     _sectionControllers = List.generate(
       _sectionCount,
@@ -84,21 +92,24 @@ class _ProfileScreenState extends State<ProfileScreen>
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
     final profileProvider = context.watch<UserProfileProvider>();
-    final actionsProvider = context.watch<DailyActionsProvider>();
+    final system = context.watch<PersonalSystemProvider>();
 
     final displayName = profileProvider.profile?.displayName ?? 'User';
     final archetype = profileProvider.archetypeId ?? 'executive';
     final email = authProvider.user?.email ?? '';
-    final streak = actionsProvider.streak;
-    final actions = actionsProvider.actions;
-    final completedActions = actions.where((a) => a.completed).toList();
-    final totalProgress =
-        actions.isEmpty ? 0.0 : completedActions.length / actions.length;
+    // Stats come from the Daily 10 — the system Today runs on.
+    final today = DateTime.now();
+    final streak = system.streak;
+    final todayScore = system.scoreFor(today);
+    final weekProgress = system.weekAverage(today) / 10;
 
-    final mindActions = actions.where((a) => a.lane == 'mind').toList();
-    final bodyActions = actions.where((a) => a.lane == 'body').toList();
-    final socialActions = actions.where((a) => a.lane == 'social').toList();
-    final skillActions = actions.where((a) => a.lane == 'skill').toList();
+    ({int done, int total}) laneTally(String lane) {
+      final items = nonNegotiables.where((n) => n.lane == lane);
+      return (
+        done: items.where((n) => system.isChecked(today, n.id)).length,
+        total: items.length,
+      );
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xFF0C0D0F),
@@ -174,8 +185,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   // Section 1: Stats Row
                   _buildAnimatedSection(
                     1,
-                    _buildStatsRow(
-                        streak, completedActions.length, totalProgress),
+                    _buildStatsRow(streak, todayScore, weekProgress),
                   ),
                   const SizedBox(height: 24),
 
@@ -199,10 +209,10 @@ class _ProfileScreenState extends State<ProfileScreen>
                   _buildAnimatedSection(
                     4,
                     _buildLaneBreakdown(
-                      mindActions,
-                      bodyActions,
-                      socialActions,
-                      skillActions,
+                      laneTally('mind'),
+                      laneTally('body'),
+                      laneTally('social'),
+                      laneTally('skill'),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -361,8 +371,8 @@ class _ProfileScreenState extends State<ProfileScreen>
           child: _buildStatCard(
             emoji: '✅',
             value: completedCount,
-            label: 'done',
-            sublabel: 'Actions',
+            label: 'of 10',
+            sublabel: 'Today',
           ),
         ),
         const SizedBox(width: 12),
@@ -452,7 +462,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           ),
           const SizedBox(height: 8),
           const Text(
-            'Lane',
+            'Week',
             style: TextStyle(
               color: AppColors.greyLight,
               fontSize: 12,
@@ -460,7 +470,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           ),
           const SizedBox(height: 2),
           const Text(
-            'Score',
+            'Daily 10 avg',
             style: TextStyle(
               color: AppColors.grey,
               fontSize: 11,
@@ -650,16 +660,16 @@ class _ProfileScreenState extends State<ProfileScreen>
   // ─── 5. Lane Breakdown ────────────────────────────────────────────
 
   Widget _buildLaneBreakdown(
-    List<dynamic> mind,
-    List<dynamic> body,
-    List<dynamic> social,
-    List<dynamic> skill,
+    ({int done, int total}) mind,
+    ({int done, int total}) body,
+    ({int done, int total}) social,
+    ({int done, int total}) skill,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Lane Progress',
+          'Daily 10 by lane — today',
           style: TextStyle(
             color: AppColors.white,
             fontSize: 18,
@@ -671,13 +681,13 @@ class _ProfileScreenState extends State<ProfileScreen>
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              _buildLaneRow('🧠', 'Mind', mind, AppColors.purple),
+              _buildLaneRow('🧠', 'Mind', mind, AppColors.mind),
               const SizedBox(height: 14),
-              _buildLaneRow('💪', 'Body', body, AppColors.success),
+              _buildLaneRow('💪', 'Body', body, AppColors.body),
               const SizedBox(height: 14),
-              _buildLaneRow('🗣', 'Social', social, AppColors.warning),
+              _buildLaneRow('🗣', 'Social', social, AppColors.social),
               const SizedBox(height: 14),
-              _buildLaneRow('📚', 'Skill', skill, const Color(0xFF4A9EFF)),
+              _buildLaneRow('📚', 'Skill', skill, AppColors.skill),
             ],
           ),
         ),
@@ -688,11 +698,11 @@ class _ProfileScreenState extends State<ProfileScreen>
   Widget _buildLaneRow(
     String emoji,
     String name,
-    List<dynamic> laneActions,
+    ({int done, int total}) tally,
     Color color,
   ) {
-    final total = laneActions.length;
-    final completed = laneActions.where((a) => a.completed).length;
+    final total = tally.total;
+    final completed = tally.done;
     final progress = total == 0 ? 0.0 : completed / total;
 
     return Row(

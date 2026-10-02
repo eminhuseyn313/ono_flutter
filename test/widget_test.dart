@@ -31,63 +31,65 @@ void main() {
     expect(find.byType(OnoApp), findsOneWidget);
   });
 
-  testWidgets('every route renders without exceptions after sign-in',
-      (tester) async {
-    tester.view.physicalSize = const Size(1179, 2556);
-    tester.view.devicePixelRatio = 3;
-    addTearDown(tester.view.reset);
+  // iPhone 15/16 (393×852) and iPhone SE (375×667), both @3x.
+  for (final size in const [Size(1179, 2556), Size(1125, 2001)]) {
+    testWidgets(
+        'every route renders without errors after sign-in '
+        '(${size.width ~/ 3}×${size.height ~/ 3})', (tester) async {
+      tester.view.physicalSize = size;
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
 
-    // Collect real crashes. Layout overflow is skipped: the test font draws
-    // every glyph as a full square, so text-heavy rows overflow only here.
-    final errors = <String>[];
-    final previous = FlutterError.onError;
-    FlutterError.onError = (details) {
-      final msg = details.exceptionAsString();
-      if (msg.contains('overflowed') ||
-          msg.contains('GoogleFonts') ||
-          msg.contains('allowRuntimeFetching')) {
-        return;
+      // Collect every runtime error, layout overflow included. Plus Jakarta
+      // Sans is bundled in assets/google_fonts, so text is measured with the
+      // real font rather than the square test font.
+      final errors = <String>[];
+      final previous = FlutterError.onError;
+      FlutterError.onError = (details) {
+        final where = RegExp(r'lib/[\w/]+\.dart:\d+')
+            .firstMatch(details.toString())
+            ?.group(0);
+        final what = details.exceptionAsString().split('\n').first;
+        errors.add(where == null ? what : '$what ($where)');
+      };
+
+      await tester.pumpWidget(const OnoApp());
+      await _pumpFor(tester, const Duration(seconds: 3));
+
+      final ctx = tester.element(find.byType(Scaffold).first);
+      await Provider.of<AuthProvider>(ctx, listen: false)
+          .signIn(email: 'emin@test.dev', password: 'password');
+      await _pumpFor(tester, const Duration(seconds: 2));
+
+      final routes = <String>{
+        '/home',
+        '/archetype',
+        '/assessment/executive',
+        '/loading/executive',
+        '/plan',
+        '/playbook',
+        '/profile',
+        '/journal',
+        '/progress',
+        '/features',
+        for (final g in featureGroups)
+          for (final e in g.entries) e.route,
+      };
+
+      final failures = <String, Set<String>>{};
+      for (final route in routes) {
+        errors.clear();
+        final routerCtx = tester.element(find.byType(Navigator).first);
+        GoRouter.of(routerCtx).go(route);
+        await _pumpFor(tester, const Duration(milliseconds: 1500));
+        if (errors.isNotEmpty) failures[route] = errors.toSet();
       }
-      errors.add(msg);
-    };
 
-    await tester.pumpWidget(const OnoApp());
-    await _pumpFor(tester, const Duration(seconds: 3));
-
-    final ctx = tester.element(find.byType(Scaffold).first);
-    await Provider.of<AuthProvider>(ctx, listen: false)
-        .signIn(email: 'emin@test.dev', password: 'password');
-    await _pumpFor(tester, const Duration(seconds: 2));
-
-    final routes = <String>{
-      '/home',
-      '/archetype',
-      '/assessment/executive',
-      '/loading/executive',
-      '/plan',
-      '/playbook',
-      '/profile',
-      '/journal',
-      '/progress',
-      '/features',
-      for (final g in featureGroups)
-        for (final e in g.entries) e.route,
-    };
-
-    final failures = <String, List<String>>{};
-    for (final route in routes) {
-      errors.clear();
-      final routerCtx = tester.element(find.byType(Navigator).first);
-      GoRouter.of(routerCtx).go(route);
-      await _pumpFor(tester, const Duration(milliseconds: 1500));
-      if (errors.isNotEmpty) failures[route] = List.of(errors);
-    }
-
-    FlutterError.onError = previous;
-    expect(failures, isEmpty,
-        reason: failures.entries
-            .map((e) =>
-                'FAIL ${e.key}: ${e.value.map((m) => m.split('\n').first).toSet().join(' | ')}')
-            .join('\n'));
-  });
+      FlutterError.onError = previous;
+      expect(failures, isEmpty,
+          reason: failures.entries
+              .map((e) => 'FAIL ${e.key}: ${e.value.join(' | ')}')
+              .join('\n'));
+    });
+  }
 }

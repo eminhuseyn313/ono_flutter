@@ -43,9 +43,9 @@ class CommunityProofCard extends StatelessWidget {
 
   String _formatTimeAgo() {
     final diff = DateTime.now().difference(proof.verifiedAt);
-    if (diff.inDays > 0) return '\${diff.inDays}d ago';
-    if (diff.inHours > 0) return '\${diff.inHours}h ago';
-    if (diff.inMinutes > 0) return '\${diff.inMinutes}m ago';
+    if (diff.inDays > 0) return '${diff.inDays}d ago';
+    if (diff.inHours > 0) return '${diff.inHours}h ago';
+    if (diff.inMinutes > 0) return '${diff.inMinutes}m ago';
     return 'Just now';
   }
 
@@ -178,7 +178,7 @@ class CommunityProofCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        '\${proof.likesCount}',
+                        '${proof.likesCount}',
                         style: TextStyle(
                           color: proof.isLiked
                               ? const Color(0xFFE0605A)

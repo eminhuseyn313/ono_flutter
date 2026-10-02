@@ -45,7 +45,7 @@ class _ShimmerState extends State<Shimmer> with SingleTickerProviderStateMixin {
               end: Alignment.bottomRight,
               colors: const [
                 Color(0xFF1B1D22),
-                Color(0xFF2A2A4A),
+                Color(0xFF2A2D33),
                 Color(0xFF1B1D22),
               ],
               stops: [

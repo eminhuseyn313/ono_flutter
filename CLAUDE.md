@@ -28,7 +28,7 @@ Models → Gateways (abstract + mock impl) → Providers (ChangeNotifier) → Sc
 ### Dart/Flutter Rules
 - **`withValues(alpha: 0.5)` NOT `withOpacity(0.5)`** — `withOpacity` is deprecated
 - **`PopScope`**: Use `onPopInvokedWithResult` callback, NOT `onPopInvokedWithPop`
-- **No `\$` escaping in strings** — use proper Dart string interpolation `'text $variable text'`
+- **No `\$` escaping in strings** — use proper Dart string interpolation `'text $variable text'` (escaped `\${...}` renders literally on screen; Trending/Wakz/Forge had this bug)
 - **No external chart packages** — build all charts with `CustomPaint` / `CustomPainter`
 - **Font**: Google Fonts Plus Jakarta Sans
 
@@ -148,7 +148,8 @@ All items done:
 1. **Content layer wired** — executive blueprint, actions seeding, morning ritual, coach tips (rotated by program day), Product Architect role model, Product Leader journey.
 2. **Feature discovery** — grid lives at `/features` (linked from Today and Playbook) instead of inside the home screen.
 3. **Personal operating system + redesign** — see "Personal operating system" above.
-4. **Quality** — 0 analyzer errors; `flutter test` green. `test/widget_test.dart` signs in and opens every route, failing on any runtime error (overflow excluded — the test font is wider than real fonts). Run it after touching screens.
+4. **Quality** — 0 analyzer errors; `flutter test` green. `test/widget_test.dart` signs in and opens every route at iPhone 15 and iPhone SE sizes, failing on any runtime error including layout overflow (it renders with the bundled Plus Jakarta Sans). Run it after touching screens.
+5. **Me tab** reads the Daily 10 (streak = days at 7+/10, today's score, week average, per-lane ticks).
 
 Still to do: run on a physical iPhone (needs macOS + Xcode; see below). Production mode still has only 5 Supabase gateways — the rest are mock.
 

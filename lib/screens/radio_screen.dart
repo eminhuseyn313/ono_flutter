@@ -169,7 +169,7 @@ class _RadioScreenState extends State<RadioScreen>
               margin: const EdgeInsets.only(right: 10),
               padding: const EdgeInsets.symmetric(
                 horizontal: 16,
-                vertical: 10,
+                vertical: 4,
               ),
               decoration: BoxDecoration(
                 color: isSelected

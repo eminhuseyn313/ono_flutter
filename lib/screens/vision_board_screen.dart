@@ -236,7 +236,7 @@ class _VisionBoardScreenState extends State<VisionBoardScreen>
         itemBuilder: (context, index) {
           final quote = provider.quotes[index];
           return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             decoration: BoxDecoration(
               color: AppColors.card,
               borderRadius: BorderRadius.circular(14),

@@ -222,7 +222,7 @@ class LaneRanking {
       case 'mind':
         return const Color(0xFF4A2F18);
       case 'body':
-        return const Color(0xFF164E63);
+        return const Color(0xFF2A3A4A);
       case 'social':
         return const Color(0xFF064E3B);
       case 'skill':

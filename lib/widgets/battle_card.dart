@@ -19,13 +19,13 @@ class BattleCard extends StatelessWidget {
     if (remaining.isNegative) return 'Ended';
     if (remaining.inDays > 0) {
       final hours = remaining.inHours % 24;
-      return '\${remaining.inDays}d \${hours}h left';
+      return '${remaining.inDays}d ${hours}h left';
     }
     if (remaining.inHours > 0) {
       final minutes = remaining.inMinutes % 60;
-      return '\${remaining.inHours}h \${minutes}m left';
+      return '${remaining.inHours}h ${minutes}m left';
     }
-    return '\${remaining.inMinutes}m left';
+    return '${remaining.inMinutes}m left';
   }
 
   @override
@@ -282,7 +282,7 @@ class _BattleSide extends StatelessWidget {
 
         // Progress count
         Text(
-          '\$progress/\$target',
+          '$progress/$target',
           style: TextStyle(
             color: AppColors.grey,
             fontSize: 12,

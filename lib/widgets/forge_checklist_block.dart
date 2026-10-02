@@ -178,7 +178,7 @@ class _ForgeChecklistBlockState extends State<ForgeChecklistBlock> {
                           color: checked
                               ? const Color(0xFF6FA386)
                               : isDark
-                                  ? const Color(0xFF3A3C4E)
+                                  ? const Color(0xFF33363D)
                                   : Colors.grey.shade400,
                           width: 1.5,
                         ),

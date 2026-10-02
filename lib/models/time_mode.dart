@@ -119,7 +119,7 @@ class TimeModeConfig {
     displayName: 'Dawn',
     emoji: '🌅',
     gradient: [
-      Color(0xFF1A0533), // deep violet
+      Color(0xFF17140F), // deep violet
       Color(0xFF4A2F18), // purple dark
       Color(0xFFD97706), // amber
       Color(0xFFE8C46A), // warm gold
@@ -176,8 +176,8 @@ class TimeModeConfig {
     displayName: 'Evening',
     emoji: '🌇',
     gradient: [
-      Color(0xFF0F172A), // dark blue-grey
-      Color(0xFF581C87), // deep purple
+      Color(0xFF15171B), // dark blue-grey
+      Color(0xFF4A2F18), // deep purple
       Color(0xFFB45309), // warm orange-brown
       Color(0xFFE0605A), // sunset red
     ],
@@ -205,9 +205,9 @@ class TimeModeConfig {
     displayName: 'Night',
     emoji: '🌙',
     gradient: [
-      Color(0xFF030712), // near black
+      Color(0xFF0C0D0F), // near black
       Color(0xFF0C0D0F), // background
-      Color(0xFF1E1B4B), // indigo midnight
+      Color(0xFF1E2126), // indigo midnight
     ],
     accentColor: Color(0xFFE8C46A), // amber
     hourStart: 21,

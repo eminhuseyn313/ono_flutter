@@ -166,7 +166,7 @@ class _WakzChallengesScreenState extends State<WakzChallengesScreen>
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _StatItem(
-                value: '\${stats.totalChallengesCompleted}',
+                value: '${stats.totalChallengesCompleted}',
                 label: 'Completed',
                 color: AppColors.purple,
               ),
@@ -176,7 +176,7 @@ class _WakzChallengesScreenState extends State<WakzChallengesScreen>
                 color: AppColors.divider,
               ),
               _StatItem(
-                value: '\${stats.totalVerified}',
+                value: '${stats.totalVerified}',
                 label: 'Verified',
                 color: AppColors.cyan,
               ),
@@ -186,7 +186,7 @@ class _WakzChallengesScreenState extends State<WakzChallengesScreen>
                 color: AppColors.divider,
               ),
               _StatItem(
-                value: '\${stats.currentWinStreak}',
+                value: '${stats.currentWinStreak}',
                 label: 'Win Streak',
                 color: AppColors.green,
               ),

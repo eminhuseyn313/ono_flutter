@@ -114,7 +114,7 @@ class RadioItemCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: (item.isMorning
                               ? const Color(0xFFFF9800)
-                              : const Color(0xFF5C6BC0))
+                              : const Color(0xFF7C9CC4))
                           .withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(6),
                     ),
@@ -142,7 +142,7 @@ class RadioItemCard extends StatelessWidget {
   Color get _platformColor => switch (item.platform) {
         RadioPlatform.spotify => const Color(0xFF1DB954),
         RadioPlatform.youtube => const Color(0xFFFF0000),
-        RadioPlatform.applePodcasts => const Color(0xFF9933CC),
+        RadioPlatform.applePodcasts => const Color(0xFFC49AC0),
         RadioPlatform.amazon => const Color(0xFFFF9900),
         RadioPlatform.web => AppColors.cyan,
       };

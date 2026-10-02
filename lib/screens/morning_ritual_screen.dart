@@ -197,7 +197,7 @@ class _MorningRitualScreenState extends State<MorningRitualScreen>
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFF111214), Color(0xFF0C0D0F), Color(0xFF0D0B1A)],
+            colors: [Color(0xFF111214), Color(0xFF0C0D0F), Color(0xFF0E1012)],
           ),
         ),
         child: SafeArea(

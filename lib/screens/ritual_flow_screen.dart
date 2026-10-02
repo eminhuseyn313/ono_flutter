@@ -161,7 +161,7 @@ class _RitualFlowScreenState extends State<RitualFlowScreen> {
                   end: Alignment.bottomRight,
                   colors: [
                     AppColors.background,
-                    Color(0xFF10122A),
+                    Color(0xFF111214),
                     AppColors.background,
                   ],
                 ),
