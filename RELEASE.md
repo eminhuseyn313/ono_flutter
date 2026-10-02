@@ -3,10 +3,10 @@
 Bundle ID: `com.eminhuseynzade.ono` · Name: **ONO** · iPhone only · version in `pubspec.yaml` (`1.0.0+1` = version 1.0.0, build 1).
 
 ## 1. Simulator (today)
-Double-click **`Test on iPhone Simulator.command`**. The Simulator window opens first, then ONO appears in it after the build.
+Double-click **ONO Simulator** in the `ono_flutter` folder. Xcode 27 shows the simulated iPhone in Device Hub; older Xcode uses the Simulator window.
 
 ## 2. Your iPhone for a few days
-Double-click **`Install on my iPhone.command`** with the phone plugged in and unlocked. It walks you through:
+Double-click **ONO on iPhone** with the phone plugged in and unlocked. It walks you through:
 - Trust This Computer.
 - Developer Mode.
 - One-time signing in Xcode: pick your Team under Runner → Signing & Capabilities.

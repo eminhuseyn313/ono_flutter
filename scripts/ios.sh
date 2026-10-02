@@ -32,36 +32,28 @@ booted_iphone() {
   xcrun simctl list devices booted 2>/dev/null | grep -m1 -E 'iPhone' | grep -oE '[0-9A-F-]{36}' || true
 }
 
-# Simulator.app lives inside whichever Xcode is installed. Try its bundle id,
-# the Xcode that simctl comes from, xcode-select, /Applications, ~/Applications
-# and Spotlight, then AppleScript.
+# Show the simulated iPhone [udid] on screen.
+# Xcode 27+: Simulator.app is gone; Device Hub (DeviceHub.app, bundle id
+# com.apple.dt.Devices, in Xcode.app/Contents/Applications) replaces it and
+# opens a device via devices://device/open?id=<udid>.
+# Xcode 26 and older: Simulator.app (com.apple.iphonesimulator).
 open_simulator() {
-  local err
-  err=$(open -b com.apple.iphonesimulator 2>&1) && return 0
-  echo "  open by bundle id: ${err:-failed}"
-  local dev app
-  dev="$(dirname "$(dirname "$(dirname "$(xcrun --find simctl 2>/dev/null || echo /x/x/x/x)")")")"
-  for app in \
-    "$dev/Applications/Simulator.app" \
-    "$(xcode-select -p 2>/dev/null)/Applications/Simulator.app" \
-    /Applications/Xcode*.app/Contents/Developer/Applications/Simulator.app \
-    "$HOME"/Applications/Xcode*.app/Contents/Developer/Applications/Simulator.app \
-    "$(mdfind "kMDItemCFBundleIdentifier == 'com.apple.iphonesimulator'" 2>/dev/null | head -1 || true)"; do
-    if [ -n "$app" ] && [ -d "$app" ]; then
-      err=$(open "$app" 2>&1) && return 0
-      echo "  open $app: ${err:-failed}"
-    fi
+  local udid="${1:-}" xcode app err tried=""
+  xcode="$(xcode-select -p 2>/dev/null)"; xcode="${xcode%/Contents/Developer}"
+  try() { tried="$tried\n  $*"; err=$("$@" 2>&1) && return 0; tried="$tried → ${err:-failed}"; return 1; }
+
+  if [ -n "$udid" ]; then try open "devices://device/open?id=$udid" && return 0; fi
+  try open -b com.apple.dt.Devices && return 0
+  for app in "$xcode/Contents/Applications/DeviceHub.app" /Applications/Xcode*.app/Contents/Applications/DeviceHub.app; do
+    [ -d "$app" ] && try open "$app" && return 0
   done
-  echo "  Simulator.app not found under: $dev/Applications, $(xcode-select -p 2>/dev/null)/Applications, /Applications/Xcode*.app"
-  osascript -e 'tell application id "com.apple.iphonesimulator" to activate' >/dev/null 2>&1 && return 0
-  say "Your Xcode has no Simulator app, so the app runs but there is no window to show it."
-  cat <<'EOF'
-Fix it once, then run this again:
-  1. Xcode → Open Developer Tool → Simulator. If that opens, you're done.
-  2. Otherwise Xcode → Settings → Components: install iOS.
-  3. Still missing: delete Xcode and install it again from the App Store.
-Or test on your iPhone instead:  bash "Install on my iPhone.command"
-EOF
+  try open -b com.apple.iphonesimulator && return 0
+  for app in "$xcode/Contents/Developer/Applications/Simulator.app" /Applications/Xcode*.app/Contents/Developer/Applications/Simulator.app; do
+    [ -d "$app" ] && try open "$app" && return 0
+  done
+  say "Couldn't open Device Hub / Simulator. ONO still runs on the simulated iPhone."
+  printf "Tried:%b\n" "$tried"
+  echo "Open it by hand: Xcode → Window → Device Hub (or Open Developer Tool → Simulator)."
   return 0
 }
 

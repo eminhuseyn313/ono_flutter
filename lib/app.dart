@@ -80,6 +80,13 @@ class _OnoAppState extends State<OnoApp> {
         darkTheme: AppTheme.dark,
         themeMode: ThemeMode.dark,
         routerConfig: _router,
+        // The iPhone number pad has no Return key: tapping outside a field
+        // is the only way to close it.
+        builder: (context, child) => GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+          child: child,
+        ),
       ),
     );
   }

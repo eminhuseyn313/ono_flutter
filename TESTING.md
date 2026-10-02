@@ -1,25 +1,17 @@
 # ONO — test checklist
 
-## Simulator on your Mac
+## One click
 
-1. **First time only — get the new launchers.** Open **Terminal** and paste:
-   ```bash
-   cd ~/Downloads/ono_flutter && git checkout main && git pull
-   ```
-2. In **Finder**, open the `ono_flutter` folder and **double-click** one of:
-   - **`Test in Chrome.command`** — opens the app in Chrome. No Xcode needed. Quickest.
-   - **`Test on iPhone Simulator.command`** — opens a virtual iPhone. Needs Xcode.
-3. A Terminal window shows progress. The first start takes 1–5 minutes.
-   Press `q` in that window to stop.
+In **Finder**, open `Downloads/ono_flutter` and double-click:
+- **ONO Simulator**: builds ONO and shows it on a simulated iPhone. Xcode 27 shows it in **Device Hub**; older Xcode uses Simulator.
+- **ONO on iPhone**: installs ONO on your plugged-in iPhone so you can use it for days.
 
-If macOS says it can't open the file: right-click it → **Open** → **Open**.
-If Terminal says "Syncing files to device" but no iPhone window appears: press
-⌘-Space, type **Simulator**, press Enter — the app is already running in it.
-In the app, tap **Begin** and create an account with any email and a 6+ character password.
+Each one opens a Terminal window that shows progress. Leave that window open.
+Both pull the latest `main` first, so you never need to run `git pull` yourself.
+The first build takes a few minutes.
 
-## Real iPhone
-Plug the iPhone in, unlock it, and double-click **`Install on my iPhone.command`**.
-It walks you through Trust, Developer Mode and the one-time signing step.
+If macOS asks whether to open an app downloaded from the internet, click **Open**.
+In ONO, tap **Begin** and create an account with any email and a 6+ character password.
 App Store / TestFlight steps: see `RELEASE.md`.
 
 ## Browser link (no Xcode)

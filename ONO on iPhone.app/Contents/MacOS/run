@@ -1,0 +1,6 @@
+#!/bin/bash
+# One click: open the launcher in Terminal (works even if Finder has no app
+# set for .command files).
+REPO="$(cd "$(dirname "$0")/../../.." && pwd)"
+chmod +x "$REPO"/*.command 2>/dev/null
+open -a Terminal "$REPO/Install on my iPhone.command"

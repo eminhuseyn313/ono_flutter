@@ -101,7 +101,12 @@ flutter run -t lib/main_production.dart
 - `flutter test`:
   - `test/widget_test.dart` covers first run (welcome → commission), then commissions and opens every route, plus all content links, at 393×852 and 375×667. It fails on any runtime error, overflow or dead route.
   - `test/providers/personal_system_provider_test.dart` covers timeline, scores, streaks, protein, mastery, gym, month stats, briefs, export/import and reminders.
-- Manual: double-click `Test in Chrome.command` or `Test on iPhone Simulator.command` (they pull `main`; shared setup in `scripts/common.sh`). Checklist: `TESTING.md`.
+- Manual testing uses one-click apps at the repo root, `ONO Simulator.app` and `ONO on iPhone.app`.
+  - Each is a script bundle that runs `open -a Terminal` on its `.command`.
+  - The launchers pull `main` and stash files that Flutter or Xcode rewrote (`scripts/common.sh`).
+  - iOS helpers live in `scripts/ios.sh`. Xcode 27 replaced Simulator.app with Device Hub (`com.apple.dt.Devices`, opened via `devices://device/open?id=<udid>`); the helper supports both.
+- Checklist: `TESTING.md`.
+- `test/widget_test.dart` also renders with real iPhone insets (Dynamic Island and SE) and fails on text under the status bar.
 - The web build here needs `--no-web-resources-cdn` when the CDN is unreachable.
 
 ### Physical iPhone & release

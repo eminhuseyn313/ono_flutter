@@ -58,6 +58,21 @@ Future<void> _go(WidgetTester tester, String route) async {
   await _pumpFor(tester, const Duration(milliseconds: 1500));
 }
 
+/// Text drawn under the status bar / Dynamic Island (hidden on a real iPhone).
+List<String> _underStatusBar(double topInset) {
+  final out = <String>[];
+  for (final e in find.byType(RichText).evaluate()) {
+    final box = e.renderObject;
+    if (box is! RenderBox || !box.hasSize || box.size.isEmpty) continue;
+    final r = box.localToGlobal(Offset.zero) & box.size;
+    if (r.top < topInset - 0.5 && r.bottom > 0) {
+      final text = (e.widget as RichText).text.toPlainText();
+      out.add('under status bar: "${text.length > 30 ? text.substring(0, 30) : text}" at y=${r.top.toStringAsFixed(0)}');
+    }
+  }
+  return out;
+}
+
 void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues({});
@@ -95,6 +110,12 @@ void main() {
         '(${size.width ~/ 3}×${size.height ~/ 3})', (tester) async {
       tester.view.physicalSize = size;
       tester.view.devicePixelRatio = 3;
+      // Real insets: Dynamic Island + home indicator vs. SE status bar.
+      final notch = size.height > 2200;
+      final topInset = notch ? 59.0 : 20.0;
+      final insets = FakeViewPadding(top: topInset * 3, bottom: notch ? 34 * 3 : 0);
+      tester.view.padding = insets;
+      tester.view.viewPadding = insets;
       addTearDown(tester.view.reset);
       final errors = _captureErrors(tester);
 
@@ -158,6 +179,7 @@ void main() {
           continue;
         }
         await _go(tester, route);
+        errors.addAll(_underStatusBar(topInset));
         if (errors.isNotEmpty) failures[route] = errors.toSet();
       }
 
