@@ -4,7 +4,13 @@ source "$(dirname "$0")/scripts/common.sh"
 
 command -v xcrun >/dev/null 2>&1 || fail "Xcode isn't installed. Install it from the App Store, open it once, then run this again — or use 'Test in Chrome' instead."
 
-say "Updating Flutter so it supports the latest iOS simulators (can take a few minutes)…"
+# This app only targets iOS and web here, so skip the large Android
+# downloads that `flutter upgrade` would otherwise fetch.
+flutter config --no-enable-android >/dev/null 2>&1 || true
+
+say "Updating Flutter so it supports the latest iOS simulators…"
+echo "This downloads a few hundred MB once. On a slow connection it can take 10+ minutes."
+echo "It is working as long as new lines keep appearing. Press Ctrl+C to cancel."
 flutter upgrade || say "Flutter upgrade failed — continuing with the current version."
 flutter pub get >/dev/null
 
