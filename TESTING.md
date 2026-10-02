@@ -1,6 +1,13 @@
 # ONO — test checklist
 
-## Start here (easiest)
+## Easiest: open the link (no Xcode, no Terminal)
+
+Open **https://claude.ai/artifact/PrmHk7YA9w96nyZhesjKbt** on your iPhone (Safari) or laptop while
+signed in to claude.ai. It is the full app running in the browser; data stays in that browser.
+Sign up with any email and a 6+ character password (not "Continue with Google").
+On iPhone: Share → **Add to Home Screen** to open it like an app.
+
+## Run it on your Mac
 
 1. **First time only — get the new launchers.** Open **Terminal** and paste:
    ```bash
