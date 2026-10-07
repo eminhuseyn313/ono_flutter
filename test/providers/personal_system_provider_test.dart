@@ -10,10 +10,12 @@ import 'package:ono/providers/personal_system_provider.dart';
 import 'package:ono/router.dart';
 import 'package:ono/services/app_shortcuts.dart';
 import 'package:ono/services/brief_generator.dart';
+import 'package:ono/services/calendar_service.dart';
 import 'package:ono/services/health_service.dart';
 import 'package:ono/services/reminder_service.dart';
 import 'package:ono/services/widget_sync.dart';
 
+import '../support/fake_calendar.dart';
 import '../support/fake_health.dart';
 
 /// Friday 2 Oct 2026, noon. The program starts Tue 1 Sep → day 32, month 2.
@@ -688,5 +690,70 @@ void main() {
       expect(m.isError || m.matches.isEmpty, isFalse, reason: s.route);
     }
     expect(routeForShortcut('nope'), isNull);
+  });
+
+  test('calendar: meetings today, nudges before real ones, key people',
+      () async {
+    final r = _RecordingReminders();
+    final day = dayOnly(_today); // _today is 12:00
+    Meeting m(String id, String title, int h, int min, int len,
+            [List<String> who = const ['A', 'B']]) =>
+        Meeting(
+            id: id,
+            title: title,
+            start: day.add(Duration(hours: h, minutes: min)),
+            end: day.add(Duration(hours: h, minutes: min + len)),
+            attendees: who);
+    final cal = FakeCalendarService(meetings: [
+      m('past', 'Standup', 9, 30, 15),
+      m('lunch', 'Squad sync', 12, 0, 30),
+      m('ali', '1:1', 15, 0, 30, ['Ali Mammadov', 'Emin']),
+      m('focus', 'Focus: PR/FAQ', 16, 0, 90, const []),
+      m('rustam', 'Roadmap with Rustam', 17, 0, 60, const []),
+    ]);
+    final p = PersonalSystemProvider(
+        gateway: MockPersonalSystemGateway(), reminders: r, calendar: cal)
+      ..clock = () => _today;
+    await p.load('test');
+    await p.commission(start: _start, gymDays: const [1, 3, 5], reminders: const {});
+    expect(p.meetingsFor(_today), isEmpty, reason: 'not connected yet');
+
+    expect(await p.connectCalendar(), isNull);
+    expect(p.calendarConnected, isTrue);
+    expect(p.meetingsFor(_today).length, 5);
+    expect(p.meetingsFor(_today.add(const Duration(days: 1))), isEmpty);
+    // Focus block has nobody in it; the rest are real.
+    expect(p.meetingHours(_today), 0.25 + 0.5 + 0.5 + 1);
+    expect(p.lunchReadAtRisk(_today), isTrue);
+    expect(PersonalSystemProvider.isKeyMeeting(cal.meetings[2]), isTrue);
+    expect(PersonalSystemProvider.isKeyMeeting(cal.meetings[4]), isTrue);
+    expect(PersonalSystemProvider.isKeyMeeting(cal.meetings[1]), isFalse);
+    // "Alina" isn't Ali.
+    expect(
+        PersonalSystemProvider.isKeyMeeting(
+            m('x', 'Coffee', 9, 0, 10, ['Alina K', 'Emin'])),
+        isFalse);
+
+    // Nudges only for real meetings still ahead: 15:00 and 17:00.
+    expect(r.once.values.toList()..sort(), [
+      day.add(const Duration(hours: 14, minutes: 50)),
+      day.add(const Duration(hours: 16, minutes: 50)),
+    ]);
+    // Meetings never go into saved state.
+    expect(p.exportJson(), isNot(contains('Roadmap with Rustam')));
+
+    await p.disconnectCalendar();
+    expect(r.once, isEmpty);
+    expect(p.meetingsFor(_today), isEmpty);
+  });
+
+  test('calendar refused: explains where to allow it', () async {
+    final p = PersonalSystemProvider(
+        gateway: MockPersonalSystemGateway(),
+        calendar: FakeCalendarService(grant: false))
+      ..clock = () => _today;
+    await p.load('test');
+    expect(await p.connectCalendar(), contains('Settings'));
+    expect(p.calendarConnected, isFalse);
   });
 }

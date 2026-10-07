@@ -157,6 +157,7 @@ class MeScreen extends StatelessWidget {
             action: 'Check in', onAction: () => context.push('/checkin')),
         const _Mornings(),
         const _AppleHealth(),
+        const _CalendarLink(),
         const SectionHeader('What moves your day'),
         const _Patterns(),
         const SectionHeader('Body'),
@@ -584,6 +585,43 @@ class _Mornings extends StatelessWidget {
 
 /// Apple Health link: last night's sleep, HRV and resting heart rate.
 /// Sleep before 22:45 ticks "In bed by 10:30pm" automatically.
+/// Calendar link for meeting prep; meetings stay on the phone.
+class _CalendarLink extends StatelessWidget {
+  const _CalendarLink();
+
+  @override
+  Widget build(BuildContext context) {
+    final system = context.watch<PersonalSystemProvider>();
+    if (!system.calendarSupported) return const SizedBox.shrink();
+    final on = system.calendarConnected;
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: OnoCard(
+        padding: EdgeInsets.zero,
+        child: LinkRow(
+          icon: Icons.event_rounded,
+          color: AppColors.skill,
+          title: on ? 'Calendar connected' : 'Connect your calendar',
+          subtitle: on
+              ? 'Today shows your meetings; a nudge 10 min before each. Tap to disconnect.'
+              : 'Today shows your meetings; 10 min before each: sigh, or six questions for Ali and Rustam. Read-only, stays on the phone.',
+          onTap: () async {
+            if (on) {
+              await system.disconnectCalendar();
+              if (context.mounted) toast(context, 'Calendar disconnected.');
+              return;
+            }
+            final err = await system.connectCalendar();
+            if (context.mounted) {
+              toast(context, err ?? 'Connected — today\'s meetings are on Today.');
+            }
+          },
+        ),
+      ),
+    );
+  }
+}
+
 class _AppleHealth extends StatelessWidget {
   const _AppleHealth();
 

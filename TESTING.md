@@ -74,6 +74,12 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] Domain scan → Start 15 min → lock the phone → a "15 minutes done" notification arrives; reopening shows the right time left
 - [ ] Sunday report with 2+ weeks of check-ins → the brief may quote a pattern "from your own last 60 days"
 
+## 2h. New: meetings
+- [ ] Me → **Connect your calendar** → Allow. Your work calendar must be on the iPhone (Settings → Calendar → Accounts)
+- [ ] Today → **Meetings**: today's meetings with other people, hours in meetings; a warning if one covers 12:00
+- [ ] A meeting with Ali or Rustam shows **6 Qs**; others show **Sigh**
+- [ ] 10 minutes before a meeting a nudge arrives; tapping it opens six questions or the sigh
+
 ## 3. Tools & logging
 - [ ] Morning ritual (from Today before 11:00): 5 steps → finishing ticks the manifesto
 - [ ] Sigh tool: run it → "uses" and mastery level go up; the sigh item is ticked

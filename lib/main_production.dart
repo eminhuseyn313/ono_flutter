@@ -20,6 +20,7 @@ import 'gateways/supabase_auth_gateway.dart';
 import 'gateways/supabase_personal_system_gateway.dart';
 import 'services/brief_generator.dart';
 import 'services/app_shortcuts.dart';
+import 'services/calendar_service.dart';
 import 'services/health_service.dart';
 import 'services/reminder_service.dart';
 import 'services/widget_sync.dart';
@@ -45,6 +46,7 @@ void main() async {
     reminders: kIsWeb ? NoopReminderService() : LocalReminderService(),
     health: createHealthService(),
     widgets: createWidgetSync(),
+    calendar: createCalendarService(),
     shortcuts: kIsWeb ? const NoopAppShortcuts() : QuickActionShortcuts(),
     briefGenerator: RemoteBriefGenerator((body) async {
       final res = await client.functions.invoke('weekly-brief', body: body);

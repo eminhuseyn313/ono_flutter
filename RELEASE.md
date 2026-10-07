@@ -70,3 +70,4 @@ For App Store review:
 - Dark launch screen.
 - Portrait only.
 - Local notifications (no extra permissions text needed).
+- Calendar usage text (read-only meeting prep); declare nothing extra in App Privacy, since meetings never leave the phone.

@@ -46,6 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
     await system.load(context.read<AuthProvider>().userId);
     if (mounted && !system.isCommissioned) context.go('/commission');
     await system.syncHealth();
+    await system.syncCalendar();
     await system.refreshWidget();
   }
 
@@ -112,7 +113,9 @@ class _HomeScreenState extends State<HomeScreen> {
           backgroundColor: AppColors.card,
           onRefresh: () async {
             setState(() => _now = DateTime.now());
-            await context.read<PersonalSystemProvider>().syncHealth();
+            final system = context.read<PersonalSystemProvider>();
+            await system.syncHealth();
+            await system.syncCalendar();
           },
           child: ListView(
             padding: EdgeInsets.fromLTRB(
@@ -174,6 +177,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     streak: system.streak),
               ],
               if (!_yesterday && system.hasStarted) _Prompts(now: _now),
+              if (!_yesterday) _MeetingsCard(now: _now),
               SectionHeader('Daily 10',
                   action: 'If-then plans',
                   onAction: () => context.push('/plans')),
@@ -616,6 +620,94 @@ class _FreshStartCard extends StatelessWidget {
           }),
         ],
       ),
+    );
+  }
+}
+
+/// Today's real meetings from the iPhone calendar, with the prep each needs.
+class _MeetingsCard extends StatelessWidget {
+  final DateTime now;
+  const _MeetingsCard({required this.now});
+
+  static String _hm(DateTime t) =>
+      '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+
+  @override
+  Widget build(BuildContext context) {
+    final system = context.watch<PersonalSystemProvider>();
+    final all = system
+        .meetingsFor(now)
+        .where(PersonalSystemProvider.isRealMeeting)
+        .toList();
+    final ahead = all.where((m) => m.end.isAfter(now)).toList();
+    if (ahead.isEmpty) return const SizedBox.shrink();
+    final hours = system.meetingHours(now);
+    final notes = [
+      '${all.length} meeting${all.length == 1 ? '' : 's'} · ${hours.toStringAsFixed(hours % 1 == 0 ? 0 : 1)} h',
+      if (system.lunchReadAtRisk(now)) 'one covers the 12:00 read — move the read, don\'t drop it',
+    ];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SectionHeader('Meetings'),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Text(notes.join(' · '),
+              style: AppText.small(
+                  color: notes.length > 1 ? AppColors.warning : AppColors.grey)),
+        ),
+        OnoCard(
+          padding: const EdgeInsets.fromLTRB(14, 4, 4, 4),
+          child: Column(
+            children: [
+              for (final m in ahead.take(4))
+                _MeetingRow(
+                    time: '${_hm(m.start)}–${_hm(m.end)}',
+                    title: m.title,
+                    keyMeeting: PersonalSystemProvider.isKeyMeeting(m),
+                    now: !m.start.isAfter(now)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MeetingRow extends StatelessWidget {
+  final String time;
+  final String title;
+  final bool keyMeeting;
+  final bool now;
+  const _MeetingRow(
+      {required this.time,
+      required this.title,
+      required this.keyMeeting,
+      required this.now});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        SizedBox(
+          width: 92,
+          child: Text(now ? 'Now' : time,
+              style: AppText.small(
+                  color: now ? AppColors.accent : AppColors.grey)),
+        ),
+        Expanded(
+          child: Text(title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppText.body(
+                  color: keyMeeting ? AppColors.white : AppColors.greyLight)),
+        ),
+        TextButton(
+          onPressed: () =>
+              context.push(keyMeeting ? '/tool/sixq' : '/tool/sigh'),
+          child: Text(keyMeeting ? '6 Qs' : 'Sigh'),
+        ),
+      ],
     );
   }
 }

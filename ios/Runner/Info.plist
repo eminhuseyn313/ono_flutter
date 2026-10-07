@@ -24,6 +24,10 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>ONO shows today's meetings and reminds you to prepare 10 minutes before each. It only reads your calendar.</string>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>ONO shows today's meetings and reminds you to prepare 10 minutes before each. It only reads your calendar.</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>ONO reads your sleep, heart-rate variability and resting heart rate to fill your morning check-in and tick "In bed by 10:30pm" for you.</string>
 	<key>NSHealthUpdateUsageDescription</key>

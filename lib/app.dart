@@ -9,6 +9,7 @@ import 'providers/personal_system_provider.dart';
 import 'router.dart';
 import 'services/app_shortcuts.dart';
 import 'services/brief_generator.dart';
+import 'services/calendar_service.dart';
 import 'services/health_service.dart';
 import 'services/reminder_service.dart';
 import 'services/widget_sync.dart';
@@ -24,6 +25,7 @@ class OnoApp extends StatefulWidget {
   final HealthService? health;
   final WidgetSync? widgets;
   final AppShortcuts shortcuts;
+  final CalendarService? calendar;
 
   const OnoApp({
     super.key,
@@ -34,6 +36,7 @@ class OnoApp extends StatefulWidget {
     this.health,
     this.widgets,
     this.shortcuts = const NoopAppShortcuts(),
+    this.calendar,
   });
 
   @override
@@ -55,6 +58,7 @@ class _OnoAppState extends State<OnoApp> {
       briefGenerator: widget.briefGenerator,
       health: widget.health,
       widgets: widget.widgets,
+      calendar: widget.calendar,
     );
     _router = createRouter(_auth);
     _auth.addListener(_onAuth);

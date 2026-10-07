@@ -977,6 +977,9 @@ const List<CareerMilestone> careerMilestones = [
 // Daily 10 non-negotiables
 // ------------------------------------------------------------
 
+/// People whose meetings get the full six-questions-deep prep.
+const List<String> keyPeople = ['Ali', 'Rustam'];
+
 const List<NonNegotiable> nonNegotiables = [
   NonNegotiable('manifesto', 'Read manifesto this morning', 'mind', 'morning',
       route: '/manifesto'),

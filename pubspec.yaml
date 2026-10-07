@@ -33,6 +33,7 @@ dependencies:
   health: ^13.3.1
   home_widget: ^0.10.0
   quick_actions: ^1.1.1
+  device_calendar: ^3.9.0
 
 dev_dependencies:
   flutter_test:

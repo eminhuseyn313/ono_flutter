@@ -15,8 +15,10 @@ import 'package:ono/providers/auth_provider.dart';
 import 'package:ono/providers/personal_system_provider.dart';
 import 'package:ono/router.dart';
 import 'package:ono/screens/commission_screen.dart';
+import 'package:ono/services/calendar_service.dart';
 import 'package:ono/services/reminder_service.dart';
 
+import 'support/fake_calendar.dart';
 import 'support/fake_health.dart';
 
 /// The app has looping animations (dial needle, timers), so these tests
@@ -33,7 +35,30 @@ Widget _app() => OnoApp(
       personalGateway: MockPersonalSystemGateway(),
       reminders: NoopReminderService(),
       health: FakeHealthService(),
+      calendar: _calendar(),
     );
+
+/// A long meeting title, a key meeting and one over the 12:00 read, so
+/// Today's Meetings card renders every state.
+FakeCalendarService _calendar() {
+  final now = DateTime.now();
+  final d = DateTime(now.year, now.month, now.day);
+  final soon = now.add(const Duration(minutes: 5));
+  return FakeCalendarService(meetings: [
+    Meeting(
+        id: 'noon',
+        title: 'Business ID weekly sync',
+        start: d.add(const Duration(hours: 12)),
+        end: d.add(const Duration(hours: 13)),
+        attendees: const ['Leyla', 'Tural', 'Nigar']),
+    Meeting(
+        id: 'ali',
+        title: '1:1 Ali — pricing proposal for agent permissions and KYC v2 roadmap',
+        start: soon,
+        end: soon.add(const Duration(minutes: 45)),
+        attendees: const ['Ali Mammadov', 'Emin Huseynzade']),
+  ]);
+}
 
 /// Collects every runtime error, layout overflow included. Fonts are
 /// bundled in assets/google_fonts, so text is measured with the real fonts.
@@ -198,6 +223,7 @@ void main() {
       }
       system.saveAutomaticity({for (final n in nonNegotiables) n.id: 5});
       await system.connectHealth();
+      await system.connectCalendar();
       await _pumpFor(tester, const Duration(milliseconds: 500));
 
       final routes = <String>{
@@ -274,6 +300,15 @@ void main() {
         errors.add('$e');
       }
       if (errors.isNotEmpty) failures['/gym/push rest'] = errors.toSet();
+
+      // Today: the calendar's meetings, the key one with six-questions prep.
+      await _go(tester, '/home');
+      final prep = find.text('6 Qs');
+      for (var i = 0; i < 20 && prep.evaluate().isEmpty; i++) {
+        await tester.drag(find.byType(ListView).first, const Offset(0, -300));
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      if (prep.evaluate().isEmpty) failures['/home meetings'] = {'no meetings card'};
 
       // Me: the seeded caffeine cut-offs show as a pattern.
       await _go(tester, '/profile');

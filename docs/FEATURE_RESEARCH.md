@@ -148,6 +148,7 @@ These are logs to support conversations with your doctor, not medical advice. ON
 - **Built:** gym rest timer (the first half of #9, no native code): tick a set → 90 s rest (2 min on key lifts), +15 / Skip, haptics, and a notification when the rest ends if ONO is in the background.
 - **Built:** "What moves your day" on Me: personal patterns from his own logs (sleep → Daily 10, bedtime → morning energy, caffeine → sleep, gym → energy, ritual → the rest of the day). Each needs 5+ days on both sides; labelled as patterns, not proof.
 - **Built:** Home Screen quick actions (the no-entitlement part of #11), background-safe tool timers with an end notification, and patterns in the Sunday brief.
+- **Built:** meeting prep from the iPhone calendar: Today's Meetings card, a nudge 10 min before each real meeting (six questions for Ali/Rustam, the sigh otherwise), a lunch-read warning. Read-only, in memory only.
 - **Next:** the Lock Screen / Dynamic Island view of the rest timer (#9, native); interactive widget ticks (iOS 17 App Intents). Both after the current native build is confirmed on the iPhone.
 
 ## Suggested next build

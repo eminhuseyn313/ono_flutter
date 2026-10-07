@@ -132,6 +132,12 @@ Flow:
   - Weekly `sync` only cancels ids below `onceIdBase`, so a running rest survives a reminder resync.
 - **Tool timers** (`CountdownTimer` in `tool_screens.dart`) count from an end time, so they stay right after iOS suspends ONO, and notify at the end via `notifyTimerEnd` (id `timerNotificationId`).
 - **Home Screen shortcuts** (`lib/services/app_shortcuts.dart`, `quick_actions`): long-press the icon for check-in, protein, gym and review. `appShortcutList` routes must exist (tested). On a cold start `OnoApp` holds the route until sign-in is restored, then opens it over Today.
+- **Meetings** (`lib/services/calendar_service*.dart`, `device_calendar`, conditional import like Health; tests use `test/support/fake_calendar.dart`):
+  - Connected = `done` key `calendar:connected` (Me → Connect your calendar). Needs only the `NSCalendars*UsageDescription` strings, no entitlement.
+  - `syncCalendar()` runs on Today load and refresh. Meetings are held in memory only, never saved, exported or synced.
+  - `isRealMeeting` = 2+ attendees or a key meeting; `isKeyMeeting` = a `keyPeople` name (Ali, Rustam) as a whole word in the title or invitees.
+  - A nudge 10 min before each real meeting still ahead (ids from `onceIdBase + 100`, at most 8): `/tool/sixq` for key meetings, `/tool/sigh` otherwise.
+  - Today's Meetings card shows hours in meetings and warns when one covers the 12:00 read.
 - **Patterns** (`patterns()` → `DayPattern`, Me → "What moves your day"): compares an outcome on days with vs without a habit over the last 60 closed days. Needs `minDays` (5) on each side and a minimum gap; shown as patterns, not proof. The top three go into the Sunday brief (`BriefInput.patterns`).
 - **Sunday report** → `submitReport` → `BriefGenerator`:
   - `DeviceBriefGenerator` is rule-based and uses real data only.
@@ -170,5 +176,5 @@ flutter run -t lib/main_production.dart
 ## Not built (needs Xcode / native targets)
 The native parts can't be compiled here:
 - The widget's Swift code and the HealthKit/App Group signing are unverified until built on the Mac.
-- Live Activities, calendar-based meeting prep (EventKit) and on-device encryption of health fields are not built yet.
+- Live Activities and on-device encryption of health fields are not built yet. The calendar plugin (EventKit) is unverified until built on the Mac.
 - The project edits themselves are tested here with the xcodeproj gem. Row-level security protects the cloud copy.

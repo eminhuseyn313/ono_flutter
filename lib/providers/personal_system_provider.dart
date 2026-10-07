@@ -7,6 +7,7 @@ import '../data/emin_system.dart';
 import '../gateways/personal_system_gateway.dart';
 import '../models/personal_system.dart';
 import '../services/brief_generator.dart';
+import '../services/calendar_service.dart';
 import '../services/health_service.dart';
 import '../services/reminder_service.dart';
 import '../services/widget_sync.dart';
@@ -24,7 +25,9 @@ class PersonalSystemProvider extends ChangeNotifier {
     BriefGenerator? briefGenerator,
     HealthService? health,
     WidgetSync? widgets,
+    CalendarService? calendar,
   })  : _gateway = gateway,
+        _calendar = calendar ?? const NoopCalendarService(),
         _reminders = reminders,
         _briefs = briefGenerator ?? DeviceBriefGenerator(),
         _health = health ?? const NoopHealthService(),
@@ -34,6 +37,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   Timer? _widgetTimer;
 
   final HealthService _health;
+  final CalendarService _calendar;
 
   static const _gymId = 'gym';
   static const _fallbackUser = 'local';
@@ -1332,6 +1336,101 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   Future<void> cancelTimerEnd() async =>
       _reminders?.cancel(timerNotificationId);
+
+  // ── Meetings (iPhone calendar) ───────────────────────────────────────
+
+  bool get calendarSupported => _calendar.isSupported;
+  bool get calendarConnected => isDone('calendar:connected');
+
+  /// Kept in memory only: meeting titles and attendees never go into the
+  /// saved state, the export or the cloud copy.
+  List<Meeting> _meetings = const [];
+  DateTime? _meetingsDay;
+
+  static const _nudgeBase = onceIdBase + 100;
+  static const maxMeetingNudges = 8;
+
+  /// Null when connected; otherwise what to do.
+  Future<String?> connectCalendar() async {
+    if (!_calendar.isSupported) return 'The calendar is available on the iPhone app.';
+    if (!await _calendar.connect()) {
+      return 'Calendar access was refused. Allow it in Settings → Privacy & Security → Calendars → ONO.';
+    }
+    setDone('calendar:connected', true);
+    await syncCalendar();
+    return null;
+  }
+
+  Future<void> disconnectCalendar() async {
+    setDone('calendar:connected', false);
+    _meetings = const [];
+    _meetingsDay = null;
+    await _cancelMeetingNudges();
+    notifyListeners();
+  }
+
+  List<Meeting> meetingsFor(DateTime day) =>
+      _meetingsDay != null && dayOnly(day) == _meetingsDay ? _meetings : const [];
+
+  /// With Ali or Rustam (in the title or the invite).
+  static bool isKeyMeeting(Meeting m) => keyPeople.any((name) {
+        final re = RegExp('\\b${RegExp.escape(name)}\\b', caseSensitive: false);
+        return re.hasMatch(m.title) || m.attendees.any(re.hasMatch);
+      });
+
+  /// Other people are in it (not a focus block or a reminder to self).
+  static bool isRealMeeting(Meeting m) =>
+      m.attendees.length >= 2 || isKeyMeeting(m);
+
+  /// Hours in real meetings on [day].
+  double meetingHours(DateTime day) =>
+      meetingsFor(day).where(isRealMeeting).fold<double>(
+          0, (s, m) => s + m.length.inMinutes / 60);
+
+  /// A real meeting overlaps the 12:00 lunch read.
+  bool lunchReadAtRisk(DateTime day) {
+    final d = dayOnly(day);
+    final from = d.add(const Duration(hours: 12));
+    final to = d.add(const Duration(hours: 12, minutes: 20));
+    return meetingsFor(day)
+        .where(isRealMeeting)
+        .any((m) => m.start.isBefore(to) && m.end.isAfter(from));
+  }
+
+  /// Loads today's meetings and sets a nudge 10 minutes before each real
+  /// one still ahead: six questions for key meetings, the sigh otherwise.
+  Future<void> syncCalendar() async {
+    if (!calendarConnected || !_calendar.isSupported) return;
+    final today = dayOnly(_now);
+    _meetings = await _calendar.meetingsOn(today);
+    _meetingsDay = today;
+    notifyListeners();
+    await _cancelMeetingNudges();
+    final r = _reminders;
+    if (r == null) return;
+    var i = 0;
+    for (final m in _meetings.where(isRealMeeting)) {
+      final at = m.start.subtract(const Duration(minutes: 10));
+      if (!at.isAfter(_now)) continue;
+      if (i >= maxMeetingNudges) break;
+      final key = isKeyMeeting(m);
+      await r.notifyOnce(_nudgeBase + i, at,
+          title: 'In 10 min: ${m.title}',
+          body: key
+              ? 'Six questions ready? Decision first, then three reasons. Sigh ×3 before you go in.'
+              : 'Sigh ×3 before you go in. One breath before every answer.',
+          route: key ? '/tool/sixq' : '/tool/sigh');
+      i++;
+    }
+  }
+
+  Future<void> _cancelMeetingNudges() async {
+    final r = _reminders;
+    if (r == null) return;
+    for (var i = 0; i < maxMeetingNudges; i++) {
+      await r.cancel(_nudgeBase + i);
+    }
+  }
 
   // ── Personal patterns ────────────────────────────────────────────────
 
