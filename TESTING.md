@@ -69,6 +69,11 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] Start a rest, lock the phone → a "Rest done" notification arrives when it ends
 - [ ] Me → **What moves your day**: empty at first; after 5+ days with and without a habit (e.g. caffeine cut-off, bedtime) a pattern shows, e.g. "No caffeine after 1pm → sleep that night 7.4 h vs 6.6 h"
 
+## 2g. New: shortcuts & timers
+- [ ] Long-press the ONO icon → Morning check-in / Log protein / Start gym session / Review cards → each opens straight there (also when ONO was closed)
+- [ ] Domain scan → Start 15 min → lock the phone → a "15 minutes done" notification arrives; reopening shows the right time left
+- [ ] Sunday report with 2+ weeks of check-ins → the brief may quote a pattern "from your own last 60 days"
+
 ## 3. Tools & logging
 - [ ] Morning ritual (from Today before 11:00): 5 steps → finishing ticks the manifesto
 - [ ] Sigh tool: run it → "uses" and mastery level go up; the sigh item is ticked

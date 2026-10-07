@@ -97,32 +97,66 @@ class CountdownTimer extends StatefulWidget {
 class _CountdownTimerState extends State<CountdownTimer> {
   Timer? _t;
   late int _left = widget.minutes * 60;
+
+  /// Counted from the end time, so it stays right after iOS suspends ONO.
+  DateTime? _endsAt;
+  late PersonalSystemProvider _system;
   bool get _running => _t != null;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _system = context.read<PersonalSystemProvider>();
+  }
+
+  String get _route {
+    try {
+      return GoRouterState.of(context).uri.toString();
+    } catch (_) {
+      return '/home';
+    }
+  }
 
   void _toggle() {
     HapticFeedback.selectionClick();
     if (_running) {
       _t!.cancel();
-      setState(() => _t = null);
+      _system.cancelTimerEnd();
+      setState(() {
+        _t = null;
+        _endsAt = null;
+      });
       return;
     }
+    _endsAt = DateTime.now().add(Duration(seconds: _left));
+    _system.notifyTimerEnd(_endsAt!,
+        title: '${widget.minutes} minutes done',
+        body: widget.label.isEmpty
+            ? 'Time is up.'
+            : 'Time is up — ${widget.label}.',
+        route: _route);
     setState(() {
-      _t = Timer.periodic(const Duration(seconds: 1), (_) {
-        if (!mounted) return;
-        setState(() => _left--);
-        if (_left <= 0) {
-          _t?.cancel();
-          _t = null;
-          HapticFeedback.heavyImpact();
-          widget.onDone?.call();
-        }
-      });
+      _t = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
     });
+  }
+
+  void _tick() {
+    if (!mounted || _endsAt == null) return;
+    final ms = _endsAt!.difference(DateTime.now()).inMilliseconds;
+    setState(() => _left = (ms / 1000).ceil().clamp(0, widget.minutes * 60));
+    if (_left <= 0) {
+      _t?.cancel();
+      _t = null;
+      _endsAt = null;
+      HapticFeedback.heavyImpact();
+      widget.onDone?.call();
+    }
   }
 
   @override
   void dispose() {
     _t?.cancel();
+    if (_endsAt != null) _system.cancelTimerEnd();
     super.dispose();
   }
 

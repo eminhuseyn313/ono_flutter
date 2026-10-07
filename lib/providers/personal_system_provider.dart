@@ -1179,6 +1179,7 @@ class PersonalSystemProvider extends ChangeNotifier {
         avgSleep: averageOf(weekCheckins, 'sleep'),
         readinessGap: readinessGap?.name,
         openFollowUps: openFollowUps.length,
+        patterns: patterns().map((p) => p.sentence).take(3).toList(),
         shoulderFlagDays:
             weekCheckins.where((c) => shoulderFlag(c.date)).length,
       ));
@@ -1316,6 +1317,21 @@ class PersonalSystemProvider extends ChangeNotifier {
   }
 
   Future<void> cancelRest() async => _reminders?.cancel(restNotificationId);
+
+  static const timerNotificationId = onceIdBase + 2;
+
+  /// Tool timers (scan, lunch read, Pennebaker): a notification at the end
+  /// in case ONO is in the background then.
+  Future<void> notifyTimerEnd(DateTime at,
+      {required String title,
+      required String body,
+      required String route}) async {
+    await _reminders?.notifyOnce(timerNotificationId, at,
+        title: title, body: body, route: route);
+  }
+
+  Future<void> cancelTimerEnd() async =>
+      _reminders?.cancel(timerNotificationId);
 
   // ── Personal patterns ────────────────────────────────────────────────
 
@@ -1541,4 +1557,8 @@ class DayPattern {
   }
 
   String fmt(double v) => '${v.toStringAsFixed(digits)}$unit';
+
+  /// "No caffeine after 1pm → sleep that night 7.5 h vs 6.0 h without".
+  String get sentence =>
+      '$habit → $outcome ${fmt(withHabit)} vs ${fmt(without)} without';
 }

@@ -24,6 +24,9 @@ class BriefInput {
   final String? readinessGap;
   final int openFollowUps;
 
+  /// "Habit → outcome X vs Y without" from his own logs, strongest first.
+  final List<String> patterns;
+
   const BriefInput({
     required this.report,
     required this.forWeek,
@@ -41,6 +44,7 @@ class BriefInput {
     this.shoulderFlagDays = 0,
     this.readinessGap,
     this.openFollowUps = 0,
+    this.patterns = const [],
   });
 
   Map<String, dynamic> toJson() => {
@@ -64,6 +68,7 @@ class BriefInput {
         'shoulder_flag_mornings': shoulderFlagDays,
         'readiness_gap': readinessGap,
         'open_one_on_one_followups': openFollowUps,
+        'personal_patterns': patterns,
       };
 }
 
@@ -175,6 +180,8 @@ class DeviceBriefGenerator implements BriefGenerator {
         'Shoulders flagged on ${input.shoulderFlagDays} mornings. Keep the shoulder-sparing sessions and bring the check-in log to your rheumatologist.',
       if (input.avgSleep != null && input.avgSleep! < 7)
         'Average sleep ${input.avgSleep!.toStringAsFixed(1)} h. Protect 22:30 before adding anything else — sleep sets tomorrow\'s mind.',
+      if (input.patterns.isNotEmpty)
+        'From your own last 60 days: ${input.patterns.first}. A pattern, not proof — but worth protecting this week.',
       if (strongest != null && (input.itemRates[strongest] ?? 0) >= 0.85)
         '${_titleFor[strongest]} is becoming automatic — keep it, stop thinking about it.',
     ];

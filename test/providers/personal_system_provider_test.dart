@@ -2,9 +2,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:ono/data/emin_system.dart';
+import 'package:ono/gateways/mock_auth_gateway.dart';
 import 'package:ono/gateways/mock_personal_system_gateway.dart';
+import 'package:ono/providers/auth_provider.dart';
 import 'package:ono/models/personal_system.dart';
 import 'package:ono/providers/personal_system_provider.dart';
+import 'package:ono/router.dart';
+import 'package:ono/services/app_shortcuts.dart';
 import 'package:ono/services/brief_generator.dart';
 import 'package:ono/services/health_service.dart';
 import 'package:ono/services/reminder_service.dart';
@@ -639,5 +643,50 @@ void main() {
     expect(p.patterns().any((x) => x.id == 'sleep_score'), isFalse);
     // Too few days on one side → nothing.
     expect(p.patterns(minDays: 11).any((x) => x.id == 'bed_energy'), isFalse);
+  });
+
+  test('the brief cites the strongest personal pattern', () async {
+    final p = await _commissioned(briefs: DeviceBriefGenerator());
+    for (var i = 2; i <= 21; i++) {
+      final d = _daysAgo(i);
+      if (i.isEven) p.setCheck(d, 'caffeine', true);
+      p.saveCheckin(d.add(const Duration(days: 1)),
+          energy: 3, mood: 0, sleep: i.isEven ? 7.5 : 6, pain: 0, stiffness: 0);
+    }
+    final brief = await p.submitReport(WeeklyReport(
+      id: 'r',
+      weekStart: weekStartOf(_today),
+      nonNegotiableAverage: 7,
+      gymSessions: 3,
+      bestMoment: '',
+      hardestMoment: '',
+      workSituation: '',
+      createdAt: _today,
+    ));
+    expect(brief!.adjustments.join(' '),
+        contains('No caffeine after 1pm → sleep that night 7.5 h vs 6.0 h without'));
+  });
+
+  test('tool timers notify at the end and cancel cleanly', () async {
+    final r = _RecordingReminders();
+    final p = await _commissioned(reminders: r);
+    final end = _today.add(const Duration(minutes: 15));
+    await p.notifyTimerEnd(end,
+        title: '15 minutes done', body: 'Time is up.', route: '/tool/scan');
+    expect(r.once[PersonalSystemProvider.timerNotificationId], end);
+    await p.startRest(end, next: 'x');
+    await p.cancelTimerEnd();
+    expect(r.once.keys, [PersonalSystemProvider.restNotificationId],
+        reason: 'the rest timer is separate');
+  });
+
+  test('every Home Screen shortcut opens a real route', () {
+    final router = createRouter(AuthProvider(gateway: MockAuthGateway()));
+    for (final s in appShortcutList) {
+      expect(routeForShortcut(s.type), s.route);
+      final m = router.configuration.findMatch(s.route);
+      expect(m.isError || m.matches.isEmpty, isFalse, reason: s.route);
+    }
+    expect(routeForShortcut('nope'), isNull);
   });
 }

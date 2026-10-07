@@ -7,6 +7,7 @@ import 'gateways/personal_system_gateway.dart';
 import 'providers/auth_provider.dart';
 import 'providers/personal_system_provider.dart';
 import 'router.dart';
+import 'services/app_shortcuts.dart';
 import 'services/brief_generator.dart';
 import 'services/health_service.dart';
 import 'services/reminder_service.dart';
@@ -22,6 +23,7 @@ class OnoApp extends StatefulWidget {
   final BriefGenerator? briefGenerator;
   final HealthService? health;
   final WidgetSync? widgets;
+  final AppShortcuts shortcuts;
 
   const OnoApp({
     super.key,
@@ -31,6 +33,7 @@ class OnoApp extends StatefulWidget {
     this.briefGenerator,
     this.health,
     this.widgets,
+    this.shortcuts = const NoopAppShortcuts(),
   });
 
   @override
@@ -56,13 +59,31 @@ class _OnoAppState extends State<OnoApp> {
     _router = createRouter(_auth);
     _auth.addListener(_onAuth);
     _auth.init();
-    widget.reminders.init(onOpen: (route) {
-      if (_auth.status == AuthStatus.authenticated) _router.push(route);
-    });
+    widget.reminders.init(onOpen: _open);
+    widget.shortcuts.init(onOpen: _open);
   }
 
-  void _onAuth() {
-    if (_auth.status == AuthStatus.authenticated) _system.load(_auth.userId);
+  /// A route from a notification or Home Screen shortcut. On a cold start
+  /// sign-in isn't restored yet, so it waits for it.
+  String? _pendingRoute;
+
+  void _open(String route) {
+    if (_auth.status == AuthStatus.authenticated) {
+      _router.push(route);
+    } else {
+      _pendingRoute = route;
+    }
+  }
+
+  Future<void> _onAuth() async {
+    if (_auth.status != AuthStatus.authenticated) return;
+    await _system.load(_auth.userId);
+    final route = _pendingRoute;
+    _pendingRoute = null;
+    if (route == null || !_system.isCommissioned) return;
+    // Today underneath, so Back from the shortcut's screen lands there.
+    _router.go('/home');
+    _router.push(route);
   }
 
   @override
