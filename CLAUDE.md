@@ -66,7 +66,7 @@ Bottom tabs: **Today** `/home` · **Program** `/program?tab=0..3` (Journey/Sched
 
 ```
 /splash /welcome /sign-up /sign-in /forgot-password /commission
-/manifesto /protocols /evidence /library /style /career /weekly-coaching /checkin /plans
+/manifesto /protocols /evidence /library /style /career /weekly-coaching /checkin /plans /review /habits /cockpit(?tab=0..2)
 /ritual-flow/:ritualId /gym /gym/:dayId (push|pull|legs) /month/:m (1–18)
 /tool/:id  sigh excited pause still bluf sixq read feynman scan pennebaker anki artifact(?month=) linkedin
 ```
@@ -96,6 +96,19 @@ Flow:
   - Me → Mornings shows the averages, the pain trend and a rheumatologist note at 3+ flagged days.
   - The Sunday brief gets avg energy, sleep and flag days.
   - Never give medication or supplement advice.
+- **Review deck** (`/review`):
+  - SM-2 scheduling via `CardSchedule.review` in `models/personal_system.dart`.
+  - Cards are `seedCards` (key facts, thesis, protocols, RA rules), one card per Feynman note, and custom cards.
+  - At most `newCardsPerDay` (5) new cards a day.
+  - Finishing a session logs `anki` kind `review`, so the Anki streak keeps counting.
+- **Career cockpit** (`/cockpit`): three tabs.
+  - 1:1s are `one_on_one` logs; follow-ups use `done` keys `fu:<logId>:<i>` and show on Today.
+  - Decisions are `decision` logs with `review_on` 90 days out; `dueDecisionReviews` and `reviewDecision` record right/mixed/wrong.
+  - Readiness is a monthly `readiness` log rated 1–5 per `readinessDimensions` (bar 4). `readinessGap` feeds the brief.
+- **Automaticity** (`/habits`): a monthly `automaticity` log, rated 1–5 per Daily 10 item.
+  - `isAutomatic` = rating ≥ 4 and done on ≥ 80% of the last 30 days.
+  - Automatic items move to a quiet group on Today, and their `itemReminder` is skipped.
+  - The check is prompted from day 25 of each month.
 - **Sunday report** → `submitReport` → `BriefGenerator`:
   - `DeviceBriefGenerator` is rule-based and uses real data only.
   - `RemoteBriefGenerator` calls Claude via `supabase/functions/weekly-brief` and falls back to the device generator on any error.

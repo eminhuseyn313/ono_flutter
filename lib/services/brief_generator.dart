@@ -20,6 +20,10 @@ class BriefInput {
   final double? avgSleep;
   final int shoulderFlagDays;
 
+  /// Head of Product dimension furthest below the bar, if rated.
+  final String? readinessGap;
+  final int openFollowUps;
+
   const BriefInput({
     required this.report,
     required this.forWeek,
@@ -35,6 +39,8 @@ class BriefInput {
     this.avgEnergy,
     this.avgSleep,
     this.shoulderFlagDays = 0,
+    this.readinessGap,
+    this.openFollowUps = 0,
   });
 
   Map<String, dynamic> toJson() => {
@@ -56,6 +62,8 @@ class BriefInput {
         'avg_energy_1_to_5': avgEnergy,
         'avg_sleep_hours': avgSleep,
         'shoulder_flag_mornings': shoulderFlagDays,
+        'readiness_gap': readinessGap,
+        'open_one_on_one_followups': openFollowUps,
       };
 }
 
@@ -159,6 +167,10 @@ class DeviceBriefGenerator implements BriefGenerator {
         'Evidence Archive: add ${5 - input.evidenceAddedThisWeek} more items tonight — the impostor feeds on forgetting.',
       if (r.hardestMoment.trim().isNotEmpty)
         'Hardest moment noted. Ask: what would the Product Architect do differently? Write the answer as one rule.',
+      if (input.readinessGap != null)
+        'Head of Product gap: ${input.readinessGap}. Pick one thing this week that shows it, and log it in the Evidence Archive.',
+      if (input.openFollowUps >= 3)
+        '${input.openFollowUps} open 1:1 follow-ups. Close or hand off the oldest before your next 1:1 with Ali.',
       if (input.shoulderFlagDays >= 3)
         'Shoulders flagged on ${input.shoulderFlagDays} mornings. Keep the shoulder-sparing sessions and bring the check-in log to your rheumatologist.',
       if (input.avgSleep != null && input.avgSleep! < 7)

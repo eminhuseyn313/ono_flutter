@@ -399,6 +399,277 @@ class PersonalSystemProvider extends ChangeNotifier {
     return v.fold<double>(0, (s, x) => s + x) / v.length;
   }
 
+  // ── Study deck (spaced repetition) ────────────────────────────────────
+
+  /// Seed cards, one card per Feynman note, and your own cards.
+  List<StudyCard> get allCards => [
+        ...seedCards,
+        for (final n in logsOf('feynman').reversed)
+          if (n.text.trim().isNotEmpty)
+            StudyCard(
+              'feynman:${n.id}',
+              'Explain from memory: ${n.str('book') ?? 'your reading'}'
+                  '${(n.str('chapter') ?? '').isEmpty ? '' : ' — ${n.str('chapter')}'}',
+              n.text,
+              source: 'feynman',
+            ),
+        ...?_state?.customCards,
+      ];
+
+  CardSchedule? scheduleOf(String cardId) => _state?.cardSchedules[cardId];
+
+  /// Cards to review on [day]: everything due, then up to
+  /// [newCardsPerDay] unseen cards (minus those already introduced today).
+  List<StudyCard> dueCards(DateTime day) {
+    final d = dayOnly(day);
+    final schedules = _state?.cardSchedules ?? const {};
+    final due = <StudyCard>[];
+    final fresh = <StudyCard>[];
+    for (final c in allCards) {
+      final s = schedules[c.id];
+      if (s == null) {
+        fresh.add(c);
+      } else if (!s.due.isAfter(d)) {
+        due.add(c);
+      }
+    }
+    due.sort((a, b) => schedules[a.id]!.due.compareTo(schedules[b.id]!.due));
+    final introducedToday = schedules.values
+        .where((s) => dateKey(s.firstSeen) == dateKey(d))
+        .length;
+    final room = (newCardsPerDay - introducedToday).clamp(0, newCardsPerDay);
+    return [...due, ...fresh.take(room)];
+  }
+
+  /// Grade 0 again · 3 hard · 4 good · 5 easy.
+  void gradeCard(String cardId, int grade) {
+    final s = _state;
+    if (s == null) return;
+    final today = dayOnly(_now);
+    final current = s.cardSchedules[cardId] ?? CardSchedule.fresh(today);
+    _update(s.copyWith(cardSchedules: {
+      ...s.cardSchedules,
+      cardId: current.review(grade, today),
+    }));
+  }
+
+  /// Days until the card would next be due for [grade] (button labels).
+  int previewInterval(String cardId, int grade) {
+    final today = dayOnly(_now);
+    final current = scheduleOf(cardId) ?? CardSchedule.fresh(today);
+    return current.review(grade, today).interval;
+  }
+
+  /// Logged like an Anki review so the review streak keeps counting.
+  void finishReview(int count) {
+    if (count <= 0) return;
+    addLog('anki', data: {'kind': 'review', 'count': count, 'deck': 'ono'});
+  }
+
+  void addCustomCard(String front, String back) {
+    final s = _state;
+    if (s == null || front.trim().isEmpty || back.trim().isEmpty) return;
+    final card = StudyCard(
+        'custom:${_now.microsecondsSinceEpoch}', front.trim(), back.trim(),
+        source: 'custom');
+    _update(s.copyWith(customCards: [...s.customCards, card]));
+  }
+
+  void removeCustomCard(String id) {
+    final s = _state;
+    if (s == null) return;
+    final schedules = Map<String, CardSchedule>.from(s.cardSchedules)
+      ..remove(id);
+    _update(s.copyWith(
+        customCards: s.customCards.where((c) => c.id != id).toList(),
+        cardSchedules: schedules));
+  }
+
+  /// (total, learning, mature ≥ 21 days).
+  ({int total, int learning, int mature}) get deckStats {
+    final schedules = _state?.cardSchedules ?? const {};
+    final cards = allCards;
+    var learning = 0, mature = 0;
+    for (final c in cards) {
+      final s = schedules[c.id];
+      if (s == null) continue;
+      s.interval >= 21 ? mature++ : learning++;
+    }
+    return (total: cards.length, learning: learning, mature: mature);
+  }
+
+  // ── Career cockpit ───────────────────────────────────────────────────
+
+  /// Log a 1:1: what was decided and the follow-ups you own.
+  void addOneOnOne(
+      {required String withWhom,
+      required String decided,
+      required List<String> followUps}) {
+    addLog('one_on_one',
+        text: decided.trim(),
+        data: {
+          'with': withWhom.trim().isEmpty ? 'Ali' : withWhom.trim(),
+          'followups': [
+            for (final f in followUps)
+              if (f.trim().isNotEmpty) f.trim()
+          ],
+        });
+  }
+
+  /// Follow-ups from 1:1s not yet ticked, newest first.
+  List<({String key, String text, DateTime date, String withWhom})>
+      get openFollowUps => [
+            for (final l in logsOf('one_on_one'))
+              for (final (i, f)
+                  in ((l.data['followups'] as List?) ?? const []).indexed)
+                if (!isDone('fu:${l.id}:$i'))
+                  (
+                    key: 'fu:${l.id}:$i',
+                    text: f as String,
+                    date: l.date,
+                    withWhom: l.str('with') ?? 'Ali'
+                  ),
+          ];
+
+  /// Decision journal entry, reviewed again after [reviewInDays].
+  void addDecision(
+      {required String decision,
+      required String options,
+      required String why,
+      required String expected,
+      int reviewInDays = 90}) {
+    addLog('decision',
+        text: decision.trim(),
+        data: {
+          'options': options.trim(),
+          'why': why.trim(),
+          'expected': expected.trim(),
+          'review_on':
+              dateKey(dayOnly(_now).add(Duration(days: reviewInDays))),
+        });
+  }
+
+  /// Decisions whose review date has come and that aren't reviewed yet.
+  List<LogEntry> dueDecisionReviews(DateTime day) {
+    final d = dateKey(dayOnly(day));
+    return logsOf('decision')
+        .where((l) =>
+            l.str('verdict') == null &&
+            (l.str('review_on') ?? '9999').compareTo(d) <= 0)
+        .toList();
+  }
+
+  /// verdict: right | mixed | wrong.
+  void reviewDecision(String id, {required String outcome, required String verdict}) {
+    final l = (_state?.logs ?? const <LogEntry>[])
+        .where((e) => e.id == id)
+        .firstOrNull;
+    if (l == null) return;
+    updateLog(LogEntry(
+      id: l.id,
+      type: l.type,
+      date: l.date,
+      createdAt: l.createdAt,
+      text: l.text,
+      data: {
+        ...l.data,
+        'outcome': outcome.trim(),
+        'verdict': verdict,
+        'reviewed_on': dateKey(dayOnly(_now)),
+      },
+    ));
+  }
+
+  /// Monthly Head of Product self-rating, 1–5 per dimension.
+  void saveReadiness(Map<String, int> ratings) {
+    final existing = logsOf('readiness')
+        .where((l) => l.number('month') == programMonth)
+        .firstOrNull;
+    final data = {'month': programMonth, 'ratings': ratings};
+    if (existing != null) {
+      updateLog(LogEntry(
+          id: existing.id,
+          type: existing.type,
+          date: existing.date,
+          createdAt: existing.createdAt,
+          text: existing.text,
+          data: data));
+    } else {
+      addLog('readiness', data: data);
+    }
+  }
+
+  /// Latest readiness ratings (empty if never rated).
+  Map<String, int> get readiness {
+    final l = logsOf('readiness').firstOrNull;
+    final r = (l?.data['ratings'] as Map?) ?? const {};
+    return r.map((k, v) => MapEntry(k as String, (v as num).toInt()));
+  }
+
+  /// The dimension furthest below the bar, or null when all meet it.
+  ReadinessDimension? get readinessGap {
+    final r = readiness;
+    if (r.isEmpty) return null;
+    final below = readinessDimensions
+        .where((d) => (r[d.id] ?? 0) < readinessBar)
+        .toList()
+      ..sort((a, b) => (r[a.id] ?? 0).compareTo(r[b.id] ?? 0));
+    return below.firstOrNull;
+  }
+
+  bool get readinessDueThisMonth =>
+      !logsOf('readiness').any((l) => l.number('month') == programMonth);
+
+  // ── Automaticity ─────────────────────────────────────────────────────
+
+  /// Monthly self-rating per Daily 10 item: "I do it without thinking"
+  /// 1 (not at all) – 5 (completely).
+  void saveAutomaticity(Map<String, int> ratings) {
+    final existing = logsOf('automaticity')
+        .where((l) => l.number('month') == programMonth)
+        .firstOrNull;
+    final data = {'month': programMonth, 'ratings': ratings};
+    if (existing != null) {
+      updateLog(LogEntry(
+          id: existing.id,
+          type: existing.type,
+          date: existing.date,
+          createdAt: existing.createdAt,
+          text: existing.text,
+          data: data));
+    } else {
+      addLog('automaticity', data: data);
+    }
+    _syncReminders();
+  }
+
+  Map<String, int> get automaticityRatings {
+    final r =
+        (logsOf('automaticity').firstOrNull?.data['ratings'] as Map?) ?? const {};
+    return r.map((k, v) => MapEntry(k as String, (v as num).toInt()));
+  }
+
+  /// Automatic = rated 4+ on the latest check and done on 80% of the last
+  /// 30 program days. Both: a feeling alone isn't proof.
+  bool isAutomatic(String id) {
+    if ((automaticityRatings[id] ?? 0) < 4) return false;
+    final today = dayOnly(_now);
+    final days = [
+      for (var i = 1; i <= 30; i++) today.subtract(Duration(days: i))
+    ].where((d) => !d.isBefore(programStart)).toList();
+    if (days.length < 14) return false;
+    return (itemRates(days)[id] ?? 0) >= 0.8;
+  }
+
+  List<String> get automaticItems =>
+      [for (final n in nonNegotiables) if (isAutomatic(n.id)) n.id];
+
+  /// Prompt the monthly check from day 25 of each program month.
+  bool get automaticityDue =>
+      hasStarted &&
+      dayOfMonth >= 25 &&
+      !logsOf('automaticity').any((l) => l.number('month') == programMonth);
+
   // ── Priorities ───────────────────────────────────────────────────────
 
   List<String> prioritiesFor(DateTime date) {
@@ -771,6 +1042,8 @@ class PersonalSystemProvider extends ChangeNotifier {
         latestWeight: latestWeight,
         avgEnergy: averageOf(weekCheckins, 'energy'),
         avgSleep: averageOf(weekCheckins, 'sleep'),
+        readinessGap: readinessGap?.name,
+        openFollowUps: openFollowUps.length,
         shoulderFlagDays: weekCheckins
             .where((c) => shoulderFlag(c.date))
             .length,
@@ -815,6 +1088,11 @@ class PersonalSystemProvider extends ChangeNotifier {
     for (var i = 0; i < reminderDefs.length; i++) {
       final def = reminderDefs[i];
       if (!reminderOn(def.id)) continue;
+      // Automatic habits don't need a nudge any more.
+      if (itemReminder.entries
+          .any((e) => e.value == def.id && isAutomatic(e.key))) {
+        continue;
+      }
       if (def.id == 'pennebaker' && pennebakerSessions >= 4) continue;
       final days = def.id == 'gym'
           ? gymDays

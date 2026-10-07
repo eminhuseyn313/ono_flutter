@@ -7,6 +7,8 @@
 
 import 'package:flutter/material.dart';
 
+import '../models/personal_system.dart';
+
 // ------------------------------------------------------------
 // Content records (static, read-only reference data)
 // ------------------------------------------------------------
@@ -1307,4 +1309,67 @@ const protocolLogTypes = {
   'pause': 'pause',
   'still': 'still',
   'pennebaker': 'pennebaker',
+};
+
+// ------------------------------------------------------------
+// Study deck (spaced repetition) — seed cards from the profile
+// ------------------------------------------------------------
+
+List<StudyCard> get seedCards => [
+      for (var i = 0; i < keyData.length; i++)
+        StudyCard('seed:key:$i', '${keyData[i][0]} — the numbers you quote?',
+            keyData[i][1]),
+      const StudyCard('seed:thesis', 'Your domain thesis, in one breath?',
+          domainThesis),
+      for (final p in protocols)
+        StudyCard('seed:protocol:${p.id}', '${p.name}: what, and when?',
+            '${p.what}\n\nWhen: ${p.when}'),
+      StudyCard('seed:ra', 'The four lifts you never do (RA)?',
+          raRemove.join(' · ')),
+    ];
+
+/// New cards introduced per day; the rest wait.
+const newCardsPerDay = 5;
+
+// ------------------------------------------------------------
+// Career cockpit
+// ------------------------------------------------------------
+
+class ReadinessDimension {
+  final String id;
+  final String name;
+
+  /// What the Head of Product bar looks like on this dimension.
+  final String bar;
+
+  const ReadinessDimension(this.id, this.name, this.bar);
+}
+
+/// Head of Product readiness, rated monthly 1–5 against the bar (4 = ready).
+const List<ReadinessDimension> readinessDimensions = [
+  ReadinessDimension('product_sense', 'Product sense',
+      'Picks the right problems for Business ID; a clear point of view on where identity and agentic commerce go.'),
+  ReadinessDimension('execution', 'Execution',
+      'Ships predictably across teams; unblocks others; decisions backed by data.'),
+  ReadinessDimension('leadership', 'Leadership',
+      'Leads without authority; grows people; trusted by Ali and Rustam to own an area.'),
+  ReadinessDimension('strategy', 'Strategy & business',
+      'Links product bets to revenue and ecosystem economics; speaks the P&L.'),
+  ReadinessDimension('communication', 'Executive communication',
+      'BLUF by default; calm in the room; writes PR/FAQs that change minds.'),
+];
+
+const readinessBar = 4;
+
+// ------------------------------------------------------------
+// Automaticity — monthly "is it a habit yet?"
+// ------------------------------------------------------------
+
+/// Reminder that exists only to prompt a Daily 10 item; switched off once
+/// the item is automatic.
+const Map<String, String> itemReminder = {
+  'scan': 'scan',
+  'read': 'read',
+  'caffeine': 'caffeine',
+  'bed': 'bed',
 };

@@ -152,6 +152,33 @@ void main() {
           energy: 4, mood: 1, sleep: 8, pain: 2, stiffness: 0);
       system.setCue('bed', 'When the 22:00 alarm rings → phone stays in the hall, '
           'charger by the front door, book on the pillow instead');
+      // Career cockpit, deck and habit state, so their screens and Today's
+      // prompt cards render with real content.
+      system.addOneOnOne(
+          withWhom: 'Ali',
+          decided: 'Business ID pricing goes to the board in November',
+          followUps: [
+            'Draft the PR/FAQ for agent permissions and share it with Rustam',
+            'Book the review'
+          ]);
+      system.clock = () => DateTime.now().subtract(const Duration(days: 95));
+      system.addDecision(
+          decision: 'Ship KYC v2 without the video step',
+          options: 'Ship now / wait for the vendor fix',
+          why: 'Drop-off at the video step is 38%',
+          expected: 'Completion up 15 points within a month');
+      system.clock = DateTime.now;
+      system.saveReadiness(
+          {for (final d in readinessDimensions) d.id: 4, 'strategy': 2});
+      system.logProtocolUse('feynman',
+          text: 'Opportunity solution trees map one outcome to opportunities '
+              'and experiments.',
+          data: {'book': 'Continuous Discovery Habits', 'chapter': 'Ch. 3'});
+      system.addCustomCard('Kaspi QR acceptance?', '95% of merchants');
+      for (var i = 1; i <= 30; i++) {
+        system.setCheck(today.subtract(Duration(days: i)), 'bed', true);
+      }
+      system.saveAutomaticity({for (final n in nonNegotiables) n.id: 5});
       await _pumpFor(tester, const Duration(milliseconds: 500));
 
       final routes = <String>{
@@ -193,6 +220,18 @@ void main() {
         await _go(tester, route);
         errors.addAll(_underStatusBar(topInset));
         if (errors.isNotEmpty) failures[route] = errors.toSet();
+      }
+
+      // Review: revealing the answer shows compact grade buttons (they once
+      // stretched to fill the screen and hid the card).
+      await _go(tester, '/review');
+      await tester.tap(find.text('Show answer'));
+      await _pumpFor(tester, const Duration(milliseconds: 400));
+      final good = tester.getRect(find
+          .ancestor(of: find.text('Good'), matching: find.byType(InkWell))
+          .first);
+      if (good.height > 120) {
+        failures['/review'] = {'grade buttons ${good.height.round()} pt tall'};
       }
 
       _restoreErrors();

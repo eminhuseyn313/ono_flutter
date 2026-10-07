@@ -97,6 +97,24 @@ class _LogScreenState extends State<LogScreen> {
           child: Column(
             children: [
               LinkRow(
+                icon: Icons.work_outline_rounded,
+                color: AppColors.accent,
+                title: 'Career cockpit',
+                subtitle: '1:1s · decisions · readiness',
+                trailing: '${system.openFollowUps.length + system.dueDecisionReviews(DateTime.now()).length}',
+                onTap: () => context.push('/cockpit'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
+                icon: Icons.style_rounded,
+                color: AppColors.mind,
+                title: 'Review deck',
+                subtitle: 'Spaced repetition',
+                trailing: '${system.dueCards(DateTime.now()).length}',
+                onTap: () => context.push('/review'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
                 icon: Icons.inventory_2_outlined,
                 color: AppColors.steel,
                 title: 'Evidence Archive',
@@ -228,6 +246,10 @@ class _EntryRow extends StatelessWidget {
     'note': (Icons.edit_note_rounded, 'mind', 'Note'),
     'month_review': (Icons.fact_check_outlined, 'mind', 'Month review'),
     'checkin': (Icons.wb_twilight_rounded, 'body', 'Morning check-in'),
+    'one_on_one': (Icons.forum_outlined, 'social', '1:1'),
+    'decision': (Icons.balance_rounded, 'skill', 'Decision'),
+    'readiness': (Icons.trending_up_rounded, 'skill', 'Readiness check'),
+    'automaticity': (Icons.autorenew_rounded, 'mind', 'Habit check'),
   };
 
   String get _summary {
@@ -259,6 +281,15 @@ class _EntryRow extends StatelessWidget {
         return '5 steps · ${((e.number('seconds') ?? 0) / 60).toStringAsFixed(0)} min';
       case 'month_review':
         return 'Month ${e.number('month')}: ${e.text}';
+      case 'one_on_one':
+        final n = ((e.data['followups'] as List?) ?? const []).length;
+        return '${e.str('with') ?? 'Ali'} · ${e.text.isEmpty ? 'logged' : e.text}${n == 0 ? '' : ' · $n follow-ups'}';
+      case 'decision':
+        final v = e.str('verdict');
+        return v == null ? e.text : '${e.text} · $v';
+      case 'readiness':
+      case 'automaticity':
+        return 'Month ${e.number('month')}';
       case 'checkin':
         final stiff = (e.number('stiffness') ?? 0).toInt();
         return 'Energy ${e.number('energy')}/5 · sleep ${e.number('sleep')} h · '

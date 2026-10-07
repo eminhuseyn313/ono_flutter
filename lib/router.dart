@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'providers/auth_provider.dart';
 import 'screens/career_screen.dart';
 import 'screens/checkin_screen.dart';
+import 'screens/cockpit_screen.dart';
 import 'screens/commission_screen.dart';
 import 'screens/evidence_archive_screen.dart';
 import 'screens/forgot_password_screen.dart';
@@ -17,8 +18,10 @@ import 'screens/me_screen.dart';
 import 'screens/month_screen.dart';
 import 'screens/onboarding_welcome_screen.dart';
 import 'screens/program_screen.dart';
+import 'screens/habits_screen.dart';
 import 'screens/plans_screen.dart';
 import 'screens/protocols_screen.dart';
+import 'screens/review_screen.dart';
 import 'screens/ritual_flow_screen.dart';
 import 'screens/sign_in_screen.dart';
 import 'screens/sign_up_screen.dart';
@@ -59,6 +62,11 @@ const appRoutes = [
   '/tool/linkedin',
   '/checkin',
   '/plans',
+  '/review',
+  '/habits',
+  '/cockpit',
+  '/cockpit?tab=1',
+  '/cockpit?tab=2',
 ];
 
 GoRouter createRouter(AuthProvider authProvider,
@@ -105,6 +113,13 @@ GoRouter createRouter(AuthProvider authProvider,
       _slide('/weekly-coaching', (_) => const WeeklyCoachingScreen()),
       _slide('/checkin', (_) => const CheckinScreen()),
       _slide('/plans', (_) => const PlansScreen()),
+      _slide('/review', (_) => const ReviewScreen()),
+      _slide('/habits', (_) => const HabitsScreen()),
+      _slide(
+          '/cockpit',
+          (s) => CockpitScreen(
+              initialTab:
+                  int.tryParse(s.uri.queryParameters['tab'] ?? '') ?? 0)),
       _slide('/ritual-flow/:ritualId',
           (s) => RitualFlowScreen(ritualId: s.pathParameters['ritualId']!)),
       _slide('/gym', (_) => const GymSessionScreen()),

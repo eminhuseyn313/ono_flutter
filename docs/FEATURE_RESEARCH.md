@@ -142,7 +142,8 @@ These are logs to support conversations with your doctor, not medical advice. ON
 
 ## Status
 - **Built (7 Oct 2026):** items 1–4 (never miss twice, fresh starts, if-then plans, morning check-in with shoulder-sparing gym).
-- **Next:** 5 and 6 (spaced repetition, career cockpit).
+- **Built:** items 5–7 (spaced repetition deck, career cockpit, automaticity check). All of Tier 1 is done.
+- **Next:** Tier 2, built on the Mac (widgets, Apple Health, Live Activity).
 
 ## Suggested next build
 1. Tier 1 items **1, 2, 3, 4** together, as one release: "the loop". They are small, all buildable here, and change every single day.

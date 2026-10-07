@@ -965,7 +965,12 @@ class _AnkiTool extends StatelessWidget {
         ),
         const SizedBox(height: 14),
         PrimaryButton(
-            reviewedToday ? 'Reviewed today ✓' : 'I did today\'s review',
+            'Review ONO deck · ${system.dueCards(today).length} due',
+            icon: Icons.style_rounded,
+            onPressed: () => context.push('/review')),
+        const SizedBox(height: 10),
+        GhostButton(
+            reviewedToday ? 'Reviewed today ✓' : 'I reviewed in the Anki app',
             onPressed: reviewedToday
                 ? null
                 : () => system.addLog('anki', data: {'kind': 'review'})),

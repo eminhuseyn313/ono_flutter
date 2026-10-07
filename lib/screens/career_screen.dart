@@ -50,6 +50,19 @@ class CareerScreen extends StatelessWidget {
             ],
           ),
         ),
+        const SizedBox(height: 12),
+        OnoCard(
+          padding: EdgeInsets.zero,
+          child: LinkRow(
+            icon: Icons.work_outline_rounded,
+            color: AppColors.accent,
+            title: 'Career cockpit',
+            subtitle: system.readinessGap == null
+                ? '1:1s, decision journal, readiness'
+                : 'Gap: ${system.readinessGap!.name}',
+            onTap: () => context.push('/cockpit'),
+          ),
+        ),
         const SectionHeader('LinkedIn — exact rewrites'),
         OnoCard(
           padding: EdgeInsets.zero,

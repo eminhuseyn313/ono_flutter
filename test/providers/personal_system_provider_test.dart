@@ -375,4 +375,128 @@ void main() {
             .toSet(),
         {2, 4, 6});
   });
+
+  test('SM-2 schedule: 1 → 6 → longer; "again" resets', () {
+    final t = DateTime(2026, 10, 2);
+    var c = CardSchedule.fresh(t);
+    c = c.review(4, t);
+    expect(c.interval, 1);
+    c = c.review(4, t);
+    expect(c.interval, 6);
+    c = c.review(4, t);
+    expect(c.interval, greaterThan(6));
+    final easy = c.review(5, t).interval;
+    final hard = c.review(3, t).interval;
+    expect(easy, greaterThan(hard));
+    final again = c.review(0, t);
+    expect(again.interval, 1);
+    expect(again.reps, 0);
+    expect(again.ease, lessThan(c.ease));
+  });
+
+  test('deck: 5 new cards a day, due cards first, Feynman notes become cards',
+      () async {
+    final p = await _commissioned();
+    final today = dayOnly(_today);
+    expect(p.dueCards(today).length, newCardsPerDay);
+    final first = p.dueCards(today).first;
+    p.gradeCard(first.id, 4);
+    expect(p.dueCards(today).length, newCardsPerDay - 1,
+        reason: 'one new card already introduced today');
+    expect(p.scheduleOf(first.id)!.due, today.add(const Duration(days: 1)));
+
+    p.logProtocolUse('feynman',
+        text: 'Opportunity solution trees map outcomes to opportunities.',
+        data: {'book': 'Continuous Discovery Habits', 'chapter': 'Ch. 3'});
+    expect(p.allCards.where((c) => c.source == 'feynman').length, 1);
+
+    p.addCustomCard('Kaspi QR acceptance?', '95% of merchants');
+    expect(p.allCards.where((c) => c.source == 'custom').length, 1);
+    final total = p.deckStats.total;
+    p.finishReview(3);
+    expect(p.logsOn(today, 'anki').single.number('count'), 3);
+
+    final q = PersonalSystemProvider(gateway: MockPersonalSystemGateway())
+      ..clock = () => _today;
+    await q.load('other');
+    q.importJson(p.exportJson());
+    expect(q.deckStats.total, total);
+    expect(q.scheduleOf(first.id), isNotNull);
+  });
+
+  test('cockpit: 1:1 follow-ups, decision reviews after 90 days, readiness',
+      () async {
+    final p = await _commissioned(briefs: DeviceBriefGenerator());
+    p.addOneOnOne(
+        withWhom: 'Ali',
+        decided: 'Business ID pricing goes to the board',
+        followUps: ['Draft the PR/FAQ', '', 'Book Rustam']);
+    expect(p.openFollowUps.length, 2);
+    p.setDone(p.openFollowUps.first.key, true);
+    expect(p.openFollowUps.single.text, 'Book Rustam');
+
+    p.addDecision(
+        decision: 'Ship KYC v2 without the video step',
+        options: 'Ship / wait for vendor',
+        why: 'Drop-off at video is 38%',
+        expected: 'Completion +15 pp');
+    expect(p.dueDecisionReviews(_today), isEmpty);
+    final later = _today.add(const Duration(days: 90));
+    expect(p.dueDecisionReviews(later).length, 1);
+    p.reviewDecision(p.dueDecisionReviews(later).first.id,
+        outcome: 'Completion +11 pp', verdict: 'mixed');
+    expect(p.dueDecisionReviews(later), isEmpty);
+    expect(p.logsOf('decision').first.str('verdict'), 'mixed');
+
+    expect(p.readinessGap, isNull);
+    p.saveReadiness({
+      for (final d in readinessDimensions) d.id: 4,
+      'strategy': 2,
+    });
+    p.saveReadiness({...p.readiness, 'leadership': 3});
+    expect(p.logsOf('readiness').length, 1, reason: 'one per month');
+    expect(p.readinessGap!.id, 'strategy');
+
+    final brief = await p.submitReport(WeeklyReport(
+      id: 'r',
+      weekStart: weekStartOf(_today),
+      nonNegotiableAverage: 8,
+      gymSessions: 3,
+      bestMoment: '',
+      hardestMoment: '',
+      workSituation: '',
+      createdAt: _today,
+    ));
+    expect(brief!.adjustments.join(' '), contains('Strategy & business'));
+  });
+
+  test('automatic = rated 4+ and done on 80% of 30 days; reminder goes quiet',
+      () async {
+    final rec = _RecordingReminders();
+    final p = await _commissioned(reminders: rec);
+    for (var i = 1; i <= 30; i++) {
+      p.setCheck(_daysAgo(i), 'bed', true);
+      if (i <= 20) p.setCheck(_daysAgo(i), 'scan', true);
+    }
+    p.saveAutomaticity({for (final n in nonNegotiables) n.id: 5});
+    expect(p.isAutomatic('bed'), isTrue);
+    expect(p.isAutomatic('scan'), isFalse, reason: '20/30 is under 80%');
+    expect(p.isAutomatic('manifesto'), isFalse, reason: 'never done');
+    expect(p.automaticItems, ['bed']);
+    expect(rec.last.any((r) => r.title == reminderDefs
+        .firstWhere((d) => d.id == 'bed').label), isFalse);
+
+    p.saveAutomaticity({for (final n in nonNegotiables) n.id: 3});
+    expect(p.isAutomatic('bed'), isFalse, reason: 'feels effortful again');
+  });
+
+  test('monthly checks are due from day 25', () async {
+    final p = await _commissioned();
+    expect(p.automaticityDue, isFalse, reason: 'day 2 of month 2');
+    p.clock = () => DateTime(2026, 10, 25, 9); // day 55 → day 25 of month 2
+    expect(p.dayOfMonth, 25);
+    expect(p.automaticityDue, isTrue);
+    p.saveAutomaticity({for (final n in nonNegotiables) n.id: 2});
+    expect(p.automaticityDue, isFalse);
+  });
 }

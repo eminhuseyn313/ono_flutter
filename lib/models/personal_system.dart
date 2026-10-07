@@ -257,6 +257,89 @@ class WeeklyBrief {
       );
 }
 
+/// A flashcard. Seed cards live in `emin_system.dart`, Feynman cards are
+/// derived from notes, custom cards are stored in [PersonalSystemState].
+class StudyCard {
+  final String id;
+  final String front;
+  final String back;
+  final String source; // seed | feynman | custom
+
+  const StudyCard(this.id, this.front, this.back, {this.source = 'seed'});
+
+  Map<String, dynamic> toJson() =>
+      {'id': id, 'front': front, 'back': back, 'source': source};
+
+  factory StudyCard.fromJson(Map<String, dynamic> j) => StudyCard(
+      j['id'] as String, j['front'] as String, j['back'] as String,
+      source: j['source'] as String? ?? 'custom');
+}
+
+/// SM-2 scheduling state of one card.
+class CardSchedule {
+  final int reps;
+  final double ease;
+  final int interval; // days
+  final DateTime due;
+  final DateTime firstSeen;
+
+  const CardSchedule({
+    required this.reps,
+    required this.ease,
+    required this.interval,
+    required this.due,
+    required this.firstSeen,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'reps': reps,
+        'ease': ease,
+        'interval': interval,
+        'due': dateKey(due),
+        'first_seen': dateKey(firstSeen),
+      };
+
+  factory CardSchedule.fromJson(Map<String, dynamic> j) => CardSchedule(
+        reps: (j['reps'] as num).toInt(),
+        ease: (j['ease'] as num).toDouble(),
+        interval: (j['interval'] as num).toInt(),
+        due: DateTime.parse(j['due'] as String),
+        firstSeen: DateTime.parse(j['first_seen'] as String),
+      );
+
+  /// Next state after a review graded 0 (again), 3 (hard), 4 (good) or
+  /// 5 (easy), reviewed on [today]. Standard SM-2.
+  CardSchedule review(int grade, DateTime today) {
+    if (grade < 3) {
+      return CardSchedule(
+          reps: 0,
+          ease: (ease - 0.2).clamp(1.3, 3.0),
+          interval: 1,
+          due: today.add(const Duration(days: 1)),
+          firstSeen: firstSeen);
+    }
+    final nextReps = reps + 1;
+    var next = nextReps == 1
+        ? 1
+        : nextReps == 2
+            ? 6
+            : (interval * ease).round();
+    if (grade == 3) next = (next * 0.8).round().clamp(1, 36500);
+    if (grade == 5) next = nextReps == 1 ? 4 : (next * 1.3).round();
+    final nextEase =
+        (ease + 0.1 - (5 - grade) * (0.08 + (5 - grade) * 0.02)).clamp(1.3, 3.0);
+    return CardSchedule(
+        reps: nextReps,
+        ease: nextEase,
+        interval: next,
+        due: today.add(Duration(days: next)),
+        firstSeen: firstSeen);
+  }
+
+  static CardSchedule fresh(DateTime today) => CardSchedule(
+      reps: 0, ease: 2.5, interval: 0, due: today, firstSeen: today);
+}
+
 class PersonalSystemState {
   final DateTime programStart;
 
@@ -287,6 +370,10 @@ class PersonalSystemState {
   /// Daily 10 id → the user's own if-then cue (overrides `defaultCues`).
   final Map<String, String> cues;
 
+  /// Card id → SM-2 state; [customCards] are cards the user wrote.
+  final Map<String, CardSchedule> cardSchedules;
+  final List<StudyCard> customCards;
+
   const PersonalSystemState({
     required this.programStart,
     this.commissioned = false,
@@ -301,6 +388,8 @@ class PersonalSystemState {
     this.briefs = const [],
     this.logs = const [],
     this.cues = const {},
+    this.cardSchedules = const {},
+    this.customCards = const [],
   });
 
   PersonalSystemState copyWith({
@@ -317,6 +406,8 @@ class PersonalSystemState {
     List<WeeklyBrief>? briefs,
     List<LogEntry>? logs,
     Map<String, String>? cues,
+    Map<String, CardSchedule>? cardSchedules,
+    List<StudyCard>? customCards,
   }) =>
       PersonalSystemState(
         programStart: programStart ?? this.programStart,
@@ -332,6 +423,8 @@ class PersonalSystemState {
         briefs: briefs ?? this.briefs,
         logs: logs ?? this.logs,
         cues: cues ?? this.cues,
+        cardSchedules: cardSchedules ?? this.cardSchedules,
+        customCards: customCards ?? this.customCards,
       );
 
   Map<String, dynamic> toJson() => {
@@ -349,6 +442,9 @@ class PersonalSystemState {
         'briefs': briefs.map((b) => b.toJson()).toList(),
         'logs': logs.map((l) => l.toJson()).toList(),
         'cues': cues,
+        'card_schedules':
+            cardSchedules.map((k, v) => MapEntry(k, v.toJson())),
+        'custom_cards': customCards.map((c) => c.toJson()).toList(),
       };
 
   factory PersonalSystemState.fromJson(Map<String, dynamic> json) {
@@ -383,6 +479,10 @@ class PersonalSystemState {
       logs: list(json['logs'], LogEntry.fromJson),
       cues: (json['cues'] as Map<String, dynamic>? ?? {})
           .map((k, v) => MapEntry(k, v as String)),
+      cardSchedules: (json['card_schedules'] as Map<String, dynamic>? ?? {})
+          .map((k, v) => MapEntry(
+              k, CardSchedule.fromJson(Map<String, dynamic>.from(v as Map)))),
+      customCards: list(json['custom_cards'], StudyCard.fromJson),
     );
   }
 }

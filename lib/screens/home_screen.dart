@@ -168,6 +168,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         today.subtract(const Duration(days: 1))),
                     streak: system.streak),
               ],
+              if (!_yesterday && system.hasStarted) _Prompts(now: _now),
               SectionHeader('Daily 10',
                   action: 'If-then plans',
                   onAction: () => context.push('/plans')),
@@ -614,6 +615,97 @@ class _FreshStartCard extends StatelessWidget {
   }
 }
 
+/// What's waiting on you: decisions to review, 1:1 follow-ups, and the
+/// monthly habit and readiness checks.
+class _Prompts extends StatelessWidget {
+  final DateTime now;
+  const _Prompts({required this.now});
+
+  @override
+  Widget build(BuildContext context) {
+    final system = context.watch<PersonalSystemProvider>();
+    final reviews = system.dueDecisionReviews(now);
+    final followUps = system.openFollowUps;
+    final cards = <Widget>[
+      if (reviews.isNotEmpty)
+        _row(context, Icons.balance_rounded, AppColors.accent,
+            'Decision review due',
+            '"${reviews.first.text}" — was the call right?', '/cockpit?tab=1'),
+      if (system.automaticityDue)
+        _row(context, Icons.autorenew_rounded, AppColors.body,
+            'Is it a habit yet?', 'Monthly check · 1 minute', '/habits'),
+      if (system.dayOfMonth >= 25 && system.readinessDueThisMonth)
+        _row(context, Icons.trending_up_rounded, AppColors.skill,
+            'Head of Product readiness', 'Rate this month against the bar',
+            '/cockpit?tab=2'),
+    ];
+    return Column(
+      children: [
+        for (final c in cards) ...[const SizedBox(height: 12), c],
+        if (followUps.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          OnoCard(
+            padding: const EdgeInsets.fromLTRB(16, 12, 12, 4),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                          'YOUR 1:1 FOLLOW-UPS · ${followUps.length}',
+                          style: AppText.eyebrow()),
+                    ),
+                    GestureDetector(
+                      onTap: () => context.push('/cockpit'),
+                      child: Text('All',
+                          style: AppText.small(color: AppColors.accent)
+                              .copyWith(fontWeight: FontWeight.w700)),
+                    ),
+                  ],
+                ),
+                for (final f in followUps.take(3))
+                  CheckRow(
+                    checked: false,
+                    title: f.text,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    onChanged: (_) => system.setDone(f.key, true),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _row(BuildContext context, IconData icon, Color color, String title,
+          String body, String route) =>
+      OnoCard(
+        padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+        onTap: () => context.push(route),
+        child: Row(
+          children: [
+            IconTile(icon, color: color, size: 40),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: AppText.heading()),
+                  Text(body,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppText.small()),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded, color: AppColors.grey),
+          ],
+        ),
+      );
+}
+
 /// Never miss twice: yesterday slipped, today decides.
 class _RecoveryCard extends StatelessWidget {
   final int yesterdayScore;
@@ -756,6 +848,7 @@ class _DailyTen extends StatelessWidget {
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
     final score = system.scoreFor(date);
+    final automatic = system.automaticItems;
     return OnoCard(
       padding: const EdgeInsets.fromLTRB(18, 16, 10, 6),
       child: Column(
@@ -781,10 +874,13 @@ class _DailyTen extends StatelessWidget {
                   ? '$score of 10 — held'
                   : '$score of 10 · ${7 - score} more holds the day',
               style: AppText.small()),
-          for (final g in nonNegotiableGroups) ...[
+          for (final g in nonNegotiableGroups)
+            if (nonNegotiables.any(
+                (n) => n.when == g[0] && !automatic.contains(n.id))) ...[
             const SizedBox(height: 14),
             Text(g[1].toUpperCase(), style: AppText.eyebrow()),
-            for (final n in nonNegotiables.where((n) => n.when == g[0]))
+            for (final n in nonNegotiables.where(
+                (n) => n.when == g[0] && !automatic.contains(n.id)))
               CheckRow(
                 checked: system.isChecked(date, n.id),
                 title: n.title,
@@ -797,6 +893,19 @@ class _DailyTen extends StatelessWidget {
                 onOpen: n.route == null
                     ? null
                     : () => context.push(n.route!),
+              ),
+          ],
+          if (automatic.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            Text('AUTOMATIC · NO REMINDERS',
+                style: AppText.eyebrow(color: AppColors.body)),
+            for (final n in nonNegotiables.where((n) => automatic.contains(n.id)))
+              CheckRow(
+                checked: system.isChecked(date, n.id),
+                title: n.title,
+                lane: n.lane,
+                padding: const EdgeInsets.symmetric(vertical: 7),
+                onChanged: (_) => system.toggleCheck(date, n.id),
               ),
           ],
         ],
@@ -910,7 +1019,11 @@ class _InputsStrip extends StatelessWidget {
     final scan = domainScanFor(date);
     final book = currentBook(month);
     final outfit = outfitFor(date);
+    final due = context.watch<PersonalSystemProvider>().dueCards(date).length;
     final tiles = [
+      (Icons.style_rounded, AppColors.mind, 'Review',
+          due == 0 ? 'All caught up' : '$due cards due',
+          'Spaced repetition · 5 min', '/review' as String?),
       (Icons.podcasts_rounded, AppColors.skill, 'Drive', podcast.title,
           podcast.detail, null as String?),
       (Icons.travel_explore_rounded, AppColors.steel, 'Scan · 07:45',

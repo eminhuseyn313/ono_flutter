@@ -45,6 +45,13 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] Monday shows a **New week** card with last week's weakest item; day 1 of each month shows the month card
 - [ ] Me → **Mornings**: averages and the shoulder-pain trend
 
+## 2c. New: learning & career
+- [ ] Today → inputs strip → **Review**: 5 new cards a day; reveal, grade Again/Hard/Good/Easy; a Feynman note shows up as a card; **+** adds your own
+- [ ] Log → **Career cockpit**: log a 1:1 with follow-ups → they appear on Today; tick one off
+- [ ] Record a decision → it comes back for review in 90 days (Right / Mixed / Wrong)
+- [ ] Readiness tab: rate the 5 dimensions → Me shows the gap; the Sunday brief names it
+- [ ] Me → **Is it a habit yet?**: rate items; an item rated 4–5 and done on 80% of the last 30 days moves to "Automatic" on Today and its reminder stops
+
 ## 3. Tools & logging
 - [ ] Morning ritual (from Today before 11:00): 5 steps → finishing ticks the manifesto
 - [ ] Sigh tool: run it → "uses" and mastery level go up; the sigh item is ticked

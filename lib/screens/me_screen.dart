@@ -199,6 +199,42 @@ class MeScreen extends StatelessWidget {
             ],
           ),
         ),
+        const SectionHeader('Growth'),
+        OnoCard(
+          padding: EdgeInsets.zero,
+          child: Column(
+            children: [
+              LinkRow(
+                icon: Icons.autorenew_rounded,
+                color: AppColors.body,
+                title: 'Is it a habit yet?',
+                subtitle: '${system.automaticItems.length} of ${nonNegotiables.length} automatic',
+                onTap: () => context.push('/habits'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
+                icon: Icons.trending_up_rounded,
+                color: AppColors.skill,
+                title: 'Head of Product readiness',
+                subtitle: system.readiness.isEmpty
+                    ? 'Not rated yet'
+                    : system.readinessGap == null
+                        ? 'At the bar on every dimension'
+                        : 'Gap: ${system.readinessGap!.name}',
+                onTap: () => context.push('/cockpit?tab=2'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
+                icon: Icons.style_rounded,
+                color: AppColors.mind,
+                title: 'Review deck',
+                subtitle:
+                    '${system.deckStats.total} cards · ${system.deckStats.mature} mature',
+                onTap: () => context.push('/review'),
+              ),
+            ],
+          ),
+        ),
         const SectionHeader('Settings'),
         OnoCard(
           padding: EdgeInsets.zero,
