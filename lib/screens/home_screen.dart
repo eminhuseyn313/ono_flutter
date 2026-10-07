@@ -145,13 +145,32 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                if (!_yesterday) _ModeCard(mode: _mode, now: _now),
+                if (!_yesterday) ...[
+                  if (system.freshStartFor(today) case final fs?
+                      when !system.isDone(fs.key)) ...[
+                    _FreshStartCard(fs: fs),
+                    const SizedBox(height: 12),
+                  ],
+                  _ModeCard(mode: _mode, now: _now),
+                  _CheckinCard(now: _now),
+                ],
               ],
               if (brief != null && !_yesterday) ...[
                 const SizedBox(height: 12),
                 _BriefCard(brief: brief),
               ],
-              const SectionHeader('Daily 10'),
+              if (!_yesterday &&
+                  system.hasStarted &&
+                  system.isRecoveryDay) ...[
+                const SizedBox(height: 12),
+                _RecoveryCard(
+                    yesterdayScore: system.scoreFor(
+                        today.subtract(const Duration(days: 1))),
+                    streak: system.streak),
+              ],
+              SectionHeader('Daily 10',
+                  action: 'If-then plans',
+                  onAction: () => context.push('/plans')),
               _DailyTen(date: date),
               SectionHeader(_mode == _Mode.evening && !_yesterday
                   ? 'Did the three happen?'
@@ -549,6 +568,138 @@ class _ModeCard extends StatelessWidget {
   }
 }
 
+/// Monday, a new month, a new phase: a moment to restart on purpose.
+class _FreshStartCard extends StatelessWidget {
+  final FreshStart fs;
+  const _FreshStartCard({required this.fs});
+
+  @override
+  Widget build(BuildContext context) {
+    final system = context.read<PersonalSystemProvider>();
+    return OnoCard(
+      color: AppColors.navy,
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(fs.eyebrow.toUpperCase(),
+                    style: AppText.eyebrow(color: AppColors.accent)),
+              ),
+              GestureDetector(
+                onTap: () => system.setDone(fs.key, true),
+                child: const Icon(Icons.close_rounded,
+                    size: 18, color: AppColors.grey),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(fs.title, style: AppText.serif(size: 24)),
+          const SizedBox(height: 6),
+          Text(fs.body, style: AppText.body()),
+          const SizedBox(height: 16),
+          PrimaryButton(fs.cta,
+              icon: fs.route == null
+                  ? Icons.check_rounded
+                  : Icons.arrow_forward_rounded, onPressed: () {
+            HapticFeedback.mediumImpact();
+            system.setDone(fs.key, true);
+            if (fs.route != null) context.push(fs.route!);
+          }),
+        ],
+      ),
+    );
+  }
+}
+
+/// Never miss twice: yesterday slipped, today decides.
+class _RecoveryCard extends StatelessWidget {
+  final int yesterdayScore;
+  final int streak;
+  const _RecoveryCard({required this.yesterdayScore, required this.streak});
+
+  @override
+  Widget build(BuildContext context) {
+    return OnoCard(
+      accent: AppColors.warning,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('RECOVERY DAY', style: AppText.eyebrow(color: AppColors.warning)),
+          const SizedBox(height: 6),
+          Text(
+              streak > 0
+                  ? 'Yesterday slipped ($yesterdayScore/10). Hold 7 today and your $streak-day streak carries on.'
+                  : 'Yesterday slipped ($yesterdayScore/10). Hold 7 today to start again.',
+              style: AppText.heading().copyWith(fontSize: 15.5)),
+          const SizedBox(height: 4),
+          Text('One miss is noise. Two in a row is a pattern — never miss twice.',
+              style: AppText.small()),
+        ],
+      ),
+    );
+  }
+}
+
+/// Fifteen-second morning check-in; afterwards, today's adjustment.
+class _CheckinCard extends StatelessWidget {
+  final DateTime now;
+  const _CheckinCard({required this.now});
+
+  @override
+  Widget build(BuildContext context) {
+    final system = context.watch<PersonalSystemProvider>();
+    final today = dayOnly(now);
+    final c = system.checkinFor(today);
+    if (c == null) {
+      if (now.hour >= 14) return const SizedBox.shrink();
+      return Padding(
+        padding: const EdgeInsets.only(top: 12),
+        child: OnoCard(
+          padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+          onTap: () => context.push('/checkin'),
+          child: Row(
+            children: [
+              const IconTile(Icons.wb_twilight_rounded,
+                  color: AppColors.body, size: 40),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Morning check-in', style: AppText.heading()),
+                    Text('Energy, mood, sleep, shoulders · 15 s',
+                        style: AppText.small()),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right_rounded, color: AppColors.grey),
+            ],
+          ),
+        ),
+      );
+    }
+    if (!system.shoulderFlag(today)) return const SizedBox.shrink();
+    final gym = system.gymDayOn(today);
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: OnoCard(
+        accent: AppColors.warning,
+        padding: const EdgeInsets.all(14),
+        onTap: gym == null ? null : () => context.push('/gym'),
+        child: Text(
+            gym == null
+                ? 'Shoulders flagged this morning. Keep pressing and overhead work off the menu today.'
+                : 'Shoulder-sparing day: Day ${gym.letter} swaps presses, flyes and pulldowns for legs and trunk work.',
+            style: AppText.small(color: AppColors.greyLight)),
+      ),
+    );
+  }
+}
+
 class _BriefCard extends StatelessWidget {
   final WeeklyBrief brief;
   const _BriefCard({required this.brief});
@@ -637,6 +788,9 @@ class _DailyTen extends StatelessWidget {
               CheckRow(
                 checked: system.isChecked(date, n.id),
                 title: n.title,
+                subtitle: system.isChecked(date, n.id)
+                    ? null
+                    : system.cueFor(n.id),
                 lane: n.lane,
                 padding: const EdgeInsets.symmetric(vertical: 9),
                 onChanged: (_) => system.toggleCheck(date, n.id),

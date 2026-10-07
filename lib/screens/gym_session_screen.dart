@@ -32,6 +32,21 @@ class _GymSessionScreenState extends State<GymSessionScreen> {
   bool _zone2 = false;
   bool _initialised = false;
 
+  /// Shoulders flagged in this morning's check-in (RA): presses, flyes and
+  /// pulldowns are swapped for legs and trunk work. Can be switched off.
+  bool _sparing = false;
+
+  List<Exercise> get _exercises => _sparing
+      ? [
+          ..._day.exercises.where((e) => !e.shoulder),
+          ...shoulderSparingAddOns
+              .where((a) => !_day.exercises.any((e) => e.name == a.name)),
+        ]
+      : _day.exercises;
+
+  List<Exercise> get _skipped =>
+      _sparing ? _day.exercises.where((e) => e.shoulder).toList() : const [];
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -42,6 +57,7 @@ class _GymSessionScreenState extends State<GymSessionScreen> {
         ? system.nextGymDay(DateTime.now()).day
         : gymPlan.firstWhere((g) => g.id == widget.dayId,
             orElse: () => gymPlan.first);
+    _sparing = system.shoulderFlag(DateTime.now());
     final last = system.lastSessionFor(_day.id);
     final lastByName = <String, List<Map<String, dynamic>>>{};
     for (final e in (last?.data['exercises'] as List? ?? const [])) {
@@ -49,7 +65,8 @@ class _GymSessionScreenState extends State<GymSessionScreen> {
       lastByName[m['name'] as String] =
           (m['sets'] as List).map((s) => Map<String, dynamic>.from(s as Map)).toList();
     }
-    for (final ex in _day.exercises) {
+    for (final ex in [..._day.exercises, ...shoulderSparingAddOns]) {
+      if (_sets.containsKey(ex.name)) continue;
       final spec = _parse(ex.sets);
       final prev = lastByName[ex.name];
       _sets[ex.name] = List.generate(
@@ -90,7 +107,7 @@ class _GymSessionScreenState extends State<GymSessionScreen> {
     final system = context.read<PersonalSystemProvider>();
     final exercises = <Map<String, dynamic>>[];
     final prs = <String>[];
-    for (final ex in _day.exercises) {
+    for (final ex in _exercises) {
       final rows = _sets[ex.name]!;
       final sets = <Map<String, dynamic>>[];
       for (final r in rows) {
@@ -109,7 +126,8 @@ class _GymSessionScreenState extends State<GymSessionScreen> {
       toast(context, 'Enter at least one set.');
       return;
     }
-    system.saveGymSession(DateTime.now(), _day.id, exercises, zone2: _zone2);
+    system.saveGymSession(DateTime.now(), _day.id, exercises,
+        zone2: _zone2, shoulderSparing: _sparing);
     HapticFeedback.heavyImpact();
     toast(
         context,
@@ -129,7 +147,9 @@ class _GymSessionScreenState extends State<GymSessionScreen> {
 
     return OnoPage(
       showBack: true,
-      eyebrow: 'Day ${_day.letter} · RA-safe',
+      eyebrow: _sparing
+          ? 'Day ${_day.letter} · shoulder-sparing'
+          : 'Day ${_day.letter} · RA-safe',
       title: _day.name,
       subtitle: last == null
           ? 'First time logging this day — enter what you lift today.'
@@ -163,8 +183,30 @@ class _GymSessionScreenState extends State<GymSessionScreen> {
                 style: AppText.small(color: AppColors.greyLight)),
           ),
         ],
+        if (_sparing || system.shoulderFlag(DateTime.now())) ...[
+          const SizedBox(height: 12),
+          OnoCard(
+            accent: AppColors.warning,
+            padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                      _sparing
+                          ? 'Shoulders flagged this morning. Skipped today: ${_skipped.map((e) => e.name).join(', ')}.'
+                          : 'Shoulders were flagged this morning — normal plan chosen.',
+                      style: AppText.small(color: AppColors.greyLight)),
+                ),
+                Switch(
+                  value: _sparing,
+                  onChanged: (v) => setState(() => _sparing = v),
+                ),
+              ],
+            ),
+          ),
+        ],
         const SizedBox(height: 8),
-        for (final ex in _day.exercises) _exercise(ex, system),
+        for (final ex in _exercises) _exercise(ex, system),
         const SizedBox(height: 8),
         OnoCard(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),

@@ -183,29 +183,53 @@ class PersonalSystemProvider extends ChangeNotifier {
   int gymSessionsInWeek(DateTime anyDay) =>
       weekDays(anyDay).where(gymDone).length;
 
-  /// Consecutive days (ending today, or yesterday if today isn't held yet)
-  /// with at least 7/10.
-  int get streak {
-    var day = dayOnly(_now);
-    if (scoreFor(day) < 7) day = day.subtract(const Duration(days: 1));
-    var count = 0;
-    while (!day.isBefore(programStart) && scoreFor(day) >= 7) {
-      count++;
-      day = day.subtract(const Duration(days: 1));
-    }
-    return count;
-  }
-
-  int get bestStreak {
-    var best = 0, run = 0;
+  /// Never miss twice: one day under 7 is forgiven, as long as the next
+  /// day is held (or is today, still open) and no other day was forgiven in
+  /// the 6 days before it. Two misses in a row end the streak.
+  ({int current, int best, bool pending}) get _streaks {
+    final today = dayOnly(_now);
+    var run = 0, best = 0;
+    var prevMiss = false;
+    DateTime? grace;
     for (var d = programStart;
-        !d.isAfter(dayOnly(_now));
+        !d.isAfter(today);
         d = d.add(const Duration(days: 1))) {
-      run = scoreFor(d) >= 7 ? run + 1 : 0;
+      final held = scoreFor(d) >= 7;
+      if (held) {
+        run++;
+        prevMiss = false;
+      } else if (d == today) {
+        // Today is still open — it can't break anything yet.
+      } else if (!prevMiss &&
+          run > 0 &&
+          (grace == null || d.difference(grace).inDays >= 7)) {
+        grace = d;
+        prevMiss = true;
+      } else {
+        run = 0;
+        grace = null;
+        prevMiss = true;
+      }
       if (run > best) best = run;
     }
-    return best;
+    return (current: run, best: best, pending: prevMiss && run > 0);
   }
+
+  /// Current streak of held days, with one forgiven miss (see [_streaks]).
+  int get streak => _streaks.current;
+
+  int get bestStreak => _streaks.best;
+
+  /// Yesterday slipped and today isn't held yet: today decides the streak.
+  bool get isRecoveryDay {
+    final today = dayOnly(_now);
+    final yesterday = today.subtract(const Duration(days: 1));
+    if (yesterday.isBefore(programStart)) return false;
+    return scoreFor(yesterday) < 7 && scoreFor(today) < 7;
+  }
+
+  /// Days held in the current program month.
+  int get daysHeldThisMonth => statsForMonth(programMonth).daysHeld;
 
   /// Days held (7+/10) since the program started.
   int get daysHeld {
@@ -225,6 +249,154 @@ class PersonalSystemProvider extends ChangeNotifier {
       for (final n in nonNegotiables)
         n.id: days.where((d) => isChecked(d, n.id)).length / days.length,
     };
+  }
+
+  // ── Fresh starts ─────────────────────────────────────────────────────
+
+  /// The temporal landmark that [day] is, if any: a new phase, a new month,
+  /// or a Monday. Dismissed with `setDone(fs.key, true)`.
+  FreshStart? freshStartFor(DateTime day) {
+    if (!hasStarted || programDay < 2) return null;
+    final d = dayOnly(day);
+    final month = programMonth;
+    if (dayOfMonth == 1 && month > 1) {
+      final phase = phaseFor(month);
+      final theme = monthThemes[month] ?? '';
+      if (phase.fromMonth == month) {
+        return FreshStart(
+          key: 'fresh:phase:${phase.id}',
+          eyebrow: 'Phase · months ${phase.fromMonth}–${phase.toMonth}',
+          title: '${phase.name} begins',
+          body: '${phase.promise}\n\nMonth $month: $theme',
+          cta: 'Open month $month',
+          route: '/month/$month',
+        );
+      }
+      return FreshStart(
+        key: 'fresh:month:$month',
+        eyebrow: 'Month $month begins',
+        title: theme,
+        body: 'Artifact of the month: ${artifactFor(month)}.',
+        cta: 'Open month $month',
+        route: '/month/$month',
+      );
+    }
+    if (d.weekday == DateTime.monday) {
+      final lastWeek = weekDays(d.subtract(const Duration(days: 7)))
+          .where((x) => !x.isBefore(programStart))
+          .toList();
+      if (lastWeek.length < 3) return null;
+      final rates = itemRates(lastWeek).entries.toList()
+        ..sort((a, b) => a.value.compareTo(b.value));
+      final weakest = nonNegotiables.firstWhere((n) => n.id == rates.first.key);
+      final hits = (rates.first.value * lastWeek.length).round();
+      return FreshStart(
+        key: 'fresh:week:${dateKey(d)}',
+        eyebrow: 'New week · week $programWeek',
+        title: 'One commitment: ${weakest.title.toLowerCase()}',
+        body: 'Last week: $hits of ${lastWeek.length} days.\n'
+            'Your plan: ${cueFor(weakest.id)}.\n\n'
+            'Close your eyes for 20 seconds and picture the moment the cue '
+            'happens and you do it.',
+        cta: 'Commit',
+        itemId: weakest.id,
+      );
+    }
+    return null;
+  }
+
+  // ── If-then plans ────────────────────────────────────────────────────
+
+  /// The cue that triggers a Daily 10 item ("When X → Y").
+  String cueFor(String id) => _state?.cues[id] ?? defaultCues[id] ?? '';
+
+  bool hasCustomCue(String id) => _state?.cues.containsKey(id) ?? false;
+
+  /// Save a cue; an empty [text] restores the default. Pass
+  /// `reschedule: false` while typing and call [resyncReminders] after.
+  void setCue(String id, String text, {bool reschedule = true}) {
+    final s = _state;
+    if (s == null) return;
+    final next = Map<String, String>.from(s.cues);
+    final t = text.trim();
+    if (t.isEmpty || t == defaultCues[id]) {
+      next.remove(id);
+    } else {
+      next[id] = t;
+    }
+    _update(s.copyWith(cues: next), reschedule: reschedule);
+  }
+
+  /// Re-schedule reminders now (e.g. after editing cues).
+  void resyncReminders() => _syncReminders();
+
+  // ── Morning check-in ─────────────────────────────────────────────────
+
+  LogEntry? checkinFor(DateTime date) {
+    final l = logsOn(date, 'checkin');
+    return l.isEmpty ? null : l.last;
+  }
+
+  /// One check-in per day; saving again replaces it.
+  void saveCheckin(DateTime date,
+      {required int energy,
+      required int mood,
+      required double sleep,
+      required int pain,
+      required int stiffness}) {
+    final data = {
+      'energy': energy,
+      'mood': mood,
+      'sleep': sleep,
+      'pain': pain,
+      'stiffness': stiffness,
+    };
+    final existing = checkinFor(date);
+    if (existing != null) {
+      updateLog(LogEntry(
+        id: existing.id,
+        type: existing.type,
+        date: existing.date,
+        createdAt: existing.createdAt,
+        text: existing.text,
+        data: data,
+      ));
+    } else {
+      addLog('checkin', date: date, data: data);
+    }
+  }
+
+  /// Shoulders need sparing today: pain ≥ 5/10 or morning stiffness of
+  /// 30 minutes or more (stiffness bucket ≥ 3).
+  bool shoulderFlag(DateTime date) {
+    final c = checkinFor(date);
+    if (c == null) return false;
+    return (c.number('pain') ?? 0) >= 5 || (c.number('stiffness') ?? 0) >= 3;
+  }
+
+  /// Flagged mornings in the 7 days ending [date].
+  int flagDaysInWeekEnding(DateTime date) {
+    var n = 0;
+    for (var i = 0; i < 7; i++) {
+      if (shoulderFlag(dayOnly(date).subtract(Duration(days: i)))) n++;
+    }
+    return n;
+  }
+
+  /// Check-ins in the [days] days ending [date], oldest first.
+  List<LogEntry> checkinsEnding(DateTime date, int days) {
+    final out = <LogEntry>[];
+    for (var i = days - 1; i >= 0; i--) {
+      final c = checkinFor(dayOnly(date).subtract(Duration(days: i)));
+      if (c != null) out.add(c);
+    }
+    return out;
+  }
+
+  double? averageOf(List<LogEntry> entries, String key) {
+    final v = entries.map((e) => e.number(key)).whereType<num>().toList();
+    if (v.isEmpty) return null;
+    return v.fold<double>(0, (s, x) => s + x) / v.length;
   }
 
   // ── Priorities ───────────────────────────────────────────────────────
@@ -405,7 +577,7 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   void saveGymSession(DateTime date, String gymDayId,
       List<Map<String, dynamic>> exercises,
-      {bool zone2 = false}) {
+      {bool zone2 = false, bool shoulderSparing = false}) {
     final volume = exercises.fold<double>(0, (sum, e) {
       final sets = (e['sets'] as List).cast<Map<String, dynamic>>();
       return sum +
@@ -423,6 +595,7 @@ class PersonalSystemProvider extends ChangeNotifier {
           'exercises': exercises,
           'zone2': zone2,
           'volume': volume,
+          if (shoulderSparing) 'shoulder_sparing': true,
         });
     setCheck(date, _gymId, true);
   }
@@ -572,6 +745,10 @@ class PersonalSystemProvider extends ChangeNotifier {
     notifyListeners();
     try {
       final forWeek = report.weekStart.add(const Duration(days: 7));
+      final weekCheckins = [
+        for (final d in weekDays(report.weekStart))
+          if (checkinFor(d) case final c?) c
+      ];
       final brief = await _briefs.generate(BriefInput(
         report: report,
         forWeek: forWeek,
@@ -592,6 +769,11 @@ class PersonalSystemProvider extends ChangeNotifier {
             .map((u) => u.title)
             .toList(),
         latestWeight: latestWeight,
+        avgEnergy: averageOf(weekCheckins, 'energy'),
+        avgSleep: averageOf(weekCheckins, 'sleep'),
+        shoulderFlagDays: weekCheckins
+            .where((c) => shoulderFlag(c.date))
+            .length,
       ));
       final s = _state!;
       final others = s.briefs
@@ -682,7 +864,7 @@ class PersonalSystemProvider extends ChangeNotifier {
       case 'winddown':
         return 'No screens. Tomorrow: ${outfitFor(_now.add(const Duration(days: 1))).occasion}.';
       case 'bed':
-        return '7.5 hours protects tomorrow\'s mind. Phone outside, room 18–19°C.';
+        return '${cueFor('bed')}. 7.5 hours protects tomorrow\'s mind.';
       case 'evidence_add':
         return 'Things built, problems solved, knowledge others don\'t have.';
       case 'evidence_read':
@@ -694,7 +876,7 @@ class PersonalSystemProvider extends ChangeNotifier {
       case 'grooming':
         return 'Ten minutes on the beard line, then lay out Monday.';
       case 'caffeine':
-        return 'Sleep starts now — no caffeine after 13:00.';
+        return cueFor('caffeine');
       default:
         return '';
     }
@@ -751,5 +933,28 @@ class MonthStats {
     required this.artifacts,
     this.weightStart,
     this.weightEnd,
+  });
+}
+
+/// A temporal landmark worth a moment: Monday, a new month, a new phase.
+class FreshStart {
+  final String key;
+  final String eyebrow;
+  final String title;
+  final String body;
+  final String cta;
+  final String? route;
+
+  /// The Daily 10 item this fresh start commits to (Mondays).
+  final String? itemId;
+
+  const FreshStart({
+    required this.key,
+    required this.eyebrow,
+    required this.title,
+    required this.body,
+    required this.cta,
+    this.route,
+    this.itemId,
   });
 }

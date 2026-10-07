@@ -227,6 +227,7 @@ class _EntryRow extends StatelessWidget {
     'win': (Icons.emoji_events_outlined, 'mind', 'Win'),
     'note': (Icons.edit_note_rounded, 'mind', 'Note'),
     'month_review': (Icons.fact_check_outlined, 'mind', 'Month review'),
+    'checkin': (Icons.wb_twilight_rounded, 'body', 'Morning check-in'),
   };
 
   String get _summary {
@@ -258,6 +259,11 @@ class _EntryRow extends StatelessWidget {
         return '5 steps · ${((e.number('seconds') ?? 0) / 60).toStringAsFixed(0)} min';
       case 'month_review':
         return 'Month ${e.number('month')}: ${e.text}';
+      case 'checkin':
+        final stiff = (e.number('stiffness') ?? 0).toInt();
+        return 'Energy ${e.number('energy')}/5 · sleep ${e.number('sleep')} h · '
+            'shoulders ${e.number('pain')}/10'
+            '${stiff > 0 ? ' · stiff ${const ['', '<15', '15–30', '30–60', '60+'][stiff.clamp(0, 4)]} min' : ''}';
       default:
         final extra = e.str('outcome');
         final t = e.text.isEmpty ? 'Logged' : e.text;

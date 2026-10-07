@@ -140,6 +140,18 @@ void main() {
       system.logWeight(81.4);
       system.addProtein(DateTime.now(), 60);
       system.toggleCheck(DateTime.now(), 'manifesto');
+      // Flagged shoulders today and yesterday: Today, the gym screen and
+      // Me render their shoulder-sparing / Mornings states. Yesterday is
+      // unheld, so Today also shows the recovery card.
+      final today = dayOnly(DateTime.now());
+      system.saveCheckin(today,
+          energy: 2, mood: -1, sleep: 6, pain: 6, stiffness: 3);
+      system.saveCheckin(today.subtract(const Duration(days: 1)),
+          energy: 3, mood: 0, sleep: 7.5, pain: 4, stiffness: 3);
+      system.saveCheckin(today.subtract(const Duration(days: 2)),
+          energy: 4, mood: 1, sleep: 8, pain: 2, stiffness: 0);
+      system.setCue('bed', 'When the 22:00 alarm rings → phone stays in the hall, '
+          'charger by the front door, book on the pillow instead');
       await _pumpFor(tester, const Duration(milliseconds: 500));
 
       final routes = <String>{

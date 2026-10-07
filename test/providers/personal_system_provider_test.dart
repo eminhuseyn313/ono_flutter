@@ -81,21 +81,149 @@ void main() {
     expect(p.scoreFor(day), 2);
   });
 
-  test('streak counts back from yesterday when today is not held yet',
-      () async {
+  test('never miss twice: one slip is forgiven', () async {
     final p = await _commissioned();
     for (var i = 1; i <= 4; i++) {
       _hold(p, _daysAgo(i));
     }
-    _hold(p, _daysAgo(5), 6); // breaks the run
+    _hold(p, _daysAgo(5), 6); // a single slip
     for (var i = 6; i <= 12; i++) {
       _hold(p, _daysAgo(i));
     }
-    expect(p.streak, 4);
+    expect(p.streak, 11, reason: 'today is still open');
     _hold(p, _daysAgo(0));
-    expect(p.streak, 5);
-    expect(p.bestStreak, 7);
+    expect(p.streak, 12);
+    expect(p.bestStreak, 12);
     expect(p.daysHeld, 12);
+  });
+
+  test('two misses in a row end the streak', () async {
+    final p = await _commissioned();
+    for (var i = 1; i <= 3; i++) {
+      _hold(p, _daysAgo(i));
+    }
+    // 4 and 5 days ago: missed.
+    for (var i = 6; i <= 10; i++) {
+      _hold(p, _daysAgo(i));
+    }
+    expect(p.streak, 3);
+    expect(p.bestStreak, 5);
+  });
+
+  test('only one forgiven slip per 7 days', () async {
+    final p = await _commissioned();
+    _hold(p, _daysAgo(1));
+    _hold(p, _daysAgo(2));
+    // 3 days ago: slip (second within a week → ends the run)
+    for (var i = 4; i <= 6; i++) {
+      _hold(p, _daysAgo(i));
+    }
+    // 7 days ago: slip (forgiven)
+    for (var i = 8; i <= 10; i++) {
+      _hold(p, _daysAgo(i));
+    }
+    expect(p.streak, 2);
+    expect(p.bestStreak, 6);
+  });
+
+  test('recovery day: yesterday slipped and today is not held yet', () async {
+    final p = await _commissioned();
+    _hold(p, _daysAgo(2));
+    expect(p.isRecoveryDay, isTrue);
+    expect(p.streak, 1, reason: 'the slip is pending, the streak survives');
+    _hold(p, _daysAgo(0));
+    expect(p.isRecoveryDay, isFalse);
+    expect(p.streak, 2);
+  });
+
+  test('fresh starts: Monday, new month, new phase', () async {
+    final p = await _commissioned();
+    // Monday 5 Oct (day 35): last week everything held except bed.
+    p.clock = () => DateTime(2026, 10, 5, 8);
+    for (var i = 1; i <= 7; i++) {
+      for (final n in nonNegotiables.where((n) => n.id != 'bed')) {
+        p.setCheck(DateTime(2026, 10, 5).subtract(Duration(days: i)), n.id,
+            true);
+      }
+    }
+    final monday = p.freshStartFor(DateTime(2026, 10, 5))!;
+    expect(monday.itemId, 'bed');
+    expect(monday.body, contains(p.cueFor('bed')));
+    expect(monday.route, isNull);
+
+    // Day 31 = first day of month 2 (still Foundation).
+    p.clock = () => DateTime(2026, 10, 1, 8);
+    final month = p.freshStartFor(DateTime(2026, 10, 1))!;
+    expect(month.key, 'fresh:month:2');
+    expect(month.route, '/month/2');
+
+    // Day 61 = month 3: Craft begins.
+    p.clock = () => DateTime(2026, 10, 31, 8);
+    final phase = p.freshStartFor(DateTime(2026, 10, 31))!;
+    expect(phase.key, startsWith('fresh:phase:'));
+    expect(phase.title, contains(phaseFor(3).name));
+
+    // An ordinary Wednesday has none.
+    p.clock = () => DateTime(2026, 10, 7, 8);
+    expect(p.freshStartFor(DateTime(2026, 10, 7)), isNull);
+  });
+
+  test('if-then cues: default, custom, reset, in reminders and backups',
+      () async {
+    final rec = _RecordingReminders();
+    final p = await _commissioned(reminders: rec);
+    expect(p.cueFor('bed'), defaultCues['bed']);
+    p.setCue('bed', 'When the kids are asleep → phone on the charger');
+    expect(p.hasCustomCue('bed'), isTrue);
+    expect(rec.last.any((r) => r.body.contains('kids are asleep')), isTrue);
+
+    final q = PersonalSystemProvider(gateway: MockPersonalSystemGateway())
+      ..clock = () => _today;
+    await q.load('other');
+    q.importJson(p.exportJson());
+    expect(q.cueFor('bed'), contains('kids are asleep'));
+
+    p.setCue('bed', '');
+    expect(p.hasCustomCue('bed'), isFalse);
+    expect(p.cueFor('bed'), defaultCues['bed']);
+  });
+
+  test('check-in: one per day, shoulder flag, weekly count', () async {
+    final p = await _commissioned();
+    final today = dayOnly(_today);
+    p.saveCheckin(today,
+        energy: 3, mood: 0, sleep: 7, pain: 4, stiffness: 2);
+    expect(p.shoulderFlag(today), isFalse);
+    p.saveCheckin(today,
+        energy: 2, mood: -1, sleep: 6, pain: 5, stiffness: 0);
+    expect(p.logsOn(today, 'checkin').length, 1, reason: 'replaced, not added');
+    expect(p.shoulderFlag(today), isTrue);
+    p.saveCheckin(_daysAgo(1),
+        energy: 3, mood: 0, sleep: 7, pain: 1, stiffness: 3);
+    expect(p.shoulderFlag(_daysAgo(1)), isTrue, reason: 'stiffness 30+ min');
+    expect(p.flagDaysInWeekEnding(today), 2);
+    expect(p.averageOf(p.checkinsEnding(today, 7), 'sleep'), 6.5);
+  });
+
+  test('the brief reacts to flagged shoulders and short sleep', () async {
+    final p = await _commissioned(briefs: DeviceBriefGenerator());
+    final week = weekStartOf(_today);
+    for (var i = 0; i < 3; i++) {
+      p.saveCheckin(week.add(Duration(days: i)),
+          energy: 2, mood: 0, sleep: 6, pain: 6, stiffness: 3);
+    }
+    final brief = await p.submitReport(WeeklyReport(
+      id: 'r',
+      weekStart: week,
+      nonNegotiableAverage: 7,
+      gymSessions: 3,
+      bestMoment: '',
+      hardestMoment: '',
+      workSituation: '',
+      createdAt: _today,
+    ));
+    expect(brief!.adjustments.join(' '), contains('rheumatologist'));
+    expect(brief.adjustments.join(' '), contains('6.0 h'));
   });
 
   test('protein auto-ticks at 150 g', () async {

@@ -38,6 +38,13 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] Protein chips add grams; the item ticks itself at 150 g
 - [ ] Kill and reopen the app → everything is still there
 
+## 2b. New: the loop
+- [ ] Before 14:00 Today shows **Morning check-in**. Set pain 7 or stiffness 60+ → save → Today says shoulder-sparing; the gym screen skips presses and adds legs/trunk (switch restores the normal plan)
+- [ ] Unticked Daily 10 items show their **if-then plan**; **If-then plans** (top right of Daily 10) lets you edit them
+- [ ] A day under 7 followed by a held day keeps the streak (never miss twice); after a slip Today shows **Recovery day**
+- [ ] Monday shows a **New week** card with last week's weakest item; day 1 of each month shows the month card
+- [ ] Me → **Mornings**: averages and the shoulder-pain trend
+
 ## 3. Tools & logging
 - [ ] Morning ritual (from Today before 11:00): 5 steps → finishing ticks the manifesto
 - [ ] Sigh tool: run it → "uses" and mastery level go up; the sigh item is ticked

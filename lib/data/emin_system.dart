@@ -34,7 +34,11 @@ class Exercise {
   final String? note;
   final bool keyLift;
 
-  const Exercise(this.name, this.sets, {this.note, this.keyLift = false});
+  /// Loads the shoulders: skipped on a shoulder-sparing day (RA flare).
+  final bool shoulder;
+
+  const Exercise(this.name, this.sets,
+      {this.note, this.keyLift = false, this.shoulder = false});
 }
 
 class GymDay {
@@ -392,14 +396,15 @@ const List<GymDay> gymPlan = [
     weekday: DateTime.monday,
     finisher: 'Zone 2 cooldown — 15 min',
     exercises: [
-      Exercise('Chest Machine (full lying)', '3×12'),
-      Exercise('Butterfly Machine', '3×12'),
-      Exercise('Sitting Chest Machine', '3×12'),
-      Exercise('Dumbbell Shoulder Press', '3×12', note: 'Dumbbells, not barbell'),
-      Exercise('Lateral Raise Machine', '3×12'),
+      Exercise('Chest Machine (full lying)', '3×12', shoulder: true),
+      Exercise('Butterfly Machine', '3×12', shoulder: true),
+      Exercise('Sitting Chest Machine', '3×12', shoulder: true),
+      Exercise('Dumbbell Shoulder Press', '3×12',
+          note: 'Dumbbells, not barbell', shoulder: true),
+      Exercise('Lateral Raise Machine', '3×12', shoulder: true),
       Exercise('Tricep Pushdown (V-bar)', '3×12'),
       Exercise('Cable Rope Overhead Tricep', '3×12',
-          note: 'Replaces DB overhead — safer for RA'),
+          note: 'Replaces DB overhead — safer for RA', shoulder: true),
       Exercise('Face Pulls', '3×15', note: 'Never skip', keyLift: true),
     ],
   ),
@@ -410,7 +415,7 @@ const List<GymDay> gymPlan = [
     weekday: DateTime.wednesday,
     finisher: 'Zone 2 cooldown — 15 min',
     exercises: [
-      Exercise('Lat Pulldown', '3×12'),
+      Exercise('Lat Pulldown', '3×12', shoulder: true),
       Exercise('Incline T-bar Row', '3×12'),
       Exercise('Seated Cable Row', '3×12'),
       Exercise('Supinated Bicep Curl', '3×12'),
@@ -434,7 +439,8 @@ const List<GymDay> gymPlan = [
       Exercise('Leg Press', '3×12'),
       Exercise('Plank', '3×45 sec'),
       Exercise('Dead Bug', '3×10 each'),
-      Exercise('Leverage Shoulder Press', '3×12', note: 'Light, only if pain-free'),
+      Exercise('Leverage Shoulder Press', '3×12',
+          note: 'Light, only if pain-free', shoulder: true),
       Exercise('Face Pulls', '3×15', keyLift: true),
     ],
   ),
@@ -453,6 +459,14 @@ GymDay? gymDayFor(DateTime date,
   }
   return null;
 }
+
+/// Added on a shoulder-sparing day: legs, trunk and conditioning carry the
+/// session while the shoulders rest.
+const List<Exercise> shoulderSparingAddOns = [
+  Exercise('Leg Press', '3×12', note: 'Shoulder-sparing swap'),
+  Exercise('Goblet Squat', '3×12', note: 'DB at chest — zero shoulder load'),
+  Exercise('Dead Bug', '3×10 each', note: 'Shoulder-sparing swap'),
+];
 
 const raRemove = [
   'Overhead barbell press',
@@ -980,6 +994,21 @@ const List<NonNegotiable> nonNegotiables = [
       route: '/log?add=protein'),
   NonNegotiable('bed', 'In bed by 10:30pm', 'body', 'evening'),
 ];
+
+/// Default if-then plans (implementation intentions): the cue that
+/// triggers each Daily 10 item. Editable on /plans.
+const Map<String, String> defaultCues = {
+  'manifesto': 'When I switch off the 06:00 alarm → manifesto before the phone',
+  'scan': 'When I sit at my desk at 07:45 → scan before opening email',
+  'sigh': 'When I park at the office or a hard meeting starts → sigh ×3',
+  'bluf': 'When I open Slack the first time → write that message as BLUF',
+  'pause': 'When someone challenges me → one breath before I answer',
+  'read': 'When lunch arrives → phone face-down, book open',
+  'feynman': 'When I close the book → 5 minutes writing from memory',
+  'caffeine': 'When it turns 13:00 → water or herbal tea only',
+  'protein': 'When I sit down to breakfast → 40 g protein first',
+  'bed': 'When the 22:00 alarm rings → phone goes outside the bedroom',
+};
 
 const nonNegotiableGroups = [
   ['morning', 'Morning'],

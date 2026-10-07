@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import 'providers/auth_provider.dart';
 import 'screens/career_screen.dart';
+import 'screens/checkin_screen.dart';
 import 'screens/commission_screen.dart';
 import 'screens/evidence_archive_screen.dart';
 import 'screens/forgot_password_screen.dart';
@@ -16,6 +17,7 @@ import 'screens/me_screen.dart';
 import 'screens/month_screen.dart';
 import 'screens/onboarding_welcome_screen.dart';
 import 'screens/program_screen.dart';
+import 'screens/plans_screen.dart';
 import 'screens/protocols_screen.dart';
 import 'screens/ritual_flow_screen.dart';
 import 'screens/sign_in_screen.dart';
@@ -55,6 +57,8 @@ const appRoutes = [
   '/tool/anki',
   '/tool/artifact',
   '/tool/linkedin',
+  '/checkin',
+  '/plans',
 ];
 
 GoRouter createRouter(AuthProvider authProvider,
@@ -99,6 +103,8 @@ GoRouter createRouter(AuthProvider authProvider,
       _slide('/style', (_) => const StyleScreen()),
       _slide('/career', (_) => const CareerScreen()),
       _slide('/weekly-coaching', (_) => const WeeklyCoachingScreen()),
+      _slide('/checkin', (_) => const CheckinScreen()),
+      _slide('/plans', (_) => const PlansScreen()),
       _slide('/ritual-flow/:ritualId',
           (s) => RitualFlowScreen(ritualId: s.pathParameters['ritualId']!)),
       _slide('/gym', (_) => const GymSessionScreen()),

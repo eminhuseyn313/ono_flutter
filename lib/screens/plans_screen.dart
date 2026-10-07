@@ -1,0 +1,108 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../data/emin_system.dart';
+import '../providers/personal_system_provider.dart';
+import '../theme/app_theme.dart';
+import '../widgets/ono_ui.dart';
+
+/// If-then plans for the Daily 10. "When X happens → I do Y" makes the cue
+/// do the remembering; each plan shows on Today and inside its reminder.
+class PlansScreen extends StatefulWidget {
+  const PlansScreen({super.key});
+
+  @override
+  State<PlansScreen> createState() => _PlansScreenState();
+}
+
+class _PlansScreenState extends State<PlansScreen> {
+  final Map<String, TextEditingController> _c = {};
+  late PersonalSystemProvider _system;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _system = context.read<PersonalSystemProvider>();
+    if (_c.isNotEmpty) return;
+    final system = _system;
+    for (final n in nonNegotiables) {
+      _c[n.id] = TextEditingController(text: system.cueFor(n.id));
+    }
+  }
+
+  @override
+  void dispose() {
+    // Reminders carry the cues; reschedule once, not on every keystroke.
+    _system.resyncReminders();
+    for (final c in _c.values) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final system = context.watch<PersonalSystemProvider>();
+    return OnoPage(
+      showBack: true,
+      eyebrow: 'Daily 10',
+      title: 'If-then plans',
+      subtitle:
+          'Name the moment, not the intention. "When I park at the office → sigh ×3" beats "be calmer".',
+      children: [
+        for (final g in nonNegotiableGroups) ...[
+          SectionHeader(g[1]),
+          OnoCard(
+            padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
+            child: Column(
+              children: [
+                for (final n in nonNegotiables.where((n) => n.when == g[0]))
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            LaneDot(n.lane),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(n.title,
+                                  style: AppText.small(color: AppColors.white)
+                                      .copyWith(fontWeight: FontWeight.w700)),
+                            ),
+                            if (system.hasCustomCue(n.id))
+                              TextButton(
+                                onPressed: () {
+                                  system.setCue(n.id, '');
+                                  _c[n.id]!.text = system.cueFor(n.id);
+                                },
+                                child: const Text('Reset'),
+                              ),
+                          ],
+                        ),
+                        TextField(
+                          controller: _c[n.id],
+                          maxLines: null,
+                          style: AppText.body(color: AppColors.greyLight),
+                          textInputAction: TextInputAction.done,
+                          onChanged: (v) =>
+                              system.setCue(n.id, v, reschedule: false),
+                          decoration: const InputDecoration(
+                            isDense: true,
+                            hintText: 'When … → I …',
+                            contentPadding: EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 10),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}

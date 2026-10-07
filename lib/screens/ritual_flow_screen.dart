@@ -238,8 +238,15 @@ class _RitualFlowScreenState extends State<RitualFlowScreen> {
           Text('Manifesto and sigh are ticked. Your priorities are on Today.',
               style: AppText.small()),
           const Spacer(),
-          PrimaryButton('Back to Today',
-              onPressed: () => context.go('/home')),
+          if (system.checkinFor(DateTime.now()) == null) ...[
+            PrimaryButton('Morning check-in · 15 s',
+                icon: Icons.arrow_forward_rounded,
+                onPressed: () => context.pushReplacement('/checkin')),
+            const SizedBox(height: 10),
+            GhostButton('Back to Today', onPressed: () => context.go('/home')),
+          ] else
+            PrimaryButton('Back to Today',
+                onPressed: () => context.go('/home')),
         ],
       ),
     );

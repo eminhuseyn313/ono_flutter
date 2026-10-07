@@ -65,6 +65,14 @@ class MeScreen extends StatelessWidget {
               const SizedBox(height: 6),
               Row(
                 children: [
+                  Text(
+                      '${system.daysHeldThisMonth} held this month · one slip is forgiven',
+                      style: AppText.small().copyWith(fontSize: 11.5)),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
                   Text('Month ${system.programMonth} · ${system.phase.name}',
                       style: AppText.small()),
                   const Spacer(),
@@ -144,6 +152,9 @@ class MeScreen extends StatelessWidget {
             ],
           ),
         ),
+        SectionHeader('Mornings',
+            action: 'Check in', onAction: () => context.push('/checkin')),
+        const _Mornings(),
         const SectionHeader('Body'),
         OnoCard(
           child: Column(
@@ -394,6 +405,74 @@ class MeScreen extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Last 7 days of check-ins: energy, sleep and shoulders, plus the pain
+/// trend for 30 days — the log to bring to the rheumatologist.
+class _Mornings extends StatelessWidget {
+  const _Mornings();
+
+  @override
+  Widget build(BuildContext context) {
+    final system = context.watch<PersonalSystemProvider>();
+    final today = DateTime.now();
+    final week = system.checkinsEnding(today, 7);
+    if (week.isEmpty) {
+      return const EmptyNote(
+          'No check-ins yet. Fifteen seconds each morning shows how sleep, energy and your shoulders move together.',
+          icon: Icons.wb_twilight_rounded);
+    }
+    String avg(String key, int digits) {
+      final v = system.averageOf(week, key);
+      return v == null ? '—' : v.toStringAsFixed(digits);
+    }
+
+    final month = system.checkinsEnding(today, 30);
+    final flags = system.flagDaysInWeekEnding(today);
+    return OnoCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(child: StatTile(avg('energy', 1), 'energy', unit: '/5')),
+              Expanded(child: StatTile(avg('sleep', 1), 'sleep', unit: 'h')),
+              Expanded(
+                  child: StatTile(avg('pain', 1), 'shoulder pain',
+                      unit: '/10')),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text('Averages of the last ${week.length} check-ins',
+              style: AppText.small().copyWith(fontSize: 11.5)),
+          if (month.length >= 2) ...[
+            const SizedBox(height: 14),
+            Text('SHOULDER PAIN · 30 DAYS', style: AppText.eyebrow()),
+            const SizedBox(height: 8),
+            TrendLine(
+              points: [
+                for (final c in month)
+                  (x: c.date, y: (c.number('pain') ?? 0).toDouble())
+              ],
+              color: AppColors.warning,
+              height: 110,
+              unit: '/10',
+            ),
+          ],
+          if (flags >= 3) ...[
+            const SizedBox(height: 12),
+            OnoCard(
+              accent: AppColors.warning,
+              padding: const EdgeInsets.all(12),
+              child: Text(
+                  'Shoulders flagged on $flags of the last 7 mornings. Worth mentioning to your rheumatologist — this log shows the pattern.',
+                  style: AppText.small(color: AppColors.greyLight)),
+            ),
+          ],
+        ],
       ),
     );
   }

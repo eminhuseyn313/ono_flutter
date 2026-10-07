@@ -140,6 +140,10 @@ These are logs to support conversations with your doctor, not medical advice. ON
 - **Leaderboards, XP, social feeds.** These were removed in the rebuild. They reward looking busy over holding the line, and the critique called them out.
 - **More content screens.** ONO's weakness was never missing content. It was the missing loop: cue → action → feedback → adjustment. Every Tier 1 item strengthens that loop.
 
+## Status
+- **Built (7 Oct 2026):** items 1–4 (never miss twice, fresh starts, if-then plans, morning check-in with shoulder-sparing gym).
+- **Next:** 5 and 6 (spaced repetition, career cockpit).
+
 ## Suggested next build
 1. Tier 1 items **1, 2, 3, 4** together, as one release: "the loop". They are small, all buildable here, and change every single day.
 2. Then **5 and 6**: learning and career.

@@ -15,6 +15,11 @@ class BriefInput {
   final List<String> openUnlocks;
   final double? latestWeight;
 
+  /// From morning check-ins this week (null when none were logged).
+  final double? avgEnergy;
+  final double? avgSleep;
+  final int shoulderFlagDays;
+
   const BriefInput({
     required this.report,
     required this.forWeek,
@@ -27,6 +32,9 @@ class BriefInput {
     required this.gymDays,
     required this.openUnlocks,
     this.latestWeight,
+    this.avgEnergy,
+    this.avgSleep,
+    this.shoulderFlagDays = 0,
   });
 
   Map<String, dynamic> toJson() => {
@@ -45,6 +53,9 @@ class BriefInput {
         'gym_days': gymDays,
         'open_unlocks': openUnlocks,
         'latest_weight_kg': latestWeight,
+        'avg_energy_1_to_5': avgEnergy,
+        'avg_sleep_hours': avgSleep,
+        'shoulder_flag_mornings': shoulderFlagDays,
       };
 }
 
@@ -148,6 +159,10 @@ class DeviceBriefGenerator implements BriefGenerator {
         'Evidence Archive: add ${5 - input.evidenceAddedThisWeek} more items tonight — the impostor feeds on forgetting.',
       if (r.hardestMoment.trim().isNotEmpty)
         'Hardest moment noted. Ask: what would the Product Architect do differently? Write the answer as one rule.',
+      if (input.shoulderFlagDays >= 3)
+        'Shoulders flagged on ${input.shoulderFlagDays} mornings. Keep the shoulder-sparing sessions and bring the check-in log to your rheumatologist.',
+      if (input.avgSleep != null && input.avgSleep! < 7)
+        'Average sleep ${input.avgSleep!.toStringAsFixed(1)} h. Protect 22:30 before adding anything else — sleep sets tomorrow\'s mind.',
       if (strongest != null && (input.itemRates[strongest] ?? 0) >= 0.85)
         '${_titleFor[strongest]} is becoming automatic — keep it, stop thinking about it.',
     ];

@@ -284,6 +284,9 @@ class PersonalSystemState {
   final List<WeeklyBrief> briefs;
   final List<LogEntry> logs;
 
+  /// Daily 10 id → the user's own if-then cue (overrides `defaultCues`).
+  final Map<String, String> cues;
+
   const PersonalSystemState({
     required this.programStart,
     this.commissioned = false,
@@ -297,6 +300,7 @@ class PersonalSystemState {
     this.reports = const [],
     this.briefs = const [],
     this.logs = const [],
+    this.cues = const {},
   });
 
   PersonalSystemState copyWith({
@@ -312,6 +316,7 @@ class PersonalSystemState {
     List<WeeklyReport>? reports,
     List<WeeklyBrief>? briefs,
     List<LogEntry>? logs,
+    Map<String, String>? cues,
   }) =>
       PersonalSystemState(
         programStart: programStart ?? this.programStart,
@@ -326,6 +331,7 @@ class PersonalSystemState {
         reports: reports ?? this.reports,
         briefs: briefs ?? this.briefs,
         logs: logs ?? this.logs,
+        cues: cues ?? this.cues,
       );
 
   Map<String, dynamic> toJson() => {
@@ -342,6 +348,7 @@ class PersonalSystemState {
         'reports': reports.map((r) => r.toJson()).toList(),
         'briefs': briefs.map((b) => b.toJson()).toList(),
         'logs': logs.map((l) => l.toJson()).toList(),
+        'cues': cues,
       };
 
   factory PersonalSystemState.fromJson(Map<String, dynamic> json) {
@@ -374,6 +381,8 @@ class PersonalSystemState {
       reports: list(json['reports'], WeeklyReport.fromJson),
       briefs: list(json['briefs'], WeeklyBrief.fromJson),
       logs: list(json['logs'], LogEntry.fromJson),
+      cues: (json['cues'] as Map<String, dynamic>? ?? {})
+          .map((k, v) => MapEntry(k, v as String)),
     );
   }
 }

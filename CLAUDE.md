@@ -66,7 +66,7 @@ Bottom tabs: **Today** `/home` · **Program** `/program?tab=0..3` (Journey/Sched
 
 ```
 /splash /welcome /sign-up /sign-in /forgot-password /commission
-/manifesto /protocols /evidence /library /style /career /weekly-coaching
+/manifesto /protocols /evidence /library /style /career /weekly-coaching /checkin /plans
 /ritual-flow/:ritualId /gym /gym/:dayId (push|pull|legs) /month/:m (1–18)
 /tool/:id  sigh excited pause still bluf sixq read feynman scan pennebaker anki artifact(?month=) linkedin
 ```
@@ -77,10 +77,25 @@ Flow:
 
 ## Behaviour worth knowing
 - **Today** is time-aware: morning, work, evening and Sunday modes, plus a Yesterday/Today switch (the 48-hour edit window). Its Day Dial shows the schedule as lane arcs.
-- **Daily 10**: 7/10 holds the day; streak counts days at 7+. Tools tick their item:
+- **Daily 10**: 7/10 holds the day. Tools tick their item:
   - sigh, bluf, pause, feynman, scan and read are ticked when the tool is used;
   - finishing the ritual ticks the manifesto;
   - protein ticks itself at 150 g.
+- **Streak, "never miss twice"** (`_streaks` in the provider):
+  - one day under 7 is forgiven if the next day is held (or is today, still open);
+  - at most one forgiven day per 7 days;
+  - two misses in a row reset the streak.
+  - `isRecoveryDay` drives Today's recovery card.
+- **Fresh starts**: `freshStartFor(day)` returns a Monday card (last week's weakest item plus its cue), a first-of-month card or a phase-change card. It is dismissed via its `done` key.
+- **If-then plans**: `defaultCues` in `emin_system.dart`, with overrides in `PersonalSystemState.cues` (`cueFor` / `setCue`).
+  - Cues show under unticked Daily 10 items and in the caffeine/bed reminders, and are edited on `/plans`.
+  - `setCue` takes `reschedule: false` while typing; call `resyncReminders` afterwards.
+- **Morning check-in** (`/checkin`): a `checkin` log, one per day, holding energy 1–5, mood −2…2, sleep h, shoulder pain 0–10 and stiffness bucket 0–4.
+  - `shoulderFlag` = pain ≥ 5 or stiffness ≥ 3 (30+ min).
+  - A flagged morning makes the gym screen shoulder-sparing: it skips `Exercise.shoulder` and adds `shoulderSparingAddOns`, with a switch back to the normal plan.
+  - Me → Mornings shows the averages, the pain trend and a rheumatologist note at 3+ flagged days.
+  - The Sunday brief gets avg energy, sleep and flag days.
+  - Never give medication or supplement advice.
 - **Sunday report** → `submitReport` → `BriefGenerator`:
   - `DeviceBriefGenerator` is rule-based and uses real data only.
   - `RemoteBriefGenerator` calls Claude via `supabase/functions/weekly-brief` and falls back to the device generator on any error.
