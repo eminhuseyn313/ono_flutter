@@ -145,7 +145,9 @@ These are logs to support conversations with your doctor, not medical advice. ON
 - **Built:** items 5–7 (spaced repetition deck, career cockpit, automaticity check). All of Tier 1 is done.
 - **Built:** #10 Apple Health (sleep → check-in and bed tick, HRV, resting HR, weigh-ins to Health); needs the HealthKit capability ticked in Xcode.
 - **Built:** #8 Home & Lock Screen widget (display; switched on with `scripts/capabilities.sh widget on`).
-- **Next:** #9 Live Activity for the gym rest timer; interactive widget ticks (iOS 17 App Intents).
+- **Built:** gym rest timer (the first half of #9, no native code): tick a set → 90 s rest (2 min on key lifts), +15 / Skip, haptics, and a notification when the rest ends if ONO is in the background.
+- **Built:** "What moves your day" on Me: personal patterns from his own logs (sleep → Daily 10, bedtime → morning energy, caffeine → sleep, gym → energy, ritual → the rest of the day). Each needs 5+ days on both sides; labelled as patterns, not proof.
+- **Next:** the Lock Screen / Dynamic Island view of the rest timer (#9, native); interactive widget ticks (iOS 17 App Intents). Both after the current native build is confirmed on the iPhone.
 
 ## Suggested next build
 1. Tier 1 items **1, 2, 3, 4** together, as one release: "the loop". They are small, all buildable here, and change every single day.

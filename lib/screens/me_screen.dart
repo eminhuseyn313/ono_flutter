@@ -24,9 +24,11 @@ class MeScreen extends StatelessWidget {
       return const Scaffold(backgroundColor: AppColors.background);
     }
     final today = dayOnly(DateTime.now());
-    final weeks = ((today.difference(weekStartOf(system.programStart)).inDays) ~/ 7 + 1)
-        .clamp(1, 26);
-    final heatFrom = weekStartOf(today).subtract(Duration(days: (weeks - 1) * 7));
+    final weeks =
+        ((today.difference(weekStartOf(system.programStart)).inDays) ~/ 7 + 1)
+            .clamp(1, 26);
+    final heatFrom =
+        weekStartOf(today).subtract(Duration(days: (weeks - 1) * 7));
     final keyLifts = [
       'Dumbbell Shoulder Press',
       'Lat Pulldown',
@@ -59,9 +61,8 @@ class MeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               ThinBar(
-                  value: system.hasStarted
-                      ? system.programDay / programDays
-                      : 0),
+                  value:
+                      system.hasStarted ? system.programDay / programDays : 0),
               const SizedBox(height: 6),
               Row(
                 children: [
@@ -92,9 +93,8 @@ class MeScreen extends StatelessWidget {
               HeatGrid(
                 from: heatFrom,
                 weeks: weeks < 8 ? 8 : weeks,
-                scoreFor: (d) => d.isBefore(system.programStart)
-                    ? null
-                    : system.scoreFor(d),
+                scoreFor: (d) =>
+                    d.isBefore(system.programStart) ? null : system.scoreFor(d),
               ),
               const SizedBox(height: 10),
               Row(
@@ -124,7 +124,8 @@ class MeScreen extends StatelessWidget {
             children: [
               for (final p in protocols)
                 InkWell(
-                  onTap: () => context.push(protocolTools[p.id] ?? '/protocols'),
+                  onTap: () =>
+                      context.push(protocolTools[p.id] ?? '/protocols'),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     child: Row(
@@ -156,6 +157,8 @@ class MeScreen extends StatelessWidget {
             action: 'Check in', onAction: () => context.push('/checkin')),
         const _Mornings(),
         const _AppleHealth(),
+        const SectionHeader('What moves your day'),
+        const _Patterns(),
         const SectionHeader('Body'),
         OnoCard(
           child: Column(
@@ -171,7 +174,8 @@ class MeScreen extends StatelessWidget {
                   ),
                   Expanded(
                     child: StatTile(
-                        system.startWeight == null || system.latestWeight == null
+                        system.startWeight == null ||
+                                system.latestWeight == null
                             ? '—'
                             : (system.latestWeight! - system.startWeight!)
                                 .toStringAsFixed(1),
@@ -209,7 +213,8 @@ class MeScreen extends StatelessWidget {
                 icon: Icons.autorenew_rounded,
                 color: AppColors.body,
                 title: 'Is it a habit yet?',
-                subtitle: '${system.automaticItems.length} of ${nonNegotiables.length} automatic',
+                subtitle:
+                    '${system.automaticItems.length} of ${nonNegotiables.length} automatic',
                 onTap: () => context.push('/habits'),
               ),
               const Divider(indent: 66),
@@ -370,7 +375,8 @@ class MeScreen extends StatelessWidget {
               Text('Gym days', style: AppText.title()),
               const SizedBox(height: 14),
               for (var i = 0; i < 3; i++) ...[
-                Text('DAY ${gymPlan[i].letter} · ${gymPlan[i].name.toUpperCase()}',
+                Text(
+                    'DAY ${gymPlan[i].letter} · ${gymPlan[i].name.toUpperCase()}',
                     style: AppText.eyebrow()),
                 const SizedBox(height: 6),
                 Wrap(
@@ -449,6 +455,67 @@ class MeScreen extends StatelessWidget {
 
 /// Last 7 days of check-ins: energy, sleep and shoulders, plus the pain
 /// trend for 30 days — the log to bring to the rheumatologist.
+/// Personal patterns from his own logs: days with a habit vs without.
+class _Patterns extends StatelessWidget {
+  const _Patterns();
+
+  @override
+  Widget build(BuildContext context) {
+    final system = context.watch<PersonalSystemProvider>();
+    final found = system.patterns();
+    if (found.isEmpty) {
+      return const EmptyNote(
+          'Patterns show here once there are 5+ days with and without a habit: '
+          'sleep vs your Daily 10, bedtime vs morning energy, caffeine vs sleep. '
+          'Morning check-ins make them appear sooner.',
+          icon: Icons.insights_rounded);
+    }
+    return OnoCard(
+      padding: const EdgeInsets.fromLTRB(16, 6, 16, 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (final p in found.take(4))
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2, right: 10),
+                    child: Icon(
+                        p.delta >= 0
+                            ? Icons.trending_up_rounded
+                            : Icons.trending_down_rounded,
+                        size: 18,
+                        color:
+                            p.delta >= 0 ? AppColors.body : AppColors.warning),
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('${p.habit} → ${p.outcome} ${p.fmt(p.withHabit)}',
+                            style: AppText.body(color: AppColors.white)),
+                        Text(
+                            'vs ${p.fmt(p.without)} without · ${p.daysWith} vs ${p.daysWithout} days',
+                            style: AppText.small().copyWith(fontSize: 12)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          const SizedBox(height: 10),
+          Text('Last 60 days of your own logs. Patterns, not proof.',
+              style:
+                  AppText.small(color: AppColors.faint).copyWith(fontSize: 12)),
+        ],
+      ),
+    );
+  }
+}
+
 class _Mornings extends StatelessWidget {
   const _Mornings();
 
@@ -478,8 +545,8 @@ class _Mornings extends StatelessWidget {
               Expanded(child: StatTile(avg('energy', 1), 'energy', unit: '/5')),
               Expanded(child: StatTile(avg('sleep', 1), 'sleep', unit: 'h')),
               Expanded(
-                  child: StatTile(avg('pain', 1), 'shoulder pain',
-                      unit: '/10')),
+                  child:
+                      StatTile(avg('pain', 1), 'shoulder pain', unit: '/10')),
             ],
           ),
           const SizedBox(height: 4),
@@ -563,8 +630,7 @@ class _AppleHealth extends StatelessWidget {
                 const Icon(Icons.favorite_rounded,
                     size: 16, color: AppColors.danger),
                 const SizedBox(width: 6),
-                Expanded(
-                    child: Text('APPLE HEALTH', style: AppText.eyebrow())),
+                Expanded(child: Text('APPLE HEALTH', style: AppText.eyebrow())),
                 GestureDetector(
                   onTap: () async {
                     await system.syncHealth();

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -21,6 +23,9 @@ class GymSessionScreen extends StatefulWidget {
 class _SetRow {
   final TextEditingController kg;
   final TextEditingController reps;
+
+  /// Ticked when the set is finished; starts the rest timer.
+  bool done = false;
   _SetRow(String kg, String reps)
       : kg = TextEditingController(text: kg),
         reps = TextEditingController(text: reps);
@@ -35,6 +40,13 @@ class _GymSessionScreenState extends State<GymSessionScreen> {
   /// Shoulders flagged in this morning's check-in (RA): presses, flyes and
   /// pulldowns are swapped for legs and trunk work. Can be switched off.
   bool _sparing = false;
+
+  // Rest timer between sets.
+  DateTime? _restEnds;
+  Duration _restTotal = Duration.zero;
+  String _restNext = '';
+  Timer? _tick;
+  late PersonalSystemProvider _system;
 
   List<Exercise> get _exercises => _sparing
       ? [
@@ -53,6 +65,7 @@ class _GymSessionScreenState extends State<GymSessionScreen> {
     if (_initialised) return;
     _initialised = true;
     final system = context.read<PersonalSystemProvider>();
+    _system = system;
     _day = widget.dayId == null
         ? system.nextGymDay(DateTime.now()).day
         : gymPlan.firstWhere((g) => g.id == widget.dayId,
@@ -62,8 +75,9 @@ class _GymSessionScreenState extends State<GymSessionScreen> {
     final lastByName = <String, List<Map<String, dynamic>>>{};
     for (final e in (last?.data['exercises'] as List? ?? const [])) {
       final m = Map<String, dynamic>.from(e as Map);
-      lastByName[m['name'] as String] =
-          (m['sets'] as List).map((s) => Map<String, dynamic>.from(s as Map)).toList();
+      lastByName[m['name'] as String] = (m['sets'] as List)
+          .map((s) => Map<String, dynamic>.from(s as Map))
+          .toList();
     }
     for (final ex in [..._day.exercises, ...shoulderSparingAddOns]) {
       if (_sets.containsKey(ex.name)) continue;
@@ -81,6 +95,8 @@ class _GymSessionScreenState extends State<GymSessionScreen> {
 
   @override
   void dispose() {
+    _tick?.cancel();
+    if (_restEnds != null) _system.cancelRest();
     for (final rows in _sets.values) {
       for (final r in rows) {
         r.kg.dispose();
@@ -103,6 +119,115 @@ class _GymSessionScreenState extends State<GymSessionScreen> {
     return (int.parse(m.group(1)!), int.parse(m.group(2)!));
   }
 
+  /// Ticks set [i] of [ex] and starts the rest before the next one.
+  void _finishSet(Exercise ex, int i) {
+    final rows = _sets[ex.name]!;
+    final wasDone = rows[i].done;
+    setState(() => rows[i].done = !wasDone);
+    if (wasDone) return;
+    HapticFeedback.mediumImpact();
+    final list = _exercises;
+    final at = list.indexWhere((e) => e.name == ex.name);
+    String next;
+    final open = [
+      for (var j = 0; j < rows.length; j++)
+        if (!rows[j].done) j
+    ];
+    if (open.isNotEmpty) {
+      next = '${ex.name} · set ${open.first + 1}';
+    } else if (at >= 0 && at + 1 < list.length) {
+      next = list[at + 1].name;
+    } else {
+      next = _day.finisher;
+    }
+    _startRest(PersonalSystemProvider.restFor(ex), next);
+  }
+
+  void _startRest(Duration d, String next) {
+    _restTotal = d;
+    _restNext = next;
+    _restEnds = DateTime.now().add(d);
+    _system.startRest(_restEnds!, next: next);
+    _tick?.cancel();
+    _tick = Timer.periodic(const Duration(seconds: 1), (_) => _onTick());
+    setState(() {});
+  }
+
+  void _onTick() {
+    if (!mounted || _restEnds == null) return;
+    if (!DateTime.now().isBefore(_restEnds!)) {
+      _tick?.cancel();
+      _restEnds = null;
+      HapticFeedback.heavyImpact();
+      SystemSound.play(SystemSoundType.alert);
+      toast(context, 'Rest done. Next: $_restNext');
+    }
+    setState(() {});
+  }
+
+  void _addRest(int seconds) {
+    if (_restEnds == null) return;
+    _restEnds = _restEnds!.add(Duration(seconds: seconds));
+    _restTotal += Duration(seconds: seconds);
+    _system.startRest(_restEnds!, next: _restNext);
+    setState(() {});
+  }
+
+  void _skipRest() {
+    _tick?.cancel();
+    _restEnds = null;
+    _system.cancelRest();
+    setState(() {});
+  }
+
+  Widget _restBar() {
+    final left = _restEnds!.difference(DateTime.now());
+    final secs = (left.inMilliseconds / 1000).ceil().clamp(0, 3600);
+    final clock = '${secs ~/ 60}:${(secs % 60).toString().padLeft(2, '0')}';
+    final total = _restTotal.inMilliseconds;
+    final progress =
+        total == 0 ? 1.0 : (1 - left.inMilliseconds / total).clamp(0.0, 1.0);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: OnoCard(
+        key: const Key('rest-timer'),
+        accent: AppColors.body,
+        padding: const EdgeInsets.fromLTRB(14, 10, 6, 10),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(clock, style: AppText.number(size: 22)),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text('Rest · next: $_restNext',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppText.small(color: AppColors.greyLight)),
+                ),
+                TextButton(
+                    onPressed: () => _addRest(15), child: const Text('+15')),
+                TextButton(onPressed: _skipRest, child: const Text('Skip')),
+              ],
+            ),
+            const SizedBox(height: 6),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(2),
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 3,
+                color: AppColors.body,
+                backgroundColor: AppColors.divider,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _save() {
     final system = context.read<PersonalSystemProvider>();
     final exercises = <Map<String, dynamic>>[];
@@ -117,8 +242,9 @@ class _GymSessionScreenState extends State<GymSessionScreen> {
         sets.add({'kg': kg ?? 0, 'reps': reps ?? 0});
       }
       if (sets.isEmpty) continue;
-      final top = sets.map((s) => (s['kg'] as num).toDouble()).reduce(
-          (a, b) => a > b ? a : b);
+      final top = sets
+          .map((s) => (s['kg'] as num).toDouble())
+          .reduce((a, b) => a > b ? a : b);
       if (top > 0 && top > system.bestLift(ex.name)) prs.add(ex.name);
       exercises.add({'name': ex.name, 'sets': sets});
     }
@@ -128,6 +254,7 @@ class _GymSessionScreenState extends State<GymSessionScreen> {
     }
     system.saveGymSession(DateTime.now(), _day.id, exercises,
         zone2: _zone2, shoulderSparing: _sparing);
+    _skipRest();
     HapticFeedback.heavyImpact();
     toast(
         context,
@@ -154,8 +281,14 @@ class _GymSessionScreenState extends State<GymSessionScreen> {
       subtitle: last == null
           ? 'First time logging this day — enter what you lift today.'
           : 'Pre-filled from ${weekdayName(last.date.weekday)} ${shortDate(last.date)}. Beat one number.',
-      bottomBar: PrimaryButton('Finish session',
-          icon: Icons.check_rounded, onPressed: _save),
+      bottomBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (_restEnds != null) _restBar(),
+          PrimaryButton('Finish session',
+              icon: Icons.check_rounded, onPressed: _save),
+        ],
+      ),
       children: [
         const SizedBox(height: 12),
         Row(
@@ -241,9 +374,8 @@ class _GymSessionScreenState extends State<GymSessionScreen> {
                 Expanded(
                   child: Text(ex.name,
                       style: AppText.heading(
-                          color: ex.keyLift
-                              ? AppColors.accent
-                              : AppColors.white)),
+                          color:
+                              ex.keyLift ? AppColors.accent : AppColors.white)),
                 ),
                 Text(ex.sets, style: AppText.small()),
               ],
@@ -273,6 +405,18 @@ class _GymSessionScreenState extends State<GymSessionScreen> {
                     Expanded(
                         child: _num(rows[i].reps,
                             ex.sets.contains('sec') ? 'sec' : 'reps')),
+                    IconButton(
+                      key: Key('set-${ex.name}-$i'),
+                      tooltip: rows[i].done ? 'Undo set' : 'Set done — rest',
+                      visualDensity: VisualDensity.compact,
+                      onPressed: () => _finishSet(ex, i),
+                      icon: Icon(
+                        rows[i].done
+                            ? Icons.check_circle_rounded
+                            : Icons.radio_button_unchecked_rounded,
+                        color: rows[i].done ? AppColors.body : AppColors.faint,
+                      ),
+                    ),
                   ],
                 ),
               ),

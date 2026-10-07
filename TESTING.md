@@ -64,6 +64,11 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] Tick Daily 10 items in the app → the widget updates within a few seconds; "NOW" follows your schedule through the day
 - [ ] If install fails with an App Groups / HealthKit signing error: `bash scripts/capabilities.sh widget off` (or `health off`) and install again
 
+## 2f. New: rest timer & patterns
+- [ ] Gym → tick the circle after a set → a rest countdown appears above **Finish session** (90 s, 2 min on key lifts); **+15** and **Skip** work
+- [ ] Start a rest, lock the phone → a "Rest done" notification arrives when it ends
+- [ ] Me → **What moves your day**: empty at first; after 5+ days with and without a habit (e.g. caffeine cut-off, bedtime) a pattern shows, e.g. "No caffeine after 1pm → sleep that night 7.4 h vs 6.6 h"
+
 ## 3. Tools & logging
 - [ ] Morning ritual (from Today before 11:00): 5 steps → finishing ticks the manifesto
 - [ ] Sigh tool: run it → "uses" and mastery level go up; the sigh item is ticked

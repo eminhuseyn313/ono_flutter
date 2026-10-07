@@ -70,7 +70,8 @@ List<String> _underStatusBar(double topInset) {
     final r = box.localToGlobal(Offset.zero) & box.size;
     if (r.top < topInset - 0.5 && r.bottom > 0) {
       final text = (e.widget as RichText).text.toPlainText();
-      out.add('under status bar: "${text.length > 30 ? text.substring(0, 30) : text}" at y=${r.top.toStringAsFixed(0)}');
+      out.add(
+          'under status bar: "${text.length > 30 ? text.substring(0, 30) : text}" at y=${r.top.toStringAsFixed(0)}');
     }
   }
   return out;
@@ -116,7 +117,8 @@ void main() {
       // Real insets: Dynamic Island + home indicator vs. SE status bar.
       final notch = size.height > 2200;
       final topInset = notch ? 59.0 : 20.0;
-      final insets = FakeViewPadding(top: topInset * 3, bottom: notch ? 34 * 3 : 0);
+      final insets =
+          FakeViewPadding(top: topInset * 3, bottom: notch ? 34 * 3 : 0);
       tester.view.padding = insets;
       tester.view.viewPadding = insets;
       addTearDown(tester.view.reset);
@@ -153,8 +155,21 @@ void main() {
           energy: 3, mood: 0, sleep: 7.5, pain: 4, stiffness: 3);
       system.saveCheckin(today.subtract(const Duration(days: 2)),
           energy: 4, mood: 1, sleep: 8, pain: 2, stiffness: 0);
-      system.setCue('bed', 'When the 22:00 alarm rings → phone stays in the hall, '
-          'charger by the front door, book on the pillow instead');
+      // Three weeks of caffeine cut-offs and sleep: Me shows a pattern.
+      for (var i = 3; i <= 24; i++) {
+        final d = today.subtract(Duration(days: i));
+        if (i.isEven) system.setCheck(d, 'caffeine', true);
+        system.saveCheckin(d,
+            energy: 3,
+            mood: 0,
+            sleep: i.isOdd ? 7.5 : 6,
+            pain: 1,
+            stiffness: 0);
+      }
+      system.setCue(
+          'bed',
+          'When the 22:00 alarm rings → phone stays in the hall, '
+              'charger by the front door, book on the pillow instead');
       // Career cockpit, deck and habit state, so their screens and Today's
       // prompt cards render with real content.
       system.addOneOnOne(
@@ -237,6 +252,37 @@ void main() {
       if (good.height > 120) {
         failures['/review'] = {'grade buttons ${good.height.round()} pt tall'};
       }
+
+      // Gym: ticking a set starts the rest timer above Finish session.
+      // A throw here would skip _restoreErrors and wedge the runner.
+      errors.clear();
+      try {
+        await _go(tester, '/gym/push');
+        final setDone = find.byWidgetPredicate((w) =>
+            w is IconButton &&
+            w.key is ValueKey<String> &&
+            (w.key as ValueKey<String>).value.startsWith('set-'));
+        await tester.ensureVisible(setDone.first);
+        await tester.tap(setDone.first);
+        await _pumpFor(tester, const Duration(seconds: 1));
+        if (find.byKey(const Key('rest-timer')).evaluate().isEmpty) {
+          errors.add('rest timer did not start');
+        }
+        await tester.tap(find.text('Skip'));
+        await _pumpFor(tester, const Duration(milliseconds: 300));
+      } catch (e) {
+        errors.add('$e');
+      }
+      if (errors.isNotEmpty) failures['/gym/push rest'] = errors.toSet();
+
+      // Me: the seeded caffeine cut-offs show as a pattern.
+      await _go(tester, '/profile');
+      final me = find.textContaining('No caffeine after 1pm →');
+      for (var i = 0; i < 30 && me.evaluate().isEmpty; i++) {
+        await tester.drag(find.byType(ListView).last, const Offset(0, -300));
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      if (me.evaluate().isEmpty) failures['/profile'] = {'no pattern shown'};
 
       _restoreErrors();
       expect(failures, isEmpty,

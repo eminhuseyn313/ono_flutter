@@ -127,6 +127,10 @@ Flow:
   - Choices live in `ios/.capabilities/` (git-ignored). `common.sh` re-applies them after every pull, and `Install on my iPhone.command` asks once.
   - They are kept out of the committed project because a personal Apple team may not support them, and an unsupported one would block installs.
   - Never hand-edit these in Xcode: the launchers stash local project edits.
+- **Gym rest timer** (`gym_session_screen.dart`): ticking a set starts `PersonalSystemProvider.restFor(exercise)` (90 s, 120 s for key lifts) with +15/Skip.
+  - `startRest`/`cancelRest` schedule a one-off notification through `ReminderService.notifyOnce` (id `restNotificationId`, ≥ `onceIdBase`); it is silent while ONO is in the foreground.
+  - Weekly `sync` only cancels ids below `onceIdBase`, so a running rest survives a reminder resync.
+- **Patterns** (`patterns()` → `DayPattern`, Me → "What moves your day"): compares an outcome on days with vs without a habit over the last 60 closed days. Needs `minDays` (5) on each side and a minimum gap; shown as patterns, not proof.
 - **Sunday report** → `submitReport` → `BriefGenerator`:
   - `DeviceBriefGenerator` is rule-based and uses real data only.
   - `RemoteBriefGenerator` calls Claude via `supabase/functions/weekly-brief` and falls back to the device generator on any error.

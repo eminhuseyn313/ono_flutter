@@ -557,15 +557,13 @@ class PersonalSystemProvider extends ChangeNotifier {
       {required String withWhom,
       required String decided,
       required List<String> followUps}) {
-    addLog('one_on_one',
-        text: decided.trim(),
-        data: {
-          'with': withWhom.trim().isEmpty ? 'Ali' : withWhom.trim(),
-          'followups': [
-            for (final f in followUps)
-              if (f.trim().isNotEmpty) f.trim()
-          ],
-        });
+    addLog('one_on_one', text: decided.trim(), data: {
+      'with': withWhom.trim().isEmpty ? 'Ali' : withWhom.trim(),
+      'followups': [
+        for (final f in followUps)
+          if (f.trim().isNotEmpty) f.trim()
+      ],
+    });
   }
 
   /// Follow-ups from 1:1s not yet ticked, newest first.
@@ -590,15 +588,12 @@ class PersonalSystemProvider extends ChangeNotifier {
       required String why,
       required String expected,
       int reviewInDays = 90}) {
-    addLog('decision',
-        text: decision.trim(),
-        data: {
-          'options': options.trim(),
-          'why': why.trim(),
-          'expected': expected.trim(),
-          'review_on':
-              dateKey(dayOnly(_now).add(Duration(days: reviewInDays))),
-        });
+    addLog('decision', text: decision.trim(), data: {
+      'options': options.trim(),
+      'why': why.trim(),
+      'expected': expected.trim(),
+      'review_on': dateKey(dayOnly(_now).add(Duration(days: reviewInDays))),
+    });
   }
 
   /// Decisions whose review date has come and that aren't reviewed yet.
@@ -612,7 +607,8 @@ class PersonalSystemProvider extends ChangeNotifier {
   }
 
   /// verdict: right | mixed | wrong.
-  void reviewDecision(String id, {required String outcome, required String verdict}) {
+  void reviewDecision(String id,
+      {required String outcome, required String verdict}) {
     final l = (_state?.logs ?? const <LogEntry>[])
         .where((e) => e.id == id)
         .firstOrNull;
@@ -696,8 +692,8 @@ class PersonalSystemProvider extends ChangeNotifier {
   }
 
   Map<String, int> get automaticityRatings {
-    final r =
-        (logsOf('automaticity').firstOrNull?.data['ratings'] as Map?) ?? const {};
+    final r = (logsOf('automaticity').firstOrNull?.data['ratings'] as Map?) ??
+        const {};
     return r.map((k, v) => MapEntry(k as String, (v as num).toInt()));
   }
 
@@ -713,8 +709,10 @@ class PersonalSystemProvider extends ChangeNotifier {
     return (itemRates(days)[id] ?? 0) >= 0.8;
   }
 
-  List<String> get automaticItems =>
-      [for (final n in nonNegotiables) if (isAutomatic(n.id)) n.id];
+  List<String> get automaticItems => [
+        for (final n in nonNegotiables)
+          if (isAutomatic(n.id)) n.id
+      ];
 
   /// Prompt the monthly check from day 25 of each program month.
   bool get automaticityDue =>
@@ -858,7 +856,9 @@ class PersonalSystemProvider extends ChangeNotifier {
       );
 
   LogEntry? addLog(String type,
-      {DateTime? date, String text = '', Map<String, dynamic> data = const {}}) {
+      {DateTime? date,
+      String text = '',
+      Map<String, dynamic> data = const {}}) {
     final s = _state;
     if (s == null) return null;
     final e = _entry(type, date ?? _now, text: text, data: data);
@@ -900,12 +900,11 @@ class PersonalSystemProvider extends ChangeNotifier {
     return _newestFirst(list);
   }
 
-  List<LogEntry> logsOn(DateTime date, [String? type]) =>
-      (_state?.logs ?? const <LogEntry>[])
-          .where((l) =>
-              dateKey(l.date) == dateKey(date) &&
-              (type == null || l.type == type))
-          .toList();
+  List<LogEntry> logsOn(DateTime date, [String? type]) => (_state?.logs ??
+          const <LogEntry>[])
+      .where((l) =>
+          dateKey(l.date) == dateKey(date) && (type == null || l.type == type))
+      .toList();
 
   /// All logs newest first, optionally filtered by type set.
   List<LogEntry> allLogs([Set<String>? types]) {
@@ -962,9 +961,8 @@ class PersonalSystemProvider extends ChangeNotifier {
       ? null
       : logsOf('weight').first.number('kg')?.toDouble();
 
-  double? get startWeight => weightSeries.isEmpty
-      ? null
-      : weightSeries.first.number('kg')?.toDouble();
+  double? get startWeight =>
+      weightSeries.isEmpty ? null : weightSeries.first.number('kg')?.toDouble();
 
   void logWeight(double kg, {DateTime? date}) {
     addLog('weight', date: date, data: {'kg': kg});
@@ -987,8 +985,8 @@ class PersonalSystemProvider extends ChangeNotifier {
     return null;
   }
 
-  void saveGymSession(DateTime date, String gymDayId,
-      List<Map<String, dynamic>> exercises,
+  void saveGymSession(
+      DateTime date, String gymDayId, List<Map<String, dynamic>> exercises,
       {bool zone2 = false, bool shoulderSparing = false}) {
     final volume = exercises.fold<double>(0, (sum, e) {
       final sets = (e['sets'] as List).cast<Map<String, dynamic>>();
@@ -1000,15 +998,13 @@ class PersonalSystemProvider extends ChangeNotifier {
                   ((set['kg'] as num?) ?? 0).toDouble() *
                       ((set['reps'] as num?) ?? 0).toDouble());
     });
-    addLog('gym',
-        date: date,
-        data: {
-          'day': gymDayId,
-          'exercises': exercises,
-          'zone2': zone2,
-          'volume': volume,
-          if (shoulderSparing) 'shoulder_sparing': true,
-        });
+    addLog('gym', date: date, data: {
+      'day': gymDayId,
+      'exercises': exercises,
+      'zone2': zone2,
+      'volume': volume,
+      if (shoulderSparing) 'shoulder_sparing': true,
+    });
     setCheck(date, _gymId, true);
   }
 
@@ -1046,8 +1042,7 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   int evidenceAddedBetween(DateTime from, DateTime to) =>
       (_state?.evidence ?? const <EvidenceItem>[])
-          .where((e) =>
-              !e.createdAt.isBefore(from) && e.createdAt.isBefore(to))
+          .where((e) => !e.createdAt.isBefore(from) && e.createdAt.isBefore(to))
           .length;
 
   void addEvidence(String section, String text) {
@@ -1065,8 +1060,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   void removeEvidence(String id) {
     final s = _state;
     if (s == null) return;
-    _update(s.copyWith(
-        evidence: s.evidence.where((e) => e.id != id).toList()));
+    _update(s.copyWith(evidence: s.evidence.where((e) => e.id != id).toList()));
   }
 
   // ── Month review stats ───────────────────────────────────────────────
@@ -1100,7 +1094,8 @@ class PersonalSystemProvider extends ChangeNotifier {
           .fold<int>(0, (s, t) => s + countBetween(t, from, to)),
       posts: countBetween('linkedin', from, to),
       artifacts: countBetween('artifact', from, to),
-      weightStart: weights.isEmpty ? null : weights.first.number('kg')?.toDouble(),
+      weightStart:
+          weights.isEmpty ? null : weights.first.number('kg')?.toDouble(),
       weightEnd: weights.isEmpty ? null : weights.last.number('kg')?.toDouble(),
     );
   }
@@ -1166,13 +1161,12 @@ class PersonalSystemProvider extends ChangeNotifier {
         forWeek: forWeek,
         programMonth: programMonth,
         programWeek: programWeek,
-        itemRates: itemRates(weekDays(report.weekStart)
-            .where((d) => !d.isAfter(_now))
-            .toList()),
+        itemRates: itemRates(
+            weekDays(report.weekStart).where((d) => !d.isAfter(_now)).toList()),
         evidenceAddedThisWeek: evidenceAddedBetween(
             report.weekStart, report.weekStart.add(const Duration(days: 7))),
-        artifactsThisMonth: countBetween('artifact', monthStart(programMonth),
-            monthStart(programMonth + 1)),
+        artifactsThisMonth: countBetween(
+            'artifact', monthStart(programMonth), monthStart(programMonth + 1)),
         postsThisWeek: countBetween('linkedin', report.weekStart,
             report.weekStart.add(const Duration(days: 7))),
         gymDays: gymDays,
@@ -1185,9 +1179,8 @@ class PersonalSystemProvider extends ChangeNotifier {
         avgSleep: averageOf(weekCheckins, 'sleep'),
         readinessGap: readinessGap?.name,
         openFollowUps: openFollowUps.length,
-        shoulderFlagDays: weekCheckins
-            .where((c) => shoulderFlag(c.date))
-            .length,
+        shoulderFlagDays:
+            weekCheckins.where((c) => shoulderFlag(c.date)).length,
       ));
       final s = _state!;
       final others = s.briefs
@@ -1214,8 +1207,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   void setReminder(String id, bool on) {
     final s = _state;
     if (s == null) return;
-    _update(s.copyWith(reminders: {...s.reminders, id: on}),
-        reschedule: true);
+    _update(s.copyWith(reminders: {...s.reminders, id: on}), reschedule: true);
   }
 
   Future<bool> requestReminderPermission() async =>
@@ -1245,7 +1237,8 @@ class PersonalSystemProvider extends ChangeNotifier {
           case 'scan':
             final src = domainScanRotation.firstWhere((s) => s.weekday == wd);
             title = 'Domain scan · ${src.title}';
-            body = 'D3 + creatine + omega-3 with breakfast. Then 15 min: ${src.detail}.';
+            body =
+                'D3 + creatine + omega-3 with breakfast. Then 15 min: ${src.detail}.';
           case 'read':
             title = 'Lunch read · ${book.title}';
             body = '20 min, ${book.chapters}. Then 5 min Feynman from memory.';
@@ -1307,6 +1300,137 @@ class PersonalSystemProvider extends ChangeNotifier {
     r.sync(plannedReminders());
   }
 
+  // ── Gym rest timer ───────────────────────────────────────────────────
+
+  static const restNotificationId = onceIdBase + 1;
+
+  /// Rest between sets: [exercise] is the lift; the default is 2 minutes
+  /// for key lifts and 90 s for the rest.
+  static Duration restFor(Exercise exercise) =>
+      Duration(seconds: exercise.keyLift ? 120 : 90);
+
+  /// Notifies when the rest ends, in case ONO is in the background then.
+  Future<void> startRest(DateTime endsAt, {required String next}) async {
+    await _reminders?.notifyOnce(restNotificationId, endsAt,
+        title: 'Rest done', body: 'Next: $next', route: '/gym');
+  }
+
+  Future<void> cancelRest() async => _reminders?.cancel(restNotificationId);
+
+  // ── Personal patterns ────────────────────────────────────────────────
+
+  /// Patterns in the last [days] closed days (today excluded, never before
+  /// the program start). Each compares days with and without one habit and
+  /// needs [minDays] on both sides; small differences are dropped.
+  List<DayPattern> patterns({int days = 60, int minDays = 5}) {
+    final today = dayOnly(_now);
+    final from = [
+      today.subtract(Duration(days: days)),
+      programStart,
+    ].reduce((a, b) => a.isAfter(b) ? a : b);
+    final range = [
+      for (var d = from; d.isBefore(today); d = d.add(const Duration(days: 1)))
+        d
+    ];
+    DateTime next(DateTime d) => d.add(const Duration(days: 1));
+    double? energy(DateTime d) => checkinFor(d)?.number('energy')?.toDouble();
+    double? sleep(DateTime d) =>
+        sleepHoursFor(d) ?? checkinFor(d)?.number('sleep')?.toDouble();
+    double score(DateTime d) => scoreFor(d).toDouble();
+    double scoreWithout(DateTime d, String id) =>
+        (scoreFor(d) - (isChecked(d, id) ? 1 : 0)).toDouble();
+    bool trained(DateTime d) => logsOn(d, 'gym').isNotEmpty;
+
+    final out = <DayPattern>[];
+    void compare({
+      required String id,
+      required String habit,
+      required String outcome,
+      required String unit,
+      required double threshold,
+      required bool? Function(DateTime) when,
+      required double? Function(DateTime) measure,
+      int digits = 1,
+    }) {
+      final yes = <double>[], no = <double>[];
+      for (final d in range) {
+        final w = when(d);
+        final m = measure(d);
+        if (w == null || m == null) continue;
+        (w ? yes : no).add(m);
+      }
+      if (yes.length < minDays || no.length < minDays) return;
+      double avg(List<double> v) => v.reduce((a, b) => a + b) / v.length;
+      final a = avg(yes), b = avg(no);
+      if ((a - b).abs() < threshold) return;
+      out.add(DayPattern(
+        id: id,
+        habit: habit,
+        outcome: outcome,
+        unit: unit,
+        withHabit: a,
+        without: b,
+        daysWith: yes.length,
+        daysWithout: no.length,
+        digits: digits,
+      ));
+    }
+
+    compare(
+        id: 'sleep_score',
+        habit: '7+ hours of sleep',
+        outcome: 'Daily 10 that day',
+        unit: '/10',
+        threshold: 0.5,
+        when: (d) => sleep(d) == null ? null : sleep(d)! >= 7,
+        measure: score);
+    compare(
+        id: 'bed_energy',
+        habit: 'In bed by 10:30',
+        outcome: 'energy next morning',
+        unit: '/5',
+        threshold: 0.3,
+        when: (d) => isChecked(d, 'bed'),
+        measure: (d) => energy(next(d)));
+    compare(
+        id: 'caffeine_sleep',
+        habit: 'No caffeine after 1pm',
+        outcome: 'sleep that night',
+        unit: ' h',
+        threshold: 0.25,
+        when: (d) => isChecked(d, 'caffeine'),
+        measure: (d) => sleep(next(d)));
+    compare(
+        id: 'gym_energy',
+        habit: 'A gym session',
+        outcome: 'energy next morning',
+        unit: '/5',
+        threshold: 0.3,
+        when: trained,
+        measure: (d) => energy(next(d)));
+    compare(
+        id: 'ritual_score',
+        habit: 'Morning ritual',
+        outcome: 'the other nine items',
+        unit: '/9',
+        threshold: 0.5,
+        when: (d) => isChecked(d, 'manifesto'),
+        measure: (d) => scoreWithout(d, 'manifesto'));
+    compare(
+        id: 'energy_score',
+        habit: 'Morning energy 4–5',
+        outcome: 'Daily 10 that day',
+        unit: '/10',
+        threshold: 0.5,
+        when: (d) {
+          final e = energy(d);
+          return e == null ? null : e >= 4;
+        },
+        measure: score);
+    out.sort((a, b) => b.relative.compareTo(a.relative));
+    return out;
+  }
+
   // ── Backup ───────────────────────────────────────────────────────────
 
   String exportJson() =>
@@ -1315,8 +1439,8 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// Replace all data with an exported backup. Returns false if invalid.
   bool importJson(String raw) {
     try {
-      final next = PersonalSystemState.fromJson(
-          jsonDecode(raw) as Map<String, dynamic>);
+      final next =
+          PersonalSystemState.fromJson(jsonDecode(raw) as Map<String, dynamic>);
       _update(next, reschedule: true);
       return true;
     } catch (_) {
@@ -1376,4 +1500,45 @@ class FreshStart {
     this.route,
     this.itemId,
   });
+}
+
+/// One personal pattern: an outcome averaged on days with and without a
+/// habit. A correlation in his own data, not proof of cause.
+class DayPattern {
+  final String id;
+  final String habit;
+  final String outcome;
+  final String unit;
+  final double withHabit;
+  final double without;
+  final int daysWith;
+  final int daysWithout;
+  final int digits;
+
+  const DayPattern({
+    required this.id,
+    required this.habit,
+    required this.outcome,
+    required this.unit,
+    required this.withHabit,
+    required this.without,
+    required this.daysWith,
+    required this.daysWithout,
+    this.digits = 1,
+  });
+
+  double get delta => withHabit - without;
+
+  /// Size of the gap relative to the scale, for ordering.
+  double get relative {
+    final scale = switch (unit) {
+      '/10' => 10.0,
+      '/9' => 9.0,
+      '/5' => 5.0,
+      _ => 8.0,
+    };
+    return delta.abs() / scale;
+  }
+
+  String fmt(double v) => '${v.toStringAsFixed(digits)}$unit';
 }

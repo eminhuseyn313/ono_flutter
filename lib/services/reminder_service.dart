@@ -25,12 +25,23 @@ class PlannedReminder {
   });
 }
 
+/// Ids at or above this are one-off notifications (timers); weekly
+/// reminders stay below it, so re-syncing them leaves a running timer alone.
+const int onceIdBase = 90000;
+
 abstract class ReminderService {
   Future<void> init({required void Function(String route) onOpen});
   Future<bool> requestPermission();
 
   /// Replace every scheduled reminder with [reminders].
   Future<void> sync(List<PlannedReminder> reminders);
+
+  /// One notification at [at] (e.g. the end of a gym rest). It only shows
+  /// when ONO is in the background; the open screen handles it itself.
+  Future<void> notifyOnce(int id, DateTime at,
+      {required String title, required String body, required String route});
+
+  Future<void> cancel(int id);
 }
 
 /// No-op implementation for web and tests.
@@ -47,6 +58,19 @@ class NoopReminderService implements ReminderService {
   Future<void> sync(List<PlannedReminder> reminders) async {
     lastSynced = reminders;
   }
+
+  /// One-off notifications still pending, by id.
+  final Map<int, DateTime> once = {};
+
+  @override
+  Future<void> notifyOnce(int id, DateTime at,
+          {required String title,
+          required String body,
+          required String route}) async =>
+      once[id] = at;
+
+  @override
+  Future<void> cancel(int id) async => once.remove(id);
 }
 
 /// iOS / Android local notifications, repeating weekly at local time.
@@ -64,6 +88,23 @@ class LocalReminderService implements ReminderService {
       priority: Priority.high,
     ),
     iOS: DarwinNotificationDetails(),
+  );
+
+  // Silent while ONO is open: the screen that set it shows its own cue.
+  static const _onceDetails = NotificationDetails(
+    android: AndroidNotificationDetails(
+      'ono_timers',
+      'Timers',
+      channelDescription: 'Gym rest and other timers',
+      importance: Importance.high,
+      priority: Priority.high,
+    ),
+    iOS: DarwinNotificationDetails(
+      presentAlert: false,
+      presentBanner: false,
+      presentList: false,
+      presentSound: false,
+    ),
   );
 
   @override
@@ -128,7 +169,9 @@ class LocalReminderService implements ReminderService {
       return;
     }
     _pending = null;
-    await _plugin.cancelAll();
+    for (final p in await _plugin.pendingNotificationRequests()) {
+      if (p.id < onceIdBase) await _plugin.cancel(id: p.id);
+    }
     for (final r in reminders) {
       await _plugin.zonedSchedule(
         id: r.id,
@@ -141,6 +184,33 @@ class LocalReminderService implements ReminderService {
         payload: r.route,
       );
     }
+  }
+
+  @override
+  Future<void> notifyOnce(int id, DateTime at,
+      {required String title,
+      required String body,
+      required String route}) async {
+    if (kIsWeb || !_ready) return;
+    try {
+      await _plugin.zonedSchedule(
+        id: id,
+        title: title,
+        body: body,
+        scheduledDate: tz.TZDateTime.from(at, tz.local),
+        notificationDetails: _onceDetails,
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        payload: route,
+      );
+    } catch (_) {
+      // Notifications off: the in-app timer still works.
+    }
+  }
+
+  @override
+  Future<void> cancel(int id) async {
+    if (kIsWeb || !_ready) return;
+    await _plugin.cancel(id: id);
   }
 
   tz.TZDateTime _next(int weekday, int hour, int minute) {

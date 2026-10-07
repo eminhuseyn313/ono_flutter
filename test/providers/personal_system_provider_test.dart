@@ -24,6 +24,15 @@ class _RecordingReminders implements ReminderService {
   Future<bool> requestPermission() async => true;
   @override
   Future<void> sync(List<PlannedReminder> reminders) async => last = reminders;
+  final Map<int, DateTime> once = {};
+  @override
+  Future<void> notifyOnce(int id, DateTime at,
+          {required String title,
+          required String body,
+          required String route}) async =>
+      once[id] = at;
+  @override
+  Future<void> cancel(int id) async => once.remove(id);
 }
 
 Future<PersonalSystemProvider> _commissioned(
@@ -595,5 +604,40 @@ void main() {
     final values = s.toValues();
     expect(values['blocks'], contains('"m":'));
     expect(values.values.every((v) => v is int || v is String), isTrue);
+  });
+
+  test('rest timer: notifies at the end, cancelled on skip', () async {
+    final r = _RecordingReminders();
+    final p = await _commissioned(reminders: r);
+    final key = gymPlan.first.exercises.firstWhere((e) => e.keyLift);
+    expect(PersonalSystemProvider.restFor(key), const Duration(minutes: 2));
+    final end = _today.add(const Duration(seconds: 90));
+    await p.startRest(end, next: 'Bench · set 2');
+    expect(r.once[PersonalSystemProvider.restNotificationId], end);
+    expect(PersonalSystemProvider.restNotificationId >= onceIdBase, isTrue);
+    await p.cancelRest();
+    expect(r.once, isEmpty);
+  });
+
+  test('patterns: need 5+ days each side and a real gap', () async {
+    final p = await _commissioned();
+    expect(p.patterns(), isEmpty);
+    // 20 nights: bed on time on even days, then energy 4 vs 2 next morning.
+    for (var i = 2; i <= 21; i++) {
+      final d = _daysAgo(i);
+      if (i.isEven) p.setCheck(d, 'bed', true);
+      p.saveCheckin(d.add(const Duration(days: 1)),
+          energy: i.isEven ? 4 : 2, mood: 0, sleep: 7, pain: 0, stiffness: 0);
+    }
+    final bed = p.patterns().firstWhere((x) => x.id == 'bed_energy');
+    expect(bed.withHabit, 4);
+    expect(bed.without, 2);
+    expect(bed.daysWith, 10);
+    expect(bed.daysWithout, 10);
+    expect(bed.fmt(bed.withHabit), '4.0/5');
+    // Sleep was 7 h every day: no "without" side, so no sleep pattern.
+    expect(p.patterns().any((x) => x.id == 'sleep_score'), isFalse);
+    // Too few days on one side → nothing.
+    expect(p.patterns(minDays: 11).any((x) => x.id == 'bed_energy'), isFalse);
   });
 }
