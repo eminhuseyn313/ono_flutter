@@ -45,6 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final system = context.read<PersonalSystemProvider>();
     await system.load(context.read<AuthProvider>().userId);
     if (mounted && !system.isCommissioned) context.go('/commission');
+    await system.syncHealth();
   }
 
   @override
@@ -108,7 +109,10 @@ class _HomeScreenState extends State<HomeScreen> {
         child: RefreshIndicator(
           color: AppColors.accent,
           backgroundColor: AppColors.card,
-          onRefresh: () async => setState(() => _now = DateTime.now()),
+          onRefresh: () async {
+            setState(() => _now = DateTime.now());
+            await context.read<PersonalSystemProvider>().syncHealth();
+          },
           child: ListView(
             padding: EdgeInsets.fromLTRB(
                 AppSpace.gutter, 12, AppSpace.gutter, bottom + 110),

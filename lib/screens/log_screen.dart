@@ -23,8 +23,8 @@ const _filters = <String, Set<String>?>{
   'All': null,
   'Notes': {'feynman', 'scan', 'pennebaker', 'note', 'win', 'month_review'},
   'Protocols': {'sigh', 'excited', 'bluf', 'sixq', 'pause', 'still', 'ritual', 'read', 'anki'},
-  'Body': {'weight', 'protein', 'gym', 'blood'},
-  'Career': {'linkedin', 'artifact'},
+  'Body': {'weight', 'protein', 'gym', 'blood', 'checkin', 'sleep', 'vitals'},
+  'Career': {'linkedin', 'artifact', 'one_on_one', 'decision', 'readiness'},
 };
 
 class _LogScreenState extends State<LogScreen> {
@@ -56,7 +56,14 @@ class _LogScreenState extends State<LogScreen> {
     if (!system.isLoaded) {
       return const Scaffold(backgroundColor: AppColors.background);
     }
-    final entries = system.allLogs(_filters[_filter]);
+    // Apple Health syncs a sleep and a vitals entry every day; they live
+    // under Body so the main timeline stays about what you did.
+    final entries = _filters[_filter] == null
+        ? system
+            .allLogs()
+            .where((e) => e.type != 'sleep' && e.type != 'vitals')
+            .toList()
+        : system.allLogs(_filters[_filter]);
     final byDay = <String, List<LogEntry>>{};
     for (final e in entries) {
       byDay.putIfAbsent(dateKey(e.date), () => []).add(e);
@@ -247,6 +254,8 @@ class _EntryRow extends StatelessWidget {
     'month_review': (Icons.fact_check_outlined, 'mind', 'Month review'),
     'checkin': (Icons.wb_twilight_rounded, 'body', 'Morning check-in'),
     'one_on_one': (Icons.forum_outlined, 'social', '1:1'),
+    'sleep': (Icons.bedtime_outlined, 'body', 'Sleep · Apple Health'),
+    'vitals': (Icons.monitor_heart_outlined, 'body', 'Heart · Apple Health'),
     'decision': (Icons.balance_rounded, 'skill', 'Decision'),
     'readiness': (Icons.trending_up_rounded, 'skill', 'Readiness check'),
     'automaticity': (Icons.autorenew_rounded, 'mind', 'Habit check'),
@@ -281,6 +290,14 @@ class _EntryRow extends StatelessWidget {
         return '5 steps · ${((e.number('seconds') ?? 0) / 60).toStringAsFixed(0)} min';
       case 'month_review':
         return 'Month ${e.number('month')}: ${e.text}';
+      case 'sleep':
+        final bed = DateTime.tryParse(e.str('bed_start') ?? '');
+        return '${e.number('asleep_h')} h asleep${bed == null ? '' : ' · in bed ${bed.hour.toString().padLeft(2, '0')}:${bed.minute.toString().padLeft(2, '0')}'}';
+      case 'vitals':
+        return [
+          if (e.number('hrv') != null) 'HRV ${e.number('hrv')} ms',
+          if (e.number('rhr') != null) 'resting HR ${e.number('rhr')}',
+        ].join(' · ');
       case 'one_on_one':
         final n = ((e.data['followups'] as List?) ?? const []).length;
         return '${e.str('with') ?? 'Ali'} · ${e.text.isEmpty ? 'logged' : e.text}${n == 0 ? '' : ' · $n follow-ups'}';

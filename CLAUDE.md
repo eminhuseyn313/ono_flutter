@@ -109,6 +109,15 @@ Flow:
   - `isAutomatic` = rating ≥ 4 and done on ≥ 80% of the last 30 days.
   - Automatic items move to a quiet group on Today, and their `itemReminder` is skipped.
   - The check is prompted from day 25 of each month.
+- **Apple Health** (`lib/services/health_service*.dart`, `health` package):
+  - Behind a `HealthService` with a conditional import, so web and tests use `NoopHealthService`; tests use `test/support/fake_health.dart`.
+  - Connected = `done` key `health:connected` (Me → Mornings → Connect Apple Health).
+  - `syncHealth()` runs on Today load and on pull-to-refresh. It upserts one `sleep` log (asleep h, bed start, wake) and one `vitals` log (HRV, resting HR) per morning for 3 days.
+  - Bed start ≤ 22:45 ticks `bed` for that evening; it never un-ticks.
+  - Overlapping samples are merged in `summarizeNight`.
+  - The check-in pre-fills sleep from it, and `logWeight` also writes to Health.
+  - Sleep and vitals logs show under Log → Body, not in All.
+  - Needs the HealthKit capability on the Runner target (added in Xcode, not in the repo, so a team without it can still build). Without it, `connectHealth` returns a message saying how to add it.
 - **Sunday report** → `submitReport` → `BriefGenerator`:
   - `DeviceBriefGenerator` is rule-based and uses real data only.
   - `RemoteBriefGenerator` calls Claude via `supabase/functions/weekly-brief` and falls back to the device generator on any error.
@@ -144,4 +153,4 @@ flutter run -t lib/main_production.dart
 - The icon is rendered from the Day Dial motif; regenerate every size if it changes.
 
 ## Not built (needs Xcode / native targets)
-These can't be built or verified without macOS: Home Screen widgets (WidgetKit extension), Apple Health (HealthKit entitlement), calendar-based meeting prep (EventKit), and on-device encryption of health fields. Row-level security protects the cloud copy.
+These can't be built or verified without macOS: Home Screen widgets (WidgetKit extension), Live Activities, calendar-based meeting prep (EventKit), and on-device encryption of health fields. The Apple Health Dart side is built and tested with a fake; the HealthKit capability is added in Xcode. Row-level security protects the cloud copy.

@@ -6,7 +6,10 @@ import 'package:ono/gateways/mock_personal_system_gateway.dart';
 import 'package:ono/models/personal_system.dart';
 import 'package:ono/providers/personal_system_provider.dart';
 import 'package:ono/services/brief_generator.dart';
+import 'package:ono/services/health_service.dart';
 import 'package:ono/services/reminder_service.dart';
+
+import '../support/fake_health.dart';
 
 /// Friday 2 Oct 2026, noon. The program starts Tue 1 Sep → day 32, month 2.
 final _today = DateTime(2026, 10, 2, 12);
@@ -23,11 +26,14 @@ class _RecordingReminders implements ReminderService {
 }
 
 Future<PersonalSystemProvider> _commissioned(
-    {ReminderService? reminders, BriefGenerator? briefs}) async {
+    {ReminderService? reminders,
+    BriefGenerator? briefs,
+    HealthService? health}) async {
   final p = PersonalSystemProvider(
     gateway: MockPersonalSystemGateway(),
     reminders: reminders,
     briefGenerator: briefs,
+    health: health,
   )..clock = () => _today;
   await p.load('test');
   await p.commission(
@@ -498,5 +504,70 @@ void main() {
     expect(p.automaticityDue, isTrue);
     p.saveAutomaticity({for (final n in nonNegotiables) n.id: 2});
     expect(p.automaticityDue, isFalse);
+  });
+
+  test('sleep samples: overlaps merged, bed start = earliest, in-bed fallback',
+      () {
+    final e = DateTime(2026, 10, 1);
+    final night = summarizeNight([
+      (from: e.add(const Duration(hours: 22, minutes: 10)), to: e.add(const Duration(hours: 30)), asleep: false),
+      (from: e.add(const Duration(hours: 22, minutes: 40)), to: e.add(const Duration(hours: 26)), asleep: true),
+      // Watch and iPhone overlap 01:00–02:00; counted once.
+      (from: e.add(const Duration(hours: 25)), to: e.add(const Duration(hours: 29, minutes: 30)), asleep: true),
+    ])!;
+    expect(night.bedStart, e.add(const Duration(hours: 22, minutes: 10)));
+    expect(night.wake, e.add(const Duration(hours: 30)));
+    expect(night.asleepHours, closeTo(6.83, 0.01));
+
+    final inBedOnly = summarizeNight([
+      (from: e.add(const Duration(hours: 23)), to: e.add(const Duration(hours: 30)), asleep: false),
+    ])!;
+    expect(inBedOnly.asleepHours, 7);
+    expect(summarizeNight(const []), isNull);
+  });
+
+  test('Apple Health: sync stores sleep, ticks bed by 22:45, writes weight',
+      () async {
+    final today = dayOnly(_today);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final twoAgo = today.subtract(const Duration(days: 2));
+    final fake = FakeHealthService(nights: {
+      // Last night: in bed 22:20 → ticks yesterday's "bed".
+      today: NightSleep(
+          bedStart: yesterday.add(const Duration(hours: 22, minutes: 20)),
+          wake: today.add(const Duration(hours: 6)),
+          asleepHours: 7.2),
+      // The night before: 23:30 → no tick.
+      yesterday: NightSleep(
+          bedStart: twoAgo.add(const Duration(hours: 23, minutes: 30)),
+          wake: yesterday.add(const Duration(hours: 6, minutes: 30)),
+          asleepHours: 6.4),
+    });
+    final p = await _commissioned(health: fake);
+    expect(p.healthConnected, isFalse);
+    expect(await p.connectHealth(), isNull);
+    expect(p.healthConnected, isTrue);
+    expect(p.sleepHoursFor(today), 7.2);
+    expect(p.isChecked(yesterday, 'bed'), isTrue);
+    expect(p.isChecked(twoAgo, 'bed'), isFalse);
+    expect(p.logsOn(today, 'vitals').single.number('hrv'), 52);
+
+    await p.syncHealth();
+    expect(p.logsOn(today, 'sleep').length, 1, reason: 'replaced, not added');
+
+    p.logWeight(81.6);
+    expect(fake.weights, [81.6]);
+  });
+
+  test('Apple Health: unavailable build or refusal explains what to do',
+      () async {
+    final p = await _commissioned(
+        health: FakeHealthService(unavailable: true));
+    expect(await p.connectHealth(), 'Enable HealthKit');
+    expect(p.healthConnected, isFalse);
+
+    final q = await _commissioned(health: FakeHealthService(grant: false));
+    expect(await q.connectHealth(), contains('Health app'));
+    expect(q.healthConnected, isFalse);
   });
 }

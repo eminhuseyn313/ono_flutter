@@ -17,6 +17,8 @@ import 'package:ono/router.dart';
 import 'package:ono/screens/commission_screen.dart';
 import 'package:ono/services/reminder_service.dart';
 
+import 'support/fake_health.dart';
+
 /// The app has looping animations (dial needle, timers), so these tests
 /// pump fixed durations instead of `pumpAndSettle`.
 Future<void> _pumpFor(WidgetTester tester, Duration total) async {
@@ -30,6 +32,7 @@ Widget _app() => OnoApp(
       authGateway: MockAuthGateway(),
       personalGateway: MockPersonalSystemGateway(),
       reminders: NoopReminderService(),
+      health: FakeHealthService(),
     );
 
 /// Collects every runtime error, layout overflow included. Fonts are
@@ -179,6 +182,7 @@ void main() {
         system.setCheck(today.subtract(Duration(days: i)), 'bed', true);
       }
       system.saveAutomaticity({for (final n in nonNegotiables) n.id: 5});
+      await system.connectHealth();
       await _pumpFor(tester, const Duration(milliseconds: 500));
 
       final routes = <String>{

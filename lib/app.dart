@@ -8,6 +8,7 @@ import 'providers/auth_provider.dart';
 import 'providers/personal_system_provider.dart';
 import 'router.dart';
 import 'services/brief_generator.dart';
+import 'services/health_service.dart';
 import 'services/reminder_service.dart';
 import 'theme/app_theme.dart';
 
@@ -18,6 +19,7 @@ class OnoApp extends StatefulWidget {
   final PersonalSystemGateway personalGateway;
   final ReminderService reminders;
   final BriefGenerator? briefGenerator;
+  final HealthService? health;
 
   const OnoApp({
     super.key,
@@ -25,6 +27,7 @@ class OnoApp extends StatefulWidget {
     required this.personalGateway,
     required this.reminders,
     this.briefGenerator,
+    this.health,
   });
 
   @override
@@ -44,6 +47,7 @@ class _OnoAppState extends State<OnoApp> {
       gateway: widget.personalGateway,
       reminders: widget.reminders,
       briefGenerator: widget.briefGenerator,
+      health: widget.health,
     );
     _router = createRouter(_auth);
     _auth.addListener(_onAuth);

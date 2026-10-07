@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'app.dart';
 import 'gateways/mock_auth_gateway.dart';
 import 'gateways/mock_personal_system_gateway.dart';
+import 'services/health_service.dart';
 import 'services/reminder_service.dart';
 
 export 'app.dart';
@@ -23,5 +24,6 @@ void main() async {
     authGateway: MockAuthGateway(),
     personalGateway: MockPersonalSystemGateway(),
     reminders: kIsWeb ? NoopReminderService() : LocalReminderService(),
+    health: createHealthService(),
   ));
 }

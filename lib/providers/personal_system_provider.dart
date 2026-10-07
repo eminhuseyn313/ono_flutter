@@ -6,6 +6,7 @@ import '../data/emin_system.dart';
 import '../gateways/personal_system_gateway.dart';
 import '../models/personal_system.dart';
 import '../services/brief_generator.dart';
+import '../services/health_service.dart';
 import '../services/reminder_service.dart';
 
 /// Single source of truth for Emin's program. Every number the app shows is
@@ -19,9 +20,13 @@ class PersonalSystemProvider extends ChangeNotifier {
     required PersonalSystemGateway gateway,
     ReminderService? reminders,
     BriefGenerator? briefGenerator,
+    HealthService? health,
   })  : _gateway = gateway,
         _reminders = reminders,
-        _briefs = briefGenerator ?? DeviceBriefGenerator();
+        _briefs = briefGenerator ?? DeviceBriefGenerator(),
+        _health = health ?? const NoopHealthService();
+
+  final HealthService _health;
 
   static const _gymId = 'gym';
   static const _fallbackUser = 'local';
@@ -670,6 +675,93 @@ class PersonalSystemProvider extends ChangeNotifier {
       dayOfMonth >= 25 &&
       !logsOf('automaticity').any((l) => l.number('month') == programMonth);
 
+  // ── Apple Health ─────────────────────────────────────────────────────
+
+  bool get healthSupported => _health.isSupported;
+  bool get healthConnected => isDone('health:connected');
+  bool _syncingHealth = false;
+
+  /// Ask for Apple Health access. Returns null on success, otherwise a
+  /// message saying what to do.
+  Future<String?> connectHealth() async {
+    if (!_health.isSupported) return 'Apple Health is only on iPhone.';
+    try {
+      final ok = await _health.connect();
+      if (!ok) {
+        return 'Access wasn\'t granted. Open the Health app → Sharing → '
+            'Apps → ONO and allow Sleep, Heart and Weight.';
+      }
+    } on HealthUnavailable catch (e) {
+      return e.message;
+    }
+    setDone('health:connected', true);
+    await syncHealth();
+    return null;
+  }
+
+  void disconnectHealth() => setDone('health:connected', false);
+
+  /// Pull the last [nights] nights of sleep plus HRV and resting heart rate.
+  /// Bed by 22:45 (15 minutes' grace) ticks "In bed by 10:30pm" for that
+  /// evening; it never un-ticks.
+  Future<void> syncHealth({int nights = 3}) async {
+    if (!healthConnected || _syncingHealth) return;
+    _syncingHealth = true;
+    try {
+      final today = dayOnly(_now);
+      for (var i = 0; i < nights; i++) {
+        final morning = today.subtract(Duration(days: i));
+        final night = await _health.sleepEndingOn(morning);
+        if (night != null && night.asleepHours > 0) {
+          _upsertDayLog('sleep', morning, {
+            'asleep_h': double.parse(night.asleepHours.toStringAsFixed(1)),
+            'bed_start': night.bedStart.toIso8601String(),
+            'wake': night.wake.toIso8601String(),
+          });
+          final evening = dayOnly(night.bedStart);
+          final cutoff = evening.add(const Duration(hours: 22, minutes: 45));
+          if (evening.isBefore(morning) &&
+              !night.bedStart.isAfter(cutoff) &&
+              !evening.isBefore(programStart)) {
+            setCheck(evening, 'bed', true);
+          }
+        }
+        final v = await _health.vitalsOn(morning);
+        if (v.hrvMs != null || v.restingHr != null) {
+          _upsertDayLog('vitals', morning, {
+            if (v.hrvMs != null) 'hrv': v.hrvMs!.round(),
+            if (v.restingHr != null) 'rhr': v.restingHr!.round(),
+          });
+        }
+      }
+    } finally {
+      _syncingHealth = false;
+    }
+  }
+
+  /// One log of [type] per day; replaced on each sync.
+  void _upsertDayLog(String type, DateTime day, Map<String, dynamic> data) {
+    final existing = logsOn(day, type);
+    if (existing.isEmpty) {
+      addLog(type, date: day, data: data);
+    } else {
+      final e = existing.last;
+      updateLog(LogEntry(
+          id: e.id,
+          type: e.type,
+          date: e.date,
+          createdAt: e.createdAt,
+          text: e.text,
+          data: data));
+    }
+  }
+
+  /// Hours asleep last night from Apple Health, if synced.
+  double? sleepHoursFor(DateTime morning) {
+    final l = logsOn(morning, 'sleep');
+    return l.isEmpty ? null : l.last.number('asleep_h')?.toDouble();
+  }
+
   // ── Priorities ───────────────────────────────────────────────────────
 
   List<String> prioritiesFor(DateTime date) {
@@ -827,8 +919,10 @@ class PersonalSystemProvider extends ChangeNotifier {
       ? null
       : weightSeries.first.number('kg')?.toDouble();
 
-  void logWeight(double kg, {DateTime? date}) =>
-      addLog('weight', date: date, data: {'kg': kg});
+  void logWeight(double kg, {DateTime? date}) {
+    addLog('weight', date: date, data: {'kg': kg});
+    if (healthConnected) _health.writeWeight(kg, date ?? _now);
+  }
 
   int proteinFor(DateTime date) => logsOn(date, 'protein')
       .fold<int>(0, (sum, l) => sum + (l.number('g')?.toInt() ?? 0));

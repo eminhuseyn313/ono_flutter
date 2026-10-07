@@ -155,6 +155,7 @@ class MeScreen extends StatelessWidget {
         SectionHeader('Mornings',
             action: 'Check in', onAction: () => context.push('/checkin')),
         const _Mornings(),
+        const _AppleHealth(),
         const SectionHeader('Body'),
         OnoCard(
           child: Column(
@@ -509,6 +510,107 @@ class _Mornings extends StatelessWidget {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+/// Apple Health link: last night's sleep, HRV and resting heart rate.
+/// Sleep before 22:45 ticks "In bed by 10:30pm" automatically.
+class _AppleHealth extends StatelessWidget {
+  const _AppleHealth();
+
+  @override
+  Widget build(BuildContext context) {
+    final system = context.watch<PersonalSystemProvider>();
+    if (!system.healthSupported) return const SizedBox.shrink();
+    if (!system.healthConnected) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 12),
+        child: OnoCard(
+          padding: EdgeInsets.zero,
+          child: LinkRow(
+            icon: Icons.favorite_outline_rounded,
+            color: AppColors.danger,
+            title: 'Connect Apple Health',
+            subtitle:
+                'Sleep fills the check-in and ticks "bed by 22:30"; HRV and resting heart rate; weigh-ins go to Health',
+            onTap: () async {
+              final err = await system.connectHealth();
+              if (context.mounted) {
+                toast(context, err ?? 'Connected — last 3 nights synced.');
+              }
+            },
+          ),
+        ),
+      );
+    }
+    final today = dayOnly(DateTime.now());
+    final sleep = system.logsOn(today, 'sleep');
+    final vitals = system.logsOf('vitals');
+    final v = vitals.isEmpty ? null : vitals.first;
+    final bed = sleep.isEmpty
+        ? null
+        : DateTime.tryParse(sleep.last.str('bed_start') ?? '');
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: OnoCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.favorite_rounded,
+                    size: 16, color: AppColors.danger),
+                const SizedBox(width: 6),
+                Expanded(
+                    child: Text('APPLE HEALTH', style: AppText.eyebrow())),
+                GestureDetector(
+                  onTap: () async {
+                    await system.syncHealth();
+                    if (context.mounted) toast(context, 'Synced.');
+                  },
+                  child: Text('Sync',
+                      style: AppText.small(color: AppColors.accent)
+                          .copyWith(fontWeight: FontWeight.w700)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                    child: StatTile(
+                        sleep.isEmpty
+                            ? '—'
+                            : '${sleep.last.number('asleep_h')}',
+                        'asleep last night',
+                        unit: 'h')),
+                Expanded(
+                    child: StatTile(
+                        v?.number('hrv') == null ? '—' : '${v!.number('hrv')}',
+                        'HRV',
+                        unit: 'ms')),
+                Expanded(
+                    child: StatTile(
+                        v?.number('rhr') == null ? '—' : '${v!.number('rhr')}',
+                        'resting HR')),
+              ],
+            ),
+            if (bed != null) ...[
+              const SizedBox(height: 6),
+              Text(
+                  'In bed ${bed.hour.toString().padLeft(2, '0')}:${bed.minute.toString().padLeft(2, '0')}${bed.hour < 22 || (bed.hour == 22 && bed.minute <= 45) ? ' — "bed by 22:30" ticked' : ''}',
+                  style: AppText.small().copyWith(fontSize: 12)),
+            ],
+            const SizedBox(height: 8),
+            GestureDetector(
+              onTap: system.disconnectHealth,
+              child: Text('Disconnect',
+                  style: AppText.small().copyWith(fontSize: 12)),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -49,6 +49,13 @@ So:
 - **Personal use:** stay on TestFlight. It needs no review and is private.
 - **Public app:** the content needs a generic version first. Onboarding would collect each user's own profile and fill `emin_system.dart`'s structure from it.
 
+## Apple Health capability
+ONO reads sleep, HRV and resting heart rate, and writes weigh-ins. Turn it on once in Xcode:
+1. Open `ios/Runner.xcworkspace`.
+2. Go to Runner → Signing & Capabilities → **+ Capability** → **HealthKit**.
+
+Without this, the app still builds and runs; Me just explains how to enable Health. For App Store review, mention Health use in the privacy policy and declare "Health & Fitness" data under App Privacy.
+
 ## Already set up in the project
 - iPhone-only (no iPad screenshots or iPad review needed).
 - Export compliance answered (`ITSAppUsesNonExemptEncryption = NO`).

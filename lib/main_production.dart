@@ -19,6 +19,7 @@ import 'app.dart';
 import 'gateways/supabase_auth_gateway.dart';
 import 'gateways/supabase_personal_system_gateway.dart';
 import 'services/brief_generator.dart';
+import 'services/health_service.dart';
 import 'services/reminder_service.dart';
 
 void main() async {
@@ -40,6 +41,7 @@ void main() async {
     authGateway: SupabaseAuthGateway(client),
     personalGateway: SyncedPersonalSystemGateway(client),
     reminders: kIsWeb ? NoopReminderService() : LocalReminderService(),
+    health: createHealthService(),
     briefGenerator: RemoteBriefGenerator((body) async {
       final res = await client.functions.invoke('weekly-brief', body: body);
       return Map<String, dynamic>.from(res.data as Map);

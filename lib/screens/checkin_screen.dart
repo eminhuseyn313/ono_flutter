@@ -36,15 +36,20 @@ class _CheckinScreenState extends State<CheckinScreen> {
   int _pain = 0; // 0–10
   int _stiffness = 0; // bucket 0–4
   bool _loaded = false;
+  bool _sleepFromHealth = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_loaded) return;
     _loaded = true;
-    final c = context
-        .read<PersonalSystemProvider>()
-        .checkinFor(dayOnly(DateTime.now()));
+    final system = context.read<PersonalSystemProvider>();
+    final c = system.checkinFor(dayOnly(DateTime.now()));
+    final fromHealth = system.sleepHoursFor(dayOnly(DateTime.now()));
+    if (fromHealth != null) {
+      _sleep = ((fromHealth * 2).round() / 2).clamp(3, 10).toDouble();
+      _sleepFromHealth = true;
+    }
     if (c != null) {
       _energy = c.number('energy')?.toInt() ?? _energy;
       _mood = c.number('mood')?.toInt() ?? _mood;
@@ -104,7 +109,9 @@ class _CheckinScreenState extends State<CheckinScreen> {
           ),
         ),
         _Section(
-          label: 'Sleep last night',
+          label: _sleepFromHealth
+              ? 'Sleep last night · Apple Health'
+              : 'Sleep last night',
           trailing: '${_fmtHours(_sleep)} h',
           child: Slider(
             value: _sleep,

@@ -52,6 +52,12 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] Readiness tab: rate the 5 dimensions → Me shows the gap; the Sunday brief names it
 - [ ] Me → **Is it a habit yet?**: rate items; an item rated 4–5 and done on 80% of the last 30 days moves to "Automatic" on Today and its reminder stops
 
+## 2d. New: Apple Health (iPhone only)
+- [ ] One time on the Mac: open `ios/Runner.xcworkspace` → **Runner** → **Signing & Capabilities** → **+ Capability** → **HealthKit**, then double-click **ONO on iPhone**
+- [ ] Me → Mornings → **Connect Apple Health** → allow Sleep, Heart, Weight
+- [ ] Next morning: the check-in shows "Sleep last night · Apple Health"; Me shows sleep, HRV, resting HR; "In bed by 10:30pm" is ticked if you were in bed by 22:45
+- [ ] Log a weigh-in → it appears in the Health app
+
 ## 3. Tools & logging
 - [ ] Morning ritual (from Today before 11:00): 5 steps → finishing ticks the manifesto
 - [ ] Sigh tool: run it → "uses" and mastery level go up; the sigh item is ticked
