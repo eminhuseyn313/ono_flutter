@@ -224,6 +224,14 @@ void main() {
       system.saveAutomaticity({for (final n in nonNegotiables) n.id: 5});
       await system.connectHealth();
       await system.connectCalendar();
+      // A letter that opened today and one sealed until day 540, plus a
+      // deep-work block, so Today, /letters and /focus render them.
+      system.clock = () => DateTime.now().subtract(const Duration(days: 30));
+      system.writeLetter('Remember why you started: the room at PASHA where '
+          'you decided to stop waiting to be noticed.', today);
+      system.clock = DateTime.now;
+      system.writeLetter('Day 540.', system.programEnd);
+      system.logFocus(90, 'artifact');
       await _pumpFor(tester, const Duration(milliseconds: 500));
 
       final routes = <String>{

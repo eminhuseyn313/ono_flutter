@@ -80,6 +80,13 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] A meeting with Ali or Rustam shows **6 Qs**; others show **Sigh**
 - [ ] 10 minutes before a meeting a nudge arrives; tapping it opens six questions or the sigh
 
+## 2i. New: evenings, deep work, letters
+- [ ] After 18:00 Today offers **Start shutdown** → tick today's three; unfinished ones are pre-filled for tomorrow → **Shutdown complete** → tomorrow morning the three are already there
+- [ ] Today → inputs strip → **Deep work** → pick Artifact, 90 min → Start; or "Already did a block — log it" → hours show on Me
+- [ ] With the calendar connected, Today's Meetings card shows the next free hour as "Free — deep work block"
+- [ ] After a meeting with Ali ends, a **Debrief** nudge arrives; Today shows Debrief → Log until you log the 1:1
+- [ ] Me → **Letters to future you** → write, pick "In 30 days" → sealed with a lock; on that day Today says a letter is ready
+
 ## 3. Tools & logging
 - [ ] Morning ritual (from Today before 11:00): 5 steps → finishing ticks the manifesto
 - [ ] Sigh tool: run it → "uses" and mastery level go up; the sigh item is ticked

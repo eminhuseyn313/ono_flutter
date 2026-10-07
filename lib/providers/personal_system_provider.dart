@@ -1184,6 +1184,8 @@ class PersonalSystemProvider extends ChangeNotifier {
         readinessGap: readinessGap?.name,
         openFollowUps: openFollowUps.length,
         patterns: patterns().map((p) => p.sentence).take(3).toList(),
+        deepWorkHours: focusMinutesInWeek(report.weekStart) / 60,
+        shutdowns: shutdownsInWeek(report.weekStart),
         shoulderFlagDays:
             weekCheckins.where((c) => shoulderFlag(c.date)).length,
       ));
@@ -1348,6 +1350,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   DateTime? _meetingsDay;
 
   static const _nudgeBase = onceIdBase + 100;
+  static const _debriefBase = onceIdBase + 120;
   static const maxMeetingNudges = 8;
 
   /// Null when connected; otherwise what to do.
@@ -1422,6 +1425,69 @@ class PersonalSystemProvider extends ChangeNotifier {
           route: key ? '/tool/sixq' : '/tool/sigh');
       i++;
     }
+    // After-action review: debrief key meetings while they're fresh.
+    var j = 0;
+    for (final m in _meetings.where(isKeyMeeting)) {
+      final at = m.end.add(const Duration(minutes: 5));
+      if (!at.isAfter(_now)) continue;
+      if (j >= maxMeetingNudges) break;
+      await r.notifyOnce(_debriefBase + j, at,
+          title: 'Debrief: ${m.title}',
+          body: 'Two minutes while it\'s fresh: what was decided, who owns what, by when.',
+          route: '/cockpit');
+      j++;
+    }
+  }
+
+  /// Key meetings that ended in the last 3 hours with no 1:1 logged since.
+  List<Meeting> debriefsDue(DateTime now) {
+    final logged = logsOn(now, 'one_on_one');
+    return [
+      for (final m in meetingsFor(now).where(isKeyMeeting))
+        if (!m.end.isAfter(now) &&
+            now.difference(m.end) <= const Duration(hours: 3) &&
+            !logged.any((l) => !l.createdAt.isBefore(m.end)))
+          m
+    ];
+  }
+
+  /// Gaps of [minMinutes]+ between 09:00 and 18:00 still ahead on [day],
+  /// around every calendar event and the 12:00–12:30 lunch read.
+  List<({DateTime start, DateTime end})> freeBlocks(DateTime day,
+      {int minMinutes = 60}) {
+    if (!calendarConnected || _meetingsDay != dayOnly(day)) return const [];
+    final d = dayOnly(day);
+    var cursor = d.add(const Duration(hours: 9));
+    if (_now.isAfter(cursor)) {
+      // Round up to the next quarter hour.
+      final q = (_now.minute / 15).ceil() * 15;
+      cursor = DateTime(_now.year, _now.month, _now.day, _now.hour)
+          .add(Duration(minutes: q));
+    }
+    final close = d.add(const Duration(hours: 18));
+    final busy = [
+      for (final m in _meetings) (start: m.start, end: m.end),
+      (
+        start: d.add(const Duration(hours: 12)),
+        end: d.add(const Duration(hours: 12, minutes: 30))
+      ),
+    ]..sort((a, b) => a.start.compareTo(b.start));
+    final out = <({DateTime start, DateTime end})>[];
+    void gap(DateTime to) {
+      final end = to.isAfter(close) ? close : to;
+      if (end.difference(cursor).inMinutes >= minMinutes) {
+        out.add((start: cursor, end: end));
+      }
+    }
+
+    for (final b in busy) {
+      if (!b.end.isAfter(cursor)) continue;
+      if (b.start.isAfter(cursor)) gap(b.start);
+      if (b.end.isAfter(cursor)) cursor = b.end;
+      if (!cursor.isBefore(close)) return out;
+    }
+    gap(close);
+    return out;
   }
 
   Future<void> _cancelMeetingNudges() async {
@@ -1429,8 +1495,105 @@ class PersonalSystemProvider extends ChangeNotifier {
     if (r == null) return;
     for (var i = 0; i < maxMeetingNudges; i++) {
       await r.cancel(_nudgeBase + i);
+      await r.cancel(_debriefBase + i);
     }
   }
+
+  // ── Evening shutdown ─────────────────────────────────────────────────
+
+  LogEntry? shutdownFor(DateTime day) {
+    final l = logsOn(day, 'shutdown');
+    return l.isEmpty ? null : l.last;
+  }
+
+  /// Today's priorities not ticked, to carry into tomorrow.
+  List<String> carryOverFrom(DateTime day) {
+    final p = prioritiesFor(day);
+    return [
+      for (var i = 0; i < 3; i++)
+        if (p[i].trim().isNotEmpty && !priorityDone(day, i)) p[i].trim()
+    ];
+  }
+
+  /// Writes tomorrow's three and closes [day]. Planning unfinished goals
+  /// quiets them (Masicampo & Baumeister 2011); a written to-do list before
+  /// bed shortens sleep onset (Scullin et al. 2018).
+  void completeShutdown(DateTime day,
+      {required List<String> tomorrow, String open = ''}) {
+    final next = dayOnly(day).add(const Duration(days: 1));
+    for (var i = 0; i < 3; i++) {
+      setPriority(next, i, i < tomorrow.length ? tomorrow[i].trim() : '');
+    }
+    final p = prioritiesFor(day);
+    _upsertDayLog('shutdown', dayOnly(day), {
+      'open': open.trim(),
+      'done': [for (var i = 0; i < 3; i++) if (p[i].isNotEmpty && priorityDone(day, i)) i].length,
+      'set': p.where((x) => x.trim().isNotEmpty).length,
+      'at': _now.toIso8601String(),
+    });
+  }
+
+  int shutdownsInWeek(DateTime anyDay) =>
+      weekDays(anyDay).where((d) => shutdownFor(d) != null).length;
+
+  // ── Deep work ────────────────────────────────────────────────────────
+
+  static const focusLengths = [25, 50, 90];
+
+  /// One focus block; [target] is 'artifact', 'skill' or 'other'.
+  void logFocus(int minutes, String target) =>
+      addLog('focus', data: {'minutes': minutes, 'target': target});
+
+  int focusMinutesBetween(DateTime from, DateTime to, {String? target}) =>
+      (_state?.logs ?? const <LogEntry>[])
+          .where((l) =>
+              l.type == 'focus' &&
+              !l.date.isBefore(from) &&
+              l.date.isBefore(to) &&
+              (target == null || l.str('target') == target))
+          .fold<int>(0, (s, l) => s + (l.number('minutes') ?? 0).toInt());
+
+  int focusMinutesInWeek(DateTime anyDay) {
+    final start = weekStartOf(anyDay);
+    return focusMinutesBetween(start, start.add(const Duration(days: 7)));
+  }
+
+  int get artifactMinutesThisMonth => focusMinutesBetween(
+      monthStart(programMonth), monthStart(programMonth + 1),
+      target: 'artifact');
+
+  // ── Letters to future you ────────────────────────────────────────────
+
+  /// Last day of the program (day 540).
+  DateTime get programEnd =>
+      programStart.add(const Duration(days: programDays - 1));
+
+  /// First day of the next phase, or null in the last one.
+  DateTime? get nextPhaseStart {
+    final next = phase.toMonth + 1;
+    return next > programMonths ? null : monthStart(next);
+  }
+
+  /// Sealed until [openOn]; written to the person he is becoming
+  /// (future-self continuity, Hershfield 2011; Rutchick et al. 2018).
+  void writeLetter(String text, DateTime openOn) => addLog('letter',
+      text: text.trim(),
+      data: {'open_on': dateKey(openOn), 'month': programMonth});
+
+  List<LogEntry> get letters => logsOf('letter');
+
+  DateTime letterOpensOn(LogEntry l) =>
+      DateTime.tryParse(l.str('open_on') ?? '') ?? programEnd;
+
+  bool letterIsOpen(LogEntry l) =>
+      !dayOnly(_now).isBefore(letterOpensOn(l));
+
+  List<LogEntry> get lettersToOpen => [
+        for (final l in letters)
+          if (letterIsOpen(l) && !isDone('letter:${l.id}')) l
+      ];
+
+  void markLetterRead(String id) => setDone('letter:$id', true);
 
   // ── Personal patterns ────────────────────────────────────────────────
 
@@ -1514,6 +1677,14 @@ class PersonalSystemProvider extends ChangeNotifier {
         unit: ' h',
         threshold: 0.25,
         when: (d) => isChecked(d, 'caffeine'),
+        measure: (d) => sleep(next(d)));
+    compare(
+        id: 'shutdown_sleep',
+        habit: 'Evening shutdown',
+        outcome: 'sleep that night',
+        unit: ' h',
+        threshold: 0.25,
+        when: (d) => shutdownFor(d) != null,
         measure: (d) => sleep(next(d)));
     compare(
         id: 'gym_energy',

@@ -130,6 +130,15 @@ These are logs to support conversations with your doctor, not medical advice. ON
 
 ---
 
+## Tier 4: second research round (built)
+
+| Feature | Why it works | Source |
+|---|---|---|
+| **Evening shutdown** | Making a plan for an unfinished goal stops it intruding; writing tomorrow's to-do list at bedtime cut sleep onset by ~9 minutes. | Masicampo & Baumeister 2011; Scullin et al. 2018; Newport, *Deep Work* |
+| **Deep work blocks + free gaps from the calendar** | Attention residue from task switching lowers performance on the next task; long, protected blocks are where the artifact gets written. | Leroy 2009; Newport 2016 |
+| **Meeting debrief** | After-action reviews soon after the event improve learning; recall is best while fresh. | US Army AAR; Keiser & Arthur 2021 meta-analysis |
+| **Letters to future you** | Feeling connected to your future self improves long-term choices; writing to your future self increased exercise. | Hershfield 2011; Rutchick et al. 2018 |
+
 ## Tier 3: later
 
 - **Reflection journal with Claude** (Rosebud-style follow-up questions). Use the `weekly-brief` edge function once Supabase is back.

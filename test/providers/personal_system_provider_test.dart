@@ -734,11 +734,27 @@ void main() {
             m('x', 'Coffee', 9, 0, 10, ['Alina K', 'Emin'])),
         isFalse);
 
-    // Nudges only for real meetings still ahead: 15:00 and 17:00.
+    // Nudges only for real meetings still ahead (15:00 and 17:00), plus a
+    // debrief 5 min after each key meeting ends.
     expect(r.once.values.toList()..sort(), [
       day.add(const Duration(hours: 14, minutes: 50)),
+      day.add(const Duration(hours: 15, minutes: 35)),
       day.add(const Duration(hours: 16, minutes: 50)),
+      day.add(const Duration(hours: 18, minutes: 5)),
     ]);
+    // Free: 12:30–15:00 (after the lunch read); 15:30–16:00 is too short.
+    expect(p.freeBlocks(_today), [
+      (
+        start: day.add(const Duration(hours: 12, minutes: 30)),
+        end: day.add(const Duration(hours: 15))
+      ),
+    ]);
+    // 15:40: the 1:1 with Ali ended 10 min ago and isn't logged yet.
+    p.clock = () => day.add(const Duration(hours: 15, minutes: 40));
+    expect(p.debriefsDue(p.clock()).map((m) => m.id), ['ali']);
+    p.addOneOnOne(withWhom: 'Ali', decided: 'Ship it', followUps: const []);
+    expect(p.debriefsDue(p.clock()), isEmpty);
+    p.clock = () => _today;
     // Meetings never go into saved state.
     expect(p.exportJson(), isNot(contains('Roadmap with Rustam')));
 
@@ -755,5 +771,72 @@ void main() {
     await p.load('test');
     expect(await p.connectCalendar(), contains('Settings'));
     expect(p.calendarConnected, isFalse);
+  });
+
+  test('shutdown: carries unfinished priorities, writes tomorrow, logs', () async {
+    final p = await _commissioned();
+    final today = dayOnly(_today);
+    final tomorrow = today.add(const Duration(days: 1));
+    p.setPriority(today, 0, 'Pricing memo to Ali');
+    p.setPriority(today, 1, 'KYC v2 spec');
+    p.togglePriority(today, 0);
+    expect(p.carryOverFrom(today), ['KYC v2 spec']);
+    expect(p.shutdownFor(today), isNull);
+    p.completeShutdown(today,
+        tomorrow: ['KYC v2 spec', 'Book the review', ''],
+        open: 'Worried about the vendor delay');
+    expect(p.prioritiesFor(tomorrow), ['KYC v2 spec', 'Book the review', '']);
+    final s = p.shutdownFor(today)!;
+    expect(s.number('done'), 1);
+    expect(s.number('set'), 2);
+    expect(s.str('open'), 'Worried about the vendor delay');
+    // Saving again replaces, not duplicates.
+    p.completeShutdown(today, tomorrow: ['KYC v2 spec']);
+    expect(p.logsOn(today, 'shutdown').length, 1);
+    expect(p.shutdownsInWeek(today), 1);
+  });
+
+  test('deep work: week and artifact-month minutes', () async {
+    final p = await _commissioned();
+    p.logFocus(90, 'artifact');
+    p.logFocus(50, 'skill');
+    expect(p.focusMinutesInWeek(_today), 140);
+    expect(p.artifactMinutesThisMonth, 90);
+    expect(p.focusMinutesInWeek(_today.subtract(const Duration(days: 7))), 0);
+  });
+
+  test('letters: sealed until their date, then waiting to be read', () async {
+    final p = await _commissioned();
+    final day = dayOnly(_today);
+    p.writeLetter('Remember why you started.', day.add(const Duration(days: 30)));
+    p.writeLetter('Day 540.', p.programEnd);
+    expect(p.letters.length, 2);
+    expect(p.lettersToOpen, isEmpty);
+    expect(p.programEnd, _start.add(const Duration(days: programDays - 1)));
+    expect(p.nextPhaseStart, p.monthStart(3), reason: 'Foundation is 1–2');
+    p.clock = () => _today.add(const Duration(days: 30));
+    expect(p.lettersToOpen.map((l) => l.text), ['Remember why you started.']);
+    p.markLetterRead(p.lettersToOpen.first.id);
+    expect(p.lettersToOpen, isEmpty);
+    expect(p.letterIsOpen(p.letters.firstWhere((l) => l.text == 'Day 540.')),
+        isFalse);
+  });
+
+  test('brief: deep work and shutdowns', () async {
+    final p = await _commissioned(briefs: DeviceBriefGenerator());
+    p.logFocus(50, 'artifact');
+    final brief = await p.submitReport(WeeklyReport(
+      id: 'r',
+      weekStart: weekStartOf(_today),
+      nonNegotiableAverage: 7,
+      gymSessions: 3,
+      bestMoment: '',
+      hardestMoment: '',
+      workSituation: '',
+      createdAt: _today,
+    ));
+    final text = brief!.adjustments.join(' ');
+    expect(text, contains('Deep work: 0.8 h'));
+    expect(text, contains('Evening shutdown on 0 of 7'));
   });
 }

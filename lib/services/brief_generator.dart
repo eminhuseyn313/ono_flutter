@@ -27,6 +27,10 @@ class BriefInput {
   /// "Habit → outcome X vs Y without" from his own logs, strongest first.
   final List<String> patterns;
 
+  /// Logged focus blocks and evening shutdowns this week.
+  final double deepWorkHours;
+  final int shutdowns;
+
   const BriefInput({
     required this.report,
     required this.forWeek,
@@ -45,6 +49,8 @@ class BriefInput {
     this.readinessGap,
     this.openFollowUps = 0,
     this.patterns = const [],
+    this.deepWorkHours = 0,
+    this.shutdowns = 0,
   });
 
   Map<String, dynamic> toJson() => {
@@ -69,6 +75,8 @@ class BriefInput {
         'readiness_gap': readinessGap,
         'open_one_on_one_followups': openFollowUps,
         'personal_patterns': patterns,
+        'deep_work_hours': deepWorkHours,
+        'evening_shutdowns': shutdowns,
       };
 }
 
@@ -180,6 +188,10 @@ class DeviceBriefGenerator implements BriefGenerator {
         'Shoulders flagged on ${input.shoulderFlagDays} mornings. Keep the shoulder-sparing sessions and bring the check-in log to your rheumatologist.',
       if (input.avgSleep != null && input.avgSleep! < 7)
         'Average sleep ${input.avgSleep!.toStringAsFixed(1)} h. Protect 22:30 before adding anything else — sleep sets tomorrow\'s mind.',
+      if (input.deepWorkHours < 3)
+        'Deep work: ${input.deepWorkHours.toStringAsFixed(1)} h this week. Book two 90-minute blocks for the artifact before Monday fills up.',
+      if (input.shutdowns < 4)
+        'Evening shutdown on ${input.shutdowns} of 7 nights. Three minutes at 21:30: tomorrow\'s three on paper, head empty, then bed.',
       if (input.patterns.isNotEmpty)
         'From your own last 60 days: ${input.patterns.first}. A pattern, not proof — but worth protecting this week.',
       if (strongest != null && (input.itemRates[strongest] ?? 0) >= 0.85)

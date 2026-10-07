@@ -232,6 +232,25 @@ class MeScreen extends StatelessWidget {
               ),
               const Divider(indent: 66),
               LinkRow(
+                icon: Icons.center_focus_strong_rounded,
+                color: AppColors.skill,
+                title: 'Deep work',
+                subtitle:
+                    '${(system.focusMinutesInWeek(DateTime.now()) / 60).toStringAsFixed(1)} h this week · ${(system.artifactMinutesThisMonth / 60).toStringAsFixed(1)} h on the artifact this month',
+                onTap: () => context.push('/focus'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
+                icon: Icons.mail_outline_rounded,
+                color: AppColors.accent,
+                title: 'Letters to future you',
+                subtitle: system.letters.isEmpty
+                    ? 'Seal one for the next phase or day 540'
+                    : '${system.letters.where((l) => !system.letterIsOpen(l)).length} sealed · ${system.letters.where(system.letterIsOpen).length} opened',
+                onTap: () => context.push('/letters'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
                 icon: Icons.style_rounded,
                 color: AppColors.mind,
                 title: 'Review deck',

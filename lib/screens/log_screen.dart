@@ -21,10 +21,10 @@ class LogScreen extends StatefulWidget {
 
 const _filters = <String, Set<String>?>{
   'All': null,
-  'Notes': {'feynman', 'scan', 'pennebaker', 'note', 'win', 'month_review'},
+  'Notes': {'feynman', 'scan', 'pennebaker', 'note', 'win', 'month_review', 'shutdown'},
   'Protocols': {'sigh', 'excited', 'bluf', 'sixq', 'pause', 'still', 'ritual', 'read', 'anki'},
   'Body': {'weight', 'protein', 'gym', 'blood', 'checkin', 'sleep', 'vitals'},
-  'Career': {'linkedin', 'artifact', 'one_on_one', 'decision', 'readiness'},
+  'Career': {'linkedin', 'artifact', 'one_on_one', 'decision', 'readiness', 'focus'},
 };
 
 class _LogScreenState extends State<LogScreen> {
@@ -62,6 +62,8 @@ class _LogScreenState extends State<LogScreen> {
         ? system
             .allLogs()
             .where((e) => e.type != 'sleep' && e.type != 'vitals')
+            // Letters stay sealed: they only show on /letters.
+            .where((e) => e.type != 'letter')
             .toList()
         : system.allLogs(_filters[_filter]);
     final byDay = <String, List<LogEntry>>{};
@@ -259,6 +261,8 @@ class _EntryRow extends StatelessWidget {
     'decision': (Icons.balance_rounded, 'skill', 'Decision'),
     'readiness': (Icons.trending_up_rounded, 'skill', 'Readiness check'),
     'automaticity': (Icons.autorenew_rounded, 'mind', 'Habit check'),
+    'focus': (Icons.center_focus_strong_rounded, 'skill', 'Deep work'),
+    'shutdown': (Icons.nights_stay_outlined, 'mind', 'Shutdown'),
   };
 
   String get _summary {
@@ -304,6 +308,12 @@ class _EntryRow extends StatelessWidget {
       case 'decision':
         final v = e.str('verdict');
         return v == null ? e.text : '${e.text} · $v';
+      case 'focus':
+        final t = e.str('target');
+        return '${e.number('minutes')} min${t == 'artifact' ? ' · artifact' : t == 'skill' ? ' · skill' : ''}';
+      case 'shutdown':
+        final open = e.str('open') ?? '';
+        return '${e.number('done')}/${e.number('set')} done${open.isEmpty ? '' : ' · $open'}';
       case 'readiness':
       case 'automaticity':
         return 'Month ${e.number('month')}';

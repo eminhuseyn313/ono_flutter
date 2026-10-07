@@ -67,6 +67,7 @@ Bottom tabs: **Today** `/home` · **Program** `/program?tab=0..3` (Journey/Sched
 ```
 /splash /welcome /sign-up /sign-in /forgot-password /commission
 /manifesto /protocols /evidence /library /style /career /weekly-coaching /checkin /plans /review /habits /cockpit(?tab=0..2)
+/shutdown /focus /letters
 /ritual-flow/:ritualId /gym /gym/:dayId (push|pull|legs) /month/:m (1–18)
 /tool/:id  sigh excited pause still bluf sixq read feynman scan pennebaker anki artifact(?month=) linkedin
 ```
@@ -138,6 +139,11 @@ Flow:
   - `isRealMeeting` = 2+ attendees or a key meeting; `isKeyMeeting` = a `keyPeople` name (Ali, Rustam) as a whole word in the title or invitees.
   - A nudge 10 min before each real meeting still ahead (ids from `onceIdBase + 100`, at most 8): `/tool/sixq` for key meetings, `/tool/sigh` otherwise.
   - Today's Meetings card shows hours in meetings and warns when one covers the 12:00 read.
+- **Evening shutdown** (`/shutdown`): tick today's three, write tomorrow's (unfinished ones carry over via `carryOverFrom`), empty the head into a note. `completeShutdown` sets tomorrow's priorities and upserts one `shutdown` log per day. Today's evening card offers it until done; patterns compare it with that night's sleep.
+- **Deep work** (`/focus`): 25/50/90-min `CountdownTimer` blocks on the artifact, a skill or other → `focus` logs (`logFocus`). `focusMinutesInWeek` and `artifactMinutesThisMonth` feed Today's inputs strip, Me and the brief.
+  - `freeBlocks(day)`: gaps of 60+ min between 09:00 and 18:00 still ahead, around every calendar event and the 12:00–12:30 read. The first shows in Today's Meetings card.
+- **Meeting debrief**: 5 min after a key meeting ends, a nudge opens `/cockpit` (ids from `onceIdBase + 120`). `debriefsDue` puts it on Today until a 1:1 is logged after the meeting.
+- **Letters** (`/letters`): `letter` logs sealed until `open_on` (30/90 days, next phase, day 540 = `programEnd`). Never shown in the Log tab. `lettersToOpen` prompts on Today; `markLetterRead` sets `letter:<id>`.
 - **Patterns** (`patterns()` → `DayPattern`, Me → "What moves your day"): compares an outcome on days with vs without a habit over the last 60 closed days. Needs `minDays` (5) on each side and a minimum gap; shown as patterns, not proof. The top three go into the Sunday brief (`BriefInput.patterns`).
 - **Sunday report** → `submitReport` → `BriefGenerator`:
   - `DeviceBriefGenerator` is rule-based and uses real data only.

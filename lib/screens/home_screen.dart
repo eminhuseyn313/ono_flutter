@@ -508,6 +508,19 @@ class _ModeCard extends StatelessWidget {
             route: '/gym',
           );
         }
+        if (system.shutdownFor(today) == null) {
+          final open = system.carryOverFrom(today).length;
+          return _action(
+            context,
+            eyebrow: '21:30 · Shutdown',
+            title: 'Close the day in three minutes',
+            body: open == 0
+                ? 'Write tomorrow\'s three and empty your head. Tomorrow on paper means faster sleep tonight.'
+                : '$open of today\'s three still open — they carry over. Write tomorrow\'s three, then stop thinking about work.',
+            cta: 'Start shutdown',
+            route: '/shutdown',
+          );
+        }
         final tomorrow = today.add(const Duration(days: 1));
         return _action(
           context,
@@ -640,10 +653,16 @@ class _MeetingsCard extends StatelessWidget {
         .where(PersonalSystemProvider.isRealMeeting)
         .toList();
     final ahead = all.where((m) => m.end.isAfter(now)).toList();
-    if (ahead.isEmpty) return const SizedBox.shrink();
+    final debriefs = system.debriefsDue(now);
+    final free = system.freeBlocks(now, minMinutes: 60);
+    if (ahead.isEmpty && debriefs.isEmpty && free.isEmpty) {
+      return const SizedBox.shrink();
+    }
     final hours = system.meetingHours(now);
     final notes = [
-      '${all.length} meeting${all.length == 1 ? '' : 's'} · ${hours.toStringAsFixed(hours % 1 == 0 ? 0 : 1)} h',
+      all.isEmpty
+          ? 'No meetings today'
+          : '${all.length} meeting${all.length == 1 ? '' : 's'} · ${hours.toStringAsFixed(hours % 1 == 0 ? 0 : 1)} h',
       if (system.lunchReadAtRisk(now)) 'one covers the 12:00 read — move the read, don\'t drop it',
     ];
     return Column(
@@ -660,6 +679,22 @@ class _MeetingsCard extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(14, 4, 4, 4),
           child: Column(
             children: [
+              for (final m in debriefs.take(1))
+                _MeetingRow(
+                    time: 'Debrief',
+                    title: m.title,
+                    keyMeeting: true,
+                    now: true,
+                    action: 'Log',
+                    route: '/cockpit'),
+              for (final b in free.take(1))
+                _MeetingRow(
+                    time: '${_hm(b.start)}–${_hm(b.end)}',
+                    title: 'Free — deep work block',
+                    keyMeeting: false,
+                    now: false,
+                    action: 'Focus',
+                    route: '/focus'),
               for (final m in ahead.take(4))
                 _MeetingRow(
                     time: '${_hm(m.start)}–${_hm(m.end)}',
@@ -679,11 +714,15 @@ class _MeetingRow extends StatelessWidget {
   final String title;
   final bool keyMeeting;
   final bool now;
+  final String? action;
+  final String? route;
   const _MeetingRow(
       {required this.time,
       required this.title,
       required this.keyMeeting,
-      required this.now});
+      required this.now,
+      this.action,
+      this.route});
 
   @override
   Widget build(BuildContext context) {
@@ -703,9 +742,9 @@ class _MeetingRow extends StatelessWidget {
                   color: keyMeeting ? AppColors.white : AppColors.greyLight)),
         ),
         TextButton(
-          onPressed: () =>
-              context.push(keyMeeting ? '/tool/sixq' : '/tool/sigh'),
-          child: Text(keyMeeting ? '6 Qs' : 'Sigh'),
+          onPressed: () => context
+              .push(route ?? (keyMeeting ? '/tool/sixq' : '/tool/sigh')),
+          child: Text(action ?? (keyMeeting ? '6 Qs' : 'Sigh')),
         ),
       ],
     );
@@ -728,6 +767,11 @@ class _Prompts extends StatelessWidget {
         _row(context, Icons.balance_rounded, AppColors.accent,
             'Decision review due',
             '"${reviews.first.text}" — was the call right?', '/cockpit?tab=1'),
+      if (system.lettersToOpen.isNotEmpty)
+        _row(context, Icons.mark_email_unread_outlined, AppColors.accent,
+            'A letter is ready to open',
+            'Written to you in month ${system.lettersToOpen.first.number('month') ?? '–'}. Read it today.',
+            '/letters'),
       if (system.automaticityDue)
         _row(context, Icons.autorenew_rounded, AppColors.body,
             'Is it a habit yet?', 'Monthly check · 1 minute', '/habits'),
@@ -1116,11 +1160,17 @@ class _InputsStrip extends StatelessWidget {
     final scan = domainScanFor(date);
     final book = currentBook(month);
     final outfit = outfitFor(date);
-    final due = context.watch<PersonalSystemProvider>().dueCards(date).length;
+    final system = context.watch<PersonalSystemProvider>();
+    final due = system.dueCards(date).length;
+    final focusH = system.focusMinutesInWeek(date) / 60;
     final tiles = [
       (Icons.style_rounded, AppColors.mind, 'Review',
           due == 0 ? 'All caught up' : '$due cards due',
           'Spaced repetition · 5 min', '/review' as String?),
+      (Icons.center_focus_strong_rounded, AppColors.skill, 'Deep work',
+          artifactFor(month),
+          '${focusH.toStringAsFixed(focusH % 1 == 0 ? 0 : 1)} h this week',
+          '/focus' as String?),
       (Icons.podcasts_rounded, AppColors.skill, 'Drive', podcast.title,
           podcast.detail, null as String?),
       (Icons.travel_explore_rounded, AppColors.steel, 'Scan · 07:45',
