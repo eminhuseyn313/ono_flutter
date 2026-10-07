@@ -23,6 +23,8 @@ EOF
 fi
 echo "iPhone: $DEVICE"
 
+ask_capabilities_once
+
 say "Building a release version and installing it (5–10 minutes the first time)…"
 if ! flutter run --release -d "$DEVICE" -t lib/main.dart --no-resident; then
   cat <<'EOF'
@@ -34,6 +36,12 @@ The build was refused — almost always signing. Fix it once:
      If no team is listed: Xcode → Settings → Accounts → + → sign in.
   3. Close Xcode and double-click this file again.
 EOF
+  if [ -n "$(ls ios/.capabilities 2>/dev/null)" ]; then
+    echo "If the error mentions HealthKit, App Groups or a provisioning profile, your"
+    echo "Apple account may not support those extras. Turn them off and try again:"
+    echo "  bash scripts/capabilities.sh health off"
+    echo "  bash scripts/capabilities.sh widget off"
+  fi
   open ios/Runner.xcworkspace
   fail "Signing needs a one-time setup (see above)."
 fi

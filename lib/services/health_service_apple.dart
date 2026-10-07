@@ -52,9 +52,9 @@ class AppleHealthService implements HealthService {
       );
     } on PlatformException catch (e) {
       throw HealthUnavailable(
-          'Apple Health isn\'t enabled in this build (${e.code}). On the Mac: '
-          'open ios/Runner.xcworkspace → Runner → Signing & Capabilities → '
-          '+ Capability → HealthKit, then install again.');
+          'Apple Health isn\'t enabled in this build (${e.code}). On the Mac, '
+          'in the ono_flutter folder run: bash scripts/capabilities.sh health on '
+          '— then double-click ONO on iPhone to install again.');
     }
   }
 

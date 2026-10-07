@@ -62,3 +62,19 @@ connected_iphone() {
   flutter devices 2>/dev/null | grep -E '• ios ' | grep -vi 'simulator' | head -1 \
     | awk -F'•' '{gsub(/^ +| +$/, "", $2); print $2}' || true
 }
+
+# Ask once whether to turn on the extras that depend on the Apple account.
+ask_capabilities_once() {
+  [ -f ios/.capabilities/.asked ] && return 0
+  mkdir -p ios/.capabilities
+  echo
+  echo "Two optional extras need your Apple account to support them."
+  echo "Say n if unsure — you can turn them on later with scripts/capabilities.sh."
+  local a b
+  read -r -p "  Apple Health (sleep, HRV, weigh-ins)? [y/N] " a
+  read -r -p "  Home Screen & Lock Screen widget? [y/N] " b
+  [[ "$a" =~ ^[Yy] ]] && touch ios/.capabilities/health
+  [[ "$b" =~ ^[Yy] ]] && touch ios/.capabilities/widget
+  touch ios/.capabilities/.asked
+  bash scripts/capabilities.sh apply || say "Couldn't add them — continuing without."
+}

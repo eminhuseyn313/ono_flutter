@@ -10,6 +10,7 @@ import 'router.dart';
 import 'services/brief_generator.dart';
 import 'services/health_service.dart';
 import 'services/reminder_service.dart';
+import 'services/widget_sync.dart';
 import 'theme/app_theme.dart';
 
 /// The app, independent of where data lives. `main.dart` wires it to
@@ -20,6 +21,7 @@ class OnoApp extends StatefulWidget {
   final ReminderService reminders;
   final BriefGenerator? briefGenerator;
   final HealthService? health;
+  final WidgetSync? widgets;
 
   const OnoApp({
     super.key,
@@ -28,6 +30,7 @@ class OnoApp extends StatefulWidget {
     required this.reminders,
     this.briefGenerator,
     this.health,
+    this.widgets,
   });
 
   @override
@@ -48,6 +51,7 @@ class _OnoAppState extends State<OnoApp> {
       reminders: widget.reminders,
       briefGenerator: widget.briefGenerator,
       health: widget.health,
+      widgets: widget.widgets,
     );
     _router = createRouter(_auth);
     _auth.addListener(_onAuth);

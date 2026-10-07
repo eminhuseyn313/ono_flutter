@@ -52,3 +52,7 @@ _to_delete_*.tar
 
 # Local Claude tooling
 .claude/
+
+# Opt-in iOS capabilities (scripts/capabilities.sh)
+ios/.capabilities/
+ios/Runner/Runner.entitlements

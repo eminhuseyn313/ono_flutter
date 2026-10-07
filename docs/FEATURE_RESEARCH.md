@@ -144,7 +144,8 @@ These are logs to support conversations with your doctor, not medical advice. ON
 - **Built (7 Oct 2026):** items 1–4 (never miss twice, fresh starts, if-then plans, morning check-in with shoulder-sparing gym).
 - **Built:** items 5–7 (spaced repetition deck, career cockpit, automaticity check). All of Tier 1 is done.
 - **Built:** #10 Apple Health (sleep → check-in and bed tick, HRV, resting HR, weigh-ins to Health); needs the HealthKit capability ticked in Xcode.
-- **Next:** widgets (#8) and the Live Activity (#9), which need native extensions created in Xcode.
+- **Built:** #8 Home & Lock Screen widget (display; switched on with `scripts/capabilities.sh widget on`).
+- **Next:** #9 Live Activity for the gym rest timer; interactive widget ticks (iOS 17 App Intents).
 
 ## Suggested next build
 1. Tier 1 items **1, 2, 3, 4** together, as one release: "the loop". They are small, all buildable here, and change every single day.

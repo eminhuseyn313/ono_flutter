@@ -53,10 +53,16 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] Me → **Is it a habit yet?**: rate items; an item rated 4–5 and done on 80% of the last 30 days moves to "Automatic" on Today and its reminder stops
 
 ## 2d. New: Apple Health (iPhone only)
-- [ ] One time on the Mac: open `ios/Runner.xcworkspace` → **Runner** → **Signing & Capabilities** → **+ Capability** → **HealthKit**, then double-click **ONO on iPhone**
+- [ ] **ONO on iPhone** asks once about Apple Health and the widget: answer **y**. Or later, in the `ono_flutter` folder: `bash scripts/capabilities.sh health on`
 - [ ] Me → Mornings → **Connect Apple Health** → allow Sleep, Heart, Weight
 - [ ] Next morning: the check-in shows "Sleep last night · Apple Health"; Me shows sleep, HRV, resting HR; "In bed by 10:30pm" is ticked if you were in bed by 22:45
 - [ ] Log a weigh-in → it appears in the Health app
+
+## 2e. New: widget
+- [ ] Turn it on: answer **y** when **ONO on iPhone** asks, or run `bash scripts/capabilities.sh widget on`, then install again
+- [ ] Long-press the Home Screen → **+** → **ONO** → add small or medium; on the Lock Screen → Customize → add ONO
+- [ ] Tick Daily 10 items in the app → the widget updates within a few seconds; "NOW" follows your schedule through the day
+- [ ] If install fails with an App Groups / HealthKit signing error: `bash scripts/capabilities.sh widget off` (or `health off`) and install again
 
 ## 3. Tools & logging
 - [ ] Morning ritual (from Today before 11:00): 5 steps → finishing ticks the manifesto

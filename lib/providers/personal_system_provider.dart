@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -8,6 +9,7 @@ import '../models/personal_system.dart';
 import '../services/brief_generator.dart';
 import '../services/health_service.dart';
 import '../services/reminder_service.dart';
+import '../services/widget_sync.dart';
 
 /// Single source of truth for Emin's program. Every number the app shows is
 /// computed here from real check-offs and logs.
@@ -21,10 +23,15 @@ class PersonalSystemProvider extends ChangeNotifier {
     ReminderService? reminders,
     BriefGenerator? briefGenerator,
     HealthService? health,
+    WidgetSync? widgets,
   })  : _gateway = gateway,
         _reminders = reminders,
         _briefs = briefGenerator ?? DeviceBriefGenerator(),
-        _health = health ?? const NoopHealthService();
+        _health = health ?? const NoopHealthService(),
+        _widgets = widgets;
+
+  final WidgetSync? _widgets;
+  Timer? _widgetTimer;
 
   final HealthService _health;
 
@@ -61,6 +68,46 @@ class PersonalSystemProvider extends ChangeNotifier {
     notifyListeners();
     _gateway.save(_userId, next);
     if (reschedule) _syncReminders();
+    _scheduleWidgetPush();
+  }
+
+  // ── Home Screen widget ───────────────────────────────────────────────
+
+  /// What the widget should show right now.
+  WidgetSnapshot widgetSnapshot() {
+    final today = dayOnly(_now);
+    return WidgetSnapshot(
+      dateKey: dateKey(today),
+      score: scoreFor(today),
+      streak: streak,
+      programDay: hasStarted ? programDay : 0,
+      protein: proteinFor(today),
+      cardsDue: dueCards(today).length,
+      phase: phase.name,
+      blocks: [for (final b in dailySchedule) (b.minuteOfDay, b.title)],
+    );
+  }
+
+  /// Push to the widget at most every 2 seconds (ticks come in bursts).
+  void _scheduleWidgetPush() {
+    final w = _widgets;
+    if (w == null || !isCommissioned) return;
+    _widgetTimer?.cancel();
+    _widgetTimer =
+        Timer(const Duration(seconds: 2), () => w.push(widgetSnapshot()));
+  }
+
+  /// Push now (app start, back to foreground).
+  Future<void> refreshWidget() async {
+    final w = _widgets;
+    if (w == null || !isCommissioned) return;
+    await w.push(widgetSnapshot());
+  }
+
+  @override
+  void dispose() {
+    _widgetTimer?.cancel();
+    super.dispose();
   }
 
   // ── Commission (onboarding) ──────────────────────────────────────────

@@ -8,6 +8,7 @@ import 'package:ono/providers/personal_system_provider.dart';
 import 'package:ono/services/brief_generator.dart';
 import 'package:ono/services/health_service.dart';
 import 'package:ono/services/reminder_service.dart';
+import 'package:ono/services/widget_sync.dart';
 
 import '../support/fake_health.dart';
 
@@ -569,5 +570,30 @@ void main() {
     final q = await _commissioned(health: FakeHealthService(grant: false));
     expect(await q.connectHealth(), contains('Health app'));
     expect(q.healthConnected, isFalse);
+  });
+
+  test('widget: snapshot of today, pushed once after a burst of changes',
+      () async {
+    final sync = NoopWidgetSync();
+    final p = PersonalSystemProvider(
+        gateway: MockPersonalSystemGateway(), widgets: sync)
+      ..clock = () => _today;
+    await p.load('test');
+    await p.commission(
+        start: _start, gymDays: const [1, 3, 5], reminders: const {});
+    for (final n in nonNegotiables.take(7)) {
+      p.setCheck(_today, n.id, true);
+    }
+    p.addProtein(_today, 40);
+    expect(sync.last, isNull, reason: 'batched, not pushed per tick');
+    await Future<void>.delayed(const Duration(milliseconds: 2200));
+    final s = sync.last!;
+    expect(s.score, 7);
+    expect(s.protein, 40);
+    expect(s.dateKey, dateKey(_today));
+    expect(s.blocks.length, dailySchedule.length);
+    final values = s.toValues();
+    expect(values['blocks'], contains('"m":'));
+    expect(values.values.every((v) => v is int || v is String), isTrue);
   });
 }

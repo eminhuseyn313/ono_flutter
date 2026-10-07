@@ -46,6 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
     await system.load(context.read<AuthProvider>().userId);
     if (mounted && !system.isCommissioned) context.go('/commission');
     await system.syncHealth();
+    await system.refreshWidget();
   }
 
   @override

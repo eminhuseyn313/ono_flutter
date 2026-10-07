@@ -1,0 +1,5 @@
+// Keeps the widget's version equal to the app's (pubspec.yaml), which the
+// App Store requires.
+#include "../Flutter/Generated.xcconfig"
+MARKETING_VERSION = $(FLUTTER_BUILD_NAME)
+CURRENT_PROJECT_VERSION = $(FLUTTER_BUILD_NUMBER)

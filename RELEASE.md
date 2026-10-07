@@ -49,12 +49,19 @@ So:
 - **Personal use:** stay on TestFlight. It needs no review and is private.
 - **Public app:** the content needs a generic version first. Onboarding would collect each user's own profile and fill `emin_system.dart`'s structure from it.
 
-## Apple Health capability
-ONO reads sleep, HRV and resting heart rate, and writes weigh-ins. Turn it on once in Xcode:
-1. Open `ios/Runner.xcworkspace`.
-2. Go to Runner → Signing & Capabilities → **+ Capability** → **HealthKit**.
+## Apple Health and the widget (opt-in)
+These need capabilities your Apple team must support: HealthKit, and App Groups for the widget. **ONO on iPhone** asks once. To change it later, run this in the `ono_flutter` folder:
+```bash
+bash scripts/capabilities.sh health on    # or off
+bash scripts/capabilities.sh widget on    # or off
+bash scripts/capabilities.sh status
+```
+The choice is remembered and re-applied after every update. Don't add these by hand in Xcode: the launchers reset hand edits to the project.
 
-Without this, the app still builds and runs; Me just explains how to enable Health. For App Store review, mention Health use in the privacy policy and declare "Health & Fitness" data under App Privacy.
+For App Store review:
+- Mention Health use in the privacy policy.
+- Declare "Health & Fitness" data under App Privacy.
+- The widget needs no extra review.
 
 ## Already set up in the project
 - iPhone-only (no iPad screenshots or iPad review needed).

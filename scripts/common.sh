@@ -30,3 +30,9 @@ fi
 
 say "Installing packages…"
 flutter pub get >/dev/null
+
+# Re-apply opt-in iOS capabilities (Apple Health, widget) after the update.
+if [ -n "$(ls ios/.capabilities 2>/dev/null)" ]; then
+  say "Applying the iOS extras you turned on…"
+  bash scripts/capabilities.sh apply || say "Couldn't apply them — continuing without."
+fi

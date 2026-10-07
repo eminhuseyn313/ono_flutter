@@ -21,6 +21,7 @@ import 'gateways/supabase_personal_system_gateway.dart';
 import 'services/brief_generator.dart';
 import 'services/health_service.dart';
 import 'services/reminder_service.dart';
+import 'services/widget_sync.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -42,6 +43,7 @@ void main() async {
     personalGateway: SyncedPersonalSystemGateway(client),
     reminders: kIsWeb ? NoopReminderService() : LocalReminderService(),
     health: createHealthService(),
+    widgets: createWidgetSync(),
     briefGenerator: RemoteBriefGenerator((body) async {
       final res = await client.functions.invoke('weekly-brief', body: body);
       return Map<String, dynamic>.from(res.data as Map);

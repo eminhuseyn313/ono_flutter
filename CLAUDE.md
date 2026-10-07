@@ -117,7 +117,16 @@ Flow:
   - Overlapping samples are merged in `summarizeNight`.
   - The check-in pre-fills sleep from it, and `logWeight` also writes to Health.
   - Sleep and vitals logs show under Log → Body, not in All.
-  - Needs the HealthKit capability on the Runner target (added in Xcode, not in the repo, so a team without it can still build). Without it, `connectHealth` returns a message saying how to add it.
+  - Needs the HealthKit entitlement: `bash scripts/capabilities.sh health on` (see below). Without it, `connectHealth` returns a message saying how to switch it on.
+- **Home Screen / Lock Screen widget** (`ios/ONOWidget/ONOWidget.swift`, `home_widget` package):
+  - `WidgetSync` (conditional import, as for Health) pushes a `WidgetSnapshot` 2 s after the last change, and on Today load.
+  - The snapshot holds score, streak, day, protein, cards due, phase and the schedule blocks, written to app group `group.com.eminhuseynzade.ono`.
+  - The Swift widget draws small and medium Home Screen sizes plus circular, rectangular and inline Lock Screen styles, with a timeline entry at each schedule block.
+- **Opt-in iOS capabilities** (`scripts/capabilities.sh health|widget on|off`):
+  - `scripts/ios_capabilities.rb` uses the xcodeproj gem to add the HealthKit entitlement and/or the ONOWidget target plus the app group to a pristine `project.pbxproj`.
+  - Choices live in `ios/.capabilities/` (git-ignored). `common.sh` re-applies them after every pull, and `Install on my iPhone.command` asks once.
+  - They are kept out of the committed project because a personal Apple team may not support them, and an unsupported one would block installs.
+  - Never hand-edit these in Xcode: the launchers stash local project edits.
 - **Sunday report** → `submitReport` → `BriefGenerator`:
   - `DeviceBriefGenerator` is rule-based and uses real data only.
   - `RemoteBriefGenerator` calls Claude via `supabase/functions/weekly-brief` and falls back to the device generator on any error.
@@ -153,4 +162,7 @@ flutter run -t lib/main_production.dart
 - The icon is rendered from the Day Dial motif; regenerate every size if it changes.
 
 ## Not built (needs Xcode / native targets)
-These can't be built or verified without macOS: Home Screen widgets (WidgetKit extension), Live Activities, calendar-based meeting prep (EventKit), and on-device encryption of health fields. The Apple Health Dart side is built and tested with a fake; the HealthKit capability is added in Xcode. Row-level security protects the cloud copy.
+The native parts can't be compiled here:
+- The widget's Swift code and the HealthKit/App Group signing are unverified until built on the Mac.
+- Live Activities, calendar-based meeting prep (EventKit) and on-device encryption of health fields are not built yet.
+- The project edits themselves are tested here with the xcodeproj gem. Row-level security protects the cloud copy.
