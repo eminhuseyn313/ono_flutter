@@ -1186,6 +1186,12 @@ class PersonalSystemProvider extends ChangeNotifier {
         patterns: patterns().map((p) => p.sentence).take(3).toList(),
         deepWorkHours: focusMinutesInWeek(report.weekStart) / 60,
         shutdowns: shutdownsInWeek(report.weekStart),
+        weekOutcomes: [
+          for (var i = 0; i < 3; i++)
+            if (weekOutcomes(report.weekStart)[i].trim().isNotEmpty)
+              '${weekOutcomeDone(report.weekStart, i) ? '[done]' : '[open]'} ${weekOutcomes(report.weekStart)[i].trim()}'
+        ],
+        peopleOverdue: [for (final p in peopleDue.take(3)) p.text],
         shoulderFlagDays:
             weekCheckins.where((c) => shoulderFlag(c.date)).length,
       ));
@@ -1519,7 +1525,12 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// quiets them (Masicampo & Baumeister 2011); a written to-do list before
   /// bed shortens sleep onset (Scullin et al. 2018).
   void completeShutdown(DateTime day,
-      {required List<String> tomorrow, String open = ''}) {
+      {required List<String> tomorrow, String open = '', String win = ''}) {
+    // One good thing, written down (Seligman et al. 2005). It's a win.
+    if (win.trim().isNotEmpty &&
+        !logsOn(day, 'win').any((w) => w.text == win.trim())) {
+      addLog('win', date: dayOnly(day), text: win.trim());
+    }
     final next = dayOnly(day).add(const Duration(days: 1));
     for (var i = 0; i < 3; i++) {
       setPriority(next, i, i < tomorrow.length ? tomorrow[i].trim() : '');
@@ -1535,6 +1546,112 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   int shutdownsInWeek(DateTime anyDay) =>
       weekDays(anyDay).where((d) => shutdownFor(d) != null).length;
+
+  // ── This week's Big 3 ────────────────────────────────────────────────
+
+  LogEntry? _weekPlan(DateTime anyDay) {
+    final l = logsOn(weekStartOf(anyDay), 'week_plan');
+    return l.isEmpty ? null : l.last;
+  }
+
+  /// Three outcomes for the week of [anyDay] (blank when not set).
+  List<String> weekOutcomes(DateTime anyDay) {
+    final raw = (_weekPlan(anyDay)?.data['outcomes'] as List?) ?? const [];
+    return [for (var i = 0; i < 3; i++) i < raw.length ? '${raw[i]}' : ''];
+  }
+
+  bool weekOutcomeDone(DateTime anyDay, int i) =>
+      ((_weekPlan(anyDay)?.data['done'] as List?) ?? const []).contains(i);
+
+  bool hasWeekPlan(DateTime anyDay) =>
+      weekOutcomes(anyDay).any((o) => o.trim().isNotEmpty);
+
+  void _saveWeekPlan(DateTime anyDay, List<String> outcomes, List<int> done) =>
+      _upsertDayLog('week_plan', weekStartOf(anyDay),
+          {'outcomes': outcomes, 'done': done..sort()});
+
+  void setWeekOutcome(DateTime anyDay, int i, String text) {
+    final o = weekOutcomes(anyDay)..[i] = text;
+    final done = [
+      for (var j = 0; j < 3; j++)
+        if (weekOutcomeDone(anyDay, j) && (j != i || text.trim().isNotEmpty)) j
+    ];
+    _saveWeekPlan(anyDay, o, done);
+  }
+
+  void toggleWeekOutcome(DateTime anyDay, int i) {
+    final done = [
+      for (var j = 0; j < 3; j++)
+        if (weekOutcomeDone(anyDay, j) != (j == i)) j
+    ];
+    _saveWeekPlan(anyDay, weekOutcomes(anyDay), done);
+  }
+
+  /// (done, set) for the week of [anyDay].
+  (int, int) weekOutcomeScore(DateTime anyDay) {
+    final o = weekOutcomes(anyDay);
+    var set = 0, done = 0;
+    for (var i = 0; i < 3; i++) {
+      if (o[i].trim().isEmpty) continue;
+      set++;
+      if (weekOutcomeDone(anyDay, i)) done++;
+    }
+    return (done, set);
+  }
+
+  // ── People ───────────────────────────────────────────────────────────
+
+  static const contactCadences = [7, 14, 30, 90];
+
+  /// The people he invests in, oldest first. A `person` log holds the
+  /// name, role and how often (days) he wants contact.
+  List<LogEntry> get people => logsOf('person').reversed.toList();
+
+  LogEntry addPerson(String name, {String role = '', int every = 30}) =>
+      addLog('person',
+          text: name.trim(), data: {'role': role.trim(), 'every': every})!;
+
+  void removePerson(String id) {
+    final s = _state;
+    if (s == null) return;
+    _update(s.copyWith(
+        logs: s.logs
+            .where((l) =>
+                l.id != id && !(l.type == 'touch' && l.str('person') == id))
+            .toList()));
+  }
+
+  void logTouch(LogEntry person, {String note = ''}) => addLog('touch',
+      text: note.trim(), data: {'person': person.id, 'name': person.text});
+
+  /// Last contact: a logged touch, or a 1:1 with them (name as a word).
+  DateTime? lastContact(LogEntry person) {
+    final first = person.text.split(' ').first;
+    final re = RegExp('\\b${RegExp.escape(first)}\\b', caseSensitive: false);
+    DateTime? last;
+    for (final l in _state?.logs ?? const <LogEntry>[]) {
+      final hit = (l.type == 'touch' && l.str('person') == person.id) ||
+          (l.type == 'one_on_one' && re.hasMatch(l.str('with') ?? ''));
+      if (hit && (last == null || l.date.isAfter(last))) last = l.date;
+    }
+    return last;
+  }
+
+  /// Days since the last contact (or since he was added, if never).
+  int daysSinceContact(LogEntry person) =>
+      dayOnly(_now).difference(dayOnly(lastContact(person) ?? person.date)).inDays;
+
+  int cadenceOf(LogEntry person) => (person.number('every') ?? 30).toInt();
+
+  /// Overdue people, most overdue (relative to their cadence) first.
+  List<LogEntry> get peopleDue {
+    final due = people
+        .where((p) => daysSinceContact(p) >= cadenceOf(p))
+        .toList()
+      ..sort((a, b) => (daysSinceContact(b) / cadenceOf(b))
+          .compareTo(daysSinceContact(a) / cadenceOf(a)));
+    return due;
+  }
 
   // ── Deep work ────────────────────────────────────────────────────────
 

@@ -232,6 +232,16 @@ class MeScreen extends StatelessWidget {
               ),
               const Divider(indent: 66),
               LinkRow(
+                icon: Icons.group_outlined,
+                color: AppColors.social,
+                title: 'People',
+                subtitle: system.people.isEmpty
+                    ? 'Who you invest in, and how often'
+                    : '${system.people.length} people · ${system.peopleDue.length} due',
+                onTap: () => context.push('/people'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
                 icon: Icons.center_focus_strong_rounded,
                 color: AppColors.skill,
                 title: 'Deep work',

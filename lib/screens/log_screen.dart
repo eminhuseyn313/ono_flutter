@@ -24,7 +24,7 @@ const _filters = <String, Set<String>?>{
   'Notes': {'feynman', 'scan', 'pennebaker', 'note', 'win', 'month_review', 'shutdown'},
   'Protocols': {'sigh', 'excited', 'bluf', 'sixq', 'pause', 'still', 'ritual', 'read', 'anki'},
   'Body': {'weight', 'protein', 'gym', 'blood', 'checkin', 'sleep', 'vitals'},
-  'Career': {'linkedin', 'artifact', 'one_on_one', 'decision', 'readiness', 'focus'},
+  'Career': {'linkedin', 'artifact', 'one_on_one', 'decision', 'readiness', 'focus', 'week_plan', 'touch'},
 };
 
 class _LogScreenState extends State<LogScreen> {
@@ -64,6 +64,8 @@ class _LogScreenState extends State<LogScreen> {
             .where((e) => e.type != 'sleep' && e.type != 'vitals')
             // Letters stay sealed: they only show on /letters.
             .where((e) => e.type != 'letter')
+            // People are a list, not events; contact with them is a touch.
+            .where((e) => e.type != 'person')
             .toList()
         : system.allLogs(_filters[_filter]);
     final byDay = <String, List<LogEntry>>{};
@@ -263,6 +265,8 @@ class _EntryRow extends StatelessWidget {
     'automaticity': (Icons.autorenew_rounded, 'mind', 'Habit check'),
     'focus': (Icons.center_focus_strong_rounded, 'skill', 'Deep work'),
     'shutdown': (Icons.nights_stay_outlined, 'mind', 'Shutdown'),
+    'week_plan': (Icons.flag_rounded, 'skill', 'Big 3'),
+    'touch': (Icons.group_outlined, 'social', 'In touch'),
   };
 
   String get _summary {
@@ -311,6 +315,13 @@ class _EntryRow extends StatelessWidget {
       case 'focus':
         final t = e.str('target');
         return '${e.number('minutes')} min${t == 'artifact' ? ' · artifact' : t == 'skill' ? ' · skill' : ''}';
+      case 'week_plan':
+        final o = ((e.data['outcomes'] as List?) ?? const [])
+            .where((x) => '$x'.trim().isNotEmpty)
+            .length;
+        return 'Week of ${e.date.day}/${e.date.month} · ${((e.data['done'] as List?) ?? const []).length}/$o done';
+      case 'touch':
+        return '${e.str('name') ?? ''}${e.text.isEmpty ? '' : ' · ${e.text}'}';
       case 'shutdown':
         final open = e.str('open') ?? '';
         return '${e.number('done')}/${e.number('set')} done${open.isEmpty ? '' : ' · $open'}';

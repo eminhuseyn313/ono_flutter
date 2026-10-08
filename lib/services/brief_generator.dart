@@ -31,6 +31,12 @@ class BriefInput {
   final double deepWorkHours;
   final int shutdowns;
 
+  /// This week's Big 3, each prefixed "[done]" or "[open]".
+  final List<String> weekOutcomes;
+
+  /// People past their contact cadence, most overdue first.
+  final List<String> peopleOverdue;
+
   const BriefInput({
     required this.report,
     required this.forWeek,
@@ -51,6 +57,8 @@ class BriefInput {
     this.patterns = const [],
     this.deepWorkHours = 0,
     this.shutdowns = 0,
+    this.weekOutcomes = const [],
+    this.peopleOverdue = const [],
   });
 
   Map<String, dynamic> toJson() => {
@@ -77,6 +85,8 @@ class BriefInput {
         'personal_patterns': patterns,
         'deep_work_hours': deepWorkHours,
         'evening_shutdowns': shutdowns,
+        'week_outcomes': weekOutcomes,
+        'people_overdue': peopleOverdue,
       };
 }
 
@@ -188,6 +198,12 @@ class DeviceBriefGenerator implements BriefGenerator {
         'Shoulders flagged on ${input.shoulderFlagDays} mornings. Keep the shoulder-sparing sessions and bring the check-in log to your rheumatologist.',
       if (input.avgSleep != null && input.avgSleep! < 7)
         'Average sleep ${input.avgSleep!.toStringAsFixed(1)} h. Protect 22:30 before adding anything else — sleep sets tomorrow\'s mind.',
+      if (input.weekOutcomes.isEmpty)
+        'No Big 3 for the week. Sunday night: three outcomes that would make next week a win, one tied to the artifact.',
+      if (input.weekOutcomes.any((o) => o.startsWith('[open]')))
+        'Week outcomes: ${input.weekOutcomes.where((o) => o.startsWith('[done]')).length} of ${input.weekOutcomes.length} done. Carry the open one only if it still matters — otherwise drop it on purpose.',
+      if (input.peopleOverdue.isNotEmpty)
+        'Overdue to reach out: ${input.peopleOverdue.join(', ')}. One message each this week — a useful link or a question beats "catching up".',
       if (input.deepWorkHours < 3)
         'Deep work: ${input.deepWorkHours.toStringAsFixed(1)} h this week. Book two 90-minute blocks for the artifact before Monday fills up.',
       if (input.shutdowns < 4)

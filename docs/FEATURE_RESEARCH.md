@@ -139,6 +139,14 @@ These are logs to support conversations with your doctor, not medical advice. ON
 | **Meeting debrief** | After-action reviews soon after the event improve learning; recall is best while fresh. | US Army AAR; Keiser & Arthur 2021 meta-analysis |
 | **Letters to future you** | Feeling connected to your future self improves long-term choices; writing to your future self increased exercise. | Hershfield 2011; Rutchick et al. 2018 |
 
+## Tier 5: third research round (built)
+
+| Feature | Why it works | Source |
+|---|---|---|
+| **Big 3 for the week** | Specific, hard goals beat "do your best"; a weekly review closes open loops. Daily priorities ladder up to them. | Locke & Latham 2002; Allen, *Getting Things Done* |
+| **People and contact rhythm** | Emotional closeness decays without contact; weak ties carry new opportunities — central to the Signal phase. | Roberts & Dunbar 2011; Granovetter 1973 |
+| **One good thing at shutdown** | Writing down what went well and why raised wellbeing for six months. | Seligman et al. 2005 |
+
 ## Tier 3: later
 
 - **Reflection journal with Claude** (Rosebud-style follow-up questions). Use the `weekly-brief` edge function once Supabase is back.

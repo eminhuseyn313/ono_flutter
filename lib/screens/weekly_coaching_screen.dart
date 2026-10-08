@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../models/personal_system.dart';
@@ -87,6 +88,8 @@ class _WeeklyCoachingScreenState extends State<WeeklyCoachingScreen> {
               ),
             ],
           ),
+          const SizedBox(height: 10),
+          _WeekReview(week: week),
           const SizedBox(height: 16),
           _field(_best, '3 · Best moment of the week',
               'What went right — be specific.'),
@@ -265,4 +268,42 @@ class _BriefView extends StatelessWidget {
           ),
         ),
       );
+}
+
+/// The week's Big 3 at report time, and a way to plan the next one.
+class _WeekReview extends StatelessWidget {
+  final DateTime week;
+  const _WeekReview({required this.week});
+
+  @override
+  Widget build(BuildContext context) {
+    final system = context.watch<PersonalSystemProvider>();
+    final o = system.weekOutcomes(week);
+    final (done, set) = system.weekOutcomeScore(week);
+    final next = week.add(const Duration(days: 7));
+    return OnoCard(
+      padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(set == 0 ? 'BIG 3 · NOT SET THIS WEEK' : 'BIG 3 · $done OF $set DONE',
+              style: AppText.eyebrow()),
+          for (var i = 0; i < 3; i++)
+            if (o[i].trim().isNotEmpty)
+              CheckRow(
+                checked: system.weekOutcomeDone(week, i),
+                title: o[i],
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                onChanged: (_) => system.toggleWeekOutcome(week, i),
+              ),
+          TextButton(
+            onPressed: () => context.push('/week'),
+            child: Text(system.hasWeekPlan(next)
+                ? 'Next week\'s Big 3 are set — review'
+                : 'Plan next week\'s Big 3'),
+          ),
+        ],
+      ),
+    );
+  }
 }

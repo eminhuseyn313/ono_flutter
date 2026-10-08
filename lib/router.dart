@@ -20,6 +20,7 @@ import 'screens/manifesto_screen.dart';
 import 'screens/me_screen.dart';
 import 'screens/month_screen.dart';
 import 'screens/onboarding_welcome_screen.dart';
+import 'screens/people_screen.dart';
 import 'screens/plans_screen.dart';
 import 'screens/program_screen.dart';
 import 'screens/protocols_screen.dart';
@@ -31,6 +32,7 @@ import 'screens/sign_up_screen.dart';
 import 'screens/splash_screen.dart';
 import 'screens/style_screen.dart';
 import 'screens/tool_screens.dart';
+import 'screens/week_screen.dart';
 import 'screens/weekly_coaching_screen.dart';
 
 /// Every route in the app. Tabs: Today · Program · Log · Me.
@@ -73,6 +75,8 @@ const appRoutes = [
   '/shutdown',
   '/focus',
   '/letters',
+  '/week',
+  '/people',
 ];
 
 GoRouter createRouter(AuthProvider authProvider,
@@ -124,6 +128,8 @@ GoRouter createRouter(AuthProvider authProvider,
       _slide('/shutdown', (_) => const ShutdownScreen()),
       _slide('/focus', (_) => const FocusScreen()),
       _slide('/letters', (_) => const LettersScreen()),
+      _slide('/week', (_) => const WeekScreen()),
+      _slide('/people', (_) => const PeopleScreen()),
       _slide(
           '/cockpit',
           (s) => CockpitScreen(

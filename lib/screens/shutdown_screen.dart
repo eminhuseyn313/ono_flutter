@@ -21,6 +21,7 @@ class ShutdownScreen extends StatefulWidget {
 class _ShutdownScreenState extends State<ShutdownScreen> {
   late final List<TextEditingController> _next;
   final _open = TextEditingController();
+  final _win = TextEditingController();
   late final DateTime _today;
   bool _ready = false;
 
@@ -48,13 +49,16 @@ class _ShutdownScreenState extends State<ShutdownScreen> {
       c.dispose();
     }
     _open.dispose();
+    _win.dispose();
     super.dispose();
   }
 
   void _finish() {
     final system = context.read<PersonalSystemProvider>();
     system.completeShutdown(_today,
-        tomorrow: [for (final c in _next) c.text], open: _open.text);
+        tomorrow: [for (final c in _next) c.text],
+        open: _open.text,
+        win: _win.text);
     HapticFeedback.heavyImpact();
     toast(context,
         'Shutdown complete. Tomorrow is on paper — the day is closed.');
@@ -133,7 +137,14 @@ class _ShutdownScreenState extends State<ShutdownScreen> {
             ],
           ),
         ),
-        const SectionHeader('3 · Still open in your head?'),
+        const SectionHeader('3 · One good thing today'),
+        TextField(
+          controller: _win,
+          style: AppText.body(color: AppColors.white),
+          decoration: const InputDecoration(
+              hintText: 'What went well? Saved as a win.'),
+        ),
+        const SectionHeader('4 · Still open in your head?'),
         TextField(
           controller: _open,
           minLines: 3,

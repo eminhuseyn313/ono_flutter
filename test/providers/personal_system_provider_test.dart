@@ -839,4 +839,73 @@ void main() {
     expect(text, contains('Deep work: 0.8 h'));
     expect(text, contains('Evening shutdown on 0 of 7'));
   });
+
+  test('Big 3: set, tick, score; blanking one clears its tick', () async {
+    final p = await _commissioned();
+    expect(p.hasWeekPlan(_today), isFalse);
+    p.setWeekOutcome(_today, 0, 'OST draft reviewed by Ali');
+    p.setWeekOutcome(_today, 1, 'KYC v2 scope signed off');
+    p.toggleWeekOutcome(_today, 1);
+    expect(p.weekOutcomes(_today),
+        ['OST draft reviewed by Ali', 'KYC v2 scope signed off', '']);
+    expect(p.weekOutcomeScore(_today), (1, 2));
+    // Any day of the same week reads the same plan; next week is empty.
+    expect(p.weekOutcomeScore(weekStartOf(_today).add(const Duration(days: 6))),
+        (1, 2));
+    expect(p.hasWeekPlan(_today.add(const Duration(days: 7))), isFalse);
+    p.setWeekOutcome(_today, 1, '');
+    expect(p.weekOutcomeDone(_today, 1), isFalse);
+    expect(p.logsOf('week_plan').length, 1, reason: 'one entry per week');
+  });
+
+  test('people: cadence, 1:1s count as contact, overdue order', () async {
+    final p = await _commissioned();
+    p.clock = () => _today.subtract(const Duration(days: 20));
+    final ali = p.addPerson('Ali', role: 'Manager', every: 7);
+    final leyla = p.addPerson('Leyla Aliyeva', role: 'Head of Product', every: 30);
+    p.clock = () => _today;
+    expect(p.daysSinceContact(ali), 20);
+    expect(p.peopleDue.map((x) => x.text), ['Ali'],
+        reason: 'Leyla is 20 of 30 days in');
+    // A 1:1 with "Ali Mammadov" counts for Ali — but "Aliyeva" isn't Ali.
+    p.addOneOnOne(withWhom: 'Ali Mammadov', decided: 'x', followUps: const []);
+    expect(p.lastContact(ali), dayOnly(_today));
+    expect(p.peopleDue, isEmpty);
+    p.logTouch(leyla, note: 'Coffee');
+    expect(p.daysSinceContact(leyla), 0);
+    p.removePerson(leyla.id);
+    expect(p.people.map((x) => x.text), ['Ali']);
+    expect(p.logsOf('touch'), isEmpty, reason: 'her touches go too');
+  });
+
+  test('shutdown saves one good thing as a win, once', () async {
+    final p = await _commissioned();
+    p.completeShutdown(_today, tomorrow: const [], win: 'Ali took the pricing memo as is');
+    p.completeShutdown(_today, tomorrow: const [], win: 'Ali took the pricing memo as is');
+    expect(p.logsOn(_today, 'win').map((w) => w.text),
+        ['Ali took the pricing memo as is']);
+  });
+
+  test('brief: Big 3 review and overdue people', () async {
+    final p = await _commissioned(briefs: DeviceBriefGenerator());
+    p.setWeekOutcome(_today, 0, 'OST draft');
+    p.setWeekOutcome(_today, 1, 'Scope signed');
+    p.toggleWeekOutcome(_today, 0);
+    p.clock = () => _today.subtract(const Duration(days: 10));
+    p.addPerson('Rustam', every: 7);
+    p.clock = () => _today;
+    final brief = await p.submitReport(WeeklyReport(
+      id: 'r',
+      weekStart: weekStartOf(_today),
+      nonNegotiableAverage: 7,
+      gymSessions: 3,
+      bestMoment: '',
+      hardestMoment: '',
+      workSituation: '',
+      createdAt: _today,
+    ));
+    final text = brief!.adjustments.join(' ');
+    expect(text, contains('Week outcomes: 1 of 2 done'));
+    expect(text, contains('Overdue to reach out: Rustam'));
+  });
 }

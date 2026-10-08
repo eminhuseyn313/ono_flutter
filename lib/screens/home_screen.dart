@@ -177,6 +177,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     streak: system.streak),
               ],
               if (!_yesterday && system.hasStarted) _Prompts(now: _now),
+              if (!_yesterday && system.hasStarted) _WeekCard(now: _now),
               if (!_yesterday) _MeetingsCard(now: _now),
               SectionHeader('Daily 10',
                   action: 'If-then plans',
@@ -637,6 +638,55 @@ class _FreshStartCard extends StatelessWidget {
   }
 }
 
+/// This week's Big 3, tickable from Today; a prompt to set them if empty.
+class _WeekCard extends StatelessWidget {
+  final DateTime now;
+  const _WeekCard({required this.now});
+
+  @override
+  Widget build(BuildContext context) {
+    final system = context.watch<PersonalSystemProvider>();
+    final outcomes = system.weekOutcomes(now);
+    final (done, set) = system.weekOutcomeScore(now);
+    if (set == 0) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 12),
+        child: OnoCard(
+          padding: EdgeInsets.zero,
+          child: LinkRow(
+            icon: Icons.flag_rounded,
+            color: AppColors.accent,
+            title: 'Set this week\'s Big 3',
+            subtitle: 'Three outcomes that would make the week a win',
+            onTap: () => context.push('/week'),
+          ),
+        ),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SectionHeader('This week · $done/$set',
+            action: 'Edit', onAction: () => context.push('/week')),
+        OnoCard(
+          padding: const EdgeInsets.fromLTRB(18, 6, 18, 6),
+          child: Column(
+            children: [
+              for (var i = 0; i < 3; i++)
+                if (outcomes[i].trim().isNotEmpty)
+                  CheckRow(
+                    checked: system.weekOutcomeDone(now, i),
+                    title: outcomes[i],
+                    onChanged: (_) => system.toggleWeekOutcome(now, i),
+                  ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 /// Today's real meetings from the iPhone calendar, with the prep each needs.
 class _MeetingsCard extends StatelessWidget {
   final DateTime now;
@@ -772,6 +822,14 @@ class _Prompts extends StatelessWidget {
             'A letter is ready to open',
             'Written to you in month ${system.lettersToOpen.first.number('month') ?? '–'}. Read it today.',
             '/letters'),
+      if (system.peopleDue.isNotEmpty)
+        _row(
+            context,
+            Icons.group_outlined,
+            AppColors.social,
+            'Reach out: ${system.peopleDue.first.text}',
+            '${system.lastContact(system.peopleDue.first) == null ? 'No contact logged yet' : '${system.daysSinceContact(system.peopleDue.first)} days since you were in touch'} · every ${system.cadenceOf(system.peopleDue.first)} days',
+            '/people'),
       if (system.automaticityDue)
         _row(context, Icons.autorenew_rounded, AppColors.body,
             'Is it a habit yet?', 'Monthly check · 1 minute', '/habits'),

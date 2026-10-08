@@ -232,6 +232,16 @@ void main() {
       system.clock = DateTime.now;
       system.writeLetter('Day 540.', system.programEnd);
       system.logFocus(90, 'artifact');
+      // A Big 3 with a long outcome, and people: one due, one fresh.
+      system.setWeekOutcome(today, 0,
+          'Opportunity solution tree for entrepreneur integration reviewed by Ali and Rustam');
+      system.setWeekOutcome(today, 1, 'KYC v2 scope signed off');
+      system.toggleWeekOutcome(today, 1);
+      system.clock = () => DateTime.now().subtract(const Duration(days: 40));
+      system.addPerson('Leyla Aliyeva-Huseynova',
+          role: 'Head of Product, Kapital Bank — one role ahead', every: 30);
+      system.clock = DateTime.now;
+      system.addPerson('Ali', role: 'Manager', every: 7);
       await _pumpFor(tester, const Duration(milliseconds: 500));
 
       final routes = <String>{

@@ -87,6 +87,13 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] After a meeting with Ali ends, a **Debrief** nudge arrives; Today shows Debrief → Log until you log the 1:1
 - [ ] Me → **Letters to future you** → write, pick "In 30 days" → sealed with a lock; on that day Today says a letter is ready
 
+## 2j. New: Big 3, people
+- [ ] Today → **Set this week's Big 3** → three outcomes → back on Today they're tickable under "This week"
+- [ ] Sunday report shows the Big 3 with ticks and a link to plan next week (from Saturday)
+- [ ] Me → **People** → "Add Ali and Rustam" → tap a person → **In touch today**; a 1:1 logged with Ali counts too
+- [ ] When someone is past their rhythm, Today says **Reach out: <name>**
+- [ ] Shutdown → **One good thing today** → it appears in Log as a win
+
 ## 3. Tools & logging
 - [ ] Morning ritual (from Today before 11:00): 5 steps → finishing ticks the manifesto
 - [ ] Sigh tool: run it → "uses" and mastery level go up; the sigh item is ticked
