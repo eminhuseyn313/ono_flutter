@@ -94,6 +94,12 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] When someone is past their rhythm, Today says **Reach out: <name>**
 - [ ] Shutdown → **One good thing today** → it appears in Log as a win
 
+## 2k. New: growth plan
+- [ ] Today → **What are you growing this month?** → pick an area (professional or personal), rate where you are → **Grow this**
+- [ ] Today's card shows this week's drill; do it at work, then Growth → **I did it — reflect** → four short answers
+- [ ] **Ask for feedback** shows the exact question; after asking, **Log what they said**
+- [ ] End of month: rate again → the start → now change shows; next month starts fresh
+
 ## 3. Tools & logging
 - [ ] Morning ritual (from Today before 11:00): 5 steps → finishing ticks the manifesto
 - [ ] Sigh tool: run it → "uses" and mastery level go up; the sigh item is ticked

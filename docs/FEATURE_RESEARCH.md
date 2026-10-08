@@ -147,6 +147,17 @@ These are logs to support conversations with your doctor, not medical advice. ON
 | **People and contact rhythm** | Emotional closeness decays without contact; weak ties carry new opportunities — central to the Signal phase. | Roberts & Dunbar 2011; Granovetter 1973 |
 | **One good thing at shutdown** | Writing down what went well and why raised wellbeing for six months. | Seligman et al. 2005 |
 
+## Tier 6: development first (built)
+
+Emin's direction: ONO is about personal and professional development, not app mechanics.
+
+| Feature | Why it works | Source |
+|---|---|---|
+| **Growth plan: one area a month** | Expertise grows through deliberate practice on a specific weakness, with immediate feedback — not through experience alone. | Ericsson et al. 1993 |
+| **Drills on real work** | Development happens 70% through challenging assignments; drills turn the job into the practice field. | McCall, Lombardo & Morrison (70-20-10) |
+| **Reflection on every rep** | Experience becomes learning only when you reflect, draw a lesson and plan the next attempt. | Kolb 1984; Di Stefano et al. 2014 |
+| **Asking for specific feedback** | Feedback-seeking predicts performance and is read as a sign of competence when the question is specific. | Ashford & Cummings 1983; Brooks et al. 2015 |
+
 ## Tier 3: later
 
 - **Reflection journal with Claude** (Rosebud-style follow-up questions). Use the `weekly-brief` edge function once Supabase is back.

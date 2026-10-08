@@ -242,6 +242,11 @@ void main() {
           role: 'Head of Product, Kapital Bank — one role ahead', every: 30);
       system.clock = DateTime.now;
       system.addPerson('Ali', role: 'Manager', every: 7);
+      // Last month's growth area only: this month /growth shows the chooser
+      // and Today the "what are you growing" prompt.
+      system.clock = () => DateTime.now().subtract(const Duration(days: 35));
+      system.setFocus('self_trust', startRating: 2);
+      system.clock = DateTime.now;
       await _pumpFor(tester, const Duration(milliseconds: 500));
 
       final routes = <String>{
@@ -327,6 +332,30 @@ void main() {
         await tester.pump(const Duration(milliseconds: 100));
       }
       if (prep.evaluate().isEmpty) failures['/home meetings'] = {'no meetings card'};
+
+      // Growth plan with an area, a rep and feedback: the plan view renders.
+      errors.clear();
+      try {
+        system.setFocus('communication', startRating: 2);
+        final area = system.focusArea()!;
+        system.logRep(area, area.drills.first,
+            did: 'Rewrote the KYC v2 status note for Ali as BLUF',
+            noticed: 'He replied in four minutes instead of the next day',
+            lesson: 'Decision first means he can answer from his phone',
+            next: 'Draft every update to Ali as BLUF before anything else');
+        system.logFeedback(area,
+            from: 'Ali',
+            said: 'Lead with the decision you need from me, not the history',
+            action: 'First line of every update is the ask');
+        await _go(tester, '/growth');
+        if (find.text('This week\'s drill').evaluate().isEmpty) {
+          errors.add('plan view did not render');
+        }
+        await _go(tester, '/home');
+      } catch (e) {
+        errors.add('$e');
+      }
+      if (errors.isNotEmpty) failures['/growth plan'] = errors.toSet();
 
       // Me: the seeded caffeine cut-offs show as a pattern.
       await _go(tester, '/profile');

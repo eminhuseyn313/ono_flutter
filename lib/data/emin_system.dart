@@ -1365,6 +1365,208 @@ const List<ReadinessDimension> readinessDimensions = [
 const readinessBar = 4;
 
 // ------------------------------------------------------------
+// Growth plan — one area a month, practised on the real job
+// ------------------------------------------------------------
+
+/// A practice rep: what to do this week and how you'll know it worked.
+class Drill {
+  final String title;
+  final String how;
+  final String signal;
+  const Drill(this.title, this.how, this.signal);
+}
+
+/// Something to get better at. Professional areas are the Head of Product
+/// readiness dimensions; personal ones come from his own diagnosis.
+class GrowthArea {
+  final String id;
+  final String name;
+  final bool personal;
+
+  /// What good looks like.
+  final String bar;
+
+  /// The feedback question to ask someone who sees you do it.
+  final String ask;
+  final List<Drill> drills;
+
+  const GrowthArea(this.id, this.name,
+      {required this.bar,
+      required this.ask,
+      required this.drills,
+      this.personal = false});
+}
+
+const List<GrowthArea> growthAreas = [
+  GrowthArea('product_sense', 'Product sense',
+      bar: 'Picks the right problems for Business ID; a clear point of view on where identity and agentic commerce go.',
+      ask: 'When I bring you a problem, what do I tend to miss about it?',
+      drills: [
+        Drill('Problem before solution',
+            'For one Business ID request this week, write who has the problem and what it costs them — before looking at any solution.',
+            'Someone changes their ask after reading it.'),
+        Drill('Customer hour',
+            'Join or listen to one real SME onboarding or support call. Write three observations, no solutions.',
+            'One observation becomes a backlog item.'),
+        Drill('Point of view',
+            'Write 200 words: where business identity in Azerbaijan goes in three years, and what Business ID should do about it.',
+            'You can say it in 30 seconds without notes.'),
+        Drill('Kill one thing',
+            'Find one backlog item that shouldn\'t be built and make the case to drop it.',
+            'It gets dropped or pushed down.'),
+        Drill('Teardown',
+            'Go through one peer bank\'s business onboarding end to end. Write three things to steal and one to avoid.',
+            'One idea lands in a discussion with the team.'),
+      ]),
+  GrowthArea('execution', 'Execution',
+      bar: 'Ships predictably across teams; unblocks others; decisions backed by data.',
+      ask: 'What\'s one thing that would make working with my team more predictable for you?',
+      drills: [
+        Drill('Pre-mortem',
+            'Before the next release, 15 minutes with the team: "It\'s three months later and this failed. Why?"',
+            'One risk gets an owner and a date.'),
+        Drill('Friday status',
+            'Send one update: shipped, slipping (and why), decisions needed — five lines.',
+            'No follow-up questions.'),
+        Drill('Unblock someone',
+            'Find the dependency blocking another team and clear it this week.',
+            'They tell you it moved.'),
+        Drill('Metric first',
+            'For the next feature, write the one success metric and its target before it ships.',
+            'It\'s on a dashboard on launch day.'),
+        Drill('Log a decision',
+            'Record one real decision in the cockpit with the options and what you expect to happen.',
+            'It\'s there to review in 90 days.'),
+      ]),
+  GrowthArea('leadership', 'Leadership',
+      bar: 'Leads without authority; grows people; trusted by Ali and Rustam to own an area.',
+      ask: 'Where could I take more ownership without being asked?',
+      drills: [
+        Drill('Win a team you don\'t manage',
+            'Get another team to commit to something by showing what\'s in it for them.',
+            'They commit in writing.'),
+        Drill('Grow someone',
+            'Give one teammate specific praise and one specific suggestion: situation, behaviour, impact.',
+            'They act on the suggestion.'),
+        Drill('Claim an area',
+            'Propose to Ali one area you\'ll own end to end, and what success looks like.',
+            'Ali agrees, or tells you what it would take.'),
+        Drill('Run the room',
+            'Facilitate one meeting with a written agenda that ends in a decision.',
+            'The decision is written down before people leave.'),
+        Drill('Say no well',
+            'Decline one request with the reason and an alternative.',
+            'The relationship holds.'),
+      ]),
+  GrowthArea('strategy', 'Strategy & business',
+      bar: 'Links product bets to revenue and ecosystem economics; speaks the P&L.',
+      ask: 'When I present a plan, how well do I connect it to the business?',
+      drills: [
+        Drill('Speak the P&L',
+            'Find what Business ID costs and earns (or its best proxy) and explain it in three lines.',
+            'You answer "what\'s it worth?" without looking anything up.'),
+        Drill('Ecosystem map',
+            'Draw how Business ID creates value for two other Bir or PASHA businesses.',
+            'Someone else uses your map.'),
+        Drill('Bet memo',
+            'One page: the opportunity, how big, why now, and what you would stop doing for it.',
+            'Ali or Rustam asks a follow-up question.'),
+        Drill('Read the numbers',
+            'Read one peer bank\'s annual report or investor deck. Three takeaways for Business ID.',
+            'You use one in a meeting.'),
+        Drill('Trade-off out loud',
+            'In one roadmap discussion, state the trade-off in money or time.',
+            'The decision refers to it.'),
+      ]),
+  GrowthArea('communication', 'Executive communication',
+      bar: 'BLUF by default; calm in the room; writes PR/FAQs that change minds.',
+      ask: 'In my updates to you, what should I cut and what should I lead with?',
+      drills: [
+        Drill('BLUF rewrite',
+            'Rewrite your longest message of the week as BLUF before sending: decision, three reasons, ask, deadline.',
+            'The reply comes faster than usual.'),
+        Drill('Two-minute version',
+            'Record yourself explaining your current project in two minutes. Listen once, record again.',
+            'The second take is shorter and calmer.'),
+        Drill('PR/FAQ',
+            'Write the press release and five FAQs for a feature before it\'s built.',
+            'It changes a decision.'),
+        Drill('Pause in the room',
+            'In the next senior meeting, one breath before every answer. Count them.',
+            'Three or more deliberate pauses.'),
+        Drill('Hard question first',
+            'Open your next update with the question you least want asked — and answer it.',
+            'No ambush.'),
+      ]),
+  GrowthArea('self_trust', 'Self-trust',
+      personal: true,
+      bar: 'Owns wins out loud, asks for help without shame, speaks from position — not permission.',
+      ask: 'When do I undersell what I\'ve done?',
+      drills: [
+        Drill('Say the win',
+            'Tell Ali one thing you shipped this week, plainly — no "just", no "only".',
+            'You said it without a qualifier.'),
+        Drill('Ask in the first hour',
+            'The Soloist waits. When you\'re stuck this week, ask someone within the first hour.',
+            'You asked before the end of the day.'),
+        Drill('Ship at 80%',
+            'The Expert polishes. Send one piece of work at 80% that you would normally keep polishing.',
+            'Nobody asks for the missing 20%.'),
+        Drill('Read the evidence',
+            'Monday, before the first meeting: read the Evidence Archive.',
+            'You remember one item when the doubt shows up.'),
+        Drill('Name the voice',
+            'When the "fraud" thought shows up, write it down with the evidence against it.',
+            'You caught it twice this week.'),
+      ]),
+  GrowthArea('composure', 'Composure under pressure',
+      personal: true,
+      bar: 'Calm before executive meetings; what you know stays available when it matters.',
+      ask: 'How do I come across in tense meetings?',
+      drills: [
+        Drill('Prepare the six',
+            'Six questions deep before your next meeting with Ali or Rustam.',
+            'One of your six gets asked.'),
+        Drill('Sigh, then speak',
+            'Physiological sigh ×3 before every pressure moment this week.',
+            'You did it before each one.'),
+        Drill('Say "I am excited"',
+            'Before the hardest conversation of the week, say it out loud.',
+            'You noticed the energy as fuel, not threat.'),
+        Drill('Rehearse the opening',
+            'Say your first two sentences out loud before the meeting starts.',
+            'The opening came out as planned.'),
+        Drill('After-action',
+            'After a meeting that went badly: what happened, what you told yourself, what you\'ll do next time.',
+            'You wrote it the same day.'),
+      ]),
+  GrowthArea('presence', 'Public voice',
+      personal: true,
+      bar: 'A visible point of view: a LinkedIn that fits the role you\'re growing into, regular posts, one talk a year.',
+      ask: 'What should people outside the team know me for?',
+      drills: [
+        Drill('Headline',
+            'Rewrite your LinkedIn headline for the role you\'re growing into.',
+            'It no longer describes the old job.'),
+        Drill('One post',
+            'Publish one lesson from building Business ID — no confidential detail. Hook, insight, example, question.',
+            'It\'s published.'),
+        Drill('Comment with substance',
+            'Leave three thoughtful comments on posts by product leaders you respect.',
+            'One of them replies.'),
+        Drill('Teach it',
+            'Offer the team a 15-minute lunch talk on a framework you use (BLUF, OST, six questions).',
+            'Someone uses it the week after.'),
+        Drill('Show the work',
+            'Share this month\'s artifact with a wider audience than usual.',
+            'Someone outside the team responds.'),
+      ]),
+];
+
+GrowthArea growthArea(String id) =>
+    growthAreas.firstWhere((a) => a.id == id, orElse: () => growthAreas.first);
+
+// ------------------------------------------------------------
 // Automaticity — monthly "is it a habit yet?"
 // ------------------------------------------------------------
 

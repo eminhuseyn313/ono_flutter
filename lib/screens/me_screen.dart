@@ -211,6 +211,16 @@ class MeScreen extends StatelessWidget {
           child: Column(
             children: [
               LinkRow(
+                icon: Icons.trending_up_rounded,
+                color: AppColors.accent,
+                title: 'Growth plan',
+                subtitle: system.focusArea() == null
+                    ? 'Choose this month\'s area'
+                    : '${system.focusArea()!.name} · ${system.repsIn(system.focusArea()!.id, system.programMonth).length} reps this month',
+                onTap: () => context.push('/growth'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
                 icon: Icons.autorenew_rounded,
                 color: AppColors.body,
                 title: 'Is it a habit yet?',

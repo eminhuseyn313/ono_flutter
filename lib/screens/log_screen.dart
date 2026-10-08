@@ -21,6 +21,7 @@ class LogScreen extends StatefulWidget {
 
 const _filters = <String, Set<String>?>{
   'All': null,
+  'Growth': {'rep', 'feedback', 'growth_focus'},
   'Notes': {'feynman', 'scan', 'pennebaker', 'note', 'win', 'month_review', 'shutdown'},
   'Protocols': {'sigh', 'excited', 'bluf', 'sixq', 'pause', 'still', 'ritual', 'read', 'anki'},
   'Body': {'weight', 'protein', 'gym', 'blood', 'checkin', 'sleep', 'vitals'},
@@ -266,6 +267,9 @@ class _EntryRow extends StatelessWidget {
     'focus': (Icons.center_focus_strong_rounded, 'skill', 'Deep work'),
     'shutdown': (Icons.nights_stay_outlined, 'mind', 'Shutdown'),
     'week_plan': (Icons.flag_rounded, 'skill', 'Big 3'),
+    'rep': (Icons.trending_up_rounded, 'skill', 'Practice rep'),
+    'feedback': (Icons.record_voice_over_outlined, 'social', 'Feedback'),
+    'growth_focus': (Icons.track_changes_rounded, 'mind', 'Growth area'),
     'touch': (Icons.group_outlined, 'social', 'In touch'),
   };
 
@@ -315,6 +319,13 @@ class _EntryRow extends StatelessWidget {
       case 'focus':
         final t = e.str('target');
         return '${e.number('minutes')} min${t == 'artifact' ? ' · artifact' : t == 'skill' ? ' · skill' : ''}';
+      case 'rep':
+        final lesson = e.str('lesson') ?? '';
+        return '${e.str('drill')} · ${lesson.isEmpty ? e.text : lesson}';
+      case 'feedback':
+        return '${e.str('from')}: "${e.text}"';
+      case 'growth_focus':
+        return 'Month ${e.number('month')} · ${growthArea(e.str('area') ?? '').name}';
       case 'week_plan':
         final o = ((e.data['outcomes'] as List?) ?? const [])
             .where((x) => '$x'.trim().isNotEmpty)

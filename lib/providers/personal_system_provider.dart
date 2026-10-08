@@ -1192,6 +1192,14 @@ class PersonalSystemProvider extends ChangeNotifier {
               '${weekOutcomeDone(report.weekStart, i) ? '[done]' : '[open]'} ${weekOutcomes(report.weekStart)[i].trim()}'
         ],
         peopleOverdue: [for (final p in peopleDue.take(3)) p.text],
+        growthFocus: focusArea()?.name,
+        growthDrill: focusArea() == null
+            ? null
+            : drillFor(focusArea()!, report.weekStart.add(const Duration(days: 7))).title,
+        repsThisWeek: repsInWeek(report.weekStart),
+        feedbackThisMonth: focusArea() == null
+            ? 0
+            : feedbackIn(focusArea()!.id, programMonth).length,
         shoulderFlagDays:
             weekCheckins.where((c) => shoulderFlag(c.date)).length,
       ));
@@ -1546,6 +1554,120 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   int shutdownsInWeek(DateTime anyDay) =>
       weekDays(anyDay).where((d) => shutdownFor(d) != null).length;
+
+  // ── Growth plan ──────────────────────────────────────────────────────
+
+  LogEntry? _focusLog(int month) {
+    for (final l in logsOf('growth_focus')) {
+      if (l.number('month') == month) return l;
+    }
+    return null;
+  }
+
+  /// The area chosen for [month] (default: this month), or null.
+  GrowthArea? focusArea([int? month]) {
+    final l = _focusLog(month ?? programMonth);
+    return l == null ? null : growthArea(l.str('area') ?? '');
+  }
+
+  /// What to suggest when nothing is chosen: the readiness gap, else the
+  /// first area.
+  GrowthArea get suggestedArea =>
+      readinessGap == null ? growthAreas.first : growthArea(readinessGap!.id);
+
+  /// Chooses this month's area, rated 1–5 where you are now.
+  void setFocus(String areaId, {required int startRating}) {
+    final month = programMonth;
+    final existing = _focusLog(month);
+    final data = {
+      'area': areaId,
+      'month': month,
+      'start': startRating,
+      if (existing != null && existing.str('area') == areaId &&
+          existing.number('end') != null)
+        'end': existing.number('end'),
+    };
+    if (existing == null) {
+      addLog('growth_focus', date: monthStart(month), data: data);
+    } else {
+      updateLog(existing.copyWith(data: data));
+    }
+  }
+
+  /// Rates the month's area again at the end; the gap is the growth.
+  void rateFocusEnd(int rating) {
+    final l = _focusLog(programMonth);
+    if (l == null) return;
+    updateLog(l.copyWith(data: {...l.data, 'end': rating}));
+  }
+
+  /// (start, end) ratings for [month]'s area; end is null until rated.
+  (int?, int?) focusRatings([int? month]) {
+    final l = _focusLog(month ?? programMonth);
+    return (l?.number('start')?.toInt(), l?.number('end')?.toInt());
+  }
+
+  /// Past months with a chosen area, newest first.
+  List<LogEntry> get growthHistory => logsOf('growth_focus');
+
+  /// Reps logged on [areaId] in the program month [month].
+  List<LogEntry> repsIn(String areaId, int month) => [
+        for (final l in logsOf('rep'))
+          if (l.str('area') == areaId &&
+              !l.date.isBefore(monthStart(month)) &&
+              l.date.isBefore(monthStart(month + 1)))
+            l
+      ];
+
+  int repsInWeek(DateTime anyDay) {
+    final from = weekStartOf(anyDay);
+    return countBetween('rep', from, from.add(const Duration(days: 7)));
+  }
+
+  /// This week's drill: the first not yet practised this month, rotating
+  /// by week so each week brings a different one.
+  Drill drillFor(GrowthArea area, DateTime day) {
+    final done = repsIn(area.id, programMonth).map((r) => r.str('drill')).toSet();
+    final week = dayOnly(day).difference(programStart).inDays ~/ 7;
+    final n = area.drills.length;
+    for (var i = 0; i < n; i++) {
+      final d = area.drills[(week + i) % n];
+      if (!done.contains(d.title)) return d;
+    }
+    return area.drills[week % n];
+  }
+
+  /// One rep through the learning cycle: what you did, what you noticed,
+  /// the lesson, and what you'll do next time (Kolb 1984).
+  void logRep(GrowthArea area, Drill drill,
+          {required String did,
+          String noticed = '',
+          String lesson = '',
+          String next = ''}) =>
+      addLog('rep', text: did.trim(), data: {
+        'area': area.id,
+        'drill': drill.title,
+        'noticed': noticed.trim(),
+        'lesson': lesson.trim(),
+        'next': next.trim(),
+      });
+
+  /// What someone told you, and what you'll do with it.
+  void logFeedback(GrowthArea area,
+          {required String from, required String said, String action = ''}) =>
+      addLog('feedback', text: said.trim(), data: {
+        'area': area.id,
+        'from': from.trim(),
+        'action': action.trim(),
+      });
+
+  List<LogEntry> feedbackIn(String areaId, int month) => [
+        for (final l in logsOf('feedback'))
+          if (l.str('area') == areaId &&
+              !l.date.isBefore(monthStart(month)) &&
+              l.date.isBefore(monthStart(month + 1)))
+            l
+      ];
 
   // ── This week's Big 3 ────────────────────────────────────────────────
 

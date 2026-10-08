@@ -3,6 +3,8 @@
 ## What This Is
 ONO is the personal operating system of Emin Huseynzade: Senior Product Owner for Business ID at Bir Ecosystem (PASHA Financial Holding), Baku. Archetype: **The Product Architect**. It runs one 18-month program (540 days, four phases: Foundation 1–2, Craft 3–6, Signal 7–12, Leverage 13–18) across four lanes: Mind, Body, Skill, Social. Flutter app, Supabase backend.
 
+**Direction (from Emin):** ONO is about his personal and professional development, not about app mechanics. New work should help him grow: practice, reflection, feedback, learning and his relationships. Avoid adding phone plumbing (widgets, shortcuts, integrations) unless it directly serves that.
+
 Everything shown comes from his profile (encoded in `lib/data/emin_system.dart`) or from what he logs. **No sample or fake numbers anywhere.** That was the #1 finding in `docs/CRITIQUE.md`.
 
 ## Architecture
@@ -67,7 +69,7 @@ Bottom tabs: **Today** `/home` · **Program** `/program?tab=0..3` (Journey/Sched
 ```
 /splash /welcome /sign-up /sign-in /forgot-password /commission
 /manifesto /protocols /evidence /library /style /career /weekly-coaching /checkin /plans /review /habits /cockpit(?tab=0..2)
-/shutdown /focus /letters /week /people
+/shutdown /focus /letters /week /people /growth
 /ritual-flow/:ritualId /gym /gym/:dayId (push|pull|legs) /month/:m (1–18)
 /tool/:id  sigh excited pause still bluf sixq read feynman scan pennebaker anki artifact(?month=) linkedin
 ```
@@ -144,6 +146,11 @@ Flow:
   - `freeBlocks(day)`: gaps of 60+ min between 09:00 and 18:00 still ahead, around every calendar event and the 12:00–12:30 read. The first shows in Today's Meetings card.
 - **Meeting debrief**: 5 min after a key meeting ends, a nudge opens `/cockpit` (ids from `onceIdBase + 120`). `debriefsDue` puts it on Today until a 1:1 is logged after the meeting.
 - **Letters** (`/letters`): `letter` logs sealed until `open_on` (30/90 days, next phase, day 540 = `programEnd`). Never shown in the Log tab. `lettersToOpen` prompts on Today; `markLetterRead` sets `letter:<id>`.
+- **Growth plan** (`/growth`), the main development thread:
+  - `growthAreas` in `emin_system.dart`: the 5 Head of Product readiness dimensions plus 3 personal areas from his diagnosis (self-trust, composure under pressure, public voice). Each has a `bar`, a feedback `ask` and 5 `Drill`s (how + signal) tied to his real job.
+  - One `growth_focus` log per program month (`area`, `start`, `end` ratings 1–5). `setFocus`/`rateFocusEnd`/`focusRatings`; `suggestedArea` = the readiness gap.
+  - `drillFor` suggests this week's drill (not yet practised this month, rotating by week). `logRep` saves a Kolb reflection (did, noticed, lesson, next) as a `rep` log; `logFeedback` saves a `feedback` log.
+  - Today's growth card sits above the prompts; Log has a Growth filter; the brief leads with growth focus, reps this week and feedback this month.
 - **Big 3** (`/week`): one `week_plan` log per week (dated `weekStartOf`) holding `outcomes` (3) and `done` indexes. `setWeekOutcome`/`toggleWeekOutcome`/`weekOutcomeScore`. Today shows them tickable (or a prompt to set them); from Saturday `/week` also plans next week; the Sunday report reviews them and the brief gets them as `[done]`/`[open]`.
 - **People** (`/people`): `person` logs (name, `role`, `every` days); `touch` logs record contact. `lastContact` also counts `one_on_one` logs whose `with` matches the first name as a whole word. `peopleDue` (past cadence, most overdue first) prompts on Today and goes into the brief. People never show in the Log tab; `removePerson` also drops their touches.
 - The shutdown's "one good thing" is saved as a `win` (once per text per day).

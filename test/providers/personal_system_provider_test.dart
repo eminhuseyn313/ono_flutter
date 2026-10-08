@@ -908,4 +908,67 @@ void main() {
     expect(text, contains('Week outcomes: 1 of 2 done'));
     expect(text, contains('Overdue to reach out: Rustam'));
   });
+
+  test('growth plan: one area a month, rotating drills, reps and feedback',
+      () async {
+    final p = await _commissioned(briefs: DeviceBriefGenerator());
+    expect(p.focusArea(), isNull);
+    expect(p.suggestedArea.id, growthAreas.first.id);
+    p.saveReadiness({for (final d in readinessDimensions) d.id: 4, 'strategy': 2});
+    expect(p.suggestedArea.id, 'strategy', reason: 'the readiness gap');
+
+    p.setFocus('composure', startRating: 2);
+    final area = p.focusArea()!;
+    expect(area.name, 'Composure under pressure');
+    expect(area.personal, isTrue);
+    expect(p.focusRatings(), (2, null));
+
+    // The suggested drill moves on once it has been practised.
+    final first = p.drillFor(area, _today);
+    p.logRep(area, first,
+        did: 'Sighed before the pricing review',
+        noticed: 'Voice steadier',
+        lesson: 'The sigh works when I do it in the car, not in the room',
+        next: 'Sigh in the car before every Ali meeting');
+    expect(p.drillFor(area, _today).title, isNot(first.title));
+    expect(p.repsIn('composure', p.programMonth).single.str('lesson'),
+        startsWith('The sigh works'));
+    expect(p.repsInWeek(_today), 1);
+
+    p.logFeedback(area, from: 'Ali', said: 'You rush the first minute', action: 'Rehearse the opening');
+    expect(p.feedbackIn('composure', p.programMonth).single.str('from'), 'Ali');
+
+    p.rateFocusEnd(3);
+    expect(p.focusRatings(), (2, 3));
+    // Re-choosing the same area keeps the end rating; one entry per month.
+    p.setFocus('composure', startRating: 2);
+    expect(p.focusRatings(), (2, 3));
+    expect(p.growthHistory.length, 1);
+    // Next month starts empty.
+    expect(p.focusArea(p.programMonth + 1), isNull);
+
+    final brief = await p.submitReport(WeeklyReport(
+      id: 'r',
+      weekStart: weekStartOf(_today),
+      nonNegotiableAverage: 7,
+      gymSessions: 3,
+      bestMoment: '',
+      hardestMoment: '',
+      workSituation: '',
+      createdAt: _today,
+    ));
+    expect(brief!.adjustments.first,
+        startsWith('Growth — Composure under pressure: 1 rep this week'));
+  });
+
+  test('every growth area has five drills and a feedback question', () {
+    expect(growthAreas.length, 8);
+    for (final a in growthAreas) {
+      expect(a.drills.length, 5, reason: a.id);
+      expect(a.ask, endsWith('?'), reason: a.id);
+    }
+    // Professional areas are the readiness dimensions.
+    expect(growthAreas.where((a) => !a.personal).map((a) => a.id),
+        readinessDimensions.map((d) => d.id));
+  });
 }

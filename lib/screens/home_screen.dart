@@ -176,6 +176,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         today.subtract(const Duration(days: 1))),
                     streak: system.streak),
               ],
+              if (!_yesterday && system.hasStarted) _GrowthCard(now: _now),
               if (!_yesterday && system.hasStarted) _Prompts(now: _now),
               if (!_yesterday && system.hasStarted) _WeekCard(now: _now),
               if (!_yesterday) _MeetingsCard(now: _now),
@@ -633,6 +634,65 @@ class _FreshStartCard extends StatelessWidget {
             if (fs.route != null) context.push(fs.route!);
           }),
         ],
+      ),
+    );
+  }
+}
+
+/// What he is growing this month and this week's drill. Development is
+/// the main thread; the job is where it's practised.
+class _GrowthCard extends StatelessWidget {
+  final DateTime now;
+  const _GrowthCard({required this.now});
+
+  @override
+  Widget build(BuildContext context) {
+    final system = context.watch<PersonalSystemProvider>();
+    final area = system.focusArea();
+    if (area == null) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 12),
+        child: OnoCard(
+          accent: AppColors.accent,
+          padding: EdgeInsets.zero,
+          child: LinkRow(
+            icon: Icons.trending_up_rounded,
+            color: AppColors.accent,
+            title: 'What are you growing this month?',
+            subtitle: 'Suggested: ${system.suggestedArea.name}',
+            onTap: () => context.push('/growth'),
+          ),
+        ),
+      );
+    }
+    final drill = system.drillFor(area, now);
+    final reps = system.repsIn(area.id, system.programMonth).length;
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: OnoCard(
+        accent: AppColors.accent,
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+        onTap: () => context.push('/growth'),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('GROWING · ${area.name.toUpperCase()}',
+                style: AppText.eyebrow(color: AppColors.accent)),
+            const SizedBox(height: 6),
+            Text(drill.title, style: AppText.heading()),
+            const SizedBox(height: 2),
+            Text(drill.how,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: AppText.small()),
+            const SizedBox(height: 8),
+            Text(
+                reps == 0
+                    ? 'No reps yet this month — do it once, then reflect.'
+                    : '$reps rep${reps == 1 ? '' : 's'} this month',
+                style: AppText.small(color: AppColors.body)),
+          ],
+        ),
       ),
     );
   }

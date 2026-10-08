@@ -37,6 +37,12 @@ class BriefInput {
   /// People past their contact cadence, most overdue first.
   final List<String> peopleOverdue;
 
+  /// This month's growth area, next week's drill, practice and feedback.
+  final String? growthFocus;
+  final String? growthDrill;
+  final int repsThisWeek;
+  final int feedbackThisMonth;
+
   const BriefInput({
     required this.report,
     required this.forWeek,
@@ -59,6 +65,10 @@ class BriefInput {
     this.shutdowns = 0,
     this.weekOutcomes = const [],
     this.peopleOverdue = const [],
+    this.growthFocus,
+    this.growthDrill,
+    this.repsThisWeek = 0,
+    this.feedbackThisMonth = 0,
   });
 
   Map<String, dynamic> toJson() => {
@@ -87,6 +97,10 @@ class BriefInput {
         'evening_shutdowns': shutdowns,
         'week_outcomes': weekOutcomes,
         'people_overdue': peopleOverdue,
+        'growth_focus': growthFocus,
+        'next_drill': growthDrill,
+        'practice_reps_this_week': repsThisWeek,
+        'feedback_this_month': feedbackThisMonth,
       };
 }
 
@@ -182,6 +196,12 @@ class DeviceBriefGenerator implements BriefGenerator {
             '4. Afterwards: log what held and what didn\'t; if it went well, it goes in the Evidence Archive.';
 
     final adjustments = <String>[
+      if (input.growthFocus == null)
+        'No growth area this month. Pick one in the Growth plan — the gap you most want closed — and practise it on real work.',
+      if (input.growthFocus != null && input.repsThisWeek < 2)
+        'Growth — ${input.growthFocus}: ${input.repsThisWeek} rep${input.repsThisWeek == 1 ? '' : 's'} this week. Next week\'s drill: ${input.growthDrill}. Do it twice and write what you noticed.',
+      if (input.growthFocus != null && input.feedbackThisMonth == 0)
+        'No feedback on ${input.growthFocus} yet this month. Ask one person one specific question — practice without feedback doesn\'t improve.',
       if (avg < 6)
         'Shrink to the core five next week: manifesto, scan, BLUF, protein, bed. Add the rest back when you hold 5/5.',
       if (r.gymSessions < 2)

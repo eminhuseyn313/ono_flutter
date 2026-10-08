@@ -10,6 +10,7 @@ import 'screens/evidence_archive_screen.dart';
 import 'screens/focus_screen.dart';
 import 'screens/forgot_password_screen.dart';
 import 'screens/gym_session_screen.dart';
+import 'screens/growth_screen.dart';
 import 'screens/habits_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/letters_screen.dart';
@@ -77,6 +78,7 @@ const appRoutes = [
   '/letters',
   '/week',
   '/people',
+  '/growth',
 ];
 
 GoRouter createRouter(AuthProvider authProvider,
@@ -130,6 +132,7 @@ GoRouter createRouter(AuthProvider authProvider,
       _slide('/letters', (_) => const LettersScreen()),
       _slide('/week', (_) => const WeekScreen()),
       _slide('/people', (_) => const PeopleScreen()),
+      _slide('/growth', (_) => const GrowthScreen()),
       _slide(
           '/cockpit',
           (s) => CockpitScreen(
