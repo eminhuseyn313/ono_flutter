@@ -52,6 +52,12 @@ class BriefInput {
   /// Active goals: progress vs time used, pace, obstacle and plan.
   final List<String> goals;
 
+  /// Whether this week's progress note went to someone.
+  final bool noteSent;
+
+  /// Setbacks met with the protocol this week.
+  final int setbacks;
+
   /// Who the brief is for: names, roles, key people and coach context.
   final Profile profile;
 
@@ -85,11 +91,15 @@ class BriefInput {
     this.openCommitments = const [],
     this.profile = activeProfile,
     this.goals = const [],
+    this.noteSent = false,
+    this.setbacks = 0,
   });
 
   Map<String, dynamic> toJson() => {
         'profile': profile.toJson(),
         'goals': goals,
+        'progress_note_sent': noteSent,
+        'setbacks_handled': setbacks,
         'report': report.toJson(),
         'for_week': dateKey(forWeek),
         'program_month': programMonth,
@@ -243,6 +253,10 @@ class DeviceBriefGenerator implements BriefGenerator {
         'No goals set. Name the one outcome that would make the next six months a success — and the obstacle most likely to stop you.',
       if (behind.isNotEmpty)
         'Behind on ${behind.first.split(':').first}. Read your if-then plan again and make next week\'s Big 3 move it.',
+      if (input.goals.isNotEmpty && !input.noteSent)
+        'No progress note went out this week. Friday: five lines to ${input.profile.manager.isEmpty ? 'one person you trust' : input.profile.manager} — reported progress moves goals faster than private tracking.',
+      if (input.setbacks > 0)
+        '${input.setbacks} setback${input.setbacks == 1 ? '' : 's'} met with a next step instead of a spiral. That is the skill.',
       if (input.valueGap != null)
         'This week reflected ${input.valueGap} least. Name one moment next week where you\'ll choose it on purpose.',
       if (input.openCommitments.isNotEmpty)

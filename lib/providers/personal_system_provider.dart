@@ -1193,6 +1193,8 @@ class PersonalSystemProvider extends ChangeNotifier {
         ],
         peopleOverdue: [for (final p in peopleDue.take(3)) p.text],
         goals: goalSummaries(),
+        noteSent: noteSentInWeek(report.weekStart),
+        setbacks: setbacksInWeek(report.weekStart),
         growthFocus: focusArea()?.name,
         growthDrill: focusArea() == null
             ? null
@@ -1749,6 +1751,107 @@ class PersonalSystemProvider extends ChangeNotifier {
               '${(g.str('obstacle') ?? '').isEmpty ? '' : '. Obstacle: ${g.str('obstacle')}'}'
               '${(g.str('plan') ?? '').isEmpty ? '' : '. Plan: ${g.str('plan')}'}'
       ];
+
+  // ── Weekly progress note ─────────────────────────────────────────────
+
+  /// Who the note goes to by default: the profile's primary person.
+  String get defaultNoteRecipient => activeProfile.manager;
+
+  /// A short weekly update from real data, to send to one person.
+  /// Reported progress beats private monitoring (Harkin et al. 2016).
+  String progressNoteText(DateTime anyDay, {String to = '', String ask = ''}) {
+    final week = weekStartOf(anyDay);
+    final end = week.add(const Duration(days: 7));
+    final b = StringBuffer()
+      ..writeln(to.trim().isEmpty ? 'My week' : 'Hi ${to.trim()} — my week:')
+      ..writeln();
+    final goals = activeGoals;
+    if (goals.isNotEmpty) {
+      b.writeln('Goals');
+      for (final g in goals) {
+        final pace = goalPace(g);
+        b.writeln('• ${g.text}: ${(goalProgress(g) * 100).round()}%${pace == null ? '' : ' ($pace)'}');
+      }
+      b.writeln();
+    }
+    final (done, set) = weekOutcomeScore(week);
+    if (set > 0) {
+      b.writeln('This week\'s three: $done of $set done');
+      final o = weekOutcomes(week);
+      for (var i = 0; i < 3; i++) {
+        if (o[i].trim().isEmpty) continue;
+        b.writeln('• ${weekOutcomeDone(week, i) ? '✓' : '○'} ${o[i].trim()}');
+      }
+      b.writeln();
+    }
+    final area = focusArea();
+    if (area != null) {
+      final reps = [
+        for (final r in logsOf('rep'))
+          if (!r.date.isBefore(week) && r.date.isBefore(end)) r
+      ];
+      b.writeln('Working on: ${area.name} — ${reps.length} practice rep${reps.length == 1 ? '' : 's'} this week');
+      final lesson = reps.map((r) => r.str('lesson') ?? '').firstWhere(
+          (l) => l.isNotEmpty,
+          orElse: () => '');
+      if (lesson.isNotEmpty) b.writeln('Learned: $lesson');
+      b.writeln();
+    }
+    final wins = [
+      for (final w in logsOf('win'))
+        if (!w.date.isBefore(week) && w.date.isBefore(end)) w.text
+    ];
+    if (wins.isNotEmpty) {
+      b.writeln('Wins');
+      for (final w in wins.take(3)) {
+        b.writeln('• $w');
+      }
+      b.writeln();
+    }
+    if (ask.trim().isNotEmpty) {
+      b.writeln('Where you could help: ${ask.trim()}');
+    }
+    return b.toString().trimRight();
+  }
+
+  void logProgressNote(String to, String text) =>
+      addLog('progress_note', text: text.trim(), data: {'to': to.trim()});
+
+  bool noteSentInWeek(DateTime anyDay) {
+    final week = weekStartOf(anyDay);
+    return countBetween('progress_note', week, week.add(const Duration(days: 7))) > 0;
+  }
+
+  /// Friday to Sunday, with something to report and no note sent yet.
+  bool noteDue(DateTime day) =>
+      day.weekday >= DateTime.friday &&
+      !noteSentInWeek(day) &&
+      (activeGoals.isNotEmpty || hasWeekPlan(day));
+
+  // ── Setback protocol ─────────────────────────────────────────────────
+
+  /// After a slip: kindness first, then facts, then the smallest next step
+  /// — which becomes today's first open priority. Self-compassion after a
+  /// failure raises the motivation to improve (Breines & Chen 2012).
+  void logSetback(
+      {required String kind,
+      required String happened,
+      required String nextStep}) {
+    final today = dayOnly(_now);
+    addLog('setback', text: happened.trim(), data: {
+      'kind': kind.trim(),
+      'next': nextStep.trim(),
+    });
+    if (nextStep.trim().isEmpty) return;
+    final p = prioritiesFor(today);
+    final slot = p.indexWhere((x) => x.trim().isEmpty);
+    if (slot >= 0) setPriority(today, slot, nextStep.trim());
+  }
+
+  int setbacksInWeek(DateTime anyDay) {
+    final week = weekStartOf(anyDay);
+    return countBetween('setback', week, week.add(const Duration(days: 7)));
+  }
 
   // ── Growth plan ──────────────────────────────────────────────────────
 

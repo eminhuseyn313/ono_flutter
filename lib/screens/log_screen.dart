@@ -21,7 +21,7 @@ class LogScreen extends StatefulWidget {
 
 const _filters = <String, Set<String>?>{
   'All': null,
-  'Growth': {'rep', 'feedback', 'growth_focus', 'coaching', 'affirmation', 'values_check', 'goal_value'},
+  'Growth': {'rep', 'feedback', 'growth_focus', 'coaching', 'affirmation', 'values_check', 'goal_value', 'progress_note', 'setback'},
   'Notes': {'feynman', 'scan', 'pennebaker', 'note', 'win', 'month_review', 'shutdown'},
   'Protocols': {'sigh', 'excited', 'bluf', 'sixq', 'pause', 'still', 'ritual', 'read', 'anki'},
   'Body': {'weight', 'protein', 'gym', 'blood', 'checkin', 'sleep', 'vitals'},
@@ -271,6 +271,8 @@ class _EntryRow extends StatelessWidget {
     'rep': (Icons.trending_up_rounded, 'skill', 'Practice rep'),
     'coaching': (Icons.psychology_alt_outlined, 'mind', 'Coached myself'),
     'goal_value': (Icons.straighten_rounded, 'skill', 'Goal measured'),
+    'progress_note': (Icons.send_rounded, 'social', 'Progress note'),
+    'setback': (Icons.replay_rounded, 'mind', 'Setback, reset'),
     'affirmation': (Icons.diamond_outlined, 'mind', 'Values affirmation'),
     'values_check': (Icons.diamond_outlined, 'mind', 'Values check'),
     'feedback': (Icons.record_voice_over_outlined, 'social', 'Feedback'),
@@ -324,6 +326,10 @@ class _EntryRow extends StatelessWidget {
       case 'focus':
         final t = e.str('target');
         return '${e.number('minutes')} min${t == 'artifact' ? ' · artifact' : t == 'skill' ? ' · skill' : ''}';
+      case 'progress_note':
+        return 'To ${e.str('to')?.isEmpty ?? true ? 'someone' : e.str('to')}';
+      case 'setback':
+        return '${e.text.isEmpty ? 'Reset' : e.text} → ${e.str('next')}';
       case 'goal_value':
         final v = (e.number('value') ?? 0).toDouble();
         return '${e.str('title') ?? 'Goal'} · ${v == v.roundToDouble() ? v.toInt() : v}';

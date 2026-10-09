@@ -119,6 +119,11 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] Today shows the goals compactly; after 14 days without a number it asks you to measure
 - [ ] Mark achieved / drop on purpose → it moves to Closed; a fourth active goal is refused
 
+## 2o. New: progress note, setback reset
+- [ ] Friday: Today offers **Send your progress note** → pick the person, add one ask → the note is written from your week → edit → **Copy and mark sent** → paste it in WhatsApp or email
+- [ ] On a recovery day: **Reset in 3 minutes** → kindness, what happened, smallest next step → it appears in today's priorities
+- [ ] Me → **It slipped — reset** works any time
+
 ## 3. Tools & logging
 - [ ] Morning ritual (from Today before 11:00): 5 steps → finishing ticks the manifesto
 - [ ] Sigh tool: run it → "uses" and mastery level go up; the sigh item is ticked

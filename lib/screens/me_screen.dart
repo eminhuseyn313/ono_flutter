@@ -262,6 +262,24 @@ class MeScreen extends StatelessWidget {
               ),
               const Divider(indent: 66),
               LinkRow(
+                icon: Icons.send_rounded,
+                color: AppColors.social,
+                title: 'Progress note',
+                subtitle: system.noteSentInWeek(DateTime.now())
+                    ? 'Sent this week'
+                    : 'Tell one person how the week went',
+                onTap: () => context.push('/note'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
+                icon: Icons.replay_rounded,
+                color: AppColors.warning,
+                title: 'It slipped — reset',
+                subtitle: 'Kindness, facts, the smallest next step',
+                onTap: () => context.push('/setback'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
                 icon: Icons.psychology_alt_outlined,
                 color: AppColors.mind,
                 title: 'Think it through',

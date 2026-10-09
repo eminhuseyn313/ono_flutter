@@ -916,6 +916,9 @@ class _Prompts extends StatelessWidget {
         _row(context, Icons.balance_rounded, AppColors.accent,
             'Decision review due',
             '"${reviews.first.text}" — was the call right?', '/cockpit?tab=1'),
+      if (system.noteDue(now))
+        _row(context, Icons.send_rounded, AppColors.social,
+            'Send your progress note', 'Five lines to ${activeProfile.manager.isEmpty ? 'one person' : activeProfile.manager} — written for you from this week', '/note'),
       for (final g in system.goalsToMeasure.take(1))
         _row(context, Icons.straighten_rounded, AppColors.accent,
             'Measure: ${g.text}', '${system.daysSinceGoalUpdate(g)} days since the last number', '/goals/view?id=${g.id}'),
@@ -1039,6 +1042,11 @@ class _RecoveryCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text('One miss is noise. Two in a row is a pattern — never miss twice.',
               style: AppText.small()),
+          TextButton(
+            onPressed: () => context.push('/setback'),
+            style: TextButton.styleFrom(padding: EdgeInsets.zero),
+            child: const Text('Reset in 3 minutes'),
+          ),
         ],
       ),
     );

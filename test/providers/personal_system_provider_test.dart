@@ -1171,4 +1171,53 @@ void main() {
     expect(brief, isNotNull);
     expect(p.goalSummaries().first, contains('% done'));
   });
+
+  test('progress note: built from real data, sent once a week', () async {
+    final p = await _commissioned(briefs: DeviceBriefGenerator());
+    // _today is a Friday.
+    expect(_today.weekday, DateTime.friday);
+    expect(p.noteDue(_today), isFalse, reason: 'nothing to report yet');
+    p.saveGoal(title: 'Savings', unit: 'AZN', start: 0, target: 1000,
+        deadline: dayOnly(_today).add(const Duration(days: 100)));
+    p.setWeekOutcome(_today, 0, 'Ship the OST draft');
+    p.toggleWeekOutcome(_today, 0);
+    p.addLog('win', text: 'Pricing memo approved');
+    expect(p.noteDue(_today), isTrue);
+    final text = p.progressNoteText(_today, to: 'Ali', ask: 'Feedback on the OST');
+    expect(text, startsWith('Hi Ali — my week:'));
+    expect(text, contains('• Savings: 0%'));
+    expect(text, contains("This week's three: 1 of 1 done"));
+    expect(text, contains('• ✓ Ship the OST draft'));
+    expect(text, contains('• Pricing memo approved'));
+    expect(text, endsWith('Where you could help: Feedback on the OST'));
+    expect(p.defaultNoteRecipient, activeProfile.manager);
+    p.logProgressNote('Ali', text);
+    expect(p.noteSentInWeek(_today), isTrue);
+    expect(p.noteDue(_today), isFalse);
+    expect(p.noteDue(_today.subtract(const Duration(days: 3))), isFalse,
+        reason: 'only Friday to Sunday');
+  });
+
+  test('setback: logged, and the next step lands on today', () async {
+    final p = await _commissioned(briefs: DeviceBriefGenerator());
+    final today = dayOnly(_today);
+    p.setPriority(today, 0, 'Spec review');
+    p.logSetback(
+        kind: 'It was a heavy week',
+        happened: 'Skipped the gym twice',
+        nextStep: '20-minute walk at lunch');
+    expect(p.prioritiesFor(today), ['Spec review', '20-minute walk at lunch', '']);
+    expect(p.setbacksInWeek(_today), 1);
+    final brief = await p.submitReport(WeeklyReport(
+      id: 'r',
+      weekStart: weekStartOf(_today),
+      nonNegotiableAverage: 7,
+      gymSessions: 3,
+      bestMoment: '',
+      hardestMoment: '',
+      workSituation: '',
+      createdAt: _today,
+    ));
+    expect(brief!.adjustments.join(' '), contains('1 setback met with a next step'));
+  });
 }
