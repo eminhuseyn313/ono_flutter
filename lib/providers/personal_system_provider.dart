@@ -85,6 +85,8 @@ class PersonalSystemProvider extends ChangeNotifier {
     return WidgetSnapshot(
       dateKey: dateKey(today),
       score: scoreFor(today),
+      total: dailyCount,
+      target: holdTarget,
       streak: streak,
       programDay: hasStarted ? programDay : 0,
       protein: proteinFor(today),
@@ -214,8 +216,72 @@ class PersonalSystemProvider extends ChangeNotifier {
   void toggleCheck(DateTime date, String id) =>
       setCheck(date, id, !isChecked(date, id));
 
+  // ── Daily items (configurable) ───────────────────────────────────────
+
+  /// Today's daily items: the profile's built-in ones he hasn't retired,
+  /// then the ones he added. Every score, streak and check reads this.
+  List<NonNegotiable> get dailyItems => [
+        for (final n in nonNegotiables)
+          if (!isDone('daily:off:${n.id}')) n,
+        ...customDailyItems,
+      ];
+
+  List<NonNegotiable> get customDailyItems => [
+        for (final l in logsOf('daily_item').reversed)
+          NonNegotiable(l.str('id') ?? l.id, l.text, l.str('lane') ?? 'mind',
+              l.str('when') ?? 'day')
+      ];
+
+  int get dailyCount => dailyItems.length;
+
+  /// Holding the day = 70% of the items (7 of 10), at least 1.
+  int get holdTarget => dailyCount == 0 ? 1 : (dailyCount * 0.7).ceil();
+
+  bool isHeld(DateTime date) => scoreFor(date) >= holdTarget;
+
+  static const minDailyItems = 3;
+  static const maxDailyItems = 15;
+
+  bool isRetired(String id) => isDone('daily:off:$id');
+
+  /// Retires (or brings back) a built-in item. Never below
+  /// [minDailyItems].
+  bool setItemActive(String id, bool active) {
+    if (!active && dailyCount <= minDailyItems) return false;
+    if (active && dailyCount >= maxDailyItems) return false;
+    setDone('daily:off:$id', !active);
+    _syncReminders();
+    return true;
+  }
+
+  /// Adds an item of his own, with an if–then cue.
+  NonNegotiable? addDailyItem(String title,
+      {required String lane, required String when, String cue = ''}) {
+    if (title.trim().isEmpty || dailyCount >= maxDailyItems) return null;
+    final id = 'd_${_now.microsecondsSinceEpoch}';
+    addLog('daily_item',
+        text: title.trim(), data: {'id': id, 'lane': lane, 'when': when});
+    if (cue.trim().isNotEmpty) setCue(id, cue.trim());
+    return dailyItems.firstWhere((n) => n.id == id);
+  }
+
+  bool removeDailyItem(String id) {
+    if (dailyCount <= minDailyItems) return false;
+    final l = logsOf('daily_item').where((x) => x.str('id') == id);
+    if (l.isEmpty) return false;
+    removeLog(l.first.id);
+    return true;
+  }
+
+  NonNegotiable? dailyItem(String id) {
+    for (final n in [...nonNegotiables, ...customDailyItems]) {
+      if (n.id == id) return n;
+    }
+    return null;
+  }
+
   int scoreFor(DateTime date) {
-    final ids = nonNegotiables.map((n) => n.id).toSet();
+    final ids = dailyItems.map((n) => n.id).toSet();
     return _checks(date).where(ids.contains).length;
   }
 
@@ -252,7 +318,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     for (var d = programStart;
         !d.isAfter(today);
         d = d.add(const Duration(days: 1))) {
-      final held = scoreFor(d) >= 7;
+      final held = isHeld(d);
       if (held) {
         run++;
         prevMiss = false;
@@ -283,7 +349,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     final today = dayOnly(_now);
     final yesterday = today.subtract(const Duration(days: 1));
     if (yesterday.isBefore(programStart)) return false;
-    return scoreFor(yesterday) < 7 && scoreFor(today) < 7;
+    return !isHeld(yesterday) && !isHeld(today);
   }
 
   /// Days held in the current program month.
@@ -295,16 +361,16 @@ class PersonalSystemProvider extends ChangeNotifier {
     for (var d = programStart;
         !d.isAfter(dayOnly(_now));
         d = d.add(const Duration(days: 1))) {
-      if (scoreFor(d) >= 7) n++;
+      if (isHeld(d)) n++;
     }
     return n;
   }
 
   /// Completion rate of each Daily 10 item over the given days.
   Map<String, double> itemRates(List<DateTime> days) {
-    if (days.isEmpty) return {for (final n in nonNegotiables) n.id: 0};
+    if (days.isEmpty) return {for (final n in dailyItems) n.id: 0};
     return {
-      for (final n in nonNegotiables)
+      for (final n in dailyItems)
         n.id: days.where((d) => isChecked(d, n.id)).length / days.length,
     };
   }
@@ -346,7 +412,7 @@ class PersonalSystemProvider extends ChangeNotifier {
       if (lastWeek.length < 3) return null;
       final rates = itemRates(lastWeek).entries.toList()
         ..sort((a, b) => a.value.compareTo(b.value));
-      final weakest = nonNegotiables.firstWhere((n) => n.id == rates.first.key);
+      final weakest = dailyItem(rates.first.key)!;
       final hits = (rates.first.value * lastWeek.length).round();
       return FreshStart(
         key: 'fresh:week:${dateKey(d)}',
@@ -716,7 +782,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   }
 
   List<String> get automaticItems => [
-        for (final n in nonNegotiables)
+        for (final n in dailyItems)
           if (isAutomatic(n.id)) n.id
       ];
 
@@ -1090,7 +1156,7 @@ class PersonalSystemProvider extends ChangeNotifier {
       daily10Average: days.isEmpty
           ? 0
           : days.fold<int>(0, (s, d) => s + scoreFor(d)) / days.length,
-      daysHeld: days.where((d) => scoreFor(d) >= 7).length,
+      daysHeld: days.where(isHeld).length,
       gymSessions: days.where(gymDone).length,
       evidenceAdded: evidenceAddedBetween(from, to),
       notes: countBetween('feynman', from, to) +
@@ -1164,6 +1230,8 @@ class PersonalSystemProvider extends ChangeNotifier {
       ];
       final brief = await _briefs.generate(BriefInput(
         report: report,
+        itemTitles: {for (final n in dailyItems) n.id: n.title},
+        itemCount: dailyCount,
         forWeek: forWeek,
         programMonth: programMonth,
         programWeek: programWeek,

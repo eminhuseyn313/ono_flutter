@@ -9,6 +9,7 @@ import 'screens/checkin_screen.dart';
 import 'screens/coach_screen.dart';
 import 'screens/cockpit_screen.dart';
 import 'screens/commission_screen.dart';
+import 'screens/daily_screen.dart';
 import 'screens/evidence_archive_screen.dart';
 import 'screens/focus_screen.dart';
 import 'screens/forgot_password_screen.dart';
@@ -93,6 +94,7 @@ const appRoutes = [
   '/setback',
   '/quarter',
   '/profile/edit',
+  '/daily',
   '/goals/edit',
   '/growth/area',
   '/growth/area?template=t_strength',
@@ -158,6 +160,7 @@ GoRouter createRouter(AuthProvider authProvider,
       _slide('/setback', (_) => const SetbackScreen()),
       _slide('/quarter', (_) => const QuarterScreen()),
       _slide('/profile/edit', (_) => const ProfileEditScreen()),
+      _slide('/daily', (_) => const DailyScreen()),
       _slide(
           '/goals/edit',
           (s) => GoalEditScreen(

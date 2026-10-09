@@ -25,7 +25,7 @@ class _PlansScreenState extends State<PlansScreen> {
     _system = context.read<PersonalSystemProvider>();
     if (_c.isNotEmpty) return;
     final system = _system;
-    for (final n in nonNegotiables) {
+    for (final n in system.dailyItems) {
       _c[n.id] = TextEditingController(text: system.cueFor(n.id));
     }
   }
@@ -56,7 +56,7 @@ class _PlansScreenState extends State<PlansScreen> {
             padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
             child: Column(
               children: [
-                for (final n in nonNegotiables.where((n) => n.when == g[0]))
+                for (final n in system.dailyItems.where((n) => n.when == g[0]))
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Column(

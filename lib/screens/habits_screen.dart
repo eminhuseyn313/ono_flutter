@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../data/emin_system.dart';
 import '../models/personal_system.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
@@ -49,7 +48,7 @@ class _HabitsScreenState extends State<HabitsScreen> {
           'Rate each: "I do it without having to think." Habits take a median of 66 days — some far longer. Automatic ones go quiet.',
       bottomBar: PrimaryButton('Save check',
           icon: Icons.check_rounded,
-          onPressed: _ratings.length < nonNegotiables.length
+          onPressed: _ratings.length < system.dailyCount
               ? null
               : () {
                   system.saveAutomaticity(_ratings);
@@ -63,7 +62,7 @@ class _HabitsScreenState extends State<HabitsScreen> {
                   context.canPop() ? context.pop() : context.go('/profile');
                 }),
       children: [
-        for (final n in nonNegotiables)
+        for (final n in system.dailyItems)
           Padding(
             padding: const EdgeInsets.only(top: 12),
             child: OnoCard(

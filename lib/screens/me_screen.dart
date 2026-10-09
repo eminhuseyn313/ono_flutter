@@ -235,7 +235,7 @@ class MeScreen extends StatelessWidget {
                 color: AppColors.body,
                 title: 'Is it a habit yet?',
                 subtitle:
-                    '${system.automaticItems.length} of ${nonNegotiables.length} automatic',
+                    '${system.automaticItems.length} of ${system.dailyCount} automatic',
                 onTap: () => context.push('/habits'),
               ),
               const Divider(indent: 66),

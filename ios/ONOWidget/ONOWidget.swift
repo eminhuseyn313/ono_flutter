@@ -17,6 +17,9 @@ private extension Color {
 struct OnoEntry: TimelineEntry {
   let date: Date
   let score: Int
+  /// Daily items and how many hold the day (the list is configurable).
+  let total: Int
+  let target: Int
   let streak: Int
   let day: Int
   let protein: Int
@@ -28,7 +31,7 @@ struct OnoEntry: TimelineEntry {
   let isToday: Bool
 
   static let sample = OnoEntry(
-    date: Date(), score: 7, streak: 12, day: 41, protein: 110, cardsDue: 6,
+    date: Date(), score: 7, total: 10, target: 7, streak: 12, day: 41, protein: 110, cardsDue: 6,
     phase: "Foundation", blockTime: "07:45", blockTitle: "Domain scan",
     isToday: true)
 }
@@ -84,6 +87,8 @@ struct OnoProvider: TimelineProvider {
     return OnoEntry(
       date: date,
       score: isToday ? (d?.integer(forKey: "score") ?? 0) : 0,
+      total: max(d?.integer(forKey: "total") ?? 10, 1),
+      target: max(d?.integer(forKey: "target") ?? 7, 1),
       streak: d?.integer(forKey: "streak") ?? 0,
       day: d?.integer(forKey: "day") ?? 0,
       protein: isToday ? (d?.integer(forKey: "protein") ?? 0) : 0,
@@ -99,20 +104,22 @@ struct OnoProvider: TimelineProvider {
 
 private struct ScoreRing: View {
   let score: Int
+  var total: Int = 10
+  var target: Int = 7
   var lineWidth: CGFloat = 7
 
   var body: some View {
     ZStack {
       Circle().stroke(Color.onoCard, lineWidth: lineWidth)
       Circle()
-        .trim(from: 0, to: CGFloat(min(score, 10)) / 10)
+        .trim(from: 0, to: CGFloat(min(score, total)) / CGFloat(total))
         .stroke(Color.onoAccent, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
         .rotationEffect(.degrees(-90))
       VStack(spacing: 0) {
         Text("\(score)")
           .font(.system(size: 26, weight: .regular, design: .serif))
-          .foregroundStyle(score >= 7 ? Color.onoAccent : Color.onoIvory)
-        Text("/10").font(.system(size: 10, weight: .semibold)).foregroundStyle(Color.onoGrey)
+          .foregroundStyle(score >= target ? Color.onoAccent : Color.onoIvory)
+        Text("/\(total)").font(.system(size: 10, weight: .semibold)).foregroundStyle(Color.onoGrey)
       }
     }
   }
@@ -129,9 +136,9 @@ private struct SmallView: View {
         Label("\(e.streak)", systemImage: "flame.fill")
           .font(.system(size: 11, weight: .bold)).foregroundStyle(Color.onoIvory)
       }
-      ScoreRing(score: e.score).frame(width: 64, height: 64)
+      ScoreRing(score: e.score, total: e.total, target: e.target).frame(width: 64, height: 64)
         .frame(maxWidth: .infinity)
-      Text(e.score >= 7 ? "Day held" : "\(7 - e.score) to hold")
+      Text(e.score >= e.target ? "Day held" : "\(e.target - e.score) to hold")
         .font(.system(size: 11, weight: .semibold)).foregroundStyle(Color.onoGrey)
         .frame(maxWidth: .infinity)
     }
@@ -143,7 +150,7 @@ private struct MediumView: View {
   var body: some View {
     HStack(spacing: 16) {
       VStack(spacing: 6) {
-        ScoreRing(score: e.score, lineWidth: 8).frame(width: 76, height: 76)
+        ScoreRing(score: e.score, total: e.total, target: e.target, lineWidth: 8).frame(width: 76, height: 76)
         Label("\(e.streak)", systemImage: "flame.fill")
           .font(.system(size: 12, weight: .bold)).foregroundStyle(Color.onoIvory)
       }
@@ -172,7 +179,7 @@ struct OnoWidgetView: View {
   var body: some View {
     switch family {
     case .accessoryCircular:
-      Gauge(value: Double(min(entry.score, 10)), in: 0...10) {
+      Gauge(value: Double(min(entry.score, entry.total)), in: 0...Double(entry.total)) {
         Text("ONO")
       } currentValueLabel: {
         Text("\(entry.score)")
@@ -180,12 +187,12 @@ struct OnoWidgetView: View {
       .gaugeStyle(.accessoryCircularCapacity)
     case .accessoryRectangular:
       VStack(alignment: .leading, spacing: 1) {
-        Text("ONO · \(entry.score)/10").font(.headline)
+        Text("ONO · \(entry.score)/\(entry.total)").font(.headline)
         Text("\(entry.streak)-day streak")
         Text("\(entry.blockTime) \(entry.blockTitle)").lineLimit(1)
       }
     case .accessoryInline:
-      Text("\(entry.score)/10 · \(entry.streak)-day streak")
+      Text("\(entry.score)/\(entry.total) · \(entry.streak)-day streak")
     case .systemMedium:
       MediumView(e: entry)
     default:

@@ -1311,4 +1311,58 @@ void main() {
     final back = Profile.fromJson(builtInProfile.toJson());
     expect(back.toJson(), builtInProfile.toJson());
   });
+
+  test('daily items: retire, add, hold at 70%, brief handles new items',
+      () async {
+    final p = await _commissioned(briefs: DeviceBriefGenerator());
+    expect(p.dailyCount, 10);
+    expect(p.holdTarget, 7);
+    final today = dayOnly(_today);
+    for (final n in nonNegotiables.take(7)) {
+      p.setCheck(today, n.id, true);
+    }
+    expect(p.isHeld(today), isTrue);
+
+    // Retire one he has ticked: 9 items, 7 to hold (ceil 6.3); 6 ticked.
+    expect(p.setItemActive(nonNegotiables.first.id, false), isTrue);
+    expect(p.dailyCount, 9);
+    expect(p.holdTarget, 7);
+    expect(p.scoreFor(today), 6);
+    expect(p.isHeld(today), isFalse);
+
+    final spanish = p.addDailyItem('10 minutes of Spanish',
+        lane: 'skill', when: 'evening', cue: 'When dinner ends → app open')!;
+    expect(p.dailyCount, 10);
+    expect(p.cueFor(spanish.id), 'When dinner ends → app open');
+    p.setCheck(today, spanish.id, true);
+    expect(p.scoreFor(today), 7);
+    expect(p.isHeld(today), isTrue);
+
+    // The brief names a new item it has no built-in advice for.
+    for (final n in p.dailyItems.where((n) => n.id != spanish.id)) {
+      for (var i = 0; i < 7; i++) {
+        p.setCheck(weekStartOf(_today).add(Duration(days: i)), n.id, true);
+      }
+    }
+    final brief = await p.submitReport(WeeklyReport(
+      id: 'r',
+      weekStart: weekStartOf(_today),
+      nonNegotiableAverage: 9,
+      gymSessions: 3,
+      bestMoment: '',
+      hardestMoment: '',
+      workSituation: '',
+      createdAt: _today,
+    ));
+    expect(brief!.tasks.join(' '), contains('Protect "10 minutes of Spanish"'));
+
+    // Limits: never below 3 items.
+    for (final n in nonNegotiables.skip(1)) {
+      p.setItemActive(n.id, false);
+    }
+    expect(p.dailyCount, PersonalSystemProvider.minDailyItems);
+    expect(p.removeDailyItem(spanish.id), isFalse);
+    expect(p.setItemActive(nonNegotiables.first.id, true), isTrue);
+    expect(p.removeDailyItem(spanish.id), isTrue);
+  });
 }

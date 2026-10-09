@@ -61,6 +61,12 @@ class BriefInput {
   /// The lowest area on the latest quarterly life wheel, e.g. "Money (4/10)".
   final String? lowestLifeArea;
 
+  /// Daily item id → its title (covers items the person added).
+  final Map<String, String> itemTitles;
+
+  /// How many daily items there are (the Daily 10 may have 8 or 12).
+  final int itemCount;
+
   /// Who the brief is for: names, roles, key people and coach context.
   final Profile profile;
 
@@ -97,6 +103,8 @@ class BriefInput {
     this.noteSent = false,
     this.setbacks = 0,
     this.lowestLifeArea,
+    this.itemTitles = const {},
+    this.itemCount = 10,
   }) : profile = profile ?? activeProfile;
 
   Map<String, dynamic> toJson() => {
@@ -114,6 +122,8 @@ class BriefInput {
         'artifact_of_month': artifactFor(programMonth),
         'book_of_month': currentBook(programMonth).title,
         'item_rates': itemRates,
+        'item_titles': itemTitles,
+        'daily_item_count': itemCount,
         'evidence_added_this_week': evidenceAddedThisWeek,
         'artifacts_this_month': artifactsThisMonth,
         'posts_this_week': postsThisWeek,
@@ -179,16 +189,20 @@ class DeviceBriefGenerator implements BriefGenerator {
     final rates = input.itemRates.entries.toList()
       ..sort((a, b) => a.value.compareTo(b.value));
     final weakest = rates.take(2).map((e) => e.key).toList();
+    String title(String id) => _titleFor[id] ?? input.itemTitles[id] ?? id;
+    final ratio = input.itemCount == 0 ? 0.0 : avg / input.itemCount;
     final strongest = rates.isEmpty ? null : rates.last.key;
 
-    final headline = avg >= 8
-        ? 'Strong week (${avg.toStringAsFixed(1)}/10). Hold the line and raise one bar.'
-        : avg >= 6
-            ? 'Solid week (${avg.toStringAsFixed(1)}/10). Tighten ${_titleFor[weakest.first]} and ${_titleFor[weakest.last]}.'
-            : 'Reset week (${avg.toStringAsFixed(1)}/10). Fewer, firmer commitments.';
+    final headline = ratio >= 0.8
+        ? 'Strong week (${avg.toStringAsFixed(1)}/${input.itemCount}). Hold the line and raise one bar.'
+        : ratio >= 0.6
+            ? 'Solid week (${avg.toStringAsFixed(1)}/${input.itemCount}). Tighten ${title(weakest.first)} and ${title(weakest.last)}.'
+            : 'Reset week (${avg.toStringAsFixed(1)}/${input.itemCount}). Fewer, firmer commitments.';
 
     final tasks = <String>[
-      for (final id in weakest) _taskFor[id]!,
+      for (final id in weakest)
+        _taskFor[id] ??
+            'Protect "${title(id)}": tie it to one fixed moment in your day, and make it smaller if it keeps slipping.',
     ];
     if (r.gymSessions < 3) {
       final names = [
@@ -238,7 +252,7 @@ class DeviceBriefGenerator implements BriefGenerator {
         'Growth — ${input.growthFocus}: ${input.repsThisWeek} rep${input.repsThisWeek == 1 ? '' : 's'} this week. Next week\'s drill: ${input.growthDrill}. Do it twice and write what you noticed.',
       if (input.growthFocus != null && input.feedbackThisMonth == 0)
         'No feedback on ${input.growthFocus} yet this month. Ask one person one specific question — practice without feedback doesn\'t improve.',
-      if (avg < 6)
+      if (ratio < 0.6)
         'Shrink to the core five next week: manifesto, scan, BLUF, protein, bed. Add the rest back when you hold 5/5.',
       if (r.gymSessions < 2)
         'If a weekday slips, move the session to Saturday morning rather than skipping it.',
@@ -279,7 +293,7 @@ class DeviceBriefGenerator implements BriefGenerator {
       if (input.patterns.isNotEmpty)
         'From your own last 60 days: ${input.patterns.first}. A pattern, not proof — but worth protecting this week.',
       if (strongest != null && (input.itemRates[strongest] ?? 0) >= 0.85)
-        '${_titleFor[strongest]} is becoming automatic — keep it, stop thinking about it.',
+        '${title(strongest)} is becoming automatic — keep it, stop thinking about it.',
     ];
 
     return WeeklyBrief(

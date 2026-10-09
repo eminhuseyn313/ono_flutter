@@ -136,6 +136,12 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] Today shows the time-of-day action, at most two next steps (tap "N more for today" for the rest), then the Daily 10 and three priorities
 - [ ] **Your plan** shows one summary line (goals · growth area · week · meetings); tap to open goals, growth, the week, meetings, inputs and body — it stays open next time
 
+## 2s. New: your daily items
+- [ ] Today → Daily → **Edit** → retire an item (–) → the count and "to hold the day" adjust (70% of the list)
+- [ ] Add an item with a lane, a time of day and an if-then cue → it shows on Today with its cue and counts towards the score
+- [ ] Retired items can be brought back; the list never drops below 3 or above 15
+- [ ] With the widget on: the ring shows your own total, not /10 (needs a Mac build)
+
 ## 3. Tools & logging
 - [ ] Morning ritual (from Today before 11:00): 5 steps → finishing ticks the manifesto
 - [ ] Sigh tool: run it → "uses" and mastery level go up; the sigh item is ticked

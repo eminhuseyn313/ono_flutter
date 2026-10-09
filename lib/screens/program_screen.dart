@@ -136,7 +136,7 @@ class _Journey extends StatelessWidget {
                           unit: '/30')),
                   Expanded(
                       child: StatTile(stats.daily10Average.toStringAsFixed(1),
-                          'Daily 10 avg', unit: '/10')),
+                          'Daily avg', unit: '/${system.dailyCount}')),
                   Expanded(
                       child: StatTile('${stats.daysHeld}', 'days held')),
                 ],
@@ -465,7 +465,7 @@ class _WeekPlan extends StatelessWidget {
                                 ? AppColors.body
                                 : AppColors.grey),
                       const SizedBox(width: 8),
-                      Text(d.isAfter(now) ? '—' : '${system.scoreFor(d)}/10',
+                      Text(d.isAfter(now) ? '—' : '${system.scoreFor(d)}/${system.dailyCount}',
                           style: AppText.small(color: AppColors.white)
                               .copyWith(fontWeight: FontWeight.w700)),
                     ],

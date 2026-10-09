@@ -82,7 +82,7 @@ Bottom tabs: **Today** `/home` · **Program** `/program?tab=0..3` (Journey/Sched
 ```
 /splash /welcome /sign-up /sign-in /forgot-password /commission
 /manifesto /protocols /evidence /library /style /career /weekly-coaching /checkin /plans /review /habits /cockpit(?tab=0..2)
-/shutdown /focus /letters /week /people /growth /values /coach /case /growth/area(?id=|template=) /goals /goals/edit /goals/view?id= /note /setback /quarter /profile/edit
+/shutdown /focus /letters /week /people /growth /values /coach /case /growth/area(?id=|template=) /goals /goals/edit /goals/view?id= /note /setback /quarter /profile/edit /daily
 /ritual-flow/:ritualId /gym /gym/:dayId (push|pull|legs) /month/:m (1–18)
 /tool/:id  sigh excited pause still bluf sixq read feynman scan pennebaker anki artifact(?month=) linkedin
 ```
@@ -95,7 +95,8 @@ Flow:
 - **Today** is time-aware: morning, work, evening and Sunday modes, plus a Yesterday/Today switch (the 48-hour edit window). Its Day Dial shows the schedule as lane arcs.
   - Calm by design (choice overload drives people away): dial → fresh start → the mode card (one action now) → check-in → recovery → `_Prompts` (ranked: first goal, growth area, then what is due; only 2 visible, the rest behind "N more for today") → Daily 10 → three priorities.
   - "Your plan" (`_PlanToggle`, done key `today:plan_open`, remembered) collapses goals, growth, the week, meetings, the brief, inputs, body and coach note into one summary line.
-- **Daily 10**: 7/10 holds the day. Tools tick their item:
+- **Daily items** (`/daily`, Today's "Edit"): `dailyItems` = built-in `nonNegotiables` not retired (done key `daily:off:<id>`) + his own `daily_item` logs (ids `d_…`, lane, when; cue via `setCue`). Between `minDailyItems` (3) and `maxDailyItems` (15). `holdTarget` = 70% rounded up (7 of 10); `isHeld(day)`. Score, streak, dial, habit check, if-then plans, the brief (`itemTitles`, `itemCount`, ratio thresholds) and the widget (`total`, `target`) all read the configured list. Always use `system.dailyItems`, never `nonNegotiables`, in screens and logic.
+- **Daily 10** (his default list): tools tick their item:
   - sigh, bluf, pause, feynman, scan and read are ticked when the tool is used;
   - finishing the ritual ticks the manifesto;
   - protein ticks itself at 150 g.

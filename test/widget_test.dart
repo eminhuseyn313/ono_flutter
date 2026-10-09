@@ -274,6 +274,9 @@ void main() {
           title: 'Become ${activeProfile.targetRole}',
           deadline: today.add(const Duration(days: 270)),
           milestones: ['Own one area end to end', 'Promotion conversation']);
+      // One daily item of his own: 11 items, 8 hold the day.
+      system.addDailyItem('Ten minutes of Spanish before dinner, with the app',
+          lane: 'skill', when: 'evening', cue: 'When I sit down at home → app open');
       // A self-coaching commitment due today: Today and /coach show it.
       system.logCoaching(
           goal: 'Be seen as the owner of Business ID onboarding end to end',

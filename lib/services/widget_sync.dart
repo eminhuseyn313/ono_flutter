@@ -11,6 +11,10 @@ const widgetAppGroup = 'group.com.eminhuseynzade.ono';
 class WidgetSnapshot {
   final String dateKey;
   final int score;
+
+  /// Daily items and how many hold the day (10 and 7 by default).
+  final int total;
+  final int target;
   final int streak;
   final int programDay;
   final int protein;
@@ -23,6 +27,8 @@ class WidgetSnapshot {
   const WidgetSnapshot({
     required this.dateKey,
     required this.score,
+    this.total = 10,
+    this.target = 7,
     required this.streak,
     required this.programDay,
     required this.protein,
@@ -34,6 +40,8 @@ class WidgetSnapshot {
   Map<String, Object> toValues() => {
         'date': dateKey,
         'score': score,
+        'total': total,
+        'target': target,
         'streak': streak,
         'day': programDay,
         'protein': protein,

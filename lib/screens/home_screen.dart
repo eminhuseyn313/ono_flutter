@@ -145,11 +145,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: DayDial(
                       now: _now,
                       ticks: [
-                        for (final n in nonNegotiables)
+                        for (final n in system.dailyItems)
                           (lane: n.lane, done: system.isChecked(date, n.id))
                       ],
                       center: _DialCenter(
-                          now: _now, score: system.scoreFor(date)),
+                          now: _now,
+                          score: system.scoreFor(date),
+                          total: system.dailyCount,
+                          target: system.holdTarget),
                     ),
                   ),
                 ),
@@ -174,9 +177,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     streak: system.streak),
               ],
               if (!_yesterday && system.hasStarted) _Prompts(now: _now),
-              SectionHeader('Daily 10',
-                  action: 'If-then plans',
-                  onAction: () => context.push('/plans')),
+              SectionHeader('Daily ${system.dailyCount}',
+                  action: 'Edit',
+                  onAction: () => context.push('/daily')),
               _DailyTen(date: date),
               SectionHeader(_mode == _Mode.evening && !_yesterday
                   ? 'Did the three happen?'
@@ -362,7 +365,13 @@ class _DateSwitch extends StatelessWidget {
 class _DialCenter extends StatelessWidget {
   final DateTime now;
   final int score;
-  const _DialCenter({required this.now, required this.score});
+  final int total;
+  final int target;
+  const _DialCenter(
+      {required this.now,
+      required this.score,
+      required this.total,
+      required this.target});
 
   @override
   Widget build(BuildContext context) {
@@ -386,11 +395,11 @@ class _DialCenter extends StatelessWidget {
             Text('$score',
                 style: AppText.serif(
                     size: 52,
-                    color: score >= 7 ? AppColors.accent : AppColors.white)),
-            Text('/10', style: AppText.small()),
+                    color: score >= target ? AppColors.accent : AppColors.white)),
+            Text('/$total', style: AppText.small()),
           ],
         ),
-        Text(score >= 7 ? 'Day held' : '${7 - score} to hold the day',
+        Text(score >= target ? 'Day held' : '${target - score} to hold the day',
             style: AppText.small().copyWith(fontSize: 11.5)),
       ],
     );
@@ -1103,8 +1112,8 @@ class _RecoveryCard extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
               streak > 0
-                  ? 'Yesterday slipped ($yesterdayScore/10). Hold 7 today and your $streak-day streak carries on.'
-                  : 'Yesterday slipped ($yesterdayScore/10). Hold 7 today to start again.',
+                  ? 'Yesterday slipped ($yesterdayScore/${context.read<PersonalSystemProvider>().dailyCount}). Hold ${context.read<PersonalSystemProvider>().holdTarget} today and your $streak-day streak carries on.'
+                  : 'Yesterday slipped ($yesterdayScore/${context.read<PersonalSystemProvider>().dailyCount}). Hold ${context.read<PersonalSystemProvider>().holdTarget} today to start again.',
               style: AppText.heading().copyWith(fontSize: 15.5)),
           const SizedBox(height: 4),
           Text('One miss is noise. Two in a row is a pattern — never miss twice.',
@@ -1241,11 +1250,11 @@ class _DailyTen extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(right: 8),
             child: TickSegments(
-              total: 10,
-              filled: 10,
+              total: system.dailyCount,
+              filled: system.dailyCount,
               height: 6,
               colors: [
-                for (final n in nonNegotiables)
+                for (final n in system.dailyItems)
                   system.isChecked(date, n.id)
                       ? AppColors.lane(n.lane)
                       : AppColors.cardLight
@@ -1254,16 +1263,16 @@ class _DailyTen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-              score >= 7
-                  ? '$score of 10 — held'
-                  : '$score of 10 · ${7 - score} more holds the day',
+              score >= system.holdTarget
+                  ? '$score of ${system.dailyCount} — held'
+                  : '$score of ${system.dailyCount} · ${system.holdTarget - score} more holds the day',
               style: AppText.small()),
           for (final g in nonNegotiableGroups)
-            if (nonNegotiables.any(
+            if (system.dailyItems.any(
                 (n) => n.when == g[0] && !automatic.contains(n.id))) ...[
             const SizedBox(height: 14),
             Text(g[1].toUpperCase(), style: AppText.eyebrow()),
-            for (final n in nonNegotiables.where(
+            for (final n in system.dailyItems.where(
                 (n) => n.when == g[0] && !automatic.contains(n.id)))
               CheckRow(
                 checked: system.isChecked(date, n.id),
@@ -1283,7 +1292,7 @@ class _DailyTen extends StatelessWidget {
             const SizedBox(height: 14),
             Text('AUTOMATIC · NO REMINDERS',
                 style: AppText.eyebrow(color: AppColors.body)),
-            for (final n in nonNegotiables.where((n) => automatic.contains(n.id)))
+            for (final n in system.dailyItems.where((n) => automatic.contains(n.id)))
               CheckRow(
                 checked: system.isChecked(date, n.id),
                 title: n.title,

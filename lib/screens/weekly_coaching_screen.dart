@@ -77,7 +77,7 @@ class _WeeklyCoachingScreenState extends State<WeeklyCoachingScreen> {
               Expanded(
                 child: OnoCard(
                   child: StatTile(avg.toStringAsFixed(1),
-                      '1 · Daily 10 average', unit: '/10'),
+                      '1 · Daily average', unit: '/${system.dailyCount}'),
                 ),
               ),
               const SizedBox(width: 10),
