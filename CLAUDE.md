@@ -82,7 +82,7 @@ Bottom tabs: **Today** `/home` · **Program** `/program?tab=0..3` (Journey/Sched
 ```
 /splash /welcome /sign-up /sign-in /forgot-password /commission
 /manifesto /protocols /evidence /library /style /career /weekly-coaching /checkin /plans /review /habits /cockpit(?tab=0..2)
-/shutdown /focus /letters /week /people /growth /values /coach /case /growth/area(?id=|template=) /goals /goals/edit /goals/view?id= /note /setback /quarter /profile/edit /daily /learning /experiments /rest /stop /gratitude /models /360
+/shutdown /focus /letters /week /people /growth /values /coach /case /growth/area(?id=|template=) /goals /goals/edit /goals/view?id= /note /setback /quarter /profile/edit /daily /learning /experiments /rest /stop /gratitude /models /360 /energy
 /ritual-flow/:ritualId /gym /gym/:dayId (push|pull|legs) /month/:m (1–18)
 /tool/:id  sigh excited pause still bluf sixq read feynman scan pennebaker anki artifact(?month=) linkedin
 ```
@@ -176,6 +176,7 @@ Flow:
   - Gratitude letter (`/gratitude`): `gratitude` logs (to, text, written → delivered with reaction); saving copies the text.
   - Role models (`/models`): `role_model` logs (name, what to learn, one question, the answer once asked).
 - **Feedback round** (`/360`): one `feedback_round` log per program quarter: the question (default `defaultRoundQuestion`), up to 3 people, `answers` ({from, said}, one per person), `themes`. `roundDue` from day 45 of a quarter; starting copies the ask; themes go into `caseText()` as "What others say".
+- **Energy map** (`/energy`): `energy` logs (level 1–5, hour) from "energy right now", plus `sharp` 1–5 on `focus` logs (rated after a block, counted at its start hour). `energyMap` averages the last 60 days per `energyBands` (early, morning, midday, afternoon, evening); `energyPeak` needs `minEnergySamples` (3) in two bands and a 0.3 lead. `energyByWeekday` uses check-in energy. The peak shows on `/focus` and goes into the brief (`energy_peak`), as does the latest feedback-round theme.
 - **Experiments** (`/experiments`, linked under Me → What moves your day): `experiment` logs (change as text, `measure` from `experimentMeasures` = score/energy/sleep/mood, `days` 7/14/21, `expect`, `start`, status running/kept/dropped, `result`). `experimentCompare` = the measure's average for the same number of days before vs during (score excludes today). `experimentsToClose` prompts on Today; ideas come from `patterns()`; the brief gets running and kept ones.
 - **Quarterly review** (`/quarter`): `programQuarter` = 90-day blocks (1–6). `quarterReviewDue` from the last 7 days of a quarter to the first 7 of the next (`quarterToReview`). A `quarterly_review` log per quarter: life wheel (`lifeAreas` in `lib/data/life_wheel.dart`, 8 general areas rated 1–10, each mapped to a growth template), wins, lessons, goal decisions (keep/achieved/drop applied to goals), next focus. `lowestLifeArea` suggests a growth area and goes to the brief.
 - **Growth plan** (`/growth`), the main development thread:

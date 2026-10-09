@@ -76,6 +76,13 @@ class BriefInput {
   /// How many daily items there are (the Daily 10 may have 8 or 12).
   final int itemCount;
 
+  /// When their energy peaks, e.g. "morning (9:00–12:00)", from their own
+  /// ratings.
+  final String? energyPeak;
+
+  /// The theme from their latest quarterly feedback round.
+  final String? feedbackThemes;
+
   /// Who the brief is for: names, roles, key people and coach context.
   final Profile profile;
 
@@ -117,6 +124,8 @@ class BriefInput {
     this.restPlanned = true,
     this.itemTitles = const {},
     this.itemCount = 10,
+    this.energyPeak,
+    this.feedbackThemes,
   }) : profile = profile ?? activeProfile;
 
   Map<String, dynamic> toJson() => {
@@ -128,6 +137,8 @@ class BriefInput {
         'learning_applied': learningApplied,
         'experiments': experiments,
         'rest_planned_next_8_weeks': restPlanned,
+        'energy_peak': energyPeak,
+        'feedback_round_theme': feedbackThemes,
         'report': report.toJson(),
         'for_week': dateKey(forWeek),
         'program_month': programMonth,
@@ -304,7 +315,9 @@ class DeviceBriefGenerator implements BriefGenerator {
       if (input.peopleOverdue.isNotEmpty)
         'Overdue to reach out: ${input.peopleOverdue.join(', ')}. One message each this week — a useful link or a question beats "catching up".',
       if (input.deepWorkHours < 3)
-        'Deep work: ${input.deepWorkHours.toStringAsFixed(1)} h this week. Book two 90-minute blocks for the artifact before Monday fills up.',
+        'Deep work: ${input.deepWorkHours.toStringAsFixed(1)} h this week. Book two 90-minute blocks for the artifact${input.energyPeak == null ? '' : ' in your ${input.energyPeak}'} before Monday fills up.',
+      if (input.feedbackThemes != null)
+        'What others told you: "${input.feedbackThemes}". Pick one moment next week to act on it where they can see it.',
       if (input.shutdowns < 4)
         'Evening shutdown on ${input.shutdowns} of 7 nights. Three minutes at 21:30: tomorrow\'s three on paper, head empty, then bed.',
       if (input.patterns.isNotEmpty)

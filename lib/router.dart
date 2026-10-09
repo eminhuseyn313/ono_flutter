@@ -37,6 +37,7 @@ import 'screens/protocols_screen.dart';
 import 'screens/quarter_screen.dart';
 import 'screens/rest_screen.dart';
 import 'screens/round_screen.dart';
+import 'screens/energy_screen.dart';
 import 'screens/review_screen.dart';
 import 'screens/ritual_flow_screen.dart';
 import 'screens/setback_screen.dart';
@@ -107,6 +108,7 @@ const appRoutes = [
   '/gratitude',
   '/models',
   '/360',
+  '/energy',
   '/goals/edit',
   '/growth/area',
   '/growth/area?template=t_strength',
@@ -180,6 +182,7 @@ GoRouter createRouter(AuthProvider authProvider,
       _slide('/gratitude', (_) => const GratitudeScreen()),
       _slide('/models', (_) => const RoleModelsScreen()),
       _slide('/360', (_) => const RoundScreen()),
+      _slide('/energy', (_) => const EnergyScreen()),
       _slide(
           '/goals/edit',
           (s) => GoalEditScreen(

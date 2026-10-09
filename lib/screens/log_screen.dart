@@ -24,7 +24,7 @@ const _filters = <String, Set<String>?>{
   'Growth': {'rep', 'feedback', 'growth_focus', 'coaching', 'affirmation', 'values_check', 'goal_value', 'progress_note', 'setback', 'quarterly_review', 'learning', 'experiment', 'rest', 'detach', 'gratitude', 'feedback_round'},
   'Notes': {'feynman', 'scan', 'pennebaker', 'note', 'win', 'month_review', 'shutdown'},
   'Protocols': {'sigh', 'excited', 'bluf', 'sixq', 'pause', 'still', 'ritual', 'read', 'anki'},
-  'Body': {'weight', 'protein', 'gym', 'blood', 'checkin', 'sleep', 'vitals'},
+  'Body': {'weight', 'protein', 'gym', 'blood', 'checkin', 'sleep', 'vitals', 'energy'},
   'Career': {'linkedin', 'artifact', 'one_on_one', 'decision', 'readiness', 'focus', 'week_plan', 'touch'},
 };
 
@@ -278,6 +278,7 @@ class _EntryRow extends StatelessWidget {
     'rest': (Icons.beach_access_outlined, 'body', 'Rest planned'),
     'gratitude': (Icons.favorite_outline_rounded, 'social', 'Gratitude letter'),
     'feedback_round': (Icons.groups_2_outlined, 'social', 'Feedback round'),
+    'energy': (Icons.bolt_outlined, 'mind', 'Energy'),
     'detach': (Icons.power_settings_new_rounded, 'mind', 'Switched off'),
     'setback': (Icons.replay_rounded, 'mind', 'Setback, reset'),
     'affirmation': (Icons.diamond_outlined, 'mind', 'Values affirmation'),
@@ -333,6 +334,8 @@ class _EntryRow extends StatelessWidget {
       case 'focus':
         final t = e.str('target');
         return '${e.number('minutes')} min${t == 'artifact' ? ' · artifact' : t == 'skill' ? ' · skill' : ''}';
+      case 'energy':
+        return '${e.number('level')}/5 at ${e.number('hour')}:00';
       case 'feedback_round':
         final themes = e.str('themes') ?? '';
         return 'Quarter ${e.number('quarter')}${themes.isEmpty ? '' : ' · $themes'}';

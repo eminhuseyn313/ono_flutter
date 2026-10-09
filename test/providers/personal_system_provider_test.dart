@@ -1529,4 +1529,28 @@ void main() {
     expect(p.roundAnswers(p.roundFor(1)!).length, 1, reason: 'answers kept');
     p.clock = () => _today;
   });
+
+  test('energy map: bands, peak only when clear, focus ratings count',
+      () async {
+    final p = await _commissioned();
+    expect(p.energyPeak, isNull);
+    void at(int day, int hour, int level) {
+      p.clock = () => DateTime(2026, 9, day, hour, 10);
+      p.logEnergy(level);
+    }
+    for (final d in [20, 21, 22]) {
+      at(d, 10, 5);
+      at(d, 15, 2);
+    }
+    // A 50-min block ending at 11:30 started in the morning band.
+    p.clock = () => DateTime(2026, 9, 23, 11, 30);
+    final f = p.logFocus(50, 'artifact')!;
+    p.rateFocus(f.id, 4);
+    p.clock = () => _today;
+    final map = p.energyMap;
+    expect(map['morning']!.n, 4);
+    expect(map['morning']!.avg, closeTo(4.75, 0.01));
+    expect(map['afternoon']!.avg, 2);
+    expect(p.energyPeak!.id, 'morning');
+  });
 }

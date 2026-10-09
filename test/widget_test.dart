@@ -308,6 +308,15 @@ void main() {
       final round = system.startRound(['Ali', 'Leyla Aliyeva-Huseynova']);
       system.addRoundAnswer(round.id, 'Ali',
           'Keep writing decisions down first. Change: decide in the room instead of after it.');
+      // Energy ratings: mornings clearly ahead of afternoons.
+      for (var i = 0; i < 3; i++) {
+        system.addLog('energy',
+            date: DateTime.now().subtract(Duration(days: i + 1)),
+            data: {'level': 5, 'hour': 10});
+        system.addLog('energy',
+            date: DateTime.now().subtract(Duration(days: i + 1)),
+            data: {'level': 2, 'hour': 15});
+      }
       // One daily item of his own: 11 items, 8 hold the day.
       system.addDailyItem('Ten minutes of Spanish before dinner, with the app',
           lane: 'skill', when: 'evening', cue: 'When I sit down at home → app open');

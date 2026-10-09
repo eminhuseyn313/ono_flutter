@@ -19,6 +19,7 @@ class FocusScreen extends StatefulWidget {
 class _FocusScreenState extends State<FocusScreen> {
   String _target = 'artifact';
   int _minutes = 90;
+  String? _toRate;
 
   static String _hm(DateTime t) =>
       '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
@@ -29,7 +30,7 @@ class _FocusScreenState extends State<FocusScreen> {
   }
 
   void _log(PersonalSystemProvider system, {required bool timed}) {
-    system.logFocus(_minutes, _target);
+    setState(() => _toRate = system.logFocus(_minutes, _target)?.id);
     toast(context,
         timed ? 'Block done — $_minutes min logged.' : '$_minutes min logged.');
   }
@@ -77,10 +78,34 @@ class _FocusScreenState extends State<FocusScreen> {
                         '${_hm(b.start)}–${_hm(b.end)} · ${_hours(b.end.difference(b.start).inMinutes)} h',
                         style: AppText.body(color: AppColors.white)),
                   ),
-                Text('From your calendar. Block one before someone else does.',
+                Text(
+                    system.energyPeak == null
+                        ? 'From your calendar. Block one before someone else does.'
+                        : 'From your calendar. Your energy peaks ${system.energyPeak!.from}:00–${system.energyPeak!.to}:00 — block that one first.',
                     style: AppText.small()),
               ],
             ),
+          ),
+        ],
+        if (_toRate != null) ...[
+          const SectionHeader('How sharp were you?'),
+          Row(
+            children: [
+              for (var i = 1; i <= 5; i++)
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 3),
+                    child: OutlinedButton(
+                      onPressed: () {
+                        system.rateFocus(_toRate!, i);
+                        setState(() => _toRate = null);
+                        toast(context, 'Saved to your energy map.');
+                      },
+                      child: Text('$i'),
+                    ),
+                  ),
+                ),
+            ],
           ),
         ],
         const SectionHeader('On'),

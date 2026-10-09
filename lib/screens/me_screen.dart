@@ -331,6 +331,16 @@ class MeScreen extends StatelessWidget {
               ),
               const Divider(indent: 66),
               LinkRow(
+                icon: Icons.bolt_outlined,
+                color: AppColors.mind,
+                title: 'Energy map',
+                subtitle: system.energyPeak == null
+                    ? 'Find the hours you are sharpest'
+                    : 'Peak: ${system.energyPeak!.label.toLowerCase()}',
+                onTap: () => context.push('/energy'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
                 icon: Icons.groups_2_outlined,
                 color: AppColors.social,
                 title: 'Feedback round',

@@ -1260,6 +1260,13 @@ class PersonalSystemProvider extends ChangeNotifier {
         openFollowUps: openFollowUps.length,
         patterns: patterns().map((p) => p.sentence).take(3).toList(),
         deepWorkHours: focusMinutesInWeek(report.weekStart) / 60,
+        energyPeak: energyPeak == null
+            ? null
+            : '${energyPeak!.label.toLowerCase()} (${energyPeak!.from}:00–${energyPeak!.to}:00)',
+        feedbackThemes: [
+          for (final r in logsOf('feedback_round'))
+            if ((r.str('themes') ?? '').isNotEmpty) r.str('themes')!
+        ].firstOrNull,
         shutdowns: shutdownsInWeek(report.weekStart),
         weekOutcomes: [
           for (var i = 0; i < 3; i++)
@@ -2965,8 +2972,92 @@ class PersonalSystemProvider extends ChangeNotifier {
   static const focusLengths = [25, 50, 90];
 
   /// One focus block; [target] is 'artifact', 'skill' or 'other'.
-  void logFocus(int minutes, String target) =>
+  LogEntry? logFocus(int minutes, String target) =>
       addLog('focus', data: {'minutes': minutes, 'target': target});
+
+  // ── Energy map ───────────────────────────────────────────────────────
+
+  /// Times of day the map compares (start hour inclusive, end exclusive).
+  static const energyBands = [
+    (id: 'early', label: 'Early morning', from: 5, to: 9),
+    (id: 'morning', label: 'Morning', from: 9, to: 12),
+    (id: 'midday', label: 'Midday', from: 12, to: 14),
+    (id: 'afternoon', label: 'Afternoon', from: 14, to: 17),
+    (id: 'evening', label: 'Evening', from: 17, to: 23),
+  ];
+
+  /// Ratings a band needs before it can be called the peak.
+  static const minEnergySamples = 3;
+
+  /// "How's your energy right now?", 1–5, at the current hour.
+  void logEnergy(int level) =>
+      addLog('energy', data: {'level': level.clamp(1, 5), 'hour': _now.hour});
+
+  /// How sharp a focus block felt, 1–5; it counts for the hour it started.
+  void rateFocus(String logId, int sharp) {
+    final l = logsOf('focus').where((x) => x.id == logId);
+    if (l.isEmpty) return;
+    updateLog(l.first.copyWith(data: {...l.first.data, 'sharp': sharp.clamp(1, 5)}));
+  }
+
+  /// Every rating of the last 60 days as (hour, level): energy pings and
+  /// rated focus blocks.
+  List<({int hour, int level})> get energySamples {
+    final from = dayOnly(_now).subtract(const Duration(days: 60));
+    return [
+      for (final l in logsOf('energy'))
+        if (!l.date.isBefore(from) && l.number('hour') != null && l.number('level') != null)
+          (hour: l.number('hour')!.toInt(), level: l.number('level')!.toInt()),
+      for (final l in logsOf('focus'))
+        if (!l.date.isBefore(from) && l.number('sharp') != null)
+          (
+            hour: l.createdAt
+                .subtract(Duration(minutes: (l.number('minutes') ?? 0).toInt()))
+                .hour,
+            level: l.number('sharp')!.toInt()
+          ),
+    ];
+  }
+
+  /// Average rating and count per band.
+  Map<String, ({double? avg, int n})> get energyMap {
+    final samples = energySamples;
+    return {
+      for (final b in energyBands)
+        b.id: () {
+          final s = [for (final x in samples) if (x.hour >= b.from && x.hour < b.to) x.level];
+          return (avg: s.isEmpty ? null : s.reduce((a, c) => a + c) / s.length, n: s.length);
+        }(),
+    };
+  }
+
+  /// The best-rated band, once at least two bands have enough ratings and
+  /// it is ahead of the next by 0.3 or more.
+  ({String id, String label, int from, int to})? get energyPeak {
+    final map = energyMap;
+    final ranked = [
+      for (final b in energyBands)
+        if (map[b.id]!.n >= minEnergySamples) b
+    ]..sort((a, b) => map[b.id]!.avg!.compareTo(map[a.id]!.avg!));
+    if (ranked.length < 2) return null;
+    if (map[ranked[0].id]!.avg! - map[ranked[1].id]!.avg! < 0.3) return null;
+    return ranked.first;
+  }
+
+  /// Morning check-in energy by weekday (1 = Monday), last 60 days.
+  Map<int, double> get energyByWeekday {
+    final from = dayOnly(_now).subtract(const Duration(days: 60));
+    final by = <int, List<num>>{};
+    for (final l in logsOf('checkin')) {
+      final e = l.number('energy');
+      if (e == null || l.date.isBefore(from)) continue;
+      by.putIfAbsent(l.date.weekday, () => []).add(e);
+    }
+    return {
+      for (final e in by.entries)
+        if (e.value.length >= 2) e.key: e.value.reduce((a, b) => a + b) / e.value.length
+    };
+  }
 
   int focusMinutesBetween(DateTime from, DateTime to, {String? target}) =>
       (_state?.logs ?? const <LogEntry>[])

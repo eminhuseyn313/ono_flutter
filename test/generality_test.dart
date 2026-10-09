@@ -28,7 +28,7 @@ void main() {
     expect(offenders, isEmpty, reason: offenders.join('\n'));
   });
 
-  test('the profile drives names, roles and the coach', () {
+  test('the profile drives names, roles and the coach', () async {
     expect(activeProfile.manager, 'Ali');
     expect(activeProfile.keyPeopleNames, 'Ali and Rustam');
     expect(keyPeople, ['Ali', 'Rustam']);
@@ -45,13 +45,18 @@ void main() {
       forWeek: DateTime(2026, 10, 12),
       programMonth: 2,
       programWeek: 6,
-      itemRates: const {},
+      itemRates: const {'sigh': 0.5, 'bed': 0.9},
       evidenceAddedThisWeek: 0,
       artifactsThisMonth: 0,
       postsThisWeek: 0,
       gymDays: const [1, 3, 5],
       openUnlocks: const [],
+      deepWorkHours: 1,
+      energyPeak: 'morning (9:00–12:00)',
     );
+    expect(input.toJson()['energy_peak'], 'morning (9:00–12:00)');
+    final brief = await DeviceBriefGenerator().generate(input);
+    expect(brief.adjustments.join(' '), contains('in your morning (9:00–12:00)'));
     final json = input.toJson()['profile'] as Map;
     expect(json['target_role'], activeProfile.targetRole);
     expect((json['key_people'] as List).first['primary'], isTrue);

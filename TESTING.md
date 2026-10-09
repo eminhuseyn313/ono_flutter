@@ -175,6 +175,11 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] Me → **Feedback round** (Today prompts it from day 45 of each quarter) → pick up to three people → **Start the round** (the ask is copied) → send it
 - [ ] Save each answer in their words → write what repeats → it appears in your career case under "What others say"
 
+## 2za. New: energy map
+- [ ] Me → **Energy map** → tap a number under "Energy right now" a few times a day; it shows under Log → Body
+- [ ] Finish a block on `/focus` → rate "How sharp were you?"
+- [ ] After a couple of weeks a peak appears; `/focus` suggests blocking that window, and the Sunday brief books deep work there
+
 ## 3. Tools & logging
 - [ ] Morning ritual (from Today before 11:00): 5 steps → finishing ticks the manifesto
 - [ ] Sigh tool: run it → "uses" and mastery level go up; the sigh item is ticked

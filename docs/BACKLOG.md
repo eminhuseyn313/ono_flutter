@@ -63,7 +63,7 @@ Status: ⬜ to do · 🟨 in progress · ✅ done. Effort: S = days, M = a week,
 | 14 | Gratitude letter | S | ✅ |
 | 15 | Role models | S | ✅ |
 | 16 | Quarterly 360-lite | M | ✅ |
-| 17 | Energy map | M | ⬜ |
+| 17 | Energy map | M | ✅ |
 
 ## P3 — The mass version
 
