@@ -5,6 +5,12 @@ ONO is the personal operating system of Emin Huseynzade: Senior Product Owner fo
 
 **Direction (from Emin):** ONO is about his personal and professional development, not about app mechanics. New work should help him grow: practice, reflection, feedback, learning and his relationships. Avoid adding phone plumbing (widgets, shortcuts, integrations) unless it directly serves that.
 
+**Where it's going:** ONO will become a general app that anyone (a leader, an athlete, a parent, a founder) configures into their own progress plan. Emin's profile is the first fully configured plan. So:
+- Build new features as configurable data plus generic logic. Keep person-specific content in `lib/data/` (his profile) and never hard-code his specifics into providers or screens.
+- General content (e.g. `lib/data/growth_templates.dart`) must not mention him, his employer or his people (tested).
+- Cover the whole person — career, body, relationships, money, mind, meaning — not only his job.
+- Be curious and careful: when a requirement is ambiguous, ask him rather than guess.
+
 Everything shown comes from his profile (encoded in `lib/data/emin_system.dart`) or from what he logs. **No sample or fake numbers anywhere.** That was the #1 finding in `docs/CRITIQUE.md`.
 
 ## Architecture
@@ -69,7 +75,7 @@ Bottom tabs: **Today** `/home` · **Program** `/program?tab=0..3` (Journey/Sched
 ```
 /splash /welcome /sign-up /sign-in /forgot-password /commission
 /manifesto /protocols /evidence /library /style /career /weekly-coaching /checkin /plans /review /habits /cockpit(?tab=0..2)
-/shutdown /focus /letters /week /people /growth /values /coach /case
+/shutdown /focus /letters /week /people /growth /values /coach /case /growth/area(?id=|template=)
 /ritual-flow/:ritualId /gym /gym/:dayId (push|pull|legs) /month/:m (1–18)
 /tool/:id  sigh excited pause still bluf sixq read feynman scan pennebaker anki artifact(?month=) linkedin
 ```
@@ -150,6 +156,7 @@ Flow:
   - `growthAreas` in `emin_system.dart`: the 5 Head of Product readiness dimensions plus 3 personal areas from his diagnosis (self-trust, composure under pressure, public voice). Each has a `bar`, a feedback `ask` and 5 `Drill`s (how + signal) tied to his real job.
   - One `growth_focus` log per program month (`area`, `start`, `end` ratings 1–5). `setFocus`/`rateFocusEnd`/`focusRatings`; `suggestedArea` = the readiness gap.
   - `drillFor` suggests this week's drill (not yet practised this month, rotating by week). `logRep` saves a Kolb reflection (did, noticed, lesson, next) as a `rep` log; `logFeedback` saves a `feedback` log.
+  - Configurable: `customAreas` (`growth_area` logs, ids `c_…`) from scratch or from `areaTemplates` (`lib/data/growth_templates.dart`: 10 general areas for anyone — strength, health, relationships, parenting, money, calm, learning, speaking, team leading, meaning). `saveCustomArea`/`removeCustomArea` (not this month's area). `addDrill` adds to a custom area or, for a profile area, to `area_drills`; always read drills via `drillsOf(area)` and areas via `areaById`/`allGrowthAreas`. Editor: `/growth/area?id=|template=`.
   - Today's growth card sits above the prompts; Log has a Growth filter; the brief leads with growth focus, reps this week and feedback this month.
 - **Values** (`/values`): one `values` log (3–5 `{name, meaning}` from `valueOptions`, edited in place, hidden from the Log tab). The values affirmation writes an `affirmation` log (value, text, before what). A weekly `values_check` (ratings 1–5, dated `weekStartOf`); `valueGap` = lowest below 4 → the brief. Today prompts the check on Sundays.
 - **Self-coaching** (`/coach`, GROW): `coaching` logs (goal as text; reality, options, will, `by`, commitment 1–10). `commitmentsDue(day)` until kept (`coach:<id>`) or dropped (`coach:<id>:dropped`); Today prompts the first; the brief gets open ones.

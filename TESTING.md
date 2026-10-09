@@ -107,6 +107,11 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] Me → **Think it through** → goal, reality, three options, will, check-back day → Commit; on that day Today asks: kept it, or drop it on purpose
 - [ ] Program → Career → **Your Head of Product case** → per-dimension reps and feedback → Copy the whole case
 
+## 2m. New: your own growth areas
+- [ ] Growth → **Create your own area** → tap a template (e.g. Marriage & close relationships) → edit name, bar, drills → Save
+- [ ] It appears under "Your own areas" when choosing next month's area
+- [ ] In any area's plan: **Add your own drill** → it joins the list and can be suggested as a weekly drill
+
 ## 3. Tools & logging
 - [ ] Morning ritual (from Today before 11:00): 5 steps → finishing ticks the manifesto
 - [ ] Sigh tool: run it → "uses" and mastery level go up; the sigh item is ticked

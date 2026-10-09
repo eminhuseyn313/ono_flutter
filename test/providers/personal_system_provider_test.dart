@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:ono/data/emin_system.dart';
+import 'package:ono/data/growth_templates.dart';
 import 'package:ono/gateways/mock_auth_gateway.dart';
 import 'package:ono/gateways/mock_personal_system_gateway.dart';
 import 'package:ono/providers/auth_provider.dart';
@@ -1048,5 +1049,54 @@ void main() {
     expect(text, contains('OST — onboarding (OST, shipped)'));
     expect(text, contains('Nothing logged yet'), reason: 'unpractised areas say so');
     expect(text, contains("WHERE I'M STILL GROWING\nStrategy & business"));
+  });
+
+  test('own growth areas: from a template, edited, practised, removed',
+      () async {
+    final p = await _commissioned();
+    final t = areaTemplates.firstWhere((a) => a.id == 't_relationships');
+    final a = p.saveCustomArea(t.copyWith(name: 'Being present at home'));
+    expect(a.id, startsWith('c_'), reason: 'a template is copied, not used');
+    expect(a.custom, isTrue);
+    expect(p.customAreas.single.name, 'Being present at home');
+    expect(p.allGrowthAreas.length, growthAreas.length + 1);
+    expect(p.areaById(a.id).drills.length, 5);
+
+    // Editing keeps the id; one entry per area.
+    p.saveCustomArea(a.copyWith(bar: 'Phone away from 20:30'));
+    expect(p.customAreas.single.bar, 'Phone away from 20:30');
+    expect(p.logsOf('growth_area').length, 1);
+
+    p.setFocus(a.id, startRating: 2);
+    expect(p.focusArea()!.name, 'Being present at home');
+    p.addDrill(p.focusArea()!, const Drill('Walk after dinner', 'Together, 20 min', 'Four evenings'));
+    expect(p.drillsOf(p.focusArea()!).last.title, 'Walk after dinner');
+    expect(p.removeCustomArea(a.id), isFalse, reason: 'it is this month\'s area');
+
+    // Drills added to one of the profile's areas sit after the built-ins.
+    final comp = growthAreas.firstWhere((g) => g.id == 'composure');
+    p.addDrill(comp, const Drill('Cold open', 'Start the meeting with the ask', 'No preamble'));
+    expect(p.drillsOf(comp).length, comp.drills.length + 1);
+    expect(comp.drills.length, 5, reason: 'the profile content is untouched');
+
+    p.setFocus('composure', startRating: 2);
+    expect(p.removeCustomArea(a.id), isTrue);
+    expect(p.customAreas, isEmpty);
+    expect(p.areaById(a.id).name, 'Removed area');
+    expect(p.growthHistory.first.str('name'), 'Composure under pressure');
+  });
+
+  test('templates: general, complete, unique', () {
+    final ids = areaTemplates.map((t) => t.id).toSet();
+    expect(ids.length, areaTemplates.length);
+    for (final t in areaTemplates) {
+      expect(t.drills.length, 5, reason: t.id);
+      expect(t.ask, endsWith('?'), reason: t.id);
+      expect(t.bar, isNotEmpty);
+      // Written for anyone: nothing specific to his job or people.
+      for (final text in [t.bar, t.ask, ...t.drills.expand((d) => [d.how, d.signal])]) {
+        expect(text, isNot(matches(RegExp(r'Ali|Rustam|Business ID|PASHA'))), reason: t.id);
+      }
+    }
   });
 }

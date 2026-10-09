@@ -1374,6 +1374,12 @@ class Drill {
   final String how;
   final String signal;
   const Drill(this.title, this.how, this.signal);
+
+  Map<String, dynamic> toJson() =>
+      {'title': title, 'how': how, 'signal': signal};
+
+  factory Drill.fromJson(Map m) =>
+      Drill('${m['title'] ?? ''}', '${m['how'] ?? ''}', '${m['signal'] ?? ''}');
 }
 
 /// Something to get better at. Professional areas are the Head of Product
@@ -1390,11 +1396,53 @@ class GrowthArea {
   final String ask;
   final List<Drill> drills;
 
+  /// Created by him (or from a template), so editable and removable.
+  final bool custom;
+
   const GrowthArea(this.id, this.name,
       {required this.bar,
       required this.ask,
       required this.drills,
-      this.personal = false});
+      this.personal = false,
+      this.custom = false});
+
+  GrowthArea copyWith({
+    String? id,
+    String? name,
+    String? bar,
+    String? ask,
+    List<Drill>? drills,
+    bool? personal,
+    bool? custom,
+  }) =>
+      GrowthArea(id ?? this.id, name ?? this.name,
+          bar: bar ?? this.bar,
+          ask: ask ?? this.ask,
+          drills: drills ?? this.drills,
+          personal: personal ?? this.personal,
+          custom: custom ?? this.custom);
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'bar': bar,
+        'ask': ask,
+        'personal': personal,
+        'drills': [for (final d in drills) d.toJson()],
+      };
+
+  factory GrowthArea.fromJson(Map m) => GrowthArea(
+        '${m['id']}',
+        '${m['name'] ?? ''}',
+        bar: '${m['bar'] ?? ''}',
+        ask: '${m['ask'] ?? ''}',
+        personal: m['personal'] == true,
+        custom: true,
+        drills: [
+          for (final d in (m['drills'] as List? ?? const []))
+            Drill.fromJson(d as Map)
+        ],
+      );
 }
 
 const List<GrowthArea> growthAreas = [

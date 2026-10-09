@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../data/emin_system.dart';
@@ -45,7 +46,7 @@ class _ChooserState extends State<_Chooser> {
   @override
   Widget build(BuildContext context) {
     final system = context.read<PersonalSystemProvider>();
-    Widget group(String title, bool personal) => Column(
+    Widget group(String title, List<GrowthArea> areas) => Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SectionHeader(title),
@@ -53,7 +54,7 @@ class _ChooserState extends State<_Chooser> {
               padding: const EdgeInsets.fromLTRB(4, 4, 12, 4),
               child: Column(
                 children: [
-                  for (final a in growthAreas.where((a) => a.personal == personal))
+                  for (final a in areas)
                     InkWell(
                       key: Key('area-${a.id}'),
                       onTap: () => setState(() => _area = a.id),
@@ -96,8 +97,15 @@ class _ChooserState extends State<_Chooser> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        group('Professional · Head of Product', false),
-        group('Personal', true),
+        group('Career · ${EminIdentity.path[1]}',
+            growthAreas.where((a) => !a.personal).toList()),
+        group('Personal', growthAreas.where((a) => a.personal).toList()),
+        if (system.customAreas.isNotEmpty)
+          group('Your own areas', system.customAreas),
+        const SizedBox(height: 8),
+        GhostButton('Create your own area',
+            icon: Icons.add_rounded,
+            onPressed: () => context.push('/growth/area')),
         const SectionHeader('Where are you now?'),
         Text('1 = far from the bar · 4 = at it · 5 = others learn from you',
             style: AppText.small()),
@@ -246,7 +254,7 @@ class _Plan extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 4, 8, 4),
           child: Column(
             children: [
-              for (final d in area.drills)
+              for (final d in system.drillsOf(area))
                 ExpansionTile(
                   tilePadding: EdgeInsets.zero,
                   shape: const Border(),
@@ -273,6 +281,21 @@ class _Plan extends StatelessWidget {
                 ),
             ],
           ),
+        ),
+        Row(
+          children: [
+            TextButton.icon(
+              onPressed: () => _addDrillSheet(context, system),
+              icon: const Icon(Icons.add_rounded, size: 18),
+              label: const Text('Add your own drill'),
+            ),
+            const Spacer(),
+            if (area.custom)
+              TextButton(
+                onPressed: () => context.push('/growth/area?id=${area.id}'),
+                child: const Text('Edit area'),
+              ),
+          ],
         ),
         const SectionHeader('End of the month'),
         OnoCard(
@@ -308,7 +331,7 @@ class _Plan extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(bottom: 6),
               child: Text(
-                  'Month ${h.number('month')} · ${growthArea(h.str('area') ?? '').name} · '
+                  'Month ${h.number('month')} · ${system.areaById(h.str('area') ?? '').name} · '
                   '${h.number('start') ?? '–'} → ${h.number('end') ?? '–'} · '
                   '${system.repsIn(h.str('area') ?? '', (h.number('month') ?? 0).toInt()).length} reps',
                   style: AppText.small(color: AppColors.greyLight)),
@@ -317,6 +340,51 @@ class _Plan extends StatelessWidget {
         const SizedBox(height: 16),
       ],
     );
+  }
+
+  void _addDrillSheet(BuildContext context, PersonalSystemProvider system) {
+    final c = List.generate(3, (_) => TextEditingController());
+    const hints = ['Drill name', 'What exactly to do', 'How you\'ll know it worked'];
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.card,
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.fromLTRB(
+            20, 20, 20, 20 + MediaQuery.of(ctx).viewInsets.bottom),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Your own drill', style: AppText.title()),
+            for (var i = 0; i < 3; i++) ...[
+              const SizedBox(height: 8),
+              TextField(
+                controller: c[i],
+                minLines: i == 1 ? 2 : 1,
+                maxLines: i == 1 ? 4 : 2,
+                style: AppText.body(color: AppColors.white),
+                decoration: InputDecoration(hintText: hints[i]),
+              ),
+            ],
+            const SizedBox(height: 12),
+            PrimaryButton('Add drill', icon: Icons.check_rounded, onPressed: () {
+              if (c[0].text.trim().isEmpty) {
+                toast(ctx, 'Name the drill first.');
+                return;
+              }
+              system.addDrill(area,
+                  Drill(c[0].text.trim(), c[1].text.trim(), c[2].text.trim()));
+              Navigator.of(ctx).pop();
+            }),
+          ],
+        ),
+      ),
+    ).whenComplete(() {
+      for (final x in c) {
+        x.dispose();
+      }
+    });
   }
 
   void _changeArea(BuildContext context, PersonalSystemProvider system) {

@@ -1569,16 +1569,97 @@ class PersonalSystemProvider extends ChangeNotifier {
     return null;
   }
 
+  /// Areas he created himself (from scratch or a template).
+  List<GrowthArea> get customAreas => [
+        for (final l in logsOf('growth_area').reversed)
+          GrowthArea.fromJson(l.data)
+      ];
+
+  /// His profile's areas first, then his own.
+  List<GrowthArea> get allGrowthAreas => [...growthAreas, ...customAreas];
+
+  /// Any area by id; a removed one reads as "Removed area".
+  GrowthArea areaById(String id) {
+    for (final a in allGrowthAreas) {
+      if (a.id == id) return a;
+    }
+    return GrowthArea(id, 'Removed area',
+        bar: '', ask: 'What could I do better here?', drills: const []);
+  }
+
+  LogEntry? _areaLog(String id) {
+    for (final l in logsOf('growth_area')) {
+      if (l.data['id'] == id) return l;
+    }
+    return null;
+  }
+
+  /// Creates or updates one of his own areas; returns it with its id.
+  GrowthArea saveCustomArea(GrowthArea area) {
+    final a = area.id.isEmpty || !area.id.startsWith('c_')
+        ? area.copyWith(id: 'c_${_now.microsecondsSinceEpoch}', custom: true)
+        : area.copyWith(custom: true);
+    final existing = _areaLog(a.id);
+    if (existing == null) {
+      addLog('growth_area', text: a.name, data: a.toJson());
+    } else {
+      updateLog(existing.copyWith(text: a.name, data: a.toJson()));
+    }
+    return a;
+  }
+
+  /// Removes one of his own areas. Its past reps stay in the log.
+  bool removeCustomArea(String id) {
+    final l = _areaLog(id);
+    if (l == null || focusArea()?.id == id) return false;
+    removeLog(l.id);
+    return true;
+  }
+
+  /// Drills he added to one of the profile's areas.
+  List<Drill> _extraDrills(String areaId) {
+    final l = logsOf('area_drills').where((x) => x.str('area') == areaId);
+    if (l.isEmpty) return const [];
+    return [
+      for (final d in (l.first.data['drills'] as List? ?? const []))
+        Drill.fromJson(d as Map)
+    ];
+  }
+
+  /// An area's drills, including any he added.
+  List<Drill> drillsOf(GrowthArea area) =>
+      area.custom ? area.drills : [...area.drills, ..._extraDrills(area.id)];
+
+  /// Adds a drill: into a custom area's own list, or alongside a profile
+  /// area's built-in ones.
+  void addDrill(GrowthArea area, Drill drill) {
+    if (area.custom) {
+      saveCustomArea(area.copyWith(drills: [...area.drills, drill]));
+      return;
+    }
+    final extra = [..._extraDrills(area.id), drill];
+    final data = {
+      'area': area.id,
+      'drills': [for (final d in extra) d.toJson()]
+    };
+    final l = logsOf('area_drills').where((x) => x.str('area') == area.id);
+    if (l.isEmpty) {
+      addLog('area_drills', data: data);
+    } else {
+      updateLog(l.first.copyWith(data: data));
+    }
+  }
+
   /// The area chosen for [month] (default: this month), or null.
   GrowthArea? focusArea([int? month]) {
     final l = _focusLog(month ?? programMonth);
-    return l == null ? null : growthArea(l.str('area') ?? '');
+    return l == null ? null : areaById(l.str('area') ?? '');
   }
 
   /// What to suggest when nothing is chosen: the readiness gap, else the
   /// first area.
   GrowthArea get suggestedArea =>
-      readinessGap == null ? growthAreas.first : growthArea(readinessGap!.id);
+      readinessGap == null ? growthAreas.first : areaById(readinessGap!.id);
 
   /// Chooses this month's area, rated 1–5 where you are now.
   void setFocus(String areaId, {required int startRating}) {
@@ -1586,6 +1667,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     final existing = _focusLog(month);
     final data = {
       'area': areaId,
+      'name': areaById(areaId).name,
       'month': month,
       'start': startRating,
       if (existing != null && existing.str('area') == areaId &&
@@ -1634,12 +1716,18 @@ class PersonalSystemProvider extends ChangeNotifier {
   Drill drillFor(GrowthArea area, DateTime day) {
     final done = repsIn(area.id, programMonth).map((r) => r.str('drill')).toSet();
     final week = dayOnly(day).difference(programStart).inDays ~/ 7;
-    final n = area.drills.length;
+    final drills = drillsOf(area);
+    final n = drills.length;
+    if (n == 0) {
+      return const Drill('Add your first drill',
+          'Write one concrete thing to practise this week, and how you\'ll know it worked.',
+          'It\'s on the list.');
+    }
     for (var i = 0; i < n; i++) {
-      final d = area.drills[(week + i) % n];
+      final d = drills[(week + i) % n];
       if (!done.contains(d.title)) return d;
     }
-    return area.drills[week % n];
+    return drills[week % n];
   }
 
   /// One rep through the learning cycle: what you did, what you noticed,

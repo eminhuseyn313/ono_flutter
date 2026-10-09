@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'providers/auth_provider.dart';
+import 'screens/area_editor_screen.dart';
 import 'screens/career_screen.dart';
 import 'screens/case_screen.dart';
 import 'screens/checkin_screen.dart';
@@ -82,6 +83,8 @@ const appRoutes = [
   '/week',
   '/people',
   '/growth',
+  '/growth/area',
+  '/growth/area?template=t_strength',
   '/values',
   '/coach',
   '/case',
@@ -139,6 +142,12 @@ GoRouter createRouter(AuthProvider authProvider,
       _slide('/week', (_) => const WeekScreen()),
       _slide('/people', (_) => const PeopleScreen()),
       _slide('/growth', (_) => const GrowthScreen()),
+      _slide(
+          '/growth/area',
+          (s) => AreaEditorScreen(
+              key: ValueKey(s.uri.toString()),
+              areaId: s.uri.queryParameters['id'],
+              templateId: s.uri.queryParameters['template'])),
       _slide('/values', (_) => const ValuesScreen()),
       _slide('/coach', (_) => const CoachScreen()),
       _slide('/case', (_) => const CaseScreen()),

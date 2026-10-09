@@ -66,7 +66,8 @@ class _LogScreenState extends State<LogScreen> {
             // Letters stay sealed: they only show on /letters.
             .where((e) => e.type != 'letter')
             // People are a list, not events; contact with them is a touch.
-            .where((e) => e.type != 'person' && e.type != 'values')
+            .where((e) => !const {'person', 'values', 'growth_area', 'area_drills'}
+                .contains(e.type))
             .toList()
         : system.allLogs(_filters[_filter]);
     final byDay = <String, List<LogEntry>>{};
@@ -336,7 +337,7 @@ class _EntryRow extends StatelessWidget {
       case 'feedback':
         return '${e.str('from')}: "${e.text}"';
       case 'growth_focus':
-        return 'Month ${e.number('month')} · ${growthArea(e.str('area') ?? '').name}';
+        return 'Month ${e.number('month')} · ${e.str('name') ?? growthArea(e.str('area') ?? '').name}';
       case 'week_plan':
         final o = ((e.data['outcomes'] as List?) ?? const [])
             .where((x) => '$x'.trim().isNotEmpty)

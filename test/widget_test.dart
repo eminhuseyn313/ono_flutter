@@ -247,6 +247,16 @@ void main() {
       system.clock = () => DateTime.now().subtract(const Duration(days: 35));
       system.setFocus('self_trust', startRating: 2);
       system.clock = DateTime.now;
+      // One area of his own, so the chooser shows "Your own areas" and the
+      // editor has something to edit.
+      system.saveCustomArea(const GrowthArea('', 'Being present at home with my wife',
+          bar: 'Phone away from 20:30; dinner is a conversation, not logistics.',
+          ask: 'What would make you feel more supported this month?',
+          personal: true,
+          drills: [
+            Drill('Phone-free dinner', 'Both phones in another room at dinner.',
+                'You talked about something other than logistics.'),
+          ]));
       // A self-coaching commitment due today: Today and /coach show it.
       system.logCoaching(
           goal: 'Be seen as the owner of Business ID onboarding end to end',
