@@ -2119,6 +2119,94 @@ class PersonalSystemProvider extends ChangeNotifier {
     return l.isEmpty ? null : l.last.number('level')?.toInt();
   }
 
+  // ── Stop-doing list ──────────────────────────────────────────────────
+
+  /// Things given up on purpose, with what each makes room for. Saying
+  /// no is how the yeses get time.
+  List<LogEntry> get stopList => [
+        for (final l in logsOf('stop'))
+          if ((l.str('status') ?? 'active') == 'active') l
+      ];
+
+  LogEntry? addStop(String what, {String makesRoomFor = ''}) =>
+      what.trim().isEmpty
+          ? null
+          : addLog('stop',
+              text: what.trim(),
+              data: {'room': makesRoomFor.trim(), 'status': 'active'});
+
+  void retireStop(String id) {
+    final l = logsOf('stop').where((x) => x.id == id);
+    if (l.isEmpty) return;
+    updateLog(l.first.copyWith(data: {...l.first.data, 'status': 'retired'}));
+  }
+
+  /// This week's check: held (true) or slipped (false); null = not checked.
+  bool? stopHeldInWeek(String id, DateTime anyDay) {
+    final key = 'stop:$id:${dateKey(weekStartOf(anyDay))}';
+    if (isDone('$key:held')) return true;
+    if (isDone('$key:slipped')) return false;
+    return null;
+  }
+
+  void setStopHeld(String id, DateTime anyDay, bool held) {
+    final key = 'stop:$id:${dateKey(weekStartOf(anyDay))}';
+    setDone('$key:held', held);
+    setDone('$key:slipped', !held);
+  }
+
+  // ── Gratitude letters ────────────────────────────────────────────────
+
+  /// Written to someone who changed your life, then delivered — ideally
+  /// read aloud (Seligman et al. 2005's "gratitude visit").
+  List<LogEntry> get gratitudeLetters => logsOf('gratitude');
+
+  LogEntry? writeGratitude(String to, String text) =>
+      to.trim().isEmpty || text.trim().isEmpty
+          ? null
+          : addLog('gratitude',
+              text: text.trim(), data: {'to': to.trim(), 'status': 'written'});
+
+  void deliverGratitude(String id, {String reaction = ''}) {
+    final l = gratitudeLetters.where((x) => x.id == id);
+    if (l.isEmpty) return;
+    updateLog(l.first.copyWith(data: {
+      ...l.first.data,
+      'status': 'delivered',
+      'reaction': reaction.trim(),
+      'delivered': dateKey(_now),
+    }));
+  }
+
+  // ── Role models ──────────────────────────────────────────────────────
+
+  /// People one step ahead: what to learn from each, and one question.
+  List<LogEntry> get roleModels => logsOf('role_model');
+
+  LogEntry? addRoleModel(String name, {String learn = '', String question = ''}) =>
+      name.trim().isEmpty
+          ? null
+          : addLog('role_model', text: name.trim(), data: {
+              'learn': learn.trim(),
+              'question': question.trim(),
+            });
+
+  /// Records the answer once the question has been asked.
+  void answerRoleModel(String id, String answer) {
+    final l = roleModels.where((x) => x.id == id);
+    if (l.isEmpty) return;
+    updateLog(l.first.copyWith(data: {
+      ...l.first.data,
+      'answer': answer.trim(),
+      'asked': dateKey(_now),
+    }));
+  }
+
+  void removeRoleModel(String id) {
+    final l = roleModels.where((x) => x.id == id);
+    if (l.isNotEmpty) removeLog(l.first.id);
+  }
+
   // ── Personal experiments ─────────────────────────────────────────────
 
   /// What an experiment can watch, from data already logged.

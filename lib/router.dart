@@ -42,6 +42,7 @@ import 'screens/setback_screen.dart';
 import 'screens/shutdown_screen.dart';
 import 'screens/sign_in_screen.dart';
 import 'screens/sign_up_screen.dart';
+import 'screens/small_tools_screens.dart';
 import 'screens/splash_screen.dart';
 import 'screens/style_screen.dart';
 import 'screens/tool_screens.dart';
@@ -101,6 +102,9 @@ const appRoutes = [
   '/learning',
   '/experiments',
   '/rest',
+  '/stop',
+  '/gratitude',
+  '/models',
   '/goals/edit',
   '/growth/area',
   '/growth/area?template=t_strength',
@@ -170,6 +174,9 @@ GoRouter createRouter(AuthProvider authProvider,
       _slide('/learning', (_) => const LearningScreen()),
       _slide('/experiments', (_) => const ExperimentsScreen()),
       _slide('/rest', (_) => const RestScreen()),
+      _slide('/stop', (_) => const StopScreen()),
+      _slide('/gratitude', (_) => const GratitudeScreen()),
+      _slide('/models', (_) => const RoleModelsScreen()),
       _slide(
           '/goals/edit',
           (s) => GoalEditScreen(

@@ -331,6 +331,34 @@ class MeScreen extends StatelessWidget {
               ),
               const Divider(indent: 66),
               LinkRow(
+                icon: Icons.emoji_people_outlined,
+                color: AppColors.skill,
+                title: 'Role models',
+                subtitle: system.roleModels.isEmpty
+                    ? 'People one step ahead, and what to ask them'
+                    : system.roleModels.map((m) => m.text).join(' · '),
+                onTap: () => context.push('/models'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
+                icon: Icons.do_not_disturb_on_outlined,
+                color: AppColors.warning,
+                title: 'Stop doing',
+                subtitle: system.stopList.isEmpty
+                    ? 'What you give up to make room'
+                    : '${system.stopList.length} given up',
+                onTap: () => context.push('/stop'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
+                icon: Icons.favorite_outline_rounded,
+                color: AppColors.social,
+                title: 'Gratitude letter',
+                subtitle: 'To someone who changed your life',
+                onTap: () => context.push('/gratitude'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
                 icon: Icons.school_outlined,
                 color: AppColors.skill,
                 title: 'Learning',

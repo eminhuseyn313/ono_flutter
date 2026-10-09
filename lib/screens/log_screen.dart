@@ -21,7 +21,7 @@ class LogScreen extends StatefulWidget {
 
 const _filters = <String, Set<String>?>{
   'All': null,
-  'Growth': {'rep', 'feedback', 'growth_focus', 'coaching', 'affirmation', 'values_check', 'goal_value', 'progress_note', 'setback', 'quarterly_review', 'learning', 'experiment', 'rest', 'detach'},
+  'Growth': {'rep', 'feedback', 'growth_focus', 'coaching', 'affirmation', 'values_check', 'goal_value', 'progress_note', 'setback', 'quarterly_review', 'learning', 'experiment', 'rest', 'detach', 'gratitude'},
   'Notes': {'feynman', 'scan', 'pennebaker', 'note', 'win', 'month_review', 'shutdown'},
   'Protocols': {'sigh', 'excited', 'bluf', 'sixq', 'pause', 'still', 'ritual', 'read', 'anki'},
   'Body': {'weight', 'protein', 'gym', 'blood', 'checkin', 'sleep', 'vitals'},
@@ -66,7 +66,7 @@ class _LogScreenState extends State<LogScreen> {
             // Letters stay sealed: they only show on /letters.
             .where((e) => e.type != 'letter')
             // People are a list, not events; contact with them is a touch.
-            .where((e) => !const {'person', 'values', 'growth_area', 'area_drills', 'goal', 'profile', 'daily_item'}
+            .where((e) => !const {'person', 'values', 'growth_area', 'area_drills', 'goal', 'profile', 'daily_item', 'stop', 'role_model'}
                 .contains(e.type))
             .toList()
         : system.allLogs(_filters[_filter]);
@@ -276,6 +276,7 @@ class _EntryRow extends StatelessWidget {
     'learning': (Icons.school_outlined, 'skill', 'Learning'),
     'experiment': (Icons.science_outlined, 'mind', 'Experiment'),
     'rest': (Icons.beach_access_outlined, 'body', 'Rest planned'),
+    'gratitude': (Icons.favorite_outline_rounded, 'social', 'Gratitude letter'),
     'detach': (Icons.power_settings_new_rounded, 'mind', 'Switched off'),
     'setback': (Icons.replay_rounded, 'mind', 'Setback, reset'),
     'affirmation': (Icons.diamond_outlined, 'mind', 'Values affirmation'),
@@ -331,6 +332,8 @@ class _EntryRow extends StatelessWidget {
       case 'focus':
         final t = e.str('target');
         return '${e.number('minutes')} min${t == 'artifact' ? ' · artifact' : t == 'skill' ? ' · skill' : ''}';
+      case 'gratitude':
+        return 'To ${e.str('to')} · ${e.str('status') == 'delivered' ? 'delivered' : 'written'}';
       case 'rest':
         return '${e.str('kind') == 'light' ? 'Lighter week' : e.str('kind') == 'holiday' ? 'Holiday' : 'Rest day'} · ${e.str('from')}${e.str('to') == e.str('from') ? '' : ' → ${e.str('to')}'}';
       case 'detach':

@@ -1481,4 +1481,32 @@ void main() {
     p.logDetachment(_daysAgo(1), 3);
     expect(p.detachmentOn(_daysAgo(1)), 3);
   });
+
+  test('stop-doing: weekly held or slipped; retire', () async {
+    final p = await _commissioned();
+    expect(p.addStop(''), isNull);
+    final s = p.addStop('Email before 9', makesRoomFor: 'Deep work first thing')!;
+    expect(p.stopHeldInWeek(s.id, _today), isNull);
+    p.setStopHeld(s.id, _today, true);
+    expect(p.stopHeldInWeek(s.id, _today), isTrue);
+    p.setStopHeld(s.id, _today, false);
+    expect(p.stopHeldInWeek(s.id, _today), isFalse);
+    expect(p.stopHeldInWeek(s.id, _today.add(const Duration(days: 7))), isNull);
+    p.retireStop(s.id);
+    expect(p.stopList, isEmpty);
+  });
+
+  test('gratitude letter and role models', () async {
+    final p = await _commissioned();
+    expect(p.writeGratitude('', 'x'), isNull);
+    final g = p.writeGratitude('My first manager', 'You gave me the hard project')!;
+    p.deliverGratitude(g.id, reaction: 'She cried, then laughed');
+    expect(p.gratitudeLetters.single.str('status'), 'delivered');
+    final m = p.addRoleModel('A CPO I admire',
+        learn: 'How she says no to the CEO', question: 'How do you decide what not to build?')!;
+    p.answerRoleModel(m.id, 'I write the trade-off down before the meeting');
+    expect(p.roleModels.single.str('answer'), startsWith('I write'));
+    p.removeRoleModel(m.id);
+    expect(p.roleModels, isEmpty);
+  });
 }

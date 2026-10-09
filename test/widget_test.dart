@@ -292,6 +292,18 @@ void main() {
           measure: 'energy',
           days: 14,
           expect: 'Falling asleep faster and more morning energy');
+      // Stop-doing, a gratitude letter and a role model, in every state.
+      final stop = system.addStop('Checking email before 9:00 and between meetings',
+          makesRoomFor: 'An hour of deep work on the artifact every morning')!;
+      system.setStopHeld(stop.id, today, true);
+      final letter = system.writeGratitude('My first manager',
+          'You gave me the hard project when nobody else would, and it made me.')!;
+      system.deliverGratitude(letter.id, reaction: 'Called me back the same evening');
+      system.writeGratitude('Mum', 'Thank you for every morning you drove me to school.');
+      final model = system.addRoleModel('A CPO one step ahead',
+          learn: 'How she says no to the CEO without losing trust',
+          question: 'How do you decide what not to build?')!;
+      system.answerRoleModel(model.id, 'Write the trade-off down before the meeting');
       // One daily item of his own: 11 items, 8 hold the day.
       system.addDailyItem('Ten minutes of Spanish before dinner, with the app',
           lane: 'skill', when: 'evening', cue: 'When I sit down at home → app open');

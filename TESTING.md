@@ -166,6 +166,11 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] On a planned rest day Today says rest is part of the plan and asks whether you switched off; the streak isn't broken by the day
 - [ ] With nothing planned in 8 weeks, the Sunday brief suggests planning rest
 
+## 2y. New: stop doing, gratitude letter, role models
+- [ ] Me → **Stop doing** → add what you give up and what it makes room for → each week mark Held / Slipped
+- [ ] Me → **Gratitude letter** → pick a person → write → Save (copied) → deliver it → **I delivered it** → how they reacted
+- [ ] Me → **Role models** → who, what to learn, one question → after asking, save their answer
+
 ## 3. Tools & logging
 - [ ] Morning ritual (from Today before 11:00): 5 steps → finishing ticks the manifesto
 - [ ] Sigh tool: run it → "uses" and mastery level go up; the sigh item is ticked
