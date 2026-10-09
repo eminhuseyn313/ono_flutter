@@ -54,6 +54,65 @@ Each step is useful to Emin now and becomes part of the general product.
 
 **Deliberately not recommended:** points, leaderboards and badges (they reward looking busy); notification-heavy designs (fatigue is a top churn cause); a generic AI chat coach (reviewed as repetitive; ONO's coach works from the person's real data instead).
 
+## 5. Expanded feature list
+
+Every item passes both tests: useful to Emin now, and useful to anyone. Effort: S = days, M = a week, L = several weeks. ✓ = already in ONO.
+
+### A. Direction: where you're going
+| # | Feature | For Emin now | For anyone | Evidence | Effort |
+|---|---|---|---|---|---|
+| A1 | **Goals with WOOP and a measure** (outcome, why, number, deadline, obstacle → if–then plan, trend) | Head of Product, body composition, public voice | Marathon time, savings, team engagement | Goal setting (Locke & Latham 2002); WOOP g ≈ 0.3 | M |
+| A2 | **Quarterly review and plan** (12 weeks: wins, lessons, goals kept or dropped, next quarter's 1–3 goals) | Natural rhythm for an 18-month program | Same | Fresh-start effect (Dai, Milkman & Riis 2014) | S |
+| A3 | **Life wheel** (rate 8 life areas 1–10 each quarter; the lowest suggests the next growth area) | Keeps work from crowding out body, home and meaning | The standard coaching entry point | Common coaching practice; ties to basic needs (self-determination theory) | S |
+| A4 | **Identity statement per goal** ("I am someone who…") | Extends the manifesto beyond one line | Athlete: "I'm someone who never skips recovery" | Identity-based motivation (Oyserman 2007) | S |
+| A5 | **Stop-doing list** (what you give up to make room) | Trade-offs as he takes on more scope | Everyone over-commits | Opportunity cost; goal conflict reduces attainment | S |
+
+### B. Practice and learning
+| # | Feature | For Emin now | For anyone | Evidence | Effort |
+|---|---|---|---|---|---|
+| B1 | **Level descriptions per growth area** (what levels 1–5 look like, so ratings mean something) | Readiness ratings become honest | Every area and template gets a rubric | Behaviourally anchored scales are more reliable than bare numbers | M |
+| B2 | **Learning queue with "apply it"** (books, courses, talks → one principle → one experiment at work or home) | Generalises the lunch read and Feynman | Any learner | Transfer of training (Baldwin & Ford 1988) | M |
+| B3 | **Personal experiments** ("For 2 weeks I'll try X and watch Y" → result → keep or drop) | Turns patterns into decisions | Self-experimentation for anyone | Builds on Patterns ✓; n-of-1 method | S |
+| B4 | **Role models** (people one step ahead: what to learn from each, one question to ask them) | Path to Head of Product, then CPO | Any field | Learning by modelling (Bandura) | S |
+| B5 | **Review deck from any learning** ✓ (cards from notes, spaced) | Already in use | Generalise the seed cards | Testing effect (Roediger & Karpicke 2006) | S |
+
+### C. Feedback and accountability
+| # | Feature | For Emin now | For anyone | Evidence | Effort |
+|---|---|---|---|---|---|
+| C1 | **Weekly progress note to one chosen person** | Manager, mentor or wife | Coach, partner, friend | Reported monitoring is stronger than private (Harkin et al. 2016) | S |
+| C2 | **Quarterly 360-lite** (the same question to 3 people; themes tracked over time) | Evidence for the promotion case | Any role, any team | Multisource feedback (London & Smither 1995) | M |
+| C3 | **Accountability partners in the app** (two users share goals and weekly notes) | Later, with a peer | Core of the mass version | Social support for goal pursuit | L |
+
+### D. The foundation: energy, recovery and setbacks
+| # | Feature | For Emin now | For anyone | Evidence | Effort |
+|---|---|---|---|---|---|
+| D1 | **Setback protocol** (after a missed day or a bad week: self-compassion, what happened, the smallest next step) | The impostor pattern punishes misses | Everyone has setbacks | Self-compassion increases the motivation to improve (Breines & Chen 2012) | S |
+| D2 | **Recovery planning** (rest days, deload weeks, holidays planned in advance; detachment checks) | RA, beta thalassemia, a demanding job | Athletes, founders, parents | Psychological detachment and recovery (Sonnentag & Fritz 2007) | S |
+| D3 | **Energy map** (when check-ins show he is sharpest; hardest work goes there) | Uses check-in data he already has | Anyone who checks in | Chronotype and time-of-day performance | M |
+
+### E. Relationships
+| # | Feature | For Emin now | For anyone | Evidence | Effort |
+|---|---|---|---|---|---|
+| E1 | **Relationship rituals** in People (a weekly date, family time, a monthly call; quality, not just contact) | Home, not only work contacts | Partners, parents, friends | Rituals and "turning toward" (Gottman) | S |
+| E2 | **Gratitude letter** (write it, deliver it, note what happened) | Ali, a mentor, family | Anyone | Strongest short-term effect in Seligman et al. 2005 | S |
+
+### F. Foundations for the general product
+| # | Feature | For Emin now | For anyone | Effort |
+|---|---|---|---|---|
+| F1 | **Profile editor** (roles, organisation, key people, path, coach context) | Change details without code | Step 1 of onboarding | M |
+| F2 | **Configurable Daily items** (add, remove, retire when automatic, with cues) | Adjust as habits stick | Required for a general app | M |
+| F3 | **Onboarding that builds a plan in 5 minutes** (profile → goal → growth area from a template → 3–5 Daily items) | — | Solves the "no value in the first session" churn | L |
+| F4 | **A calmer Today** (rank cards; show the 1–3 that matter now, the rest behind "More") | Today is crowded | Reduces choice overload | M |
+| F5 | **Languages** (English, Azerbaijani, Russian) | Native-language reflection is deeper | His home market first | M |
+| F6 | **Plan packs** (shareable plans: "First-time manager, 90 days", "16-week marathon", "New parent") | Share his own plan | Growth engine for the mass version | L |
+| F7 | **Coach mode** (a human coach sees a client's plan, with consent) | — | A future B2B2C model | L |
+| F8 | **Privacy and data ownership** (export, delete, on-device by default, clear sync consent) | His health data | Trust is a precondition for adoption | M |
+
+### Suggested order
+1. **Now (useful to Emin, foundation for everyone):** A1 Goals → C1 progress note → D1 setback protocol → A2 quarterly review → F1 profile editor.
+2. **Next:** F4 calmer Today → F2 configurable Daily items → B1 level descriptions → B2 learning queue → E1 relationship rituals.
+3. **For the mass version:** F3 onboarding → F5 languages → F8 privacy → F6 plan packs → C3 partners → F7 coach mode.
+
 ## Sources
 - [Baumel et al. 2019, mental-health app engagement (JMIR)](https://www.textbookofdigitalhealth.com/references/baumel2019engagement.html)
 - [Habit tracking in 2026: trends and data](https://habit-streak.com/en/blog/habit-tracking/state-of-habit-tracking-2026)
@@ -68,3 +127,13 @@ Each step is useful to Emin now and becomes part of the general product.
 - [AI coaching platforms compared (Risely, a competitor)](https://risely.me/compare/best-ai-coaching-platforms/)
 - [Rocky.ai on the App Store](https://apps.apple.com/app/id1492680249)
 - [Personal development market (Mordor Intelligence)](https://www.mordorintelligence.com/industry-reports/personal-development-market)
+- Academic references in section 5 (not linked):
+  - Locke & Latham 2002, *American Psychologist*.
+  - Dai, Milkman & Riis 2014, *Management Science*.
+  - Oyserman 2007, identity-based motivation.
+  - Baldwin & Ford 1988, *Personnel Psychology*.
+  - Roediger & Karpicke 2006, *Psychological Science*.
+  - London & Smither 1995, *Personnel Psychology*.
+  - Breines & Chen 2012, *Personality and Social Psychology Bulletin*.
+  - Sonnentag & Fritz 2007, *Journal of Occupational Health Psychology*.
+  - Seligman et al. 2005, *American Psychologist*.
