@@ -42,6 +42,7 @@ class _AreaEditorScreenState extends State<AreaEditorScreen> {
   final _bar = TextEditingController();
   final _ask = TextEditingController();
   final List<_DrillFields> _drills = [];
+  final _levels = List.generate(5, (_) => TextEditingController());
   bool _personal = true;
   String _id = '';
   bool _loaded = false;
@@ -69,6 +70,9 @@ class _AreaEditorScreenState extends State<AreaEditorScreen> {
     _bar.text = a.bar;
     _ask.text = a.ask;
     _personal = a.personal;
+    for (var i = 0; i < 5; i++) {
+      _levels[i].text = a.levels.length == 5 ? a.levels[i] : '';
+    }
     for (final d in _drills) {
       d.dispose();
     }
@@ -84,6 +88,9 @@ class _AreaEditorScreenState extends State<AreaEditorScreen> {
     _ask.dispose();
     for (final d in _drills) {
       d.dispose();
+    }
+    for (final l in _levels) {
+      l.dispose();
     }
     super.dispose();
   }
@@ -105,7 +112,10 @@ class _AreaEditorScreenState extends State<AreaEditorScreen> {
             : _ask.text.trim(),
         drills: drills,
         personal: _personal,
-        custom: true));
+        custom: true,
+        levels: _levels.every((l) => l.text.trim().isNotEmpty)
+            ? [for (final l in _levels) l.text.trim()]
+            : const []));
     toast(context, 'Saved. Choose it on the growth plan when it\'s the month.');
     context.canPop() ? context.pop() : context.go('/growth');
   }
@@ -169,6 +179,14 @@ class _AreaEditorScreenState extends State<AreaEditorScreen> {
         _field(_bar, 'Describe the person who\'s great at this — what they do, consistently', lines: 2),
         const SectionHeader('The feedback question'),
         _field(_ask, 'What will you ask someone who sees you do it?'),
+        const SectionHeader('What each level looks like'),
+        Text('Optional. Leave blank to use the general ladder, with your "good" as level 4.',
+            style: AppText.small()),
+        for (var i = 0; i < 5; i++)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: _field(_levels[i], 'Level ${i + 1}${const [' — just starting', '', '', ' — the bar', ' — others learn from you'][i]}'),
+          ),
         SectionHeader('Drills · ${_drills.length}'),
         Text('Concrete things to practise, each with a sign that it worked.',
             style: AppText.small()),

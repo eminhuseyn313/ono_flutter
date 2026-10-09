@@ -1365,4 +1365,19 @@ void main() {
     expect(p.setItemActive(nonNegotiables.first.id, true), isTrue);
     expect(p.removeDailyItem(spanish.id), isTrue);
   });
+
+  test('levels: the general ladder puts the bar at 4; own levels win', () async {
+    final p = await _commissioned();
+    final comp = growthAreas.firstWhere((a) => a.id == 'composure');
+    final ladder = levelsOf(comp);
+    expect(ladder.length, 5);
+    expect(ladder[3], contains(comp.bar));
+    final own = p.saveCustomArea(const GrowthArea('', 'Free throws',
+        bar: '80% in games',
+        ask: 'Where does my form break?',
+        drills: [Drill('100 a day', 'Shoot 100', 'Logged')],
+        levels: ['<40%', '40–55%', '55–70%', '70–80%', '80%+ in games']));
+    expect(levelsOf(p.areaById(own.id)).last, '80%+ in games');
+    expect(GrowthArea.fromJson(own.toJson()).levels.length, 5);
+  });
 }

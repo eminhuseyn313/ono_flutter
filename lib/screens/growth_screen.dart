@@ -107,10 +107,13 @@ class _ChooserState extends State<_Chooser> {
             icon: Icons.add_rounded,
             onPressed: () => context.push('/growth/area')),
         const SectionHeader('Where are you now?'),
-        Text('1 = far from the bar · 4 = at it · 5 = others learn from you',
+        Text('Pick the description that sounds like you today.',
             style: AppText.small()),
         const SizedBox(height: 8),
-        _RatingRow(value: _rating, onChanged: (v) => setState(() => _rating = v)),
+        _RatingRow(
+            value: _rating,
+            levels: levelsOf(system.areaById(_area)),
+            onChanged: (v) => setState(() => _rating = v)),
         const SizedBox(height: 16),
         PrimaryButton('Grow this for month ${system.programMonth}',
             icon: Icons.trending_up_rounded, onPressed: () {
@@ -129,20 +132,36 @@ class _ChooserState extends State<_Chooser> {
 class _RatingRow extends StatelessWidget {
   final int value;
   final ValueChanged<int> onChanged;
-  const _RatingRow({required this.value, required this.onChanged});
+
+  /// Level descriptions; the selected one shows under the chips.
+  final List<String> levels;
+  const _RatingRow(
+      {required this.value, required this.onChanged, this.levels = const []});
 
   @override
-  Widget build(BuildContext context) => Row(
+  Widget build(BuildContext context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          for (var i = 1; i <= 5; i++)
+          Row(
+            children: [
+              for (var i = 1; i <= 5; i++)
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: ChoiceChip(
+                    label: Text('$i'),
+                    selected: value == i,
+                    showCheckmark: false,
+                    onSelected: (_) => onChanged(i),
+                  ),
+                ),
+            ],
+          ),
+          if (levels.length == 5 && value >= 1 && value <= 5)
             Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: ChoiceChip(
-                label: Text('$i'),
-                selected: value == i,
-                showCheckmark: false,
-                onSelected: (_) => onChanged(i),
-              ),
+              padding: const EdgeInsets.only(top: 8),
+              child: Text('$value · ${levels[value - 1]}',
+                  key: const Key('level-description'),
+                  style: AppText.small(color: AppColors.greyLight)),
             ),
         ],
       );
@@ -308,6 +327,7 @@ class _Plan extends StatelessWidget {
               const SizedBox(height: 8),
               _RatingRow(
                   value: end ?? 0,
+                  levels: levelsOf(area),
                   onChanged: (v) {
                     system.rateFocusEnd(v);
                     toast(context, start == null || v <= start

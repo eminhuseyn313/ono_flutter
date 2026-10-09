@@ -337,6 +337,14 @@ class _CockpitScreenState extends State<CockpitScreen> {
                       ),
                   ],
                 ),
+                if (r[d.id] != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                        '${r[d.id]} · ${levelsOf(system.areaById(d.id))[r[d.id]! - 1]}',
+                        style: AppText.small(color: AppColors.greyLight)
+                            .copyWith(fontSize: 12)),
+                  ),
               ],
             ),
           ),

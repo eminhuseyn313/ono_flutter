@@ -1435,12 +1435,17 @@ class GrowthArea {
   /// Created by him (or from a template), so editable and removable.
   final bool custom;
 
+  /// What levels 1–5 look like, if written for this area; otherwise the
+  /// general ladder in [levelsOf] is used.
+  final List<String> levels;
+
   const GrowthArea(this.id, this.name,
       {required this.bar,
       required this.ask,
       required this.drills,
       this.personal = false,
-      this.custom = false});
+      this.custom = false,
+      this.levels = const []});
 
   GrowthArea copyWith({
     String? id,
@@ -1450,13 +1455,15 @@ class GrowthArea {
     List<Drill>? drills,
     bool? personal,
     bool? custom,
+    List<String>? levels,
   }) =>
       GrowthArea(id ?? this.id, name ?? this.name,
           bar: bar ?? this.bar,
           ask: ask ?? this.ask,
           drills: drills ?? this.drills,
           personal: personal ?? this.personal,
-          custom: custom ?? this.custom);
+          custom: custom ?? this.custom,
+          levels: levels ?? this.levels);
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -1464,6 +1471,7 @@ class GrowthArea {
         'bar': bar,
         'ask': ask,
         'personal': personal,
+        if (levels.isNotEmpty) 'levels': levels,
         'drills': [for (final d in drills) d.toJson()],
       };
 
@@ -1474,6 +1482,7 @@ class GrowthArea {
         ask: '${m['ask'] ?? ''}',
         personal: m['personal'] == true,
         custom: true,
+        levels: [for (final l in (m['levels'] as List? ?? const [])) '$l'],
         drills: [
           for (final d in (m['drills'] as List? ?? const []))
             Drill.fromJson(d as Map)
@@ -1653,6 +1662,20 @@ const valueOptions = [
   'Faith', 'Calm', 'Curiosity', 'Excellence', 'Freedom', 'Health',
   'Loyalty', 'Impact', 'Respect', 'Service', 'Independence', 'Honesty',
 ];
+
+/// What 1–5 means for [area]: its own five levels, or a general ladder
+/// whose level 4 is the area's bar. Makes a self-rating a description you
+/// recognise rather than a number you guess.
+List<String> levelsOf(GrowthArea area) {
+  if (area.levels.length == 5) return area.levels;
+  return [
+    'Aware: you know what good looks like, but rarely do it yet.',
+    'Practising: you do it when you remember, or when it\'s easy.',
+    'Consistent: you do it most of the time, in normal conditions.',
+    'At the bar: ${area.bar.isEmpty ? 'you do it well, even under pressure' : area.bar} Even under pressure.',
+    'Role model: others learn it from you; it holds on your worst days.',
+  ];
+}
 
 GrowthArea growthArea(String id) =>
     growthAreas.firstWhere((a) => a.id == id, orElse: () => growthAreas.first);

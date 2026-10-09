@@ -142,6 +142,11 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] Retired items can be brought back; the list never drops below 3 or above 15
 - [ ] With the widget on: the ring shows your own total, not /10 (needs a Mac build)
 
+## 2t. New: what each level means
+- [ ] Growth → choose an area → tap 1–5 → the matching description appears (level 4 is the area's bar)
+- [ ] Career cockpit → Readiness → rate a dimension → its level description shows
+- [ ] Create your own area → optionally write your own five levels
+
 ## 3. Tools & logging
 - [ ] Morning ritual (from Today before 11:00): 5 steps → finishing ticks the manifesto
 - [ ] Sigh tool: run it → "uses" and mastery level go up; the sigh item is ticked
