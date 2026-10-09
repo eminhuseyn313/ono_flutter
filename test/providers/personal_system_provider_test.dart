@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:ono/data/emin_system.dart';
+import 'package:ono/data/daily_library.dart';
 import 'package:ono/data/growth_templates.dart';
 import 'package:ono/data/life_wheel.dart';
 import 'package:ono/gateways/mock_auth_gateway.dart';
@@ -1552,5 +1553,50 @@ void main() {
     expect(map['morning']!.avg, closeTo(4.75, 0.01));
     expect(map['afternoon']!.avg, 2);
     expect(p.energyPeak!.id, 'morning');
+  });
+
+  test('plan builder: a new person gets their own profile, focus, goal and daily list',
+      () async {
+    final p = await _commissioned();
+    expect(p.planBuilt, isFalse);
+    final wheel = {for (final a in lifeAreas) a.id: 7}..['money'] = 3;
+    final picks = dailyLibrary.where((d) => d.area == 'money' || d.area == 'health').toList();
+    p.buildPlan(
+      name: 'Leyla Mammadova',
+      currentRole: 'Nurse',
+      targetRole: 'Head nurse',
+      wheel: wheel,
+      area: areaTemplates.firstWhere((t) => t.id == 't_money'),
+      areaRating: 2,
+      goal: 'Three months of expenses saved',
+      obstacle: 'Impulse buys after hard shifts',
+      plan: 'When I want to buy after a shift, I wait until tomorrow.',
+      deadline: DateTime(2027, 4, 1),
+      daily: picks,
+      replaceDaily: true,
+    );
+    expect(p.planBuilt, isTrue);
+    expect(activeProfile.firstName, 'Leyla');
+    expect(activeProfile.keyPeople, isEmpty);
+    expect(activeProfile.targetRole, 'Head nurse');
+    expect(p.lowestLifeArea!.id, 'money');
+    expect(p.focusArea()!.name, startsWith('Money'));
+    expect(p.focusArea()!.custom, isTrue);
+    expect(p.activeGoals.single.text, 'Three months of expenses saved');
+    expect(p.dailyCount, picks.length);
+    expect(p.dailyItems.map((d) => d.title), containsAll(picks.map((d) => d.title)));
+    expect(p.cueFor(p.dailyItems.first.id), isNotEmpty);
+    expect(p.holdTarget, (picks.length * 0.7).ceil());
+    // Building again for the same person adds, without duplicates.
+    p.buildPlan(
+        name: 'Leyla Mammadova',
+        currentRole: 'Nurse',
+        targetRole: 'Head nurse',
+        area: p.focusArea()!,
+        areaRating: 3,
+        daily: [picks.first, dailyLibrary.last]);
+    expect(p.dailyCount, picks.length + 1);
+    expect(p.logsOf('growth_area').length, 1);
+    p.resetProfile();
   });
 }

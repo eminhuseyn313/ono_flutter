@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 
+import '../data/daily_library.dart';
 import '../data/emin_system.dart';
 import '../data/life_wheel.dart';
 import '../gateways/personal_system_gateway.dart';
@@ -1695,6 +1696,87 @@ class PersonalSystemProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ── Plan builder ─────────────────────────────────────────────────────
+
+  static const planBuiltKey = 'plan:built';
+
+  bool get planBuilt => isDone(planBuiltKey);
+
+  /// Offered on Today in the first two weeks, until there is a plan.
+  bool get planBuildSuggested =>
+      hasStarted && !planBuilt && activeGoals.isEmpty && programDay <= 14;
+
+  /// Builds a first plan in one go: who they are becoming, a life wheel,
+  /// this month's growth area, one goal (WOOP) and the daily items.
+  /// A different name means a different person, so the profile's own
+  /// details (organisation, people, coach context) start empty.
+  /// [replaceDaily] swaps the whole daily list for [daily].
+  void buildPlan({
+    required String name,
+    required String currentRole,
+    required String targetRole,
+    Map<String, int> wheel = const {},
+    required GrowthArea area,
+    required int areaRating,
+    String goal = '',
+    String goalWhy = '',
+    String obstacle = '',
+    String plan = '',
+    DateTime? deadline,
+    required List<DailyIdea> daily,
+    bool replaceDaily = false,
+  }) {
+    final n = name.trim();
+    final current = activeProfile;
+    saveProfile(n.isEmpty || n == current.name
+        ? current.copyWith(currentRole: currentRole.trim(), targetRole: targetRole.trim())
+        : Profile(
+            name: n,
+            firstName: n.split(RegExp(r'\s+')).first,
+            currentRole: currentRole.trim(),
+            targetRole: targetRole.trim(),
+            organisation: '',
+            focus: '',
+            domain: '',
+            identityStatement: '',
+            path: const [],
+            keyPeople: const [],
+          ));
+    if (wheel.isNotEmpty) addLog('wheel', data: {'wheel': wheel});
+    final areaId = area.custom || growthAreas.any((a) => a.id == area.id)
+        ? area.id
+        : saveCustomArea(area.copyWith(id: '')).id;
+    setFocus(areaId, startRating: areaRating);
+    if (goal.trim().isNotEmpty) {
+      saveGoal(
+          title: goal,
+          why: goalWhy,
+          obstacle: obstacle,
+          plan: plan,
+          deadline: deadline,
+          areas: [areaId]);
+    }
+    if (replaceDaily && daily.length >= minDailyItems) {
+      for (final b in nonNegotiables) {
+        setDone('daily:off:${b.id}', true);
+      }
+      for (final l in logsOf('daily_item')) {
+        removeLog(l.id);
+      }
+    }
+    var i = 0;
+    for (final d in daily) {
+      if (dailyCount >= maxDailyItems) break;
+      if (dailyItems.any((x) => x.title == d.title)) continue;
+      final id = 'd_${_now.microsecondsSinceEpoch}_${i++}';
+      addLog('daily_item',
+          text: d.title, data: {'id': id, 'lane': d.lane, 'when': d.when});
+      setCue(id, d.cue, reschedule: false);
+    }
+    setDone(planBuiltKey, true);
+    _syncReminders();
+  }
+
   // ── Goals ────────────────────────────────────────────────────────────
 
   static const maxActiveGoals = 3;
@@ -2435,7 +2517,8 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   /// The latest life wheel ratings, or empty.
   Map<String, int> get latestWheel {
-    final l = logsOf('quarterly_review');
+    final l = [...logsOf('quarterly_review'), ...logsOf('wheel')]
+      ..sort((a, b) => b.date.compareTo(a.date));
     if (l.isEmpty) return const {};
     return (l.first.data['wheel'] as Map? ?? const {})
         .map((k, v) => MapEntry('$k', (v as num).toInt()));

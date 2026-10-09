@@ -180,6 +180,10 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] Finish a block on `/focus` → rate "How sharp were you?"
 - [ ] After a couple of weeks a peak appears; `/focus` suggests blocking that window, and the Sunday brief books deep work there
 
+## 2zb. New: plan builder
+- [ ] Me → **Build your plan** → keep your name → rate the wheel → pick an area (lowest first) → a goal → add 3 daily items to your list → Today shows the goal, the area and the new items with their cues
+- [ ] Try a different name (then Me → Your profile → reset): the profile starts blank and "Replace my current daily list" is on by default
+
 ## 3. Tools & logging
 - [ ] Morning ritual (from Today before 11:00): 5 steps → finishing ticks the manifesto
 - [ ] Sigh tool: run it → "uses" and mastery level go up; the sigh item is ticked

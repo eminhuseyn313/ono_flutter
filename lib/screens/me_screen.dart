@@ -424,6 +424,16 @@ class MeScreen extends StatelessWidget {
           child: Column(
             children: [
               LinkRow(
+                icon: Icons.auto_awesome_outlined,
+                color: AppColors.accent,
+                title: 'Build your plan',
+                subtitle: system.planBuilt
+                    ? 'Rebuild: profile, life wheel, focus, goal, daily items'
+                    : '5 minutes: who you are becoming, one goal, daily actions',
+                onTap: () => context.push('/start'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
                 icon: Icons.badge_outlined,
                 color: AppColors.accent,
                 title: 'Your profile',

@@ -8,6 +8,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:ono/main.dart';
 import 'package:ono/data/emin_system.dart';
+import 'package:ono/data/growth_templates.dart';
+import 'package:ono/data/life_wheel.dart';
 import 'package:ono/gateways/mock_auth_gateway.dart';
 import 'package:ono/gateways/mock_personal_system_gateway.dart';
 import 'package:ono/models/personal_system.dart';
@@ -538,6 +540,36 @@ void main() {
         errors.add('$e');
       }
       if (errors.isNotEmpty) failures['other profile'] = errors.toSet();
+
+      // Plan builder: every step renders and fits.
+      errors.clear();
+      try {
+        system.addLog('wheel', data: {
+          'wheel': {for (final a in lifeAreas) a.id: a.id == 'money' ? 3 : 7}
+        });
+        await _go(tester, '/start');
+        Future<void> next() async {
+          await tester.tap(find.text('Next'));
+          await _pumpFor(tester, const Duration(milliseconds: 600));
+        }
+        await next();
+        await next();
+        await tester.tap(find
+            .text(areaTemplates.firstWhere((t) => t.id == 't_money').name)
+            .first);
+        await _pumpFor(tester, const Duration(milliseconds: 300));
+        await next();
+        if (find.text('One goal that matters').evaluate().isEmpty) {
+          errors.add('stuck before the goal step');
+        }
+        await next();
+        if (find.text('Build my plan').evaluate().isEmpty) {
+          errors.add('did not reach the daily step');
+        }
+      } catch (e) {
+        errors.add('$e');
+      }
+      if (errors.isNotEmpty) failures['/start steps'] = errors.toSet();
 
       // Me: the seeded caffeine cut-offs show as a pattern.
       await _go(tester, '/profile');

@@ -21,7 +21,7 @@ class LogScreen extends StatefulWidget {
 
 const _filters = <String, Set<String>?>{
   'All': null,
-  'Growth': {'rep', 'feedback', 'growth_focus', 'coaching', 'affirmation', 'values_check', 'goal_value', 'progress_note', 'setback', 'quarterly_review', 'learning', 'experiment', 'rest', 'detach', 'gratitude', 'feedback_round'},
+  'Growth': {'rep', 'feedback', 'growth_focus', 'coaching', 'affirmation', 'values_check', 'goal_value', 'progress_note', 'setback', 'quarterly_review', 'learning', 'experiment', 'rest', 'detach', 'gratitude', 'feedback_round', 'wheel'},
   'Notes': {'feynman', 'scan', 'pennebaker', 'note', 'win', 'month_review', 'shutdown'},
   'Protocols': {'sigh', 'excited', 'bluf', 'sixq', 'pause', 'still', 'ritual', 'read', 'anki'},
   'Body': {'weight', 'protein', 'gym', 'blood', 'checkin', 'sleep', 'vitals', 'energy'},
@@ -279,6 +279,7 @@ class _EntryRow extends StatelessWidget {
     'gratitude': (Icons.favorite_outline_rounded, 'social', 'Gratitude letter'),
     'feedback_round': (Icons.groups_2_outlined, 'social', 'Feedback round'),
     'energy': (Icons.bolt_outlined, 'mind', 'Energy'),
+    'wheel': (Icons.donut_large_rounded, 'mind', 'Life wheel'),
     'detach': (Icons.power_settings_new_rounded, 'mind', 'Switched off'),
     'setback': (Icons.replay_rounded, 'mind', 'Setback, reset'),
     'affirmation': (Icons.diamond_outlined, 'mind', 'Values affirmation'),
@@ -334,6 +335,9 @@ class _EntryRow extends StatelessWidget {
       case 'focus':
         final t = e.str('target');
         return '${e.number('minutes')} min${t == 'artifact' ? ' · artifact' : t == 'skill' ? ' · skill' : ''}';
+      case 'wheel':
+        final w = (e.data['wheel'] as Map? ?? const {});
+        return '${w.length} areas rated';
       case 'energy':
         return '${e.number('level')}/5 at ${e.number('hour')}:00';
       case 'feedback_round':

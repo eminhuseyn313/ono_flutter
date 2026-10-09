@@ -82,7 +82,7 @@ Bottom tabs: **Today** `/home` · **Program** `/program?tab=0..3` (Journey/Sched
 ```
 /splash /welcome /sign-up /sign-in /forgot-password /commission
 /manifesto /protocols /evidence /library /style /career /weekly-coaching /checkin /plans /review /habits /cockpit(?tab=0..2)
-/shutdown /focus /letters /week /people /growth /values /coach /case /growth/area(?id=|template=) /goals /goals/edit /goals/view?id= /note /setback /quarter /profile/edit /daily /learning /experiments /rest /stop /gratitude /models /360 /energy
+/shutdown /focus /letters /week /people /growth /values /coach /case /growth/area(?id=|template=) /goals /goals/edit /goals/view?id= /note /setback /quarter /profile/edit /daily /learning /experiments /rest /stop /gratitude /models /360 /energy /start
 /ritual-flow/:ritualId /gym /gym/:dayId (push|pull|legs) /month/:m (1–18)
 /tool/:id  sigh excited pause still bluf sixq read feynman scan pennebaker anki artifact(?month=) linkedin
 ```
@@ -175,6 +175,7 @@ Flow:
   - Stop doing (`/stop`): `stop` logs (what, `room` it makes); weekly held/slipped via done keys `stop:<id>:<weekKey>:held|slipped`; `retireStop`.
   - Gratitude letter (`/gratitude`): `gratitude` logs (to, text, written → delivered with reaction); saving copies the text.
   - Role models (`/models`): `role_model` logs (name, what to learn, one question, the answer once asked).
+- **Plan builder** (`/start`, Me → Build your plan; Today prompts it in the first 14 days while there is no plan or goal): five steps — who you are becoming (name, now, target), life wheel (8 areas → a `wheel` log; `latestWheel` reads the newest of `wheel` and `quarterly_review`), this month's area (templates for the two lowest areas first; a template becomes a custom area), one goal (WOOP, 3/6/12 months), and 3–7 daily items from `dailyLibrary` (`lib/data/daily_library.dart`, general, each with a cue). `buildPlan` applies it all; a new name starts a blank profile, and `replaceDaily` retires the current list. Done key `plan:built`. Not yet the first-run flow: commission still runs first.
 - **Feedback round** (`/360`): one `feedback_round` log per program quarter: the question (default `defaultRoundQuestion`), up to 3 people, `answers` ({from, said}, one per person), `themes`. `roundDue` from day 45 of a quarter; starting copies the ask; themes go into `caseText()` as "What others say".
 - **Energy map** (`/energy`): `energy` logs (level 1–5, hour) from "energy right now", plus `sharp` 1–5 on `focus` logs (rated after a block, counted at its start hour). `energyMap` averages the last 60 days per `energyBands` (early, morning, midday, afternoon, evening); `energyPeak` needs `minEnergySamples` (3) in two bands and a 0.3 lead. `energyByWeekday` uses check-in energy. The peak shows on `/focus` and goes into the brief (`energy_peak`), as does the latest feedback-round theme.
 - **Experiments** (`/experiments`, linked under Me → What moves your day): `experiment` logs (change as text, `measure` from `experimentMeasures` = score/energy/sleep/mood, `days` 7/14/21, `expect`, `start`, status running/kept/dropped, `result`). `experimentCompare` = the measure's average for the same number of days before vs during (score excludes today). `experimentsToClose` prompts on Today; ideas come from `patterns()`; the brief gets running and kept ones.

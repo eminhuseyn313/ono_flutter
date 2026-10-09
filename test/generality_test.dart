@@ -14,8 +14,15 @@ void main() {
     final banned = RegExp(
         r"\bAli\b|Rustam|Business ID|PASHA|Kapital|Bir Ecosystem|BirBank|Head of Product|Azerbaijan|Baku|\bEmin\b");
     final offenders = <String>[];
-    for (final dir in ['lib/screens', 'lib/providers', 'lib/services', 'lib/widgets', 'supabase/functions']) {
-      for (final f in Directory(dir).listSync(recursive: true).whereType<File>()) {
+    final general = [
+      for (final f in ['growth_templates', 'life_wheel', 'daily_library'])
+        File('lib/data/$f.dart')
+    ];
+    for (final dir in ['lib/screens', 'lib/providers', 'lib/services', 'lib/widgets', 'supabase/functions', 'GENERAL']) {
+      final files = dir == 'GENERAL'
+          ? general
+          : Directory(dir).listSync(recursive: true).whereType<File>();
+      for (final f in files) {
         if (!f.path.endsWith('.dart') && !f.path.endsWith('.ts')) continue;
         final lines = f.readAsLinesSync();
         for (var i = 0; i < lines.length; i++) {

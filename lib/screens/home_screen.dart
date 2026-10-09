@@ -1013,7 +1013,10 @@ class _PromptsState extends State<_Prompts> {
     final followUps = system.openFollowUps;
     // Ranked: direction first, then what is due, then the rest.
     final cards = <Widget>[
-      if (system.activeGoals.isEmpty)
+      if (system.planBuildSuggested)
+        _row(context, Icons.auto_awesome_outlined, AppColors.accent,
+            'Build your plan in 5 minutes', 'Who you are becoming, one goal, a few daily actions', '/start'),
+      if (system.activeGoals.isEmpty && !system.planBuildSuggested)
         _row(context, Icons.flag_circle_outlined, AppColors.accent,
             'Set your first goal', 'The outcome everything else here serves', '/goals'),
       if (system.focusArea() == null)
