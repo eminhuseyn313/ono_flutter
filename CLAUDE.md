@@ -79,7 +79,7 @@ Bottom tabs: **Today** `/home` · **Program** `/program?tab=0..3` (Journey/Sched
 ```
 /splash /welcome /sign-up /sign-in /forgot-password /commission
 /manifesto /protocols /evidence /library /style /career /weekly-coaching /checkin /plans /review /habits /cockpit(?tab=0..2)
-/shutdown /focus /letters /week /people /growth /values /coach /case /growth/area(?id=|template=)
+/shutdown /focus /letters /week /people /growth /values /coach /case /growth/area(?id=|template=) /goals /goals/edit /goals/view?id=
 /ritual-flow/:ritualId /gym /gym/:dayId (push|pull|legs) /month/:m (1–18)
 /tool/:id  sigh excited pause still bluf sixq read feynman scan pennebaker anki artifact(?month=) linkedin
 ```
@@ -156,6 +156,11 @@ Flow:
   - `freeBlocks(day)`: gaps of 60+ min between 09:00 and 18:00 still ahead, around every calendar event and the 12:00–12:30 read. The first shows in Today's Meetings card.
 - **Meeting debrief**: 5 min after a key meeting ends, a nudge opens `/cockpit` (ids from `onceIdBase + 120`). `debriefsDue` puts it on Today until a 1:1 is logged after the meeting.
 - **Letters** (`/letters`): `letter` logs sealed until `open_on` (30/90 days, next phase, day 540 = `programEnd`). Never shown in the Log tab. `lettersToOpen` prompts on Today; `markLetterRead` sets `letter:<id>`.
+- **Goals** (`/goals`, `/goals/edit?id=|title=`, `/goals/view?id=`): the 6–18-month outcomes everything serves. At most `maxActiveGoals` (3) active.
+  - A `goal` log: text = the wish; `why`, `obstacle`, `plan` (WOOP), `identity`, `deadline`, `areas` (growth area ids), `status` (active/achieved/dropped, `closed_on`).
+  - Measured by a number (`unit`, `start`, `target`; lower-is-better works) with `goal_value` logs, or by `milestones` (`{text, done}`; ticks survive edits).
+  - `goalProgress` 0–1, `goalExpected` (straight line from start to deadline), `goalPace` (ahead/on track/behind, ±10 points). `goalsToMeasure` = numeric goals unmeasured for 14+ days (Today prompt).
+  - Today's Goals card sits above the growth card; the profile suggests "Become <targetRole>"; `goalSummaries()` feed the brief.
 - **Growth plan** (`/growth`), the main development thread:
   - `growthAreas` in `emin_system.dart`: the 5 Head of Product readiness dimensions plus 3 personal areas from his diagnosis (self-trust, composure under pressure, public voice). Each has a `bar`, a feedback `ask` and 5 `Drill`s (how + signal) tied to his real job.
   - One `growth_focus` log per program month (`area`, `start`, `end` ratings 1–5). `setFocus`/`rateFocusEnd`/`focusRatings`; `suggestedArea` = the readiness gap.

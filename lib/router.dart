@@ -13,6 +13,7 @@ import 'screens/evidence_archive_screen.dart';
 import 'screens/focus_screen.dart';
 import 'screens/forgot_password_screen.dart';
 import 'screens/gym_session_screen.dart';
+import 'screens/goals_screen.dart';
 import 'screens/growth_screen.dart';
 import 'screens/habits_screen.dart';
 import 'screens/home_screen.dart';
@@ -83,6 +84,8 @@ const appRoutes = [
   '/week',
   '/people',
   '/growth',
+  '/goals',
+  '/goals/edit',
   '/growth/area',
   '/growth/area?template=t_strength',
   '/values',
@@ -142,6 +145,15 @@ GoRouter createRouter(AuthProvider authProvider,
       _slide('/week', (_) => const WeekScreen()),
       _slide('/people', (_) => const PeopleScreen()),
       _slide('/growth', (_) => const GrowthScreen()),
+      _slide('/goals', (_) => const GoalsScreen()),
+      _slide(
+          '/goals/edit',
+          (s) => GoalEditScreen(
+              key: ValueKey(s.uri.toString()),
+              id: s.uri.queryParameters['id'],
+              title: s.uri.queryParameters['title'])),
+      _slide('/goals/view',
+          (s) => GoalScreen(id: s.uri.queryParameters['id'] ?? '')),
       _slide(
           '/growth/area',
           (s) => AreaEditorScreen(

@@ -13,6 +13,7 @@ import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_charts.dart';
 import '../widgets/ono_ui.dart';
+import 'goals_screen.dart' show GoalTile;
 
 /// TODAY — changes with the time of day: ritual first in the morning,
 /// tools for pressure moments at work, closing the day in the evening,
@@ -176,6 +177,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         today.subtract(const Duration(days: 1))),
                     streak: system.streak),
               ],
+              if (!_yesterday && system.hasStarted) const _GoalsCard(),
               if (!_yesterday && system.hasStarted) _GrowthCard(now: _now),
               if (!_yesterday && system.hasStarted) _Prompts(now: _now),
               if (!_yesterday && system.hasStarted) _WeekCard(now: _now),
@@ -639,6 +641,43 @@ class _FreshStartCard extends StatelessWidget {
   }
 }
 
+/// The active goals, compact: everything else on Today serves these.
+class _GoalsCard extends StatelessWidget {
+  const _GoalsCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final system = context.watch<PersonalSystemProvider>();
+    final goals = system.activeGoals;
+    if (goals.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 12),
+        child: OnoCard(
+          padding: EdgeInsets.zero,
+          child: LinkRow(
+            icon: Icons.flag_circle_outlined,
+            color: AppColors.accent,
+            title: 'Set your first goal',
+            subtitle: 'The outcome everything else here serves',
+            onTap: () => context.push('/goals'),
+          ),
+        ),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SectionHeader('Goals', action: 'All', onAction: () => context.push('/goals')),
+        for (final g in goals)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: GoalTile(goal: g, compact: true),
+          ),
+      ],
+    );
+  }
+}
+
 /// What he is growing this month and this week's drill. Development is
 /// the main thread; the job is where it's practised.
 class _GrowthCard extends StatelessWidget {
@@ -877,6 +916,9 @@ class _Prompts extends StatelessWidget {
         _row(context, Icons.balance_rounded, AppColors.accent,
             'Decision review due',
             '"${reviews.first.text}" — was the call right?', '/cockpit?tab=1'),
+      for (final g in system.goalsToMeasure.take(1))
+        _row(context, Icons.straighten_rounded, AppColors.accent,
+            'Measure: ${g.text}', '${system.daysSinceGoalUpdate(g)} days since the last number', '/goals/view?id=${g.id}'),
       for (final c in system.commitmentsDue(now).take(1))
         _row(context, Icons.handshake_outlined, AppColors.accent,
             'You committed: ${c.str('will')}', 'Kept it, or drop it on purpose?', '/coach'),

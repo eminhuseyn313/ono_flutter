@@ -211,6 +211,16 @@ class MeScreen extends StatelessWidget {
           child: Column(
             children: [
               LinkRow(
+                icon: Icons.flag_circle_outlined,
+                color: AppColors.accent,
+                title: 'Goals',
+                subtitle: system.activeGoals.isEmpty
+                    ? 'The outcomes everything else serves'
+                    : system.activeGoals.map((g) => g.text).join(' · '),
+                onTap: () => context.push('/goals'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
                 icon: Icons.trending_up_rounded,
                 color: AppColors.accent,
                 title: 'Growth plan',

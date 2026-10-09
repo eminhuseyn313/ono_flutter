@@ -21,7 +21,7 @@ class LogScreen extends StatefulWidget {
 
 const _filters = <String, Set<String>?>{
   'All': null,
-  'Growth': {'rep', 'feedback', 'growth_focus', 'coaching', 'affirmation', 'values_check'},
+  'Growth': {'rep', 'feedback', 'growth_focus', 'coaching', 'affirmation', 'values_check', 'goal_value'},
   'Notes': {'feynman', 'scan', 'pennebaker', 'note', 'win', 'month_review', 'shutdown'},
   'Protocols': {'sigh', 'excited', 'bluf', 'sixq', 'pause', 'still', 'ritual', 'read', 'anki'},
   'Body': {'weight', 'protein', 'gym', 'blood', 'checkin', 'sleep', 'vitals'},
@@ -66,7 +66,7 @@ class _LogScreenState extends State<LogScreen> {
             // Letters stay sealed: they only show on /letters.
             .where((e) => e.type != 'letter')
             // People are a list, not events; contact with them is a touch.
-            .where((e) => !const {'person', 'values', 'growth_area', 'area_drills'}
+            .where((e) => !const {'person', 'values', 'growth_area', 'area_drills', 'goal'}
                 .contains(e.type))
             .toList()
         : system.allLogs(_filters[_filter]);
@@ -270,6 +270,7 @@ class _EntryRow extends StatelessWidget {
     'week_plan': (Icons.flag_rounded, 'skill', 'Big 3'),
     'rep': (Icons.trending_up_rounded, 'skill', 'Practice rep'),
     'coaching': (Icons.psychology_alt_outlined, 'mind', 'Coached myself'),
+    'goal_value': (Icons.straighten_rounded, 'skill', 'Goal measured'),
     'affirmation': (Icons.diamond_outlined, 'mind', 'Values affirmation'),
     'values_check': (Icons.diamond_outlined, 'mind', 'Values check'),
     'feedback': (Icons.record_voice_over_outlined, 'social', 'Feedback'),
@@ -323,6 +324,9 @@ class _EntryRow extends StatelessWidget {
       case 'focus':
         final t = e.str('target');
         return '${e.number('minutes')} min${t == 'artifact' ? ' · artifact' : t == 'skill' ? ' · skill' : ''}';
+      case 'goal_value':
+        final v = (e.number('value') ?? 0).toDouble();
+        return '${e.str('title') ?? 'Goal'} · ${v == v.roundToDouble() ? v.toInt() : v}';
       case 'coaching':
         return '${e.text} → ${e.str('will')}';
       case 'affirmation':

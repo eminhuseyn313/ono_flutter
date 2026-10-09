@@ -1099,4 +1099,76 @@ void main() {
       }
     }
   });
+
+  test('goals: WOOP saved, numeric progress and pace, lower-is-better', () async {
+    final p = await _commissioned(briefs: DeviceBriefGenerator());
+    final day = dayOnly(_today);
+    final run = p.saveGoal(
+      title: 'Marathon under 4 hours',
+      why: 'Prove I can train through a hard job',
+      obstacle: 'I skip runs when work runs late',
+      plan: 'If work runs late, I run at 6:30 the next morning',
+      identity: 'I am someone who trains in any week',
+      deadline: day.add(const Duration(days: 100)),
+      unit: 'min',
+      start: 270,
+      target: 239,
+    )!;
+    expect(p.goalIsNumeric(run), isTrue);
+    expect(p.goalProgress(run), 0);
+    p.logGoalValue(run.id, 254.5);
+    expect(p.goalCurrent(p.goalById(run.id)!), 254.5);
+    expect(p.goalProgress(p.goalById(run.id)!), closeTo(0.5, 0.001),
+        reason: 'lower is better: 270 → 239, halfway at 254.5');
+    // 40 days into 100: 40% expected; 50% done is on track (within 10).
+    p.clock = () => _today.add(const Duration(days: 40));
+    expect(p.goalExpected(p.goalById(run.id)!), closeTo(0.4, 0.001));
+    expect(p.goalPace(p.goalById(run.id)!), 'on track');
+    p.clock = () => _today.add(const Duration(days: 80));
+    expect(p.goalPace(p.goalById(run.id)!), 'behind');
+    expect(p.goalsToMeasure.single.id, run.id, reason: '80 days without a number');
+    p.clock = () => _today;
+  });
+
+  test('goals: milestones, at most three active, closing and deleting', () async {
+    final p = await _commissioned(briefs: DeviceBriefGenerator());
+    final hop = p.saveGoal(
+        title: 'Become ${activeProfile.targetRole}',
+        milestones: ['Own an area', 'Ship the OST', 'Promotion conversation', ''])!;
+    expect(p.milestonesOf(hop).length, 3);
+    p.toggleMilestone(hop.id, 0);
+    expect(p.goalProgress(p.goalById(hop.id)!), closeTo(1 / 3, 0.001));
+    // Editing keeps ticks on milestones that still exist.
+    p.saveGoal(
+        id: hop.id,
+        title: 'Become ${activeProfile.targetRole}',
+        milestones: ['Own an area', 'Ship the OST', 'Promotion conversation', 'Lead a team']);
+    expect(p.milestonesOf(p.goalById(hop.id)!).first.done, isTrue);
+    expect(p.goals.length, 1, reason: 'edited in place');
+
+    p.saveGoal(title: 'Savings', unit: 'AZN', start: 0, target: 10000);
+    p.saveGoal(title: 'Read 12 books', unit: 'books', start: 0, target: 12);
+    expect(p.saveGoal(title: 'Fourth', start: 0, target: 1), isNull);
+    p.setGoalStatus(hop.id, 'achieved');
+    expect(p.activeGoals.length, 2);
+    expect(p.saveGoal(title: 'Fourth', start: 0, target: 1), isNotNull);
+
+    final savings = p.activeGoals.firstWhere((g) => g.text == 'Savings');
+    p.logGoalValue(savings.id, 2500);
+    p.deleteGoal(savings.id);
+    expect(p.logsOf('goal_value'), isEmpty, reason: 'measurements go with it');
+
+    final brief = await p.submitReport(WeeklyReport(
+      id: 'r',
+      weekStart: weekStartOf(_today),
+      nonNegotiableAverage: 7,
+      gymSessions: 3,
+      bestMoment: '',
+      hardestMoment: '',
+      workSituation: '',
+      createdAt: _today,
+    ));
+    expect(brief, isNotNull);
+    expect(p.goalSummaries().first, contains('% done'));
+  });
 }

@@ -112,6 +112,13 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] It appears under "Your own areas" when choosing next month's area
 - [ ] In any area's plan: **Add your own drill** → it joins the list and can be suggested as a weekly drill
 
+## 2n. New: goals
+- [ ] Today → **Set your first goal** → tap the suggestion from your profile, or **New goal**
+- [ ] Walk through wish, outcome, obstacle, plan; pick a number (e.g. minutes or kg) or milestones; pick a deadline → Save
+- [ ] The goal page shows % done vs % of time used and the pace; log a number → the line appears after two
+- [ ] Today shows the goals compactly; after 14 days without a number it asks you to measure
+- [ ] Mark achieved / drop on purpose → it moves to Closed; a fourth active goal is refused
+
 ## 3. Tools & logging
 - [ ] Morning ritual (from Today before 11:00): 5 steps → finishing ticks the manifesto
 - [ ] Sigh tool: run it → "uses" and mastery level go up; the sigh item is ticked

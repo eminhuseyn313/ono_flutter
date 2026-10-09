@@ -1192,6 +1192,7 @@ class PersonalSystemProvider extends ChangeNotifier {
               '${weekOutcomeDone(report.weekStart, i) ? '[done]' : '[open]'} ${weekOutcomes(report.weekStart)[i].trim()}'
         ],
         peopleOverdue: [for (final p in peopleDue.take(3)) p.text],
+        goals: goalSummaries(),
         growthFocus: focusArea()?.name,
         growthDrill: focusArea() == null
             ? null
@@ -1559,6 +1560,195 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   int shutdownsInWeek(DateTime anyDay) =>
       weekDays(anyDay).where((d) => shutdownFor(d) != null).length;
+
+  // ── Goals ────────────────────────────────────────────────────────────
+
+  static const maxActiveGoals = 3;
+
+  /// All goals, newest first. A `goal` log holds the WOOP (title = wish,
+  /// why = outcome, obstacle, plan), an identity statement, a deadline,
+  /// linked growth areas, and either a number (start → target, unit) or
+  /// milestones.
+  List<LogEntry> get goals => logsOf('goal');
+
+  List<LogEntry> get activeGoals =>
+      [for (final g in goals) if ((g.str('status') ?? 'active') == 'active') g];
+
+  LogEntry? goalById(String id) {
+    for (final g in goals) {
+      if (g.id == id) return g;
+    }
+    return null;
+  }
+
+  /// Creates a goal, or updates [id]'s. Returns the saved entry.
+  LogEntry? saveGoal({
+    String? id,
+    required String title,
+    String why = '',
+    String obstacle = '',
+    String plan = '',
+    String identity = '',
+    DateTime? deadline,
+    List<String> areas = const [],
+    String unit = '',
+    double? start,
+    double? target,
+    List<String> milestones = const [],
+  }) {
+    final existing = id == null ? null : goalById(id);
+    if (existing == null && activeGoals.length >= maxActiveGoals) return null;
+    final old = existing?.data ?? const {};
+    final oldMilestones = (old['milestones'] as List? ?? const [])
+        .map((m) => Map<String, dynamic>.from(m as Map))
+        .toList();
+    final data = {
+      'why': why.trim(),
+      'obstacle': obstacle.trim(),
+      'plan': plan.trim(),
+      'identity': identity.trim(),
+      'deadline': deadline == null ? null : dateKey(deadline),
+      'areas': areas,
+      'unit': unit.trim(),
+      'start': start,
+      'target': target,
+      'milestones': [
+        for (final m in milestones)
+          if (m.trim().isNotEmpty)
+            {
+              'text': m.trim(),
+              'done': oldMilestones.any((o) => o['text'] == m.trim() && o['done'] == true),
+            }
+      ],
+      'status': old['status'] ?? 'active',
+    };
+    if (existing == null) {
+      return addLog('goal', text: title.trim(), data: data);
+    }
+    final next = existing.copyWith(text: title.trim(), data: data);
+    updateLog(next);
+    return next;
+  }
+
+  void setGoalStatus(String id, String status) {
+    final g = goalById(id);
+    if (g == null) return;
+    updateLog(g.copyWith(data: {
+      ...g.data,
+      'status': status,
+      'closed_on': status == 'active' ? null : dateKey(_now),
+    }));
+  }
+
+  /// Removes a goal and its measurements.
+  void deleteGoal(String id) {
+    final s = _state;
+    if (s == null) return;
+    _update(s.copyWith(
+        logs: s.logs
+            .where((l) =>
+                l.id != id && !(l.type == 'goal_value' && l.str('goal') == id))
+            .toList()));
+  }
+
+  bool goalIsNumeric(LogEntry g) =>
+      g.number('start') != null && g.number('target') != null;
+
+  /// Measurements of a numeric goal, oldest first.
+  List<LogEntry> goalValues(String id) => [
+        for (final l in logsOf('goal_value').reversed)
+          if (l.str('goal') == id) l
+      ];
+
+  void logGoalValue(String id, double value, {DateTime? date}) =>
+      addLog('goal_value',
+          date: date,
+          data: {'goal': id, 'value': value, 'title': goalById(id)?.text ?? ''});
+
+  double? goalCurrent(LogEntry g) {
+    final v = goalValues(g.id);
+    return v.isEmpty
+        ? g.number('start')?.toDouble()
+        : v.last.number('value')?.toDouble();
+  }
+
+  void toggleMilestone(String id, int i) {
+    final g = goalById(id);
+    if (g == null) return;
+    final ms = (g.data['milestones'] as List? ?? const [])
+        .map((m) => Map<String, dynamic>.from(m as Map))
+        .toList();
+    if (i < 0 || i >= ms.length) return;
+    ms[i]['done'] = !(ms[i]['done'] == true);
+    updateLog(g.copyWith(data: {...g.data, 'milestones': ms}));
+  }
+
+  List<({String text, bool done})> milestonesOf(LogEntry g) => [
+        for (final m in (g.data['milestones'] as List? ?? const []))
+          (text: '${(m as Map)['text']}', done: m['done'] == true)
+      ];
+
+  /// 0–1: how far from start to target (numeric) or milestones done.
+  double goalProgress(LogEntry g) {
+    if (goalIsNumeric(g)) {
+      final s = g.number('start')!.toDouble();
+      final t = g.number('target')!.toDouble();
+      final c = goalCurrent(g) ?? s;
+      if (t == s) return c == t ? 1 : 0;
+      return ((c - s) / (t - s)).clamp(0.0, 1.0);
+    }
+    final ms = milestonesOf(g);
+    if (ms.isEmpty) return 0;
+    return ms.where((m) => m.done).length / ms.length;
+  }
+
+  DateTime? goalDeadline(LogEntry g) =>
+      DateTime.tryParse(g.str('deadline') ?? '');
+
+  /// Where a straight line from the start date to the deadline would be
+  /// today, 0–1; null without a deadline.
+  double? goalExpected(LogEntry g) {
+    final end = goalDeadline(g);
+    if (end == null) return null;
+    final from = dayOnly(g.date);
+    final total = end.difference(from).inDays;
+    if (total <= 0) return 1;
+    return (dayOnly(_now).difference(from).inDays / total).clamp(0.0, 1.0);
+  }
+
+  /// 'ahead', 'on track', 'behind', or null without a deadline. Within 10
+  /// points of the line counts as on track.
+  String? goalPace(LogEntry g) {
+    final e = goalExpected(g);
+    if (e == null) return null;
+    final d = goalProgress(g) - e;
+    if (d > 0.1) return 'ahead';
+    if (d < -0.1) return 'behind';
+    return 'on track';
+  }
+
+  /// Days since the goal was last measured or a milestone moved (or since
+  /// it was set).
+  int daysSinceGoalUpdate(LogEntry g) {
+    final v = goalValues(g.id);
+    final last = v.isEmpty ? g.date : v.last.date;
+    return dayOnly(_now).difference(dayOnly(last)).inDays;
+  }
+
+  /// Active numeric goals not measured for 14+ days.
+  List<LogEntry> get goalsToMeasure => [
+        for (final g in activeGoals)
+          if (goalIsNumeric(g) && daysSinceGoalUpdate(g) >= 14) g
+      ];
+
+  /// One line per active goal for the brief.
+  List<String> goalSummaries() => [
+        for (final g in activeGoals)
+          '${g.text}: ${(goalProgress(g) * 100).round()}% done'
+              '${goalExpected(g) == null ? '' : ', ${(goalExpected(g)! * 100).round()}% of the time used (${goalPace(g)})'}'
+              '${(g.str('obstacle') ?? '').isEmpty ? '' : '. Obstacle: ${g.str('obstacle')}'}'
+              '${(g.str('plan') ?? '').isEmpty ? '' : '. Plan: ${g.str('plan')}'}'
+      ];
 
   // ── Growth plan ──────────────────────────────────────────────────────
 

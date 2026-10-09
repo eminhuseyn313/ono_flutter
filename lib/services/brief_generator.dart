@@ -49,6 +49,9 @@ class BriefInput {
   /// Self-coaching commitments past their date and not yet kept.
   final List<String> openCommitments;
 
+  /// Active goals: progress vs time used, pace, obstacle and plan.
+  final List<String> goals;
+
   /// Who the brief is for: names, roles, key people and coach context.
   final Profile profile;
 
@@ -81,10 +84,12 @@ class BriefInput {
     this.valueGap,
     this.openCommitments = const [],
     this.profile = activeProfile,
+    this.goals = const [],
   });
 
   Map<String, dynamic> toJson() => {
         'profile': profile.toJson(),
+        'goals': goals,
         'report': report.toJson(),
         'for_week': dateKey(forWeek),
         'program_month': programMonth,
@@ -210,6 +215,7 @@ class DeviceBriefGenerator implements BriefGenerator {
             '3. In the room: sigh ×3 beforehand, say "I am excited", still body, one breath before every answer, downward inflection.\n'
             '4. Afterwards: log what held and what didn\'t; if it went well, it goes in the Evidence Archive.';
 
+    final behind = input.goals.where((g) => g.contains('(behind)')).toList();
     final adjustments = <String>[
       if (input.growthFocus == null)
         'No growth area this month. Pick one in the Growth plan — the gap you most want closed — and practise it on real work.',
@@ -233,6 +239,10 @@ class DeviceBriefGenerator implements BriefGenerator {
         'Shoulders flagged on ${input.shoulderFlagDays} mornings. Keep the shoulder-sparing sessions and bring the check-in log to your rheumatologist.',
       if (input.avgSleep != null && input.avgSleep! < 7)
         'Average sleep ${input.avgSleep!.toStringAsFixed(1)} h. Protect 22:30 before adding anything else — sleep sets tomorrow\'s mind.',
+      if (input.goals.isEmpty)
+        'No goals set. Name the one outcome that would make the next six months a success — and the obstacle most likely to stop you.',
+      if (behind.isNotEmpty)
+        'Behind on ${behind.first.split(':').first}. Read your if-then plan again and make next week\'s Big 3 move it.',
       if (input.valueGap != null)
         'This week reflected ${input.valueGap} least. Name one moment next week where you\'ll choose it on purpose.',
       if (input.openCommitments.isNotEmpty)

@@ -257,6 +257,23 @@ void main() {
             Drill('Phone-free dinner', 'Both phones in another room at dinner.',
                 'You talked about something other than logistics.'),
           ]));
+      // Goals: one numeric with measurements, one with milestones.
+      final run = system.saveGoal(
+          title: 'Run a half marathon under 1 hour 50 minutes, without aggravating my shoulders',
+          why: 'Prove I can train seriously alongside a demanding job',
+          obstacle: 'I skip runs when work runs late',
+          plan: 'If work runs late, then I run at 6:30 the next morning',
+          identity: 'I am someone who trains in any week',
+          deadline: today.add(const Duration(days: 120)),
+          unit: 'min',
+          start: 125,
+          target: 109)!;
+      system.logGoalValue(run.id, 121, date: today.subtract(const Duration(days: 10)));
+      system.logGoalValue(run.id, 118);
+      final roleGoal = system.saveGoal(
+          title: 'Become ${activeProfile.targetRole}',
+          deadline: today.add(const Duration(days: 270)),
+          milestones: ['Own one area end to end', 'Promotion conversation']);
       // A self-coaching commitment due today: Today and /coach show it.
       system.logCoaching(
           goal: 'Be seen as the owner of Business ID onboarding end to end',
@@ -396,6 +413,21 @@ void main() {
         errors.add('$e');
       }
       if (errors.isNotEmpty) failures['/values saved'] = errors.toSet();
+
+      // Goal detail pages, numeric and milestones.
+      errors.clear();
+      try {
+        await _go(tester, '/goals/view?id=${run.id}');
+        if (find.text('In the way, and your plan').evaluate().isEmpty) {
+          errors.add('numeric goal did not render');
+        }
+        await _go(tester, '/goals/view?id=${roleGoal!.id}');
+        await _go(tester, '/goals/edit?id=${run.id}');
+        await _go(tester, '/home');
+      } catch (e) {
+        errors.add('$e');
+      }
+      if (errors.isNotEmpty) failures['/goals/view'] = errors.toSet();
 
       // Me: the seeded caffeine cut-offs show as a pattern.
       await _go(tester, '/profile');
