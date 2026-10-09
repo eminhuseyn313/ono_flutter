@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:ono/data/emin_system.dart';
 import 'package:ono/data/growth_templates.dart';
+import 'package:ono/data/life_wheel.dart';
 import 'package:ono/gateways/mock_auth_gateway.dart';
 import 'package:ono/gateways/mock_personal_system_gateway.dart';
 import 'package:ono/providers/auth_provider.dart';
@@ -1177,6 +1178,7 @@ void main() {
     // _today is a Friday.
     expect(_today.weekday, DateTime.friday);
     expect(p.noteDue(_today), isFalse, reason: 'nothing to report yet');
+    expect(p.progressNoteText(_today, to: 'Ali'), contains('What moved this week'));
     p.saveGoal(title: 'Savings', unit: 'AZN', start: 0, target: 1000,
         deadline: dayOnly(_today).add(const Duration(days: 100)));
     p.setWeekOutcome(_today, 0, 'Ship the OST draft');
@@ -1219,5 +1221,48 @@ void main() {
       createdAt: _today,
     ));
     expect(brief!.adjustments.join(' '), contains('1 setback met with a next step'));
+  });
+
+  test('quarterly review: 90-day quarters, due window, wheel, goal decisions',
+      () async {
+    final p = await _commissioned(briefs: DeviceBriefGenerator());
+    // _start = 1 Sep, _today = 2 Oct: day 32, quarter 1, not due.
+    expect(p.programQuarter, 1);
+    expect(p.quarterReviewDue, isFalse);
+    // Day 85: inside the last week of quarter 1.
+    p.clock = () => _start.add(const Duration(days: 84, hours: 12));
+    expect(p.quarterReviewDue, isTrue);
+    expect(p.quarterToReview, 1);
+    // Day 93: the first days of quarter 2 still close quarter 1.
+    p.clock = () => _start.add(const Duration(days: 92, hours: 12));
+    expect(p.programQuarter, 2);
+    expect(p.quarterToReview, 1);
+    expect(p.quarterReviewDue, isTrue);
+
+    final g = p.saveGoal(title: 'Savings', start: 0, target: 100)!;
+    final keep = p.saveGoal(title: 'Run', start: 30, target: 25)!;
+    p.saveQuarterReview(1,
+        wheel: {for (final a in lifeAreas) a.id: 7, 'money': 3},
+        wins: 'Shipped the OST',
+        lessons: 'I overcommit in week 1',
+        goalDecisions: {g.id: 'drop', keep.id: 'keep'},
+        nextFocus: 'Sleep and savings');
+    expect(p.quarterReviewDue, isFalse);
+    expect(p.goalById(g.id)!.str('status'), 'dropped');
+    expect(p.activeGoals.single.id, keep.id);
+    expect(p.lowestLifeArea!.id, 'money');
+    expect(p.latestWheel['money'], 3);
+    // Saving again replaces the quarter's review.
+    p.saveQuarterReview(1, wheel: {for (final a in lifeAreas) a.id: 6});
+    expect(p.logsOf('quarterly_review').length, 1);
+    p.clock = () => _today;
+  });
+
+  test('life wheel: eight general areas, each with a matching template', () {
+    expect(lifeAreas.length, 8);
+    final ids = areaTemplates.map((t) => t.id).toSet();
+    for (final a in lifeAreas) {
+      expect(ids, contains(a.template), reason: a.id);
+    }
   });
 }

@@ -79,7 +79,7 @@ Bottom tabs: **Today** `/home` · **Program** `/program?tab=0..3` (Journey/Sched
 ```
 /splash /welcome /sign-up /sign-in /forgot-password /commission
 /manifesto /protocols /evidence /library /style /career /weekly-coaching /checkin /plans /review /habits /cockpit(?tab=0..2)
-/shutdown /focus /letters /week /people /growth /values /coach /case /growth/area(?id=|template=) /goals /goals/edit /goals/view?id= /note /setback
+/shutdown /focus /letters /week /people /growth /values /coach /case /growth/area(?id=|template=) /goals /goals/edit /goals/view?id= /note /setback /quarter
 /ritual-flow/:ritualId /gym /gym/:dayId (push|pull|legs) /month/:m (1–18)
 /tool/:id  sigh excited pause still bluf sixq read feynman scan pennebaker anki artifact(?month=) linkedin
 ```
@@ -163,6 +163,7 @@ Flow:
   - Today's Goals card sits above the growth card; the profile suggests "Become <targetRole>"; `goalSummaries()` feed the brief.
 - **Progress note** (`/note`): `progressNoteText(week, to:, ask:)` from goals, the Big 3, the growth area's reps and lesson, and wins; editable; "Copy and mark sent" writes a `progress_note` log (ONO never sends anything). Defaults to the profile's primary person. `noteDue` (Fri–Sun, something to report, not sent) prompts on Today; the brief gets `noteSent`.
 - **Setback protocol** (`/setback`): kindness, facts, smallest next step → `setback` log; the next step fills today's first empty priority. Offered on the recovery card and Me; the brief counts `setbacksInWeek`.
+- **Quarterly review** (`/quarter`): `programQuarter` = 90-day blocks (1–6). `quarterReviewDue` from the last 7 days of a quarter to the first 7 of the next (`quarterToReview`). A `quarterly_review` log per quarter: life wheel (`lifeAreas` in `lib/data/life_wheel.dart`, 8 general areas rated 1–10, each mapped to a growth template), wins, lessons, goal decisions (keep/achieved/drop applied to goals), next focus. `lowestLifeArea` suggests a growth area and goes to the brief.
 - **Growth plan** (`/growth`), the main development thread:
   - `growthAreas` in `emin_system.dart`: the 5 Head of Product readiness dimensions plus 3 personal areas from his diagnosis (self-trust, composure under pressure, public voice). Each has a `bar`, a feedback `ask` and 5 `Drill`s (how + signal) tied to his real job.
   - One `growth_focus` log per program month (`area`, `start`, `end` ratings 1–5). `setFocus`/`rateFocusEnd`/`focusRatings`; `suggestedArea` = the readiness gap.

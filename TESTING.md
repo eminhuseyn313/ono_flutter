@@ -124,6 +124,10 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] On a recovery day: **Reset in 3 minutes** → kindness, what happened, smallest next step → it appears in today's priorities
 - [ ] Me → **It slipped — reset** works any time
 
+## 2p. New: quarterly review
+- [ ] Me → **Quarterly review** (Today prompts it in the last week of each 90-day quarter) → rate the 8 life areas → the lowest suggests a growth area template
+- [ ] Wins, lessons, keep / achieved / drop for each goal, the focus for the next quarter → **Close the quarter**
+
 ## 3. Tools & logging
 - [ ] Morning ritual (from Today before 11:00): 5 steps → finishing ticks the manifesto
 - [ ] Sigh tool: run it → "uses" and mastery level go up; the sigh item is ticked

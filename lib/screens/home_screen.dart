@@ -916,6 +916,9 @@ class _Prompts extends StatelessWidget {
         _row(context, Icons.balance_rounded, AppColors.accent,
             'Decision review due',
             '"${reviews.first.text}" — was the call right?', '/cockpit?tab=1'),
+      if (system.quarterReviewDue)
+        _row(context, Icons.donut_large_rounded, AppColors.accent,
+            'Quarterly review', 'Quarter ${system.quarterToReview} ends — 15 minutes to look at your whole life', '/quarter'),
       if (system.noteDue(now))
         _row(context, Icons.send_rounded, AppColors.social,
             'Send your progress note', 'Five lines to ${activeProfile.manager.isEmpty ? 'one person' : activeProfile.manager} — written for you from this week', '/note'),

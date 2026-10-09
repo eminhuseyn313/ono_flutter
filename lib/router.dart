@@ -30,6 +30,7 @@ import 'screens/people_screen.dart';
 import 'screens/plans_screen.dart';
 import 'screens/program_screen.dart';
 import 'screens/protocols_screen.dart';
+import 'screens/quarter_screen.dart';
 import 'screens/review_screen.dart';
 import 'screens/ritual_flow_screen.dart';
 import 'screens/setback_screen.dart';
@@ -89,6 +90,7 @@ const appRoutes = [
   '/goals',
   '/note',
   '/setback',
+  '/quarter',
   '/goals/edit',
   '/growth/area',
   '/growth/area?template=t_strength',
@@ -152,6 +154,7 @@ GoRouter createRouter(AuthProvider authProvider,
       _slide('/goals', (_) => const GoalsScreen()),
       _slide('/note', (_) => const NoteScreen()),
       _slide('/setback', (_) => const SetbackScreen()),
+      _slide('/quarter', (_) => const QuarterScreen()),
       _slide(
           '/goals/edit',
           (s) => GoalEditScreen(

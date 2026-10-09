@@ -58,6 +58,9 @@ class BriefInput {
   /// Setbacks met with the protocol this week.
   final int setbacks;
 
+  /// The lowest area on the latest quarterly life wheel, e.g. "Money (4/10)".
+  final String? lowestLifeArea;
+
   /// Who the brief is for: names, roles, key people and coach context.
   final Profile profile;
 
@@ -93,6 +96,7 @@ class BriefInput {
     this.goals = const [],
     this.noteSent = false,
     this.setbacks = 0,
+    this.lowestLifeArea,
   });
 
   Map<String, dynamic> toJson() => {
@@ -100,6 +104,7 @@ class BriefInput {
         'goals': goals,
         'progress_note_sent': noteSent,
         'setbacks_handled': setbacks,
+        'lowest_life_area': lowestLifeArea,
         'report': report.toJson(),
         'for_week': dateKey(forWeek),
         'program_month': programMonth,

@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 
 import '../data/emin_system.dart';
+import '../data/life_wheel.dart';
 import '../gateways/personal_system_gateway.dart';
 import '../models/personal_system.dart';
 import '../services/brief_generator.dart';
@@ -1195,6 +1196,9 @@ class PersonalSystemProvider extends ChangeNotifier {
         goals: goalSummaries(),
         noteSent: noteSentInWeek(report.weekStart),
         setbacks: setbacksInWeek(report.weekStart),
+        lowestLifeArea: lowestLifeArea == null
+            ? null
+            : '${lowestLifeArea!.name} (${latestWheel[lowestLifeArea!.id]}/10)',
         growthFocus: focusArea()?.name,
         growthDrill: focusArea() == null
             ? null
@@ -1808,6 +1812,11 @@ class PersonalSystemProvider extends ChangeNotifier {
       }
       b.writeln();
     }
+    final header = to.trim().isEmpty ? 'My week' : 'Hi ${to.trim()} — my week:';
+    if (b.toString().trim() == header) {
+      b.writeln('• What moved this week: …');
+      b.writeln();
+    }
     if (ask.trim().isNotEmpty) {
       b.writeln('Where you could help: ${ask.trim()}');
     }
@@ -1851,6 +1860,83 @@ class PersonalSystemProvider extends ChangeNotifier {
   int setbacksInWeek(DateTime anyDay) {
     final week = weekStartOf(anyDay);
     return countBetween('setback', week, week.add(const Duration(days: 7)));
+  }
+
+  // ── Quarterly review ─────────────────────────────────────────────────
+
+  /// 90-day quarters of the program: 1 = days 1–90, … 6 = days 451–540.
+  int get programQuarter => hasStarted ? ((programDay - 1) ~/ 90) + 1 : 1;
+
+  DateTime quarterStart(int q) =>
+      programStart.add(Duration(days: (q - 1) * 90));
+
+  LogEntry? reviewFor(int quarter) {
+    for (final l in logsOf('quarterly_review')) {
+      if (l.number('quarter') == quarter) return l;
+    }
+    return null;
+  }
+
+  /// The quarter a review now would close: in the first 7 days of a
+  /// quarter that's the previous one; otherwise the current one.
+  int get quarterToReview {
+    final day = dayOnly(_now).difference(quarterStart(programQuarter)).inDays;
+    return day < 7 && programQuarter > 1 ? programQuarter - 1 : programQuarter;
+  }
+
+  /// From the last 7 days of a quarter to the first 7 of the next, until
+  /// that quarter has a review.
+  bool get quarterReviewDue {
+    if (!hasStarted) return false;
+    final q = quarterToReview;
+    if (reviewFor(q) != null) return false;
+    final end = quarterStart(q + 1);
+    final left = end.difference(dayOnly(_now)).inDays;
+    return left <= 7 && left > -7;
+  }
+
+  /// Saves the quarter's review: life wheel 1–10, wins, lessons, what
+  /// happens to each goal, and the focus for the next quarter.
+  void saveQuarterReview(int quarter,
+      {required Map<String, int> wheel,
+      String wins = '',
+      String lessons = '',
+      Map<String, String> goalDecisions = const {},
+      String nextFocus = ''}) {
+    for (final e in goalDecisions.entries) {
+      if (e.value == 'drop') setGoalStatus(e.key, 'dropped');
+      if (e.value == 'achieved') setGoalStatus(e.key, 'achieved');
+    }
+    final data = {
+      'quarter': quarter,
+      'wheel': wheel,
+      'wins': wins.trim(),
+      'lessons': lessons.trim(),
+      'goals': goalDecisions,
+      'next': nextFocus.trim(),
+    };
+    final existing = reviewFor(quarter);
+    if (existing == null) {
+      addLog('quarterly_review', text: nextFocus.trim(), data: data);
+    } else {
+      updateLog(existing.copyWith(text: nextFocus.trim(), data: data));
+    }
+  }
+
+  /// The latest life wheel ratings, or empty.
+  Map<String, int> get latestWheel {
+    final l = logsOf('quarterly_review');
+    if (l.isEmpty) return const {};
+    return (l.first.data['wheel'] as Map? ?? const {})
+        .map((k, v) => MapEntry('$k', (v as num).toInt()));
+  }
+
+  /// The lowest-rated life area in the latest wheel.
+  LifeArea? get lowestLifeArea {
+    final w = latestWheel;
+    if (w.isEmpty) return null;
+    final low = w.entries.reduce((a, b) => a.value <= b.value ? a : b);
+    return lifeAreas.where((a) => a.id == low.key).firstOrNull;
   }
 
   // ── Growth plan ──────────────────────────────────────────────────────

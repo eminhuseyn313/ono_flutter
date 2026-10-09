@@ -262,6 +262,16 @@ class MeScreen extends StatelessWidget {
               ),
               const Divider(indent: 66),
               LinkRow(
+                icon: Icons.donut_large_rounded,
+                color: AppColors.accent,
+                title: 'Quarterly review',
+                subtitle: system.lowestLifeArea == null
+                    ? 'Life wheel, wins, lessons, next 90 days'
+                    : 'Lowest last time: ${system.lowestLifeArea!.name}',
+                onTap: () => context.push('/quarter'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
                 icon: Icons.send_rounded,
                 color: AppColors.social,
                 title: 'Progress note',
