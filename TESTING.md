@@ -132,6 +132,10 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] Me → Settings → **Your profile** → change e.g. the organisation or add a key person → Save → Today greets you by first name, Career and Me show the new details, People offers to add the new person, the progress note defaults to the primary person
 - [ ] **Reset to the original profile** brings everything back
 
+## 2r. New: a calmer Today
+- [ ] Today shows the time-of-day action, at most two next steps (tap "N more for today" for the rest), then the Daily 10 and three priorities
+- [ ] **Your plan** shows one summary line (goals · growth area · week · meetings); tap to open goals, growth, the week, meetings, inputs and body — it stays open next time
+
 ## 3. Tools & logging
 - [ ] Morning ritual (from Today before 11:00): 5 steps → finishing ticks the manifesto
 - [ ] Sigh tool: run it → "uses" and mastery level go up; the sigh item is ticked

@@ -164,10 +164,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   _CheckinCard(now: _now),
                 ],
               ],
-              if (brief != null && !_yesterday) ...[
-                const SizedBox(height: 12),
-                _BriefCard(brief: brief),
-              ],
               if (!_yesterday &&
                   system.hasStarted &&
                   system.isRecoveryDay) ...[
@@ -177,11 +173,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         today.subtract(const Duration(days: 1))),
                     streak: system.streak),
               ],
-              if (!_yesterday && system.hasStarted) const _GoalsCard(),
-              if (!_yesterday && system.hasStarted) _GrowthCard(now: _now),
               if (!_yesterday && system.hasStarted) _Prompts(now: _now),
-              if (!_yesterday && system.hasStarted) _WeekCard(now: _now),
-              if (!_yesterday) _MeetingsCard(now: _now),
               SectionHeader('Daily 10',
                   action: 'If-then plans',
                   onAction: () => context.push('/plans')),
@@ -194,13 +186,25 @@ class _HomeScreenState extends State<HomeScreen> {
                 date: date,
                 review: _mode == _Mode.evening || _yesterday,
               ),
-              if (!_yesterday) ...[
-                const SectionHeader('Today\'s inputs'),
-                _InputsStrip(date: today, month: system.programMonth),
-                const SectionHeader('Body'),
-                _BodyCard(date: today),
-                const SectionHeader('Carry this'),
-                _CoachNote(day: system.programDay),
+              // Everything that isn't today's next action: one tap away.
+              if (!_yesterday && system.hasStarted) ...[
+                _PlanToggle(now: _now),
+                if (system.isDone(_planOpenKey)) ...[
+                  const _GoalsCard(),
+                  _GrowthCard(now: _now),
+                  _WeekCard(now: _now),
+                  _MeetingsCard(now: _now),
+                  if (brief != null) ...[
+                    const SizedBox(height: 12),
+                    _BriefCard(brief: brief),
+                  ],
+                  const SectionHeader('Today\'s inputs'),
+                  _InputsStrip(date: today, month: system.programMonth),
+                  const SectionHeader('Body'),
+                  _BodyCard(date: today),
+                  const SectionHeader('Carry this'),
+                  _CoachNote(day: system.programDay),
+                ],
               ],
             ],
           ),
@@ -641,6 +645,63 @@ class _FreshStartCard extends StatelessWidget {
   }
 }
 
+const _planOpenKey = 'today:plan_open';
+
+/// "Your plan": goals, growth, the week, meetings and inputs, collapsed to
+/// one summary line until opened. Today remembers the choice.
+class _PlanToggle extends StatelessWidget {
+  final DateTime now;
+  const _PlanToggle({required this.now});
+
+  @override
+  Widget build(BuildContext context) {
+    final system = context.watch<PersonalSystemProvider>();
+    final open = system.isDone(_planOpenKey);
+    final (done, set) = system.weekOutcomeScore(now);
+    final meetings = system
+        .meetingsFor(now)
+        .where(PersonalSystemProvider.isRealMeeting)
+        .length;
+    final summary = [
+      if (system.activeGoals.isNotEmpty)
+        '${system.activeGoals.length} goal${system.activeGoals.length == 1 ? '' : 's'}',
+      if (system.focusArea() != null) system.focusArea()!.name,
+      if (set > 0) 'week $done/$set',
+      if (meetings > 0) '$meetings meeting${meetings == 1 ? '' : 's'}',
+    ].join(' · ');
+    return Padding(
+      padding: const EdgeInsets.only(top: 22),
+      child: OnoCard(
+        key: const Key('plan-toggle'),
+        padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+        onTap: () => system.setDone(_planOpenKey, !open),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('YOUR PLAN', style: AppText.eyebrow()),
+                  const SizedBox(height: 2),
+                  Text(
+                      summary.isEmpty
+                          ? 'Goals, growth, the week, inputs'
+                          : summary,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppText.body(color: AppColors.white)),
+                ],
+              ),
+            ),
+            Icon(open ? Icons.expand_less_rounded : Icons.expand_more_rounded,
+                color: AppColors.grey),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// The active goals, compact: everything else on Today serves these.
 class _GoalsCard extends StatelessWidget {
   const _GoalsCard();
@@ -649,21 +710,7 @@ class _GoalsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
     final goals = system.activeGoals;
-    if (goals.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.only(top: 12),
-        child: OnoCard(
-          padding: EdgeInsets.zero,
-          child: LinkRow(
-            icon: Icons.flag_circle_outlined,
-            color: AppColors.accent,
-            title: 'Set your first goal',
-            subtitle: 'The outcome everything else here serves',
-            onTap: () => context.push('/goals'),
-          ),
-        ),
-      );
-    }
+    if (goals.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -688,22 +735,7 @@ class _GrowthCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
     final area = system.focusArea();
-    if (area == null) {
-      return Padding(
-        padding: const EdgeInsets.only(top: 12),
-        child: OnoCard(
-          accent: AppColors.accent,
-          padding: EdgeInsets.zero,
-          child: LinkRow(
-            icon: Icons.trending_up_rounded,
-            color: AppColors.accent,
-            title: 'What are you growing this month?',
-            subtitle: 'Suggested: ${system.suggestedArea.name}',
-            onTap: () => context.push('/growth'),
-          ),
-        ),
-      );
-    }
+    if (area == null) return const SizedBox.shrink();
     final drill = system.drillFor(area, now);
     final reps = system.repsIn(area.id, system.programMonth).length;
     return Padding(
@@ -902,16 +934,36 @@ class _MeetingRow extends StatelessWidget {
 
 /// What's waiting on you: decisions to review, 1:1 follow-ups, and the
 /// monthly habit and readiness checks.
-class _Prompts extends StatelessWidget {
+class _Prompts extends StatefulWidget {
   final DateTime now;
   const _Prompts({required this.now});
 
   @override
+  State<_Prompts> createState() => _PromptsState();
+}
+
+class _PromptsState extends State<_Prompts> {
+  bool _all = false;
+
+  /// At most this many prompts show before "more": one or two clear next
+  /// steps beat a wall of cards (choice overload drives people away).
+  static const _visible = 2;
+
+  @override
   Widget build(BuildContext context) {
+    final now = widget.now;
     final system = context.watch<PersonalSystemProvider>();
     final reviews = system.dueDecisionReviews(now);
     final followUps = system.openFollowUps;
+    // Ranked: direction first, then what is due, then the rest.
     final cards = <Widget>[
+      if (system.activeGoals.isEmpty)
+        _row(context, Icons.flag_circle_outlined, AppColors.accent,
+            'Set your first goal', 'The outcome everything else here serves', '/goals'),
+      if (system.focusArea() == null)
+        _row(context, Icons.trending_up_rounded, AppColors.accent,
+            'What are you growing this month?',
+            'Suggested: ${system.suggestedArea.name}', '/growth'),
       if (reviews.isNotEmpty)
         _row(context, Icons.balance_rounded, AppColors.accent,
             'Decision review due',
@@ -956,8 +1008,20 @@ class _Prompts extends StatelessWidget {
     ];
     return Column(
       children: [
-        for (final c in cards) ...[const SizedBox(height: 12), c],
-        if (followUps.isNotEmpty) ...[
+        for (final c in _all ? cards : cards.take(_visible))
+          ...[const SizedBox(height: 12), c],
+        if (cards.length > _visible || (followUps.isNotEmpty && !_all))
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton(
+              key: const Key('prompts-more'),
+              onPressed: () => setState(() => _all = !_all),
+              child: Text(_all
+                  ? 'Show less'
+                  : '${(cards.length - _visible).clamp(0, 99) + (followUps.isEmpty ? 0 : 1)} more for today'),
+            ),
+          ),
+        if (followUps.isNotEmpty && _all) ...[
           const SizedBox(height: 12),
           OnoCard(
             padding: const EdgeInsets.fromLTRB(16, 12, 12, 4),

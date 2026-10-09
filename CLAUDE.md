@@ -93,6 +93,8 @@ Flow:
 
 ## Behaviour worth knowing
 - **Today** is time-aware: morning, work, evening and Sunday modes, plus a Yesterday/Today switch (the 48-hour edit window). Its Day Dial shows the schedule as lane arcs.
+  - Calm by design (choice overload drives people away): dial → fresh start → the mode card (one action now) → check-in → recovery → `_Prompts` (ranked: first goal, growth area, then what is due; only 2 visible, the rest behind "N more for today") → Daily 10 → three priorities.
+  - "Your plan" (`_PlanToggle`, done key `today:plan_open`, remembered) collapses goals, growth, the week, meetings, the brief, inputs, body and coach note into one summary line.
 - **Daily 10**: 7/10 holds the day. Tools tick their item:
   - sigh, bluf, pause, feynman, scan and read are ticked when the tool is used;
   - finishing the ritual ticks the manifesto;

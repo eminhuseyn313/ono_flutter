@@ -359,14 +359,30 @@ void main() {
       }
       if (errors.isNotEmpty) failures['/gym/push rest'] = errors.toSet();
 
-      // Today: the calendar's meetings, the key one with six-questions prep.
-      await _go(tester, '/home');
-      final prep = find.text('6 Qs');
-      for (var i = 0; i < 20 && prep.evaluate().isEmpty; i++) {
-        await tester.drag(find.byType(ListView).first, const Offset(0, -300));
-        await tester.pump(const Duration(milliseconds: 100));
+      // Today starts calm: "Your plan" collapsed. Opened, it shows the
+      // calendar's meetings with six-questions prep for the key one.
+      errors.clear();
+      try {
+        system.setDone('today:plan_open', false);
+        await _go(tester, '/home');
+        final prep = find.text('6 Qs', skipOffstage: false);
+        if (prep.evaluate().isNotEmpty) errors.add('plan should start collapsed');
+        system.setDone('today:plan_open', true);
+        await _pumpFor(tester, const Duration(milliseconds: 500));
+        for (var i = 0; i < 25 && find.text('6 Qs').evaluate().isEmpty; i++) {
+          await tester.drag(find.byType(ListView).first, const Offset(0, -300));
+          await tester.pump(const Duration(milliseconds: 100));
+        }
+        if (find.text('6 Qs').evaluate().isEmpty) errors.add('no meetings card');
+        // The rest of the plan scrolls into view without layout errors.
+        for (var i = 0; i < 15; i++) {
+          await tester.drag(find.byType(ListView).first, const Offset(0, -400));
+          await tester.pump(const Duration(milliseconds: 100));
+        }
+      } catch (e) {
+        errors.add('$e');
       }
-      if (prep.evaluate().isEmpty) failures['/home meetings'] = {'no meetings card'};
+      if (errors.isNotEmpty) failures['/home plan'] = errors.toSet();
 
       // Growth plan with an area, a rep and feedback: the plan view renders.
       errors.clear();
