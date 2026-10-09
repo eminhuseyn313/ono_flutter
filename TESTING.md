@@ -161,6 +161,11 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] While it runs: day X of N and the measure before vs during (morning check-ins feed energy, mood and sleep)
 - [ ] When it ends Today asks **keep or drop?**
 
+## 2x. New: planned rest
+- [ ] Me → **Plan your rest** → Rest day / Lighter week / Holiday → This Saturday or pick dates → Plan it
+- [ ] On a planned rest day Today says rest is part of the plan and asks whether you switched off; the streak isn't broken by the day
+- [ ] With nothing planned in 8 weeks, the Sunday brief suggests planning rest
+
 ## 3. Tools & logging
 - [ ] Morning ritual (from Today before 11:00): 5 steps → finishing ticks the manifesto
 - [ ] Sigh tool: run it → "uses" and mastery level go up; the sigh item is ticked

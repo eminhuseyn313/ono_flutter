@@ -1457,4 +1457,28 @@ void main() {
     expect(p.experimentsToClose, isEmpty);
     p.clock = () => _today;
   });
+
+  test('recovery: planned rest never breaks the streak; brief nudges', () async {
+    final p = await _commissioned(briefs: DeviceBriefGenerator());
+    // Held 5 days, then two days off (planned), then held today.
+    for (var i = 7; i >= 3; i--) {
+      _hold(p, _daysAgo(i));
+    }
+    expect(p.restPlannedSoon, isFalse);
+    p.planRest('day', _daysAgo(2), _daysAgo(1), note: 'Family weekend');
+    _hold(p, dayOnly(_today));
+    expect(p.isRestDay(_daysAgo(1)), isTrue);
+    expect(p.streak, 6, reason: 'rest days are neither held nor missed');
+    expect(p.isRecoveryDay, isFalse);
+    // A lighter week still counts days.
+    final light = p.planRest('light', dayOnly(_today).add(const Duration(days: 7)),
+        dayOnly(_today).add(const Duration(days: 13)))!;
+    expect(p.isRestDay(dayOnly(_today).add(const Duration(days: 8))), isFalse);
+    expect(p.restPlannedSoon, isTrue);
+    expect(p.planRest('day', dayOnly(_today), _daysAgo(1)), isNull,
+        reason: 'end before start');
+    p.removeRest(light.id);
+    p.logDetachment(_daysAgo(1), 3);
+    expect(p.detachmentOn(_daysAgo(1)), 3);
+  });
 }

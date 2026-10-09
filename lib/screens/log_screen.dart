@@ -21,7 +21,7 @@ class LogScreen extends StatefulWidget {
 
 const _filters = <String, Set<String>?>{
   'All': null,
-  'Growth': {'rep', 'feedback', 'growth_focus', 'coaching', 'affirmation', 'values_check', 'goal_value', 'progress_note', 'setback', 'quarterly_review', 'learning', 'experiment'},
+  'Growth': {'rep', 'feedback', 'growth_focus', 'coaching', 'affirmation', 'values_check', 'goal_value', 'progress_note', 'setback', 'quarterly_review', 'learning', 'experiment', 'rest', 'detach'},
   'Notes': {'feynman', 'scan', 'pennebaker', 'note', 'win', 'month_review', 'shutdown'},
   'Protocols': {'sigh', 'excited', 'bluf', 'sixq', 'pause', 'still', 'ritual', 'read', 'anki'},
   'Body': {'weight', 'protein', 'gym', 'blood', 'checkin', 'sleep', 'vitals'},
@@ -275,6 +275,8 @@ class _EntryRow extends StatelessWidget {
     'quarterly_review': (Icons.donut_large_rounded, 'mind', 'Quarterly review'),
     'learning': (Icons.school_outlined, 'skill', 'Learning'),
     'experiment': (Icons.science_outlined, 'mind', 'Experiment'),
+    'rest': (Icons.beach_access_outlined, 'body', 'Rest planned'),
+    'detach': (Icons.power_settings_new_rounded, 'mind', 'Switched off'),
     'setback': (Icons.replay_rounded, 'mind', 'Setback, reset'),
     'affirmation': (Icons.diamond_outlined, 'mind', 'Values affirmation'),
     'values_check': (Icons.diamond_outlined, 'mind', 'Values check'),
@@ -329,6 +331,10 @@ class _EntryRow extends StatelessWidget {
       case 'focus':
         final t = e.str('target');
         return '${e.number('minutes')} min${t == 'artifact' ? ' · artifact' : t == 'skill' ? ' · skill' : ''}';
+      case 'rest':
+        return '${e.str('kind') == 'light' ? 'Lighter week' : e.str('kind') == 'holiday' ? 'Holiday' : 'Rest day'} · ${e.str('from')}${e.str('to') == e.str('from') ? '' : ' → ${e.str('to')}'}';
+      case 'detach':
+        return const ['', 'Not really', 'Partly', 'Fully'][(e.number('level') ?? 0).toInt().clamp(0, 3)];
       case 'experiment':
         return '${e.text} · ${e.str('status') ?? 'running'}';
       case 'learning':

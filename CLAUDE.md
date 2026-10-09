@@ -82,7 +82,7 @@ Bottom tabs: **Today** `/home` · **Program** `/program?tab=0..3` (Journey/Sched
 ```
 /splash /welcome /sign-up /sign-in /forgot-password /commission
 /manifesto /protocols /evidence /library /style /career /weekly-coaching /checkin /plans /review /habits /cockpit(?tab=0..2)
-/shutdown /focus /letters /week /people /growth /values /coach /case /growth/area(?id=|template=) /goals /goals/edit /goals/view?id= /note /setback /quarter /profile/edit /daily /learning /experiments
+/shutdown /focus /letters /week /people /growth /values /coach /case /growth/area(?id=|template=) /goals /goals/edit /goals/view?id= /note /setback /quarter /profile/edit /daily /learning /experiments /rest
 /ritual-flow/:ritualId /gym /gym/:dayId (push|pull|legs) /month/:m (1–18)
 /tool/:id  sigh excited pause still bluf sixq read feynman scan pennebaker anki artifact(?month=) linkedin
 ```
@@ -100,6 +100,7 @@ Flow:
   - sigh, bluf, pause, feynman, scan and read are ticked when the tool is used;
   - finishing the ritual ticks the manifesto;
   - protein ticks itself at 150 g.
+- **Recovery planning** (`/rest`): `rest` logs (kind day/light/holiday from `restKinds`, `from`, `to`, note). `isRestDay` (day or holiday, not a lighter week) is neutral in the streak and suppresses the recovery card; Today shows `_RestCard` with a detachment question (`detach` log, 1–3). `restPlannedSoon` (next 8 weeks) → the brief suggests planning rest if false.
 - **Streak, "never miss twice"** (`_streaks` in the provider):
   - one day under 7 is forgiven if the next day is held (or is today, still open);
   - at most one forgiven day per 7 days;

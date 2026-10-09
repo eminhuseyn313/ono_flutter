@@ -58,6 +58,9 @@ class BriefInput {
   /// Setbacks met with the protocol this week.
   final int setbacks;
 
+  /// Whether rest is planned (or running) within the next 8 weeks.
+  final bool restPlanned;
+
   /// Personal experiments: change, status, measure before → during.
   final List<String> experiments;
 
@@ -111,6 +114,7 @@ class BriefInput {
     this.lowestLifeArea,
     this.learningApplied = const [],
     this.experiments = const [],
+    this.restPlanned = true,
     this.itemTitles = const {},
     this.itemCount = 10,
   }) : profile = profile ?? activeProfile;
@@ -123,6 +127,7 @@ class BriefInput {
         'lowest_life_area': lowestLifeArea,
         'learning_applied': learningApplied,
         'experiments': experiments,
+        'rest_planned_next_8_weeks': restPlanned,
         'report': report.toJson(),
         'for_week': dateKey(forWeek),
         'program_month': programMonth,
@@ -282,6 +287,8 @@ class DeviceBriefGenerator implements BriefGenerator {
         'No goals set. Name the one outcome that would make the next six months a success — and the obstacle most likely to stop you.',
       if (behind.isNotEmpty)
         'Behind on ${behind.first.split(':').first}. Read your if-then plan again and make next week\'s Big 3 move it.',
+      if (!input.restPlanned)
+        'No rest planned in the next eight weeks. Put one full rest day — or a lighter week — in the plan now, before the calendar decides for you.',
       if (input.goals.isNotEmpty && !input.noteSent)
         'No progress note went out this week. Friday: five lines to ${input.profile.manager.isEmpty ? 'one person you trust' : input.profile.manager} — reported progress moves goals faster than private tracking.',
       if (input.setbacks > 0)

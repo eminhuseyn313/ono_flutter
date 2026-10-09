@@ -58,7 +58,7 @@ Status: ⬜ to do · 🟨 in progress · ✅ done. Effort: S = days, M = a week,
 | 9 | Learning queue with "apply it" | M | ✅ |
 | 10 | Relationship rituals in People | S | ✅ |
 | 11 | Personal experiments | S | ✅ |
-| 12 | Recovery planning | S | ⬜ |
+| 12 | Recovery planning | S | ✅ |
 | 13 | Stop-doing list | S | ⬜ |
 | 14 | Gratitude letter | S | ⬜ |
 | 15 | Role models | S | ⬜ |

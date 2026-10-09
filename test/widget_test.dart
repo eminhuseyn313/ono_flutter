@@ -466,6 +466,26 @@ void main() {
       }
       if (errors.isNotEmpty) failures['/goals/view'] = errors.toSet();
 
+      // A planned rest day today: Today shows the rest card.
+      errors.clear();
+      try {
+        final rest = system.planRest('day', today, today,
+            note: 'Family day — long walk, no laptop, phone in the drawer')!;
+        await _go(tester, '/home');
+        final card = find.textContaining('Rest is part of the plan');
+        for (var i = 0; i < 10 && card.evaluate().isEmpty; i++) {
+          await tester.drag(find.byType(ListView).first, const Offset(0, -300));
+          await tester.pump(const Duration(milliseconds: 100));
+        }
+        if (card.evaluate().isEmpty) {
+          errors.add('no rest card');
+        }
+        system.removeRest(rest.id);
+      } catch (e) {
+        errors.add('$e');
+      }
+      if (errors.isNotEmpty) failures['rest day'] = errors.toSet();
+
       // Someone else entirely: a runner with no organisation and one coach.
       // Today, Me, goals, the note and the editor must still render.
       errors.clear();

@@ -295,6 +295,16 @@ class MeScreen extends StatelessWidget {
               ),
               const Divider(indent: 66),
               LinkRow(
+                icon: Icons.beach_access_outlined,
+                color: AppColors.body,
+                title: 'Plan your rest',
+                subtitle: system.restPlannedSoon
+                    ? 'Rest is in the plan'
+                    : 'Nothing planned in the next 8 weeks',
+                onTap: () => context.push('/rest'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
                 icon: Icons.replay_rounded,
                 color: AppColors.warning,
                 title: 'It slipped — reset',

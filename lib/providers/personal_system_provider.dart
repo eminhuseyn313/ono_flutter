@@ -322,6 +322,8 @@ class PersonalSystemProvider extends ChangeNotifier {
       if (held) {
         run++;
         prevMiss = false;
+      } else if (isRestDay(d)) {
+        // Planned rest: neither held nor missed.
       } else if (d == today) {
         // Today is still open — it can't break anything yet.
       } else if (!prevMiss &&
@@ -349,7 +351,10 @@ class PersonalSystemProvider extends ChangeNotifier {
     final today = dayOnly(_now);
     final yesterday = today.subtract(const Duration(days: 1));
     if (yesterday.isBefore(programStart)) return false;
-    return !isHeld(yesterday) && !isHeld(today);
+    return !isHeld(yesterday) &&
+        !isRestDay(yesterday) &&
+        !isHeld(today) &&
+        !isRestDay(today);
   }
 
   /// Days held in the current program month.
@@ -1265,6 +1270,7 @@ class PersonalSystemProvider extends ChangeNotifier {
         goals: goalSummaries(),
         noteSent: noteSentInWeek(report.weekStart),
         setbacks: setbacksInWeek(report.weekStart),
+        restPlanned: restPlannedSoon,
         experiments: [
           for (final e in [...experimentsWith('running'), ...experimentsWith('kept').take(2)])
             '${e.text} (${e.str('status')}, watching ${experimentMeasures[e.str('measure')] ?? e.str('measure')}'
@@ -2048,6 +2054,70 @@ class PersonalSystemProvider extends ChangeNotifier {
                   7)
             l
       ];
+
+  // ── Recovery planning ────────────────────────────────────────────────
+
+  static const restKinds = {
+    'day': 'Rest day',
+    'light': 'Lighter week',
+    'holiday': 'Holiday',
+  };
+
+  /// Planned rest, newest first: kind, from, to, note.
+  List<LogEntry> get restPlans => logsOf('rest');
+
+  LogEntry? planRest(String kind, DateTime from, DateTime to,
+      {String note = ''}) {
+    final a = dayOnly(from), b = dayOnly(to);
+    if (b.isBefore(a)) return null;
+    return addLog('rest', date: a, text: note.trim(), data: {
+      'kind': kind,
+      'from': dateKey(a),
+      'to': dateKey(b),
+    });
+  }
+
+  void removeRest(String id) {
+    final l = restPlans.where((r) => r.id == id);
+    if (l.isNotEmpty) removeLog(l.first.id);
+  }
+
+  LogEntry? restOn(DateTime day) {
+    final d = dayOnly(day);
+    for (final r in restPlans) {
+      final from = DateTime.tryParse(r.str('from') ?? '');
+      final to = DateTime.tryParse(r.str('to') ?? '');
+      if (from == null || to == null) continue;
+      if (!d.isBefore(from) && !d.isAfter(to)) return r;
+    }
+    return null;
+  }
+
+  /// A planned rest day or holiday (a lighter week still counts days).
+  bool isRestDay(DateTime day) {
+    final r = restOn(day);
+    return r != null && r.str('kind') != 'light';
+  }
+
+  /// Rest planned to start in the next 8 weeks (or running now).
+  bool get restPlannedSoon {
+    final today = dayOnly(_now);
+    final horizon = today.add(const Duration(days: 56));
+    return restPlans.any((r) {
+      final from = DateTime.tryParse(r.str('from') ?? '');
+      final to = DateTime.tryParse(r.str('to') ?? '');
+      return from != null && to != null && !to.isBefore(today) && !from.isAfter(horizon);
+    });
+  }
+
+  /// "Did you switch off from work today?" 1 = no, 2 = partly, 3 = fully.
+  void logDetachment(DateTime day, int level) =>
+      _upsertDayLog('detach', dayOnly(day), {'level': level});
+
+  int? detachmentOn(DateTime day) {
+    final l = logsOn(day, 'detach');
+    return l.isEmpty ? null : l.last.number('level')?.toInt();
+  }
 
   // ── Personal experiments ─────────────────────────────────────────────
 

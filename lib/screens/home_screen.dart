@@ -176,6 +176,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         today.subtract(const Duration(days: 1))),
                     streak: system.streak),
               ],
+              if (!_yesterday && system.isRestDay(today)) ...[
+                const SizedBox(height: 12),
+                _RestCard(day: today),
+              ],
               if (!_yesterday && system.hasStarted) _Prompts(now: _now),
               SectionHeader('Daily ${system.dailyCount}',
                   action: 'Edit',
@@ -648,6 +652,49 @@ class _FreshStartCard extends StatelessWidget {
             system.setDone(fs.key, true);
             if (fs.route != null) context.push(fs.route!);
           }),
+        ],
+      ),
+    );
+  }
+}
+
+/// A planned rest day: permission, and one question about switching off.
+class _RestCard extends StatelessWidget {
+  final DateTime day;
+  const _RestCard({required this.day});
+
+  @override
+  Widget build(BuildContext context) {
+    final system = context.watch<PersonalSystemProvider>();
+    final r = system.restOn(day)!;
+    final level = system.detachmentOn(day);
+    return OnoCard(
+      accent: AppColors.body,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text((PersonalSystemProvider.restKinds[r.str('kind')] ?? 'Rest').toUpperCase(),
+              style: AppText.eyebrow(color: AppColors.body)),
+          const SizedBox(height: 4),
+          Text('Rest is part of the plan. Your streak is safe today.',
+              style: AppText.heading()),
+          if (r.text.isNotEmpty) Text(r.text, style: AppText.small()),
+          const SizedBox(height: 10),
+          Text('Did you switch off from work?', style: AppText.small()),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 6,
+            children: [
+              for (final (i, label) in const ['Not really', 'Partly', 'Fully'].indexed)
+                ChoiceChip(
+                  label: Text(label),
+                  selected: level == i + 1,
+                  showCheckmark: false,
+                  onSelected: (_) => system.logDetachment(day, i + 1),
+                ),
+            ],
+          ),
         ],
       ),
     );
