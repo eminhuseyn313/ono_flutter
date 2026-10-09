@@ -12,6 +12,7 @@ ONO is the personal operating system of Emin Huseynzade: Senior Product Owner fo
 - General content (e.g. `lib/data/growth_templates.dart`) must not mention him, his employer or his people (tested).
 - Cover the whole person — career, body, relationships, money, mind, meaning — not only his job.
 - Be curious and careful: when a requirement is ambiguous, ask him rather than guess.
+- Feature research starts from this vision and passes two tests: useful to Emin now, and useful to anyone. See `docs/PRODUCT_RESEARCH.md` (market, evidence, roadmap).
 
 Everything shown comes from his profile (encoded in `lib/data/emin_system.dart`) or from what he logs. **No sample or fake numbers anywhere.** That was the #1 finding in `docs/CRITIQUE.md`.
 
