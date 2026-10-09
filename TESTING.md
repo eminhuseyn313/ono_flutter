@@ -147,6 +147,11 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] Career cockpit → Readiness → rate a dimension → its level description shows
 - [ ] Create your own area → optionally write your own five levels
 
+## 2u. New: learning, applied
+- [ ] Me → **Learning** → add this month's book in one tap, or any book, course, podcast, talk
+- [ ] **Start** → when done, **Finished — apply it** → one principle in your words + one experiment this week
+- [ ] A week later Today asks **How did the experiment go?** → write the result
+
 ## 3. Tools & logging
 - [ ] Morning ritual (from Today before 11:00): 5 steps → finishing ticks the manifesto
 - [ ] Sigh tool: run it → "uses" and mastery level go up; the sigh item is ticked

@@ -308,6 +308,16 @@ class MeScreen extends StatelessWidget {
               ),
               const Divider(indent: 66),
               LinkRow(
+                icon: Icons.school_outlined,
+                color: AppColors.skill,
+                title: 'Learning',
+                subtitle: system.learningWith('active').isEmpty
+                    ? 'Learn it, then apply it'
+                    : 'Now: ${system.learningWith('active').map((l) => l.text).join(' · ')}',
+                onTap: () => context.push('/learning'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
                 icon: Icons.center_focus_strong_rounded,
                 color: AppColors.skill,
                 title: 'Deep work',

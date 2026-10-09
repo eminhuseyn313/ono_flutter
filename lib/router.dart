@@ -18,6 +18,7 @@ import 'screens/goals_screen.dart';
 import 'screens/growth_screen.dart';
 import 'screens/habits_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/learning_screen.dart';
 import 'screens/letters_screen.dart';
 import 'screens/library_screen.dart';
 import 'screens/log_screen.dart';
@@ -95,6 +96,7 @@ const appRoutes = [
   '/quarter',
   '/profile/edit',
   '/daily',
+  '/learning',
   '/goals/edit',
   '/growth/area',
   '/growth/area?template=t_strength',
@@ -161,6 +163,7 @@ GoRouter createRouter(AuthProvider authProvider,
       _slide('/quarter', (_) => const QuarterScreen()),
       _slide('/profile/edit', (_) => const ProfileEditScreen()),
       _slide('/daily', (_) => const DailyScreen()),
+      _slide('/learning', (_) => const LearningScreen()),
       _slide(
           '/goals/edit',
           (s) => GoalEditScreen(

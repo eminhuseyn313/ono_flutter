@@ -1380,4 +1380,37 @@ void main() {
     expect(levelsOf(p.areaById(own.id)).last, '80%+ in games');
     expect(GrowthArea.fromJson(own.toJson()).levels.length, 5);
   });
+
+  test('learning: queue → active → applied → experiment result', () async {
+    final p = await _commissioned(briefs: DeviceBriefGenerator());
+    expect(p.addLearning('  '), isNull);
+    final book = p.addLearning('Continuous Discovery Habits', by: 'Teresa Torres')!;
+    expect(p.learningWith('queue').single.id, book.id);
+    p.startLearning(book.id);
+    expect(p.learningWith('active').single.str('started'), dateKey(_today));
+    p.applyLearning(book.id,
+        principle: 'Talk to a customer every week, not every quarter',
+        experiment: 'Two SME interviews before Friday');
+    expect(p.learningWith('done').single.str('principle'),
+        startsWith('Talk to a customer'));
+    expect(p.experimentsToReview, isEmpty, reason: 'give it a week');
+    p.clock = () => _today.add(const Duration(days: 7));
+    expect(p.experimentsToReview.single.id, book.id);
+    p.recordExperimentResult(book.id, 'Both changed the onboarding brief — keep');
+    expect(p.experimentsToReview, isEmpty);
+    p.clock = () => _today;
+    final brief = await p.submitReport(WeeklyReport(
+      id: 'r',
+      weekStart: weekStartOf(_today),
+      nonNegotiableAverage: 7,
+      gymSessions: 3,
+      bestMoment: '',
+      hardestMoment: '',
+      workSituation: '',
+      createdAt: _today,
+    ));
+    expect(brief, isNotNull);
+    p.removeLearning(book.id);
+    expect(p.learning, isEmpty);
+  });
 }

@@ -274,6 +274,15 @@ void main() {
           title: 'Become ${activeProfile.targetRole}',
           deadline: today.add(const Duration(days: 270)),
           milestones: ['Own one area end to end', 'Promotion conversation']);
+      // Learning in every state: next, now, applied with an open experiment.
+      system.addLearning('Thinking in Bets — making better decisions when you don\'t have all the facts',
+          by: 'Annie Duke');
+      final now = system.addLearning('The Effective Executive', by: 'Peter Drucker')!;
+      system.startLearning(now.id);
+      final done = system.addLearning('Continuous Discovery Habits', kind: 'Course')!;
+      system.applyLearning(done.id,
+          principle: 'Talk to a customer every week, not every quarter — small, often, together',
+          experiment: 'Two customer interviews before Friday, with the designer in the room');
       // One daily item of his own: 11 items, 8 hold the day.
       system.addDailyItem('Ten minutes of Spanish before dinner, with the app',
           lane: 'skill', when: 'evening', cue: 'When I sit down at home → app open');

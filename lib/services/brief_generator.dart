@@ -58,6 +58,9 @@ class BriefInput {
   /// Setbacks met with the protocol this week.
   final int setbacks;
 
+  /// Recently applied learning: the principle and the experiment or result.
+  final List<String> learningApplied;
+
   /// The lowest area on the latest quarterly life wheel, e.g. "Money (4/10)".
   final String? lowestLifeArea;
 
@@ -103,6 +106,7 @@ class BriefInput {
     this.noteSent = false,
     this.setbacks = 0,
     this.lowestLifeArea,
+    this.learningApplied = const [],
     this.itemTitles = const {},
     this.itemCount = 10,
   }) : profile = profile ?? activeProfile;
@@ -113,6 +117,7 @@ class BriefInput {
         'progress_note_sent': noteSent,
         'setbacks_handled': setbacks,
         'lowest_life_area': lowestLifeArea,
+        'learning_applied': learningApplied,
         'report': report.toJson(),
         'for_week': dateKey(forWeek),
         'program_month': programMonth,

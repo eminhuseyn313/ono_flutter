@@ -1265,6 +1265,11 @@ class PersonalSystemProvider extends ChangeNotifier {
         goals: goalSummaries(),
         noteSent: noteSentInWeek(report.weekStart),
         setbacks: setbacksInWeek(report.weekStart),
+        learningApplied: [
+          for (final l in learningWith('done').take(3))
+            if ((l.str('principle') ?? '').isNotEmpty)
+              '${l.text}: ${l.str('principle')}${(l.str('result') ?? '').isEmpty ? ' (experiment: ${l.str('experiment')})' : ' → ${l.str('result')}'}'
+        ],
         lowestLifeArea: lowestLifeArea == null
             ? null
             : '${lowestLifeArea!.name} (${latestWheel[lowestLifeArea!.id]}/10)',
@@ -1966,6 +1971,78 @@ class PersonalSystemProvider extends ChangeNotifier {
     final week = weekStartOf(anyDay);
     return countBetween('setback', week, week.add(const Duration(days: 7)));
   }
+
+  // ── Learning queue ───────────────────────────────────────────────────
+
+  static const learningKinds = ['Book', 'Course', 'Podcast', 'Talk', 'Article'];
+
+  /// Everything he is learning from, newest first. Status: queue → active
+  /// → done. Done means applied: one principle in his words and one
+  /// experiment in real life (transfer of learning, Baldwin & Ford 1988).
+  List<LogEntry> get learning => logsOf('learning');
+
+  List<LogEntry> learningWith(String status) => [
+        for (final l in learning)
+          if ((l.str('status') ?? 'queue') == status) l
+      ];
+
+  LogEntry? learningById(String id) {
+    for (final l in learning) {
+      if (l.id == id) return l;
+    }
+    return null;
+  }
+
+  LogEntry? addLearning(String title,
+          {String kind = 'Book', String by = '', String area = ''}) =>
+      title.trim().isEmpty
+          ? null
+          : addLog('learning', text: title.trim(), data: {
+              'kind': kind,
+              'by': by.trim(),
+              'area': area,
+              'status': 'queue',
+            });
+
+  void _setLearning(String id, Map<String, dynamic> changes) {
+    final l = learningById(id);
+    if (l == null) return;
+    updateLog(l.copyWith(data: {...l.data, ...changes}));
+  }
+
+  void startLearning(String id) =>
+      _setLearning(id, {'status': 'active', 'started': dateKey(_now)});
+
+  /// Finishing asks for the principle and the experiment.
+  void applyLearning(String id,
+          {required String principle, required String experiment}) =>
+      _setLearning(id, {
+        'status': 'done',
+        'principle': principle.trim(),
+        'experiment': experiment.trim(),
+        'finished': dateKey(_now),
+      });
+
+  void recordExperimentResult(String id, String result) =>
+      _setLearning(id, {'result': result.trim(), 'result_on': dateKey(_now)});
+
+  void removeLearning(String id) {
+    final l = learningById(id);
+    if (l != null) removeLog(l.id);
+  }
+
+  /// Finished items whose experiment has no result after 7 days.
+  List<LogEntry> get experimentsToReview => [
+        for (final l in learningWith('done'))
+          if ((l.str('experiment') ?? '').isNotEmpty &&
+              (l.str('result') ?? '').isEmpty &&
+              dayOnly(_now)
+                      .difference(DateTime.tryParse(l.str('finished') ?? '') ??
+                          dayOnly(_now))
+                      .inDays >=
+                  7)
+            l
+      ];
 
   // ── Quarterly review ─────────────────────────────────────────────────
 
