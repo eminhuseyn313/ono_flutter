@@ -1413,4 +1413,19 @@ void main() {
     p.removeLearning(book.id);
     expect(p.learning, isEmpty);
   });
+
+  test('relationship rituals and presence', () async {
+    final p = await _commissioned();
+    final wife = p.addPerson('Aysel', role: 'Wife', every: 7);
+    expect(p.ritualOf(wife), '');
+    p.setRitual(wife, 'Friday dinner, phones away');
+    final w = p.people.single;
+    expect(p.ritualOf(w), 'Friday dinner, phones away');
+    expect(p.presenceOf(w), isNull);
+    p.logTouch(w, quality: 3);
+    p.logTouch(w, quality: 2);
+    p.logTouch(w); // unrated: not counted
+    expect(p.presenceOf(w), 2.5);
+    expect(p.daysSinceContact(w), 0);
+  });
 }

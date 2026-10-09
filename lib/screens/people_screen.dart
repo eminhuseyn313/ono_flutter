@@ -30,42 +30,84 @@ class _PeopleScreenState extends State<PeopleScreen> {
 
   void _sheet(PersonalSystemProvider system, LogEntry p) {
     final note = TextEditingController();
+    final ritual = TextEditingController(text: system.ritualOf(p));
+    int? quality;
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: AppColors.card,
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.fromLTRB(
-            20, 20, 20, 20 + MediaQuery.of(ctx).viewInsets.bottom),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(p.text, style: AppText.title()),
-            const SizedBox(height: 12),
-            TextField(
-              controller: note,
-              style: AppText.body(color: AppColors.white),
-              decoration: const InputDecoration(
-                  hintText: 'What about? (optional)'),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheet) => Padding(
+          padding: EdgeInsets.fromLTRB(
+              20, 20, 20, 20 + MediaQuery.of(ctx).viewInsets.bottom),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(p.text, style: AppText.title()),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: note,
+                  style: AppText.body(color: AppColors.white),
+                  decoration: const InputDecoration(
+                      hintText: 'What about? (optional)'),
+                ),
+                const SizedBox(height: 10),
+                Text('How present were you?', style: AppText.small()),
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 6,
+                  children: [
+                    for (final (i, label) in const ['Distracted', 'Okay', 'Fully present'].indexed)
+                      ChoiceChip(
+                        label: Text(label),
+                        selected: quality == i + 1,
+                        showCheckmark: false,
+                        onSelected: (_) => setSheet(() => quality = i + 1),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                PrimaryButton('In touch today', icon: Icons.check_rounded,
+                    onPressed: () {
+                  system.logTouch(p, note: note.text, quality: quality);
+                  if (ritual.text.trim() != system.ritualOf(p)) {
+                    system.setRitual(p, ritual.text);
+                  }
+                  Navigator.of(ctx).pop();
+                  toast(context, 'Logged. Next in ${system.cadenceOf(p)} days.');
+                }),
+                const SizedBox(height: 14),
+                Text('Your ritual together', style: AppText.small()),
+                const SizedBox(height: 6),
+                TextField(
+                  controller: ritual,
+                  style: AppText.body(color: AppColors.white),
+                  decoration: const InputDecoration(
+                      hintText: 'e.g. Friday dinner, phones away · Sunday call'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    system.setRitual(p, ritual.text);
+                    Navigator.of(ctx).pop();
+                  },
+                  child: const Text('Save ritual only'),
+                ),
+                GhostButton('Remove ${p.text.split(' ').first}',
+                    icon: Icons.delete_outline_rounded, onPressed: () {
+                  system.removePerson(p.id);
+                  Navigator.of(ctx).pop();
+                }),
+              ],
             ),
-            const SizedBox(height: 12),
-            PrimaryButton('In touch today', icon: Icons.check_rounded,
-                onPressed: () {
-              system.logTouch(p, note: note.text);
-              Navigator.of(ctx).pop();
-              toast(context, 'Logged. Next in ${system.cadenceOf(p)} days.');
-            }),
-            const SizedBox(height: 8),
-            GhostButton('Remove ${p.text.split(' ').first}',
-                icon: Icons.delete_outline_rounded, onPressed: () {
-              system.removePerson(p.id);
-              Navigator.of(ctx).pop();
-            }),
-          ],
+          ),
         ),
       ),
-    ).whenComplete(note.dispose);
+    ).whenComplete(() {
+      note.dispose();
+      ritual.dispose();
+    });
   }
 
   @override
@@ -177,6 +219,17 @@ class _PeopleScreenState extends State<PeopleScreen> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: AppText.small()),
+                  if (system.ritualOf(p).isNotEmpty ||
+                      system.presenceOf(p) != null)
+                    Text(
+                        [
+                          if (system.ritualOf(p).isNotEmpty) system.ritualOf(p),
+                          if (system.presenceOf(p) != null)
+                            'presence ${system.presenceOf(p)!.toStringAsFixed(1)}/3',
+                        ].join(' · '),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppText.small(color: AppColors.social)),
                 ],
               ),
             ),

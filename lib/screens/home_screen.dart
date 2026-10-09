@@ -1007,7 +1007,7 @@ class _PromptsState extends State<_Prompts> {
             context,
             Icons.group_outlined,
             AppColors.social,
-            'Reach out: ${system.peopleDue.first.text}',
+            'Reach out: ${system.peopleDue.first.text}${system.ritualOf(system.peopleDue.first).isEmpty ? '' : ' — ${system.ritualOf(system.peopleDue.first)}'}',
             '${system.lastContact(system.peopleDue.first) == null ? 'No contact logged yet' : '${system.daysSinceContact(system.peopleDue.first)} days since you were in touch'} · every ${system.cadenceOf(system.peopleDue.first)} days',
             '/people'),
       if (system.automaticityDue)

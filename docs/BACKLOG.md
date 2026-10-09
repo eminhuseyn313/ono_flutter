@@ -56,7 +56,7 @@ Status: ⬜ to do · 🟨 in progress · ✅ done. Effort: S = days, M = a week,
 | 7 | Configurable Daily items | M | ✅ |
 | 8 | Level descriptions (1–5) per growth area | M | ✅ |
 | 9 | Learning queue with "apply it" | M | ✅ |
-| 10 | Relationship rituals in People | S | ⬜ |
+| 10 | Relationship rituals in People | S | ✅ |
 | 11 | Personal experiments | S | ⬜ |
 | 12 | Recovery planning | S | ⬜ |
 | 13 | Stop-doing list | S | ⬜ |

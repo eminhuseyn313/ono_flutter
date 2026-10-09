@@ -241,7 +241,10 @@ void main() {
       system.addPerson('Leyla Aliyeva-Huseynova',
           role: 'Head of Product, Kapital Bank — one role ahead', every: 30);
       system.clock = DateTime.now;
-      system.addPerson('Ali', role: 'Manager', every: 7);
+      final ali = system.addPerson('Ali', role: 'Manager', every: 7);
+      system.setRitual(system.people.firstWhere((x) => x.id == ali.id),
+          'Thursday walk-and-talk after the steering meeting, no laptops');
+      system.logTouch(system.people.firstWhere((x) => x.id == ali.id), quality: 3);
       // Last month's growth area only: this month /growth shows the chooser
       // and Today the "what are you growing" prompt.
       system.clock = () => DateTime.now().subtract(const Duration(days: 35));

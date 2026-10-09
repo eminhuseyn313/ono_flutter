@@ -2571,8 +2571,33 @@ class PersonalSystemProvider extends ChangeNotifier {
             .toList()));
   }
 
-  void logTouch(LogEntry person, {String note = ''}) => addLog('touch',
-      text: note.trim(), data: {'person': person.id, 'name': person.text});
+  /// Contact with someone; [quality] 1 = distracted, 2 = okay, 3 = fully
+  /// present. Presence, not just frequency, is what keeps people close.
+  void logTouch(LogEntry person, {String note = '', int? quality}) =>
+      addLog('touch', text: note.trim(), data: {
+        'person': person.id,
+        'name': person.text,
+        if (quality != null) 'quality': quality,
+      });
+
+  /// A ritual with this person ("Friday dinner, phones away"), or ''.
+  String ritualOf(LogEntry person) => person.str('ritual') ?? '';
+
+  void setRitual(LogEntry person, String ritual) {
+    final p = logsOf('person').where((x) => x.id == person.id);
+    if (p.isEmpty) return;
+    updateLog(p.first.copyWith(data: {...p.first.data, 'ritual': ritual.trim()}));
+  }
+
+  /// Average presence (1–3) over the last 4 rated touches, or null.
+  double? presenceOf(LogEntry person) {
+    final q = [
+      for (final t in logsOf('touch'))
+        if (t.str('person') == person.id && t.number('quality') != null)
+          t.number('quality')!.toDouble()
+    ].take(4).toList();
+    return q.isEmpty ? null : q.reduce((a, b) => a + b) / q.length;
+  }
 
   /// Last contact: a logged touch, or a 1:1 with them (name as a word).
   DateTime? lastContact(LogEntry person) {

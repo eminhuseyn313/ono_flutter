@@ -152,6 +152,10 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] **Start** → when done, **Finished — apply it** → one principle in your words + one experiment this week
 - [ ] A week later Today asks **How did the experiment go?** → write the result
 
+## 2v. New: rituals and presence
+- [ ] People → tap someone → set **Your ritual together** (e.g. Friday dinner, phones away)
+- [ ] When logging contact, pick how present you were → the row shows the ritual and your presence over the last 4 times
+
 ## 3. Tools & logging
 - [ ] Morning ritual (from Today before 11:00): 5 steps → finishing ticks the manifesto
 - [ ] Sigh tool: run it → "uses" and mastery level go up; the sigh item is ticked
