@@ -1265,6 +1265,11 @@ class PersonalSystemProvider extends ChangeNotifier {
         goals: goalSummaries(),
         noteSent: noteSentInWeek(report.weekStart),
         setbacks: setbacksInWeek(report.weekStart),
+        experiments: [
+          for (final e in [...experimentsWith('running'), ...experimentsWith('kept').take(2)])
+            '${e.text} (${e.str('status')}, watching ${experimentMeasures[e.str('measure')] ?? e.str('measure')}'
+                '${experimentCompare(e).before == null || experimentCompare(e).during == null ? '' : ': ${experimentCompare(e).before!.toStringAsFixed(1)} before → ${experimentCompare(e).during!.toStringAsFixed(1)} during'})'
+        ],
         learningApplied: [
           for (final l in learningWith('done').take(3))
             if ((l.str('principle') ?? '').isNotEmpty)
@@ -2043,6 +2048,103 @@ class PersonalSystemProvider extends ChangeNotifier {
                   7)
             l
       ];
+
+  // ── Personal experiments ─────────────────────────────────────────────
+
+  /// What an experiment can watch, from data already logged.
+  static const experimentMeasures = {
+    'score': 'Daily score',
+    'energy': 'Morning energy',
+    'sleep': 'Sleep (h)',
+    'mood': 'Mood',
+  };
+
+  List<LogEntry> get experiments => logsOf('experiment');
+
+  List<LogEntry> experimentsWith(String status) => [
+        for (final e in experiments)
+          if ((e.str('status') ?? 'running') == status) e
+      ];
+
+  LogEntry? experimentById(String id) {
+    for (final e in experiments) {
+      if (e.id == id) return e;
+    }
+    return null;
+  }
+
+  /// A small test of a change: [change] for [days] days, watching
+  /// [measure]. Personal science beats generic advice.
+  LogEntry? startExperiment(
+          {required String change,
+          required String measure,
+          int days = 14,
+          String expect = ''}) =>
+      change.trim().isEmpty
+          ? null
+          : addLog('experiment', text: change.trim(), data: {
+              'measure': measure,
+              'days': days,
+              'expect': expect.trim(),
+              'start': dateKey(_now),
+              'status': 'running',
+            });
+
+  DateTime experimentStart(LogEntry e) =>
+      DateTime.tryParse(e.str('start') ?? '') ?? dayOnly(e.date);
+
+  int experimentDay(LogEntry e) =>
+      dayOnly(_now).difference(experimentStart(e)).inDays + 1;
+
+  bool experimentEnded(LogEntry e) =>
+      experimentDay(e) > (e.number('days') ?? 14).toInt();
+
+  double? _measureOn(String measure, DateTime d) => switch (measure) {
+        'score' => d.isAfter(dayOnly(_now)) ? null : scoreFor(d).toDouble(),
+        'sleep' => sleepHoursFor(d) ?? checkinFor(d)?.number('sleep')?.toDouble(),
+        _ => checkinFor(d)?.number(measure)?.toDouble(),
+      };
+
+  /// Average of the measure before (the same number of days) and during.
+  ({double? before, double? during, int nBefore, int nDuring}) experimentCompare(
+      LogEntry e) {
+    final start = experimentStart(e);
+    final days = (e.number('days') ?? 14).toInt();
+    final m = e.str('measure') ?? 'score';
+    final today = dayOnly(_now);
+    final ranStop = start.add(Duration(days: days));
+    List<double> collect(DateTime from, DateTime to) => [
+          for (var d = from; d.isBefore(to); d = d.add(const Duration(days: 1)))
+            if (!d.isBefore(programStart) && !d.isAfter(today) && (m != 'score' || d.isBefore(today)))
+              if (_measureOn(m, d) case final v?) v
+        ];
+    final before = collect(start.subtract(Duration(days: days)), start);
+    final during = collect(start, ranStop.isAfter(today) ? today.add(const Duration(days: 1)) : ranStop);
+    double? avg(List<double> v) =>
+        v.isEmpty ? null : v.reduce((a, b) => a + b) / v.length;
+    return (
+      before: avg(before),
+      during: avg(during),
+      nBefore: before.length,
+      nDuring: during.length,
+    );
+  }
+
+  /// Keep it (it becomes part of how you live) or drop it, with a note.
+  void closeExperiment(String id, {required bool keep, String result = ''}) {
+    final e = experimentById(id);
+    if (e == null) return;
+    updateLog(e.copyWith(data: {
+      ...e.data,
+      'status': keep ? 'kept' : 'dropped',
+      'result': result.trim(),
+      'closed': dateKey(_now),
+    }));
+  }
+
+  /// Running experiments that reached their end and need a decision.
+  List<LogEntry> get experimentsToClose =>
+      [for (final e in experimentsWith('running')) if (experimentEnded(e)) e];
 
   // ── Quarterly review ─────────────────────────────────────────────────
 

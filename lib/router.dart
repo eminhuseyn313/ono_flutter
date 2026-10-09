@@ -11,6 +11,7 @@ import 'screens/cockpit_screen.dart';
 import 'screens/commission_screen.dart';
 import 'screens/daily_screen.dart';
 import 'screens/evidence_archive_screen.dart';
+import 'screens/experiments_screen.dart';
 import 'screens/focus_screen.dart';
 import 'screens/forgot_password_screen.dart';
 import 'screens/gym_session_screen.dart';
@@ -97,6 +98,7 @@ const appRoutes = [
   '/profile/edit',
   '/daily',
   '/learning',
+  '/experiments',
   '/goals/edit',
   '/growth/area',
   '/growth/area?template=t_strength',
@@ -164,6 +166,7 @@ GoRouter createRouter(AuthProvider authProvider,
       _slide('/profile/edit', (_) => const ProfileEditScreen()),
       _slide('/daily', (_) => const DailyScreen()),
       _slide('/learning', (_) => const LearningScreen()),
+      _slide('/experiments', (_) => const ExperimentsScreen()),
       _slide(
           '/goals/edit',
           (s) => GoalEditScreen(

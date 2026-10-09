@@ -156,6 +156,11 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] People → tap someone → set **Your ritual together** (e.g. Friday dinner, phones away)
 - [ ] When logging contact, pick how present you were → the row shows the ritual and your presence over the last 4 times
 
+## 2w. New: experiments
+- [ ] Me → What moves your day → **Experiments** → a change, what you expect, what to watch (daily score, energy, sleep, mood), 7/14/21 days → Start (or tap a pattern to pre-fill)
+- [ ] While it runs: day X of N and the measure before vs during (morning check-ins feed energy, mood and sleep)
+- [ ] When it ends Today asks **keep or drop?**
+
 ## 3. Tools & logging
 - [ ] Morning ritual (from Today before 11:00): 5 steps → finishing ticks the manifesto
 - [ ] Sigh tool: run it → "uses" and mastery level go up; the sigh item is ticked

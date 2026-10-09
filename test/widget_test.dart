@@ -286,6 +286,12 @@ void main() {
       system.applyLearning(done.id,
           principle: 'Talk to a customer every week, not every quarter — small, often, together',
           experiment: 'Two customer interviews before Friday, with the designer in the room');
+      // A running experiment watching energy (check-ins are seeded above).
+      system.startExperiment(
+          change: 'No screens after 22:00, phone charging in the hall',
+          measure: 'energy',
+          days: 14,
+          expect: 'Falling asleep faster and more morning energy');
       // One daily item of his own: 11 items, 8 hold the day.
       system.addDailyItem('Ten minutes of Spanish before dinner, with the app',
           lane: 'skill', when: 'evening', cue: 'When I sit down at home → app open');

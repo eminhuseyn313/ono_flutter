@@ -983,6 +983,9 @@ class _PromptsState extends State<_Prompts> {
       if (system.noteDue(now))
         _row(context, Icons.send_rounded, AppColors.social,
             'Send your progress note', 'Five lines to ${activeProfile.manager.isEmpty ? 'one person' : activeProfile.manager} — written for you from this week', '/note'),
+      for (final e in system.experimentsToClose.take(1))
+        _row(context, Icons.science_outlined, AppColors.mind,
+            'Experiment finished: keep or drop?', e.text, '/experiments'),
       for (final l in system.experimentsToReview.take(1))
         _row(context, Icons.science_outlined, AppColors.skill,
             'How did the experiment go?', l.str('experiment') ?? '', '/learning'),

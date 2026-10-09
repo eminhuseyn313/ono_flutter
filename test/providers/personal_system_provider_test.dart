@@ -1428,4 +1428,33 @@ void main() {
     expect(p.presenceOf(w), 2.5);
     expect(p.daysSinceContact(w), 0);
   });
+
+  test('experiments: before vs during from real check-ins, keep or drop',
+      () async {
+    final p = await _commissioned(briefs: DeviceBriefGenerator());
+    // Energy 2 for the 7 days before, then 4 during.
+    for (var i = 1; i <= 7; i++) {
+      p.saveCheckin(_daysAgo(i), energy: 2, mood: 0, sleep: 7, pain: 0, stiffness: 0);
+    }
+    final e = p.startExperiment(
+        change: 'No screens after 22:00', measure: 'energy', days: 7,
+        expect: 'More energy')!;
+    expect(p.experimentDay(e), 1);
+    expect(p.startExperiment(change: ' ', measure: 'energy'), isNull);
+    for (var i = 0; i < 7; i++) {
+      p.saveCheckin(dayOnly(_today).add(Duration(days: i)),
+          energy: 4, mood: 0, sleep: 7, pain: 0, stiffness: 0);
+    }
+    p.clock = () => _today.add(const Duration(days: 7));
+    final c = p.experimentCompare(p.experimentById(e.id)!);
+    expect(c.before, 2);
+    expect(c.during, 4);
+    expect(c.nBefore, 7);
+    expect(c.nDuring, 7);
+    expect(p.experimentsToClose.single.id, e.id);
+    p.closeExperiment(e.id, keep: true, result: 'Asleep faster');
+    expect(p.experimentsWith('kept').single.str('result'), 'Asleep faster');
+    expect(p.experimentsToClose, isEmpty);
+    p.clock = () => _today;
+  });
 }

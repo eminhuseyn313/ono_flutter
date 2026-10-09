@@ -160,6 +160,19 @@ class MeScreen extends StatelessWidget {
         const _CalendarLink(),
         const SectionHeader('What moves your day'),
         const _Patterns(),
+        const SizedBox(height: 10),
+        OnoCard(
+          padding: EdgeInsets.zero,
+          child: LinkRow(
+            icon: Icons.science_outlined,
+            color: AppColors.mind,
+            title: 'Experiments',
+            subtitle: system.experimentsWith('running').isEmpty
+                ? 'Test a change for 1–3 weeks, keep it or drop it'
+                : 'Running: ${system.experimentsWith('running').map((e) => e.text).join(' · ')}',
+            onTap: () => context.push('/experiments'),
+          ),
+        ),
         const SectionHeader('Body'),
         OnoCard(
           child: Column(
