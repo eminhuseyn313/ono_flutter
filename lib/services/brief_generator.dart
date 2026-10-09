@@ -20,7 +20,7 @@ class BriefInput {
   final double? avgSleep;
   final int shoulderFlagDays;
 
-  /// Head of Product dimension furthest below the bar, if rated.
+  /// Target-role dimension furthest below the bar, if rated.
   final String? readinessGap;
   final int openFollowUps;
 
@@ -48,6 +48,9 @@ class BriefInput {
 
   /// Self-coaching commitments past their date and not yet kept.
   final List<String> openCommitments;
+
+  /// Who the brief is for: names, roles, key people and coach context.
+  final Profile profile;
 
   const BriefInput({
     required this.report,
@@ -77,9 +80,11 @@ class BriefInput {
     this.feedbackThisMonth = 0,
     this.valueGap,
     this.openCommitments = const [],
+    this.profile = activeProfile,
   });
 
   Map<String, dynamic> toJson() => {
+        'profile': profile.toJson(),
         'report': report.toJson(),
         'for_week': dateKey(forWeek),
         'program_month': programMonth,
@@ -124,7 +129,7 @@ class DeviceBriefGenerator implements BriefGenerator {
   static const _taskFor = {
     'manifesto': 'Manifesto before the phone, every morning — it is step 2 of the 06:05 ritual.',
     'scan': 'Domain scan at 07:45 at your desk, before email. 15 minutes, one insight saved.',
-    'sigh': 'Sigh ×3 in the car before entering the office, and before every meeting with Ali.',
+    'sigh': 'Sigh ×3 before you walk into work, and before every high-stakes conversation.',
     'bluf': 'Rewrite your first Slack/email of each day in BLUF: decision, 3 reasons, ask, deadline.',
     'pause': 'In every meeting: one breath before answering anything challenging.',
     'read': 'Lunch read: 20 minutes, phone face-down, before anything else.',
@@ -194,14 +199,14 @@ class DeviceBriefGenerator implements BriefGenerator {
         .join(' · ');
     final domainBrief = 'Scan rotation: $rotation.\n\n'
         'Fact to own this week — ${fact[0]}: ${fact[1]}.\n'
-        'Write one sentence connecting it to Business ID and use it in a meeting.';
+        'Write one sentence connecting it to ${input.profile.focus} and use it in a meeting.';
 
     final situation = r.workSituation.trim();
     final coaching = situation.isEmpty
         ? 'No work situation reported. Pick the meeting you most want to go well next week and run six-questions-deep on it.'
         : 'Situation: "${_clip(situation, 160)}"\n\n'
             '1. Decide your position and write it as BLUF: the decision first, three reasons, what you need, by when.\n'
-            '2. Six questions deep: the six hardest questions Ali could ask about this, your answer to each, and the hardest follow-up.\n'
+            '2. Six questions deep: the six hardest questions ${input.profile.manager.isEmpty ? 'they' : input.profile.manager} could ask about this, your answer to each, and the hardest follow-up.\n'
             '3. In the room: sigh ×3 beforehand, say "I am excited", still body, one breath before every answer, downward inflection.\n'
             '4. Afterwards: log what held and what didn\'t; if it went well, it goes in the Evidence Archive.';
 
@@ -221,9 +226,9 @@ class DeviceBriefGenerator implements BriefGenerator {
       if (r.hardestMoment.trim().isNotEmpty)
         'Hardest moment noted. Ask: what would the Product Architect do differently? Write the answer as one rule.',
       if (input.readinessGap != null)
-        'Head of Product gap: ${input.readinessGap}. Pick one thing this week that shows it, and log it in the Evidence Archive.',
+        '${input.profile.targetRole} gap: ${input.readinessGap}. Pick one thing this week that shows it, and log it in the Evidence Archive.',
       if (input.openFollowUps >= 3)
-        '${input.openFollowUps} open 1:1 follow-ups. Close or hand off the oldest before your next 1:1 with Ali.',
+        '${input.openFollowUps} open 1:1 follow-ups. Close or hand off the oldest before your next 1:1${input.profile.manager.isEmpty ? '' : ' with ${input.profile.manager}'}.',
       if (input.shoulderFlagDays >= 3)
         'Shoulders flagged on ${input.shoulderFlagDays} mornings. Keep the shoulder-sparing sessions and bring the check-in log to your rheumatologist.',
       if (input.avgSleep != null && input.avgSleep! < 7)

@@ -316,7 +316,7 @@ class _EntryRow extends StatelessWidget {
         ].join(' · ');
       case 'one_on_one':
         final n = ((e.data['followups'] as List?) ?? const []).length;
-        return '${e.str('with') ?? 'Ali'} · ${e.text.isEmpty ? 'logged' : e.text}${n == 0 ? '' : ' · $n follow-ups'}';
+        return '${e.str('with') ?? activeProfile.manager} · ${e.text.isEmpty ? 'logged' : e.text}${n == 0 ? '' : ' · $n follow-ups'}';
       case 'decision':
         final v = e.str('verdict');
         return v == null ? e.text : '${e.text} · $v';

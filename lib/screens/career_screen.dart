@@ -69,7 +69,7 @@ class CareerScreen extends StatelessWidget {
           child: LinkRow(
             icon: Icons.assignment_ind_outlined,
             color: AppColors.skill,
-            title: 'Your Head of Product case',
+            title: 'Your ${activeProfile.targetRole} case',
             subtitle: 'Reps, feedback, artifacts and wins per dimension',
             onTap: () => context.push('/case'),
           ),
@@ -116,7 +116,7 @@ class CareerScreen extends StatelessWidget {
           collapsed: true,
         ),
         const _CopyBlock(
-          title: 'Bir Ecosystem role',
+          title: 'Current role',
           text: linkedinRole,
           doneKey: 'li:role',
           doneLabel: 'Role description live',

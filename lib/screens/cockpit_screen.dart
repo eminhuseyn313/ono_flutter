@@ -8,7 +8,7 @@ import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
 
-/// Career cockpit: the record that turns daily work into a Head of Product
+/// Career cockpit: the record that turns daily work into a target-role
 /// case. 1:1s with follow-ups you own, a decision journal that comes back
 /// in 90 days, and a monthly readiness check against the bar.
 class CockpitScreen extends StatefulWidget {
@@ -28,7 +28,7 @@ class _CockpitScreenState extends State<CockpitScreen> {
     final dueReviews = system.dueDecisionReviews(DateTime.now()).length;
     return OnoPage(
       showBack: true,
-      eyebrow: 'Senior PO → Head of Product',
+      eyebrow: '${activeProfile.currentRole} → ${activeProfile.targetRole}',
       title: 'Career cockpit',
       subtitle:
           'Do the next job before you have it — and keep the record, so the case writes itself.',
@@ -95,7 +95,7 @@ class _CockpitScreenState extends State<CockpitScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                      '${l.str('with') ?? 'Ali'} · ${weekdayName(l.date.weekday).substring(0, 3)} ${shortDate(l.date)}',
+                      '${l.str('with') ?? activeProfile.manager} · ${weekdayName(l.date.weekday).substring(0, 3)} ${shortDate(l.date)}',
                       style: AppText.eyebrow()),
                   const SizedBox(height: 6),
                   Text(l.text.isEmpty ? '—' : l.text, style: AppText.body()),
@@ -108,7 +108,7 @@ class _CockpitScreenState extends State<CockpitScreen> {
   }
 
   Future<void> _logOneOnOne(BuildContext context) async {
-    final withC = TextEditingController(text: 'Ali');
+    final withC = TextEditingController(text: activeProfile.manager);
     final decided = TextEditingController();
     final followUps = TextEditingController();
     final ok = await _sheet(context, 'Log a 1:1', [
@@ -268,7 +268,7 @@ class _CockpitScreenState extends State<CockpitScreen> {
     return [
       const SizedBox(height: 12),
       Text(
-          'Rate yourself monthly against the Head of Product bar ($readinessBar = ready). Rate the evidence, not the hope.',
+          'Rate yourself monthly against the ${activeProfile.targetRole} bar ($readinessBar = ready). Rate the evidence, not the hope.',
           style: AppText.small()),
       if (gap != null) ...[
         const SizedBox(height: 12),

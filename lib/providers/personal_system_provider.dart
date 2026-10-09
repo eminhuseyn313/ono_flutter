@@ -12,7 +12,7 @@ import '../services/health_service.dart';
 import '../services/reminder_service.dart';
 import '../services/widget_sync.dart';
 
-/// Single source of truth for Emin's program. Every number the app shows is
+/// Single source of truth for the program. Every number the app shows is
 /// computed here from real check-offs and logs.
 class PersonalSystemProvider extends ChangeNotifier {
   final PersonalSystemGateway _gateway;
@@ -562,7 +562,7 @@ class PersonalSystemProvider extends ChangeNotifier {
       required String decided,
       required List<String> followUps}) {
     addLog('one_on_one', text: decided.trim(), data: {
-      'with': withWhom.trim().isEmpty ? 'Ali' : withWhom.trim(),
+      'with': withWhom.trim().isEmpty ? activeProfile.manager : withWhom.trim(),
       'followups': [
         for (final f in followUps)
           if (f.trim().isNotEmpty) f.trim()
@@ -581,7 +581,7 @@ class PersonalSystemProvider extends ChangeNotifier {
                     key: 'fu:${l.id}:$i',
                     text: f as String,
                     date: l.date,
-                    withWhom: l.str('with') ?? 'Ali'
+                    withWhom: l.str('with') ?? activeProfile.manager
                   ),
           ];
 
@@ -632,7 +632,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     ));
   }
 
-  /// Monthly Head of Product self-rating, 1–5 per dimension.
+  /// Monthly self-rating against the target role, 1–5 per dimension.
   void saveReadiness(Map<String, int> ratings) {
     final existing = logsOf('readiness')
         .where((l) => l.number('month') == programMonth)
@@ -1394,7 +1394,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   List<Meeting> meetingsFor(DateTime day) =>
       _meetingsDay != null && dayOnly(day) == _meetingsDay ? _meetings : const [];
 
-  /// With Ali or Rustam (in the title or the invite).
+  /// With a profile key person (in the title or the invite).
   static bool isKeyMeeting(Meeting m) => keyPeople.any((name) {
         final re = RegExp('\\b${RegExp.escape(name)}\\b', caseSensitive: false);
         return re.hasMatch(m.title) || m.attendees.any(re.hasMatch);
@@ -1853,7 +1853,7 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   void dropCommitment(String id) => setDone('coach:$id:dropped', true);
 
-  // ── Head of Product case ─────────────────────────────────────────────
+  // ── Case for the target role ─────────────────────────────────────────────
 
   /// Everything logged that speaks to one professional area.
   ({
@@ -1871,7 +1871,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// The case as plain text, to share or prepare a career conversation.
   String caseText() {
     final b = StringBuffer()
-      ..writeln('${EminIdentity.name} — towards Head of Product')
+      ..writeln('${activeProfile.name} — towards ${activeProfile.targetRole}')
       ..writeln('Day $programDay of $programDays · ${phase.name}')
       ..writeln();
     for (final a in growthAreas.where((a) => !a.personal)) {

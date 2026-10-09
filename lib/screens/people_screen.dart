@@ -72,8 +72,8 @@ class _PeopleScreenState extends State<PeopleScreen> {
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
     final people = system.people;
-    final missing = keyPeople
-        .where((k) => !people.any((p) => p.text.split(' ').first == k))
+    final missing = activeProfile.keyPeople
+        .where((k) => !people.any((p) => p.text.split(' ').first == k.name))
         .toList();
     return OnoPage(
       showBack: true,
@@ -85,12 +85,10 @@ class _PeopleScreenState extends State<PeopleScreen> {
         if (missing.isNotEmpty) ...[
           const SizedBox(height: 14),
           GhostButton(
-              'Add ${missing.join(' and ')} (weekly / monthly)',
+              'Add ${missing.map((k) => k.name).join(' and ')} from your profile',
               icon: Icons.person_add_alt_rounded, onPressed: () {
             for (final k in missing) {
-              system.addPerson(k,
-                  role: k == 'Ali' ? 'Manager' : 'Senior stakeholder',
-                  every: k == 'Ali' ? 7 : 30);
+              system.addPerson(k.name, role: k.relation, every: k.every);
             }
           }),
         ],
@@ -106,7 +104,7 @@ class _PeopleScreenState extends State<PeopleScreen> {
           ),
         ] else
           const EmptyNote(
-              'Add the people who shape your next role: your manager, a skip-level, peers one role ahead, a mentor outside PASHA.',
+              'Add the people who shape who you\'re becoming: a manager or coach, a mentor, peers one step ahead, family and friends you don\'t want to drift from.',
               icon: Icons.group_outlined),
         const SectionHeader('Add someone'),
         TextField(
@@ -119,7 +117,7 @@ class _PeopleScreenState extends State<PeopleScreen> {
           controller: _role,
           style: AppText.body(color: AppColors.white),
           decoration: const InputDecoration(
-              hintText: 'Role or why (e.g. Head of Product, Kapital)'),
+              hintText: 'Who they are to you (e.g. mentor, coach, brother)'),
         ),
         const SizedBox(height: 10),
         Wrap(

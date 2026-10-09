@@ -520,7 +520,7 @@ class _BlufTool extends StatefulWidget {
 }
 
 class _BlufToolState extends State<_BlufTool> {
-  final _to = TextEditingController(text: 'Ali');
+  final _to = TextEditingController(text: activeProfile.manager);
   final _decision = TextEditingController();
   final _r = List.generate(3, (_) => TextEditingController());
   final _need = TextEditingController();
@@ -624,7 +624,7 @@ class _SixQTool extends StatefulWidget {
 
 class _SixQToolState extends State<_SixQTool> {
   final _meeting = TextEditingController();
-  final _with = TextEditingController(text: 'Ali');
+  final _with = TextEditingController(text: activeProfile.manager);
   final _q = List.generate(6, (_) => TextEditingController());
   final _a = List.generate(6, (_) => TextEditingController());
   final _f = List.generate(6, (_) => TextEditingController());
@@ -681,7 +681,7 @@ class _SixQToolState extends State<_SixQTool> {
         ],
         const SectionHeader('New prep'),
         _field(_meeting, 'e.g. SA automation timeline', label: 'Meeting'),
-        _field(_with, 'Ali', label: 'With'),
+        _field(_with, 'Who', label: 'With'),
         for (var i = 0; i < 6; i++)
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
@@ -873,7 +873,7 @@ class _ScanToolState extends State<_ScanTool> {
         const Center(child: CountdownTimer(minutes: 15, label: 'scan')),
         const SizedBox(height: 22),
         _field(_insight,
-            'One insight you\'d tell Ali — and why it matters for Business ID',
+            'One insight you\'d tell ${activeProfile.manager} — and why it matters for ${activeProfile.focus}',
             lines: 3),
         PrimaryButton('Save insight & tick', onPressed: () {
           system.logProtocolUse('scan',

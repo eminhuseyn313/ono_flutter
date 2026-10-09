@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../data/emin_system.dart';
 import '../models/personal_system.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
@@ -48,7 +49,7 @@ class _LettersScreenState extends State<LettersScreen> {
       eyebrow: 'Future you',
       title: 'Letters',
       subtitle:
-          'Write to the Emin who finishes this. What do you want him to remember about why you started — and what do you promise him?',
+          'Write to the ${activeProfile.firstName} who finishes this. What should they remember about why you started — and what do you promise them?',
       children: [
         const SectionHeader('Write'),
         TextField(
@@ -56,8 +57,8 @@ class _LettersScreenState extends State<LettersScreen> {
           minLines: 5,
           maxLines: 12,
           style: AppText.body(color: AppColors.white),
-          decoration: const InputDecoration(
-              hintText: 'Dear Emin, by the time you read this…'),
+          decoration: InputDecoration(
+              hintText: 'Dear ${activeProfile.firstName}, by the time you read this…'),
         ),
         const SizedBox(height: 12),
         Text('Opens', style: AppText.small()),

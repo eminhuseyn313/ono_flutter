@@ -903,7 +903,7 @@ class _Prompts extends StatelessWidget {
             'Is it a habit yet?', 'Monthly check · 1 minute', '/habits'),
       if (system.dayOfMonth >= 25 && system.readinessDueThisMonth)
         _row(context, Icons.trending_up_rounded, AppColors.skill,
-            'Head of Product readiness', 'Rate this month against the bar',
+            '${activeProfile.targetRole} readiness', 'Rate this month against the bar',
             '/cockpit?tab=2'),
     ];
     return Column(

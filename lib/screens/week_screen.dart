@@ -113,9 +113,9 @@ class _OutcomesState extends State<_Outcomes> {
                     },
                     decoration: InputDecoration(
                         hintText: const [
-                          'e.g. OST draft reviewed by Ali',
-                          'e.g. KYC v2 scope signed off',
-                          'e.g. 3 gym sessions, no misses',
+                          'e.g. Draft reviewed by my manager',
+                          'e.g. Decision on the scope signed off',
+                          'e.g. 3 training sessions, no misses',
                         ][i],
                         border: InputBorder.none,
                         enabledBorder: InputBorder.none,

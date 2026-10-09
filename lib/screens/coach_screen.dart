@@ -65,7 +65,7 @@ class _CoachScreenState extends State<CoachScreen> {
       children: [
         for (final c in due) _Due(entry: c),
         _step('G', 'Goal', 'What do you want — specifically? What would good look like?',
-            _field(_goal, 'e.g. Ali sees me as the owner of Business ID onboarding')),
+            _field(_goal, 'e.g. Be trusted to own a whole area, not pieces of it')),
         _step('R', 'Reality', 'What\'s happening now? What have you tried? What\'s in your control?',
             _field(_reality, 'Facts, not the story', lines: 3)),
         _step('O', 'Options', 'At least three. Include one you\'d do if you weren\'t afraid.',

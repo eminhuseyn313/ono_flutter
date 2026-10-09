@@ -5,7 +5,9 @@ ONO is the personal operating system of Emin Huseynzade: Senior Product Owner fo
 
 **Direction (from Emin):** ONO is about his personal and professional development, not about app mechanics. New work should help him grow: practice, reflection, feedback, learning and his relationships. Avoid adding phone plumbing (widgets, shortcuts, integrations) unless it directly serves that.
 
-**Where it's going:** ONO will become a general app that anyone (a leader, an athlete, a parent, a founder) configures into their own progress plan. Emin's profile is the first fully configured plan. So:
+**Where it's going:** first make ONO genuinely useful for Emin, day to day; then configure it for many people — anyone (a leader, an athlete, a CEO, a parent) builds their own progress plan. Emin's profile is the first fully configured plan. So:
+- Every feature built for him must work for anyone: no feature exists only for his job at Kapital Bank / Business ID.
+- Names, roles, organisation, key people and the coach's context come from `activeProfile` (`Profile` in `lib/data/profile.dart`, his values in `emin_system.dart`). `test/generality_test.dart` fails if screens, providers, services or the edge function mention him, his people or his employer.
 - Build new features as configurable data plus generic logic. Keep person-specific content in `lib/data/` (his profile) and never hard-code his specifics into providers or screens.
 - General content (e.g. `lib/data/growth_templates.dart`) must not mention him, his employer or his people (tested).
 - Cover the whole person — career, body, relationships, money, mind, meaning — not only his job.
@@ -21,6 +23,7 @@ Models → Gateways (abstract + mock/Supabase) → Providers (ChangeNotifier) �
 Services: ReminderService (local notifications), BriefGenerator (weekly brief)
 ```
 
+- **Profile** (`lib/data/profile.dart`): `Profile` (name, current/target role, organisation, focus, domain, path, `KeyPerson`s with relation, contact rhythm and `primary`, `coachContext`). `activeProfile` in `emin_system.dart` is his; onboarding will replace it. `manager`, `keyPeopleNames`; `keyPeople` (names) derives from it. `BriefInput.profile` sends it to the coach, whose system prompt is general.
 - **Content**:
   - `lib/data/emin_system.dart`: schedule, gym plan, Daily 10 (`nonNegotiables`), rotations, library, protocols, style, career, journey (`phases`, `monthThemes`, `unlocksFor(month)`, `artifactFor`), reminders (`reminderDefs`), mastery levels.
   - `lib/data/emin_personal_content.dart`: morning ritual steps, coach tips (`coachTipForDay`), weekly review questions.

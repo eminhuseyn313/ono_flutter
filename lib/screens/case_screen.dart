@@ -6,7 +6,7 @@ import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
 
-/// The case for Head of Product, assembled from what he has practised,
+/// The case for the target role, assembled from what has been practised,
 /// heard and shipped — honest about the gaps.
 class CaseScreen extends StatelessWidget {
   const CaseScreen({super.key});
@@ -16,10 +16,10 @@ class CaseScreen extends StatelessWidget {
     final system = context.watch<PersonalSystemProvider>();
     return OnoPage(
       showBack: true,
-      eyebrow: 'Career · ${EminIdentity.path[1]}',
+      eyebrow: 'Career · ${activeProfile.targetRole}',
       title: 'Your case',
       subtitle:
-          'Built from your reps, feedback, artifacts and wins. Read it before a career conversation with Ali; copy it to prepare one.',
+          'Built from your reps, feedback, artifacts and wins. Read it before a career conversation; copy it to prepare one.',
       children: [
         for (final a in growthAreas.where((a) => !a.personal)) _area(system, a),
         const SizedBox(height: 14),

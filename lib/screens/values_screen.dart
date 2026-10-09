@@ -207,7 +207,7 @@ class _AffirmState extends State<_Affirm> {
           controller: _before,
           style: AppText.body(color: AppColors.white),
           decoration: const InputDecoration(
-              hintText: 'Before what? (e.g. pricing review with Rustam)'),
+              hintText: 'Before what? (e.g. a hard conversation, a big game)'),
         ),
         const SectionHeader('The value'),
         Wrap(

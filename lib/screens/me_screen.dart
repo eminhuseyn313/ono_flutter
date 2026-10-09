@@ -232,7 +232,7 @@ class MeScreen extends StatelessWidget {
               LinkRow(
                 icon: Icons.trending_up_rounded,
                 color: AppColors.skill,
-                title: 'Head of Product readiness',
+                title: '${activeProfile.targetRole} readiness',
                 subtitle: system.readiness.isEmpty
                     ? 'Not rated yet'
                     : system.readinessGap == null
@@ -661,7 +661,7 @@ class _CalendarLink extends StatelessWidget {
           title: on ? 'Calendar connected' : 'Connect your calendar',
           subtitle: on
               ? 'Today shows your meetings; a nudge 10 min before each. Tap to disconnect.'
-              : 'Today shows your meetings; 10 min before each: sigh, or six questions for Ali and Rustam. Read-only, stays on the phone.',
+              : 'Today shows your meetings; 10 min before each: sigh, or six questions for ${activeProfile.keyPeopleNames}. Read-only, stays on the phone.',
           onTap: () async {
             if (on) {
               await system.disconnectCalendar();

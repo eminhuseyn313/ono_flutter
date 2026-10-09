@@ -7,7 +7,11 @@
 
 import 'package:flutter/material.dart';
 
+import 'profile.dart';
+
 import '../models/personal_system.dart';
+
+export 'profile.dart';
 
 // ------------------------------------------------------------
 // Content records (static, read-only reference data)
@@ -977,8 +981,33 @@ const List<CareerMilestone> careerMilestones = [
 // Daily 10 non-negotiables
 // ------------------------------------------------------------
 
+/// The profile ONO is configured for. Features read this, never his
+/// name or job directly; onboarding will replace it for other people.
+const Profile activeProfile = Profile(
+  name: EminIdentity.name,
+  firstName: EminIdentity.firstName,
+  currentRole: 'Senior PO',
+  targetRole: 'Head of Product',
+  organisation: 'Bir Ecosystem (Kapital Bank, PASHA)',
+  focus: 'Business ID',
+  domain: 'identity, payments and agentic commerce',
+  identityStatement: EminIdentity.identityStatement,
+  path: EminIdentity.path,
+  keyPeople: [
+    KeyPerson('Ali', 'Manager', every: 7, primary: true),
+    KeyPerson('Rustam', 'Senior stakeholder', every: 30),
+  ],
+  coachContext:
+      'Archetype: The Product Architect. Path over 18 months: Senior PO → Head of Product → CPO / Tribe Lead → global manager. '
+      'His system: a Daily 10 (manifesto, domain scan, physiological sigh, BLUF, deliberate pause, lunch read, Feynman write, no caffeine after 13:00, protein 150 g, bed 22:30); '
+      'gym Mon Push / Wed Pull / Thu Legs, RA-safe (no overhead barbell, upright rows, behind-neck press or back squat; face pulls every session; Zone 2 cooldown); beta thalassemia; '
+      'impostor pattern Expert + Soloist; protocols: physiological sigh, "I am excited", BLUF, six questions deep before meetings with Ali, Feynman, Evidence Archive, still body, deliberate pause; '
+      'LinkedIn 2 posts/week from month 2; one artifact per month. Domain thesis: "The next interface of a super-app is an agent. Ecosystems that turn existing identity and payment trust into agent permissions will win. Business ID is Bir\'s answer." '
+      'Morning check-ins track RA in the shoulders: shoulder_flag_mornings counts mornings with pain ≥ 5/10 or stiffness ≥ 30 min.',
+);
+
 /// People whose meetings get the full six-questions-deep prep.
-const List<String> keyPeople = ['Ali', 'Rustam'];
+List<String> get keyPeople => [for (final p in activeProfile.keyPeople) p.name];
 
 const List<NonNegotiable> nonNegotiables = [
   NonNegotiable('manifesto', 'Read manifesto this morning', 'mind', 'morning',
