@@ -429,6 +429,34 @@ void main() {
       }
       if (errors.isNotEmpty) failures['/goals/view'] = errors.toSet();
 
+      // Someone else entirely: a runner with no organisation and one coach.
+      // Today, Me, goals, the note and the editor must still render.
+      errors.clear();
+      try {
+        system.saveProfile(builtInProfile.copyWith(
+          name: 'Leyla Mammadova',
+          firstName: 'Leyla',
+          currentRole: 'Amateur runner',
+          targetRole: 'Sub-3 marathoner',
+          organisation: '',
+          focus: '',
+          location: '',
+          archetype: 'The Comeback Athlete',
+          keyPeople: const [KeyPerson('Tural', 'Coach', every: 7, primary: true)],
+        ));
+        for (final r in ['/home', '/profile', '/goals', '/note', '/profile/edit', '/career', '/people']) {
+          await _go(tester, r);
+        }
+        if (find.textContaining('Leyla').evaluate().isEmpty) {
+          errors.add('edited profile not shown');
+        }
+        system.resetProfile();
+        await _go(tester, '/home');
+      } catch (e) {
+        errors.add('$e');
+      }
+      if (errors.isNotEmpty) failures['other profile'] = errors.toSet();
+
       // Me: the seeded caffeine cut-offs show as a pattern.
       await _go(tester, '/profile');
       final me = find.textContaining('No caffeine after 1pm →');

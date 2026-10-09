@@ -24,7 +24,10 @@ Models → Gateways (abstract + mock/Supabase) → Providers (ChangeNotifier) �
 Services: ReminderService (local notifications), BriefGenerator (weekly brief)
 ```
 
-- **Profile** (`lib/data/profile.dart`): `Profile` (name, current/target role, organisation, focus, domain, path, `KeyPerson`s with relation, contact rhythm and `primary`, `coachContext`). `activeProfile` in `emin_system.dart` is his; onboarding will replace it. `manager`, `keyPeopleNames`; `keyPeople` (names) derives from it. `BriefInput.profile` sends it to the coach, whose system prompt is general.
+- **Profile** (`lib/data/profile.dart`): `Profile` (name, first name, current/target role, organisation, focus, domain, location, archetype, tagline, identity statement, path, `KeyPerson`s with relation, contact rhythm and `primary`, `coachContext`; `toJson`/`fromJson`/`copyWith`, `roleLine`, `manager`, `keyPeopleNames`).
+  - `activeProfile` (getter in `emin_system.dart`) = the edited profile (`profileOverride`) or `builtInProfile` (his, as shipped). Screens never use `EminIdentity` (tested).
+  - Edited at Me → Settings → Your profile (`/profile/edit`): stored as one `profile` log (hidden from the Log tab, travels with export/import/sync); `saveProfile`/`resetProfile`; the provider applies it on `load` and `importJson`.
+  - `keyPeople` (names) derives from it. `BriefInput.profile` defaults to it and goes to the coach, whose system prompt is general.
 - **Content**:
   - `lib/data/emin_system.dart`: schedule, gym plan, Daily 10 (`nonNegotiables`), rotations, library, protocols, style, career, journey (`phases`, `monthThemes`, `unlocksFor(month)`, `artifactFor`), reminders (`reminderDefs`), mastery levels.
   - `lib/data/emin_personal_content.dart`: morning ritual steps, coach tips (`coachTipForDay`), weekly review questions.
@@ -79,7 +82,7 @@ Bottom tabs: **Today** `/home` · **Program** `/program?tab=0..3` (Journey/Sched
 ```
 /splash /welcome /sign-up /sign-in /forgot-password /commission
 /manifesto /protocols /evidence /library /style /career /weekly-coaching /checkin /plans /review /habits /cockpit(?tab=0..2)
-/shutdown /focus /letters /week /people /growth /values /coach /case /growth/area(?id=|template=) /goals /goals/edit /goals/view?id= /note /setback /quarter
+/shutdown /focus /letters /week /people /growth /values /coach /case /growth/area(?id=|template=) /goals /goals/edit /goals/view?id= /note /setback /quarter /profile/edit
 /ritual-flow/:ritualId /gym /gym/:dayId (push|pull|legs) /month/:m (1–18)
 /tool/:id  sigh excited pause still bluf sixq read feynman scan pennebaker anki artifact(?month=) linkedin
 ```

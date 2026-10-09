@@ -66,10 +66,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   String get _greeting => switch (_mode) {
-        _Mode.morning => 'Good morning, ${EminIdentity.firstName}.',
-        _Mode.work => 'Stay deliberate, ${EminIdentity.firstName}.',
-        _Mode.evening => 'Good evening, ${EminIdentity.firstName}.',
-        _Mode.sunday => 'Sunday, ${EminIdentity.firstName}. Review the week.',
+        _Mode.morning => 'Good morning, ${activeProfile.firstName}.',
+        _Mode.work => 'Stay deliberate, ${activeProfile.firstName}.',
+        _Mode.evening => 'Good evening, ${activeProfile.firstName}.',
+        _Mode.sunday => 'Sunday, ${activeProfile.firstName}. Review the week.',
       };
 
   void _celebrate(PersonalSystemProvider system, DateTime date) {
@@ -473,7 +473,7 @@ class _ModeCard extends StatelessWidget {
                 context,
                 eyebrow: 'Morning ritual · 5 min',
                 title: 'Water. Manifesto. Three priorities. Sigh. Statement.',
-                body: EminIdentity.identityStatement,
+                body: activeProfile.identityStatement,
                 cta: 'Start the ritual',
                 route: '/ritual-flow/ritual_morning_default',
               );

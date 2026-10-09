@@ -12,7 +12,7 @@ Status: ⬜ to do · 🟨 in progress · ✅ done. Effort: S = days, M = a week,
 | 2 | Weekly progress note to one chosen person | S | ✅ |
 | 3 | Setback protocol | S | ✅ |
 | 4 | Quarterly review and plan | S | ✅ |
-| 5 | Profile editor | M | ⬜ |
+| 5 | Profile editor | M | ✅ |
 
 ### 1. Goals with WOOP and a measure
 *As anyone growing, I state the 6–18-month outcomes I'm working towards and see whether I'm on track.*

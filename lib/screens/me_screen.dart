@@ -38,9 +38,9 @@ class MeScreen extends StatelessWidget {
     ];
 
     return OnoPage(
-      eyebrow: EminIdentity.archetype,
-      title: EminIdentity.name,
-      subtitle: '${EminIdentity.role}\n${EminIdentity.company}',
+      eyebrow: activeProfile.archetype,
+      title: activeProfile.name,
+      subtitle: '${activeProfile.roleLine}\n${activeProfile.organisation}',
       children: [
         const SizedBox(height: 20),
         OnoCard(
@@ -342,6 +342,14 @@ class MeScreen extends StatelessWidget {
           padding: EdgeInsets.zero,
           child: Column(
             children: [
+              LinkRow(
+                icon: Icons.badge_outlined,
+                color: AppColors.accent,
+                title: 'Your profile',
+                subtitle: '${activeProfile.currentRole} → ${activeProfile.targetRole}${system.profileEdited ? ' · edited' : ''}',
+                onTap: () => context.push('/profile/edit'),
+              ),
+              const Divider(indent: 66),
               LinkRow(
                 icon: Icons.event_rounded,
                 color: AppColors.accent,

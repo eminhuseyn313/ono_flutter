@@ -64,7 +64,7 @@ class BriefInput {
   /// Who the brief is for: names, roles, key people and coach context.
   final Profile profile;
 
-  const BriefInput({
+  BriefInput({
     required this.report,
     required this.forWeek,
     required this.programMonth,
@@ -92,12 +92,12 @@ class BriefInput {
     this.feedbackThisMonth = 0,
     this.valueGap,
     this.openCommitments = const [],
-    this.profile = activeProfile,
+    Profile? profile,
     this.goals = const [],
     this.noteSent = false,
     this.setbacks = 0,
     this.lowestLifeArea,
-  });
+  }) : profile = profile ?? activeProfile;
 
   Map<String, dynamic> toJson() => {
         'profile': profile.toJson(),

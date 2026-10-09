@@ -97,7 +97,7 @@ class _ChooserState extends State<_Chooser> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        group('Career · ${EminIdentity.path[1]}',
+        group('Career · ${activeProfile.targetRole}',
             growthAreas.where((a) => !a.personal).toList()),
         group('Personal', growthAreas.where((a) => a.personal).toList()),
         if (system.customAreas.isNotEmpty)

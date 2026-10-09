@@ -153,18 +153,18 @@ class _CommissionScreenState extends State<CommissionScreen> {
 
   Widget _identity() => _page(
         'Commission · 1 of 5',
-        EminIdentity.archetype,
-        EminIdentity.tagline,
+        activeProfile.archetype,
+        activeProfile.tagline,
         [
           OnoCard(
             color: AppColors.navy,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(EminIdentity.name, style: AppText.serif(size: 26)),
+                Text(activeProfile.name, style: AppText.serif(size: 26)),
                 const SizedBox(height: 4),
-                Text(EminIdentity.role, style: AppText.body()),
-                Text('${EminIdentity.company} · ${EminIdentity.location}',
+                Text(activeProfile.roleLine, style: AppText.body()),
+                Text('${activeProfile.organisation} · ${activeProfile.location}',
                     style: AppText.small()),
                 const SizedBox(height: 18),
                 Text('THE PATH', style: AppText.eyebrow()),

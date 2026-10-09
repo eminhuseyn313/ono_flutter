@@ -25,7 +25,7 @@ class OnboardingWelcomeScreen extends StatelessWidget {
                   style: AppText.serif(size: 26, color: AppColors.accent)
                       .copyWith(letterSpacing: 6)),
               const Spacer(),
-              Text(EminIdentity.archetype.toUpperCase(),
+              Text(activeProfile.archetype.toUpperCase(),
                   style: AppText.eyebrow(color: AppColors.accent)),
               const SizedBox(height: 12),
               Text('Eighteen months.\nOne system.\nBuilt to be yours.',

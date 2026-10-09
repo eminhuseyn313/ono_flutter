@@ -20,7 +20,7 @@ class CareerScreen extends StatelessWidget {
       eyebrow: 'Playbook',
       title: 'Career & signal',
       subtitle:
-          '${EminIdentity.role}\n${EminIdentity.company} · ${EminIdentity.location}',
+          '${activeProfile.roleLine}\n${activeProfile.organisation} · ${activeProfile.location}',
       children: [
         const SectionHeader('Your thesis'),
         OnoCard(

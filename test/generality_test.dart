@@ -19,8 +19,9 @@ void main() {
         if (!f.path.endsWith('.dart') && !f.path.endsWith('.ts')) continue;
         final lines = f.readAsLinesSync();
         for (var i = 0; i < lines.length; i++) {
-          final line = lines[i].replaceAll(RegExp(r'EminIdentity\.\w+'), '');
-          if (banned.hasMatch(line)) offenders.add('${f.path}:${i + 1}: ${lines[i].trim()}');
+          if (banned.hasMatch(lines[i]) || lines[i].contains('EminIdentity')) {
+            offenders.add('${f.path}:${i + 1}: ${lines[i].trim()}');
+          }
         }
       }
     }

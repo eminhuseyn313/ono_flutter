@@ -63,6 +63,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     _loading = true;
     notifyListeners();
     _state = await _gateway.load(id);
+    _applyProfile();
     _loading = false;
     notifyListeners();
     _syncReminders();
@@ -1283,7 +1284,7 @@ class PersonalSystemProvider extends ChangeNotifier {
             body = 'Face pulls 3×15 never skipped. Zone 2 cooldown 15 min.';
           case 'ritual':
             title = 'Morning ritual · 5 min';
-            body = EminIdentity.identityStatement;
+            body = activeProfile.identityStatement;
           default:
             title = def.label;
             body = _reminderBody(def.id);
@@ -1566,6 +1567,42 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   int shutdownsInWeek(DateTime anyDay) =>
       weekDays(anyDay).where((d) => shutdownFor(d) != null).length;
+
+  // ── Profile ──────────────────────────────────────────────────────────
+
+  /// The person's own profile, if edited, stored as one `profile` log so
+  /// it travels with export, import and sync.
+  LogEntry? get _profileLog {
+    final l = logsOf('profile');
+    return l.isEmpty ? null : l.first;
+  }
+
+  bool get profileEdited => _profileLog != null;
+
+  void _applyProfile() {
+    final l = _profileLog;
+    setProfileOverride(l == null ? null : Profile.fromJson(l.data));
+  }
+
+  /// Saves an edited profile; every screen and the coach read it from now.
+  void saveProfile(Profile p) {
+    final l = _profileLog;
+    if (l == null) {
+      addLog('profile', text: p.name, data: p.toJson());
+    } else {
+      updateLog(l.copyWith(text: p.name, data: p.toJson()));
+    }
+    _applyProfile();
+    notifyListeners();
+  }
+
+  /// Back to the built-in profile.
+  void resetProfile() {
+    final l = _profileLog;
+    if (l != null) removeLog(l.id);
+    _applyProfile();
+    notifyListeners();
+  }
 
   // ── Goals ────────────────────────────────────────────────────────────
 
@@ -2613,6 +2650,7 @@ class PersonalSystemProvider extends ChangeNotifier {
       final next =
           PersonalSystemState.fromJson(jsonDecode(raw) as Map<String, dynamic>);
       _update(next, reschedule: true);
+      _applyProfile();
       return true;
     } catch (_) {
       return false;

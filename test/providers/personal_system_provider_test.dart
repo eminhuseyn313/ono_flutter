@@ -1265,4 +1265,50 @@ void main() {
       expect(ids, contains(a.template), reason: a.id);
     }
   });
+
+  test('profile: edited profile drives everything, survives export, resets',
+      () async {
+    final p = await _commissioned(briefs: DeviceBriefGenerator());
+    expect(p.profileEdited, isFalse);
+    expect(activeProfile.targetRole, builtInProfile.targetRole);
+    final runner = builtInProfile.copyWith(
+      name: 'Leyla Mammadova',
+      firstName: 'Leyla',
+      currentRole: 'Amateur runner',
+      targetRole: 'Sub-3 marathoner',
+      organisation: '',
+      focus: '',
+      keyPeople: const [KeyPerson('Tural', 'Coach', every: 7, primary: true)],
+    );
+    p.saveProfile(runner);
+    expect(p.profileEdited, isTrue);
+    expect(activeProfile.name, 'Leyla Mammadova');
+    expect(activeProfile.manager, 'Tural');
+    expect(activeProfile.roleLine, 'Amateur runner');
+    expect(keyPeople, ['Tural']);
+    expect(p.defaultNoteRecipient, 'Tural');
+    // Saving again edits in place.
+    p.saveProfile(runner.copyWith(targetRole: 'Sub-2:59'));
+    expect(p.logsOf('profile').length, 1);
+    expect(activeProfile.targetRole, 'Sub-2:59');
+
+    // It travels with export/import into a fresh install.
+    final json = p.exportJson();
+    final q = PersonalSystemProvider(gateway: MockPersonalSystemGateway())
+      ..clock = () => _today;
+    await q.load('other');
+    expect(activeProfile.targetRole, builtInProfile.targetRole,
+        reason: 'a fresh load without a saved profile uses the built-in one');
+    expect(q.importJson(json), isTrue);
+    expect(activeProfile.targetRole, 'Sub-2:59');
+
+    q.resetProfile();
+    expect(q.profileEdited, isFalse);
+    expect(activeProfile.name, builtInProfile.name);
+  });
+
+  test('profile JSON round-trips', () {
+    final back = Profile.fromJson(builtInProfile.toJson());
+    expect(back.toJson(), builtInProfile.toJson());
+  });
 }

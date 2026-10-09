@@ -982,8 +982,12 @@ const List<CareerMilestone> careerMilestones = [
 // ------------------------------------------------------------
 
 /// The profile ONO is configured for. Features read this, never his
-/// name or job directly; onboarding will replace it for other people.
-const Profile activeProfile = Profile(
+/// name or job directly. It is his built-in profile unless he edited it
+/// (Me → Profile); onboarding will set it for other people.
+Profile get activeProfile => profileOverride ?? builtInProfile;
+
+/// His profile as shipped.
+const Profile builtInProfile = Profile(
   name: EminIdentity.name,
   firstName: EminIdentity.firstName,
   currentRole: 'Senior PO',
@@ -992,6 +996,9 @@ const Profile activeProfile = Profile(
   focus: 'Business ID',
   domain: 'identity, payments and agentic commerce',
   identityStatement: EminIdentity.identityStatement,
+  archetype: EminIdentity.archetype,
+  tagline: EminIdentity.tagline,
+  location: EminIdentity.location,
   path: EminIdentity.path,
   keyPeople: [
     KeyPerson('Ali', 'Manager', every: 7, primary: true),

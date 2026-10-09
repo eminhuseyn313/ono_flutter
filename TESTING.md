@@ -128,6 +128,10 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] Me → **Quarterly review** (Today prompts it in the last week of each 90-day quarter) → rate the 8 life areas → the lowest suggests a growth area template
 - [ ] Wins, lessons, keep / achieved / drop for each goal, the focus for the next quarter → **Close the quarter**
 
+## 2q. New: your profile
+- [ ] Me → Settings → **Your profile** → change e.g. the organisation or add a key person → Save → Today greets you by first name, Career and Me show the new details, People offers to add the new person, the progress note defaults to the primary person
+- [ ] **Reset to the original profile** brings everything back
+
 ## 3. Tools & logging
 - [ ] Morning ritual (from Today before 11:00): 5 steps → finishing ticks the manifesto
 - [ ] Sigh tool: run it → "uses" and mastery level go up; the sigh item is ticked

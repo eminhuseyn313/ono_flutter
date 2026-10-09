@@ -183,7 +183,7 @@ class _RitualFlowScreenState extends State<RitualFlowScreen> {
                     ),
                   )
               else if (s.id == 'identity')
-                Text(EminIdentity.identityStatement,
+                Text(activeProfile.identityStatement,
                     textAlign: TextAlign.center,
                     style: AppText.serif(size: 30, color: AppColors.accent))
               else
