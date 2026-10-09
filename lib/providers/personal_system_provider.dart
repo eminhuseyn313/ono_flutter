@@ -2207,6 +2207,67 @@ class PersonalSystemProvider extends ChangeNotifier {
     if (l.isNotEmpty) removeLog(l.first.id);
   }
 
+  // ── Quarterly 360-lite ───────────────────────────────────────────────
+
+  static const defaultRoundQuestion =
+      'What\'s one thing I should keep doing, and one thing I should change?';
+
+  /// One round per program quarter: the same question to up to three
+  /// people, their answers, and the theme that repeats (multisource
+  /// feedback, London & Smither 1995).
+  LogEntry? roundFor(int quarter) {
+    for (final l in logsOf('feedback_round')) {
+      if (l.number('quarter') == quarter) return l;
+    }
+    return null;
+  }
+
+  LogEntry startRound(List<String> people, {String question = defaultRoundQuestion}) {
+    final q = programQuarter;
+    final existing = roundFor(q);
+    final data = {
+      'quarter': q,
+      'people': [for (final p in people.take(3)) if (p.trim().isNotEmpty) p.trim()],
+      'answers': existing?.data['answers'] ?? const [],
+      'themes': existing?.str('themes') ?? '',
+    };
+    if (existing == null) {
+      return addLog('feedback_round', text: question.trim(), data: data)!;
+    }
+    final next = existing.copyWith(text: question.trim(), data: data);
+    updateLog(next);
+    return next;
+  }
+
+  List<({String from, String said})> roundAnswers(LogEntry round) => [
+        for (final a in (round.data['answers'] as List? ?? const []))
+          (from: '${(a as Map)['from']}', said: '${a['said']}')
+      ];
+
+  void addRoundAnswer(String roundId, String from, String said) {
+    final l = logsOf('feedback_round').where((x) => x.id == roundId);
+    if (l.isEmpty || said.trim().isEmpty) return;
+    final r = l.first;
+    final answers = [
+      for (final a in roundAnswers(r))
+        if (a.from != from.trim()) {'from': a.from, 'said': a.said},
+      {'from': from.trim(), 'said': said.trim()},
+    ];
+    updateLog(r.copyWith(data: {...r.data, 'answers': answers}));
+  }
+
+  void setRoundThemes(String roundId, String themes) {
+    final l = logsOf('feedback_round').where((x) => x.id == roundId);
+    if (l.isEmpty) return;
+    updateLog(l.first.copyWith(data: {...l.first.data, 'themes': themes.trim()}));
+  }
+
+  /// From day 45 of a quarter until this quarter's round exists.
+  bool get roundDue {
+    if (!hasStarted || roundFor(programQuarter) != null) return false;
+    return dayOnly(_now).difference(quarterStart(programQuarter)).inDays >= 45;
+  }
+
   // ── Personal experiments ─────────────────────────────────────────────
 
   /// What an experiment can watch, from data already logged.
@@ -2746,6 +2807,17 @@ class PersonalSystemProvider extends ChangeNotifier {
       }
       for (final w in wins) {
         b.writeln('• ${w.text}');
+      }
+      b.writeln();
+    }
+    final themes = [
+      for (final r in logsOf('feedback_round'))
+        if ((r.str('themes') ?? '').isNotEmpty) r
+    ];
+    if (themes.isNotEmpty) {
+      b.writeln('WHAT OTHERS SAY');
+      for (final r in themes.take(3)) {
+        b.writeln('• Quarter ${r.number('quarter')}: ${r.str('themes')}');
       }
       b.writeln();
     }

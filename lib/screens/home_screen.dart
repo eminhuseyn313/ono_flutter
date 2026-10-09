@@ -1024,6 +1024,9 @@ class _PromptsState extends State<_Prompts> {
         _row(context, Icons.balance_rounded, AppColors.accent,
             'Decision review due',
             '"${reviews.first.text}" — was the call right?', '/cockpit?tab=1'),
+      if (system.roundDue)
+        _row(context, Icons.groups_2_outlined, AppColors.social,
+            'Ask three people one question', 'Your quarterly feedback round — 5 minutes to send', '/360'),
       if (system.quarterReviewDue)
         _row(context, Icons.donut_large_rounded, AppColors.accent,
             'Quarterly review', 'Quarter ${system.quarterToReview} ends — 15 minutes to look at your whole life', '/quarter'),

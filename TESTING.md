@@ -171,6 +171,10 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] Me → **Gratitude letter** → pick a person → write → Save (copied) → deliver it → **I delivered it** → how they reacted
 - [ ] Me → **Role models** → who, what to learn, one question → after asking, save their answer
 
+## 2z. New: quarterly feedback round
+- [ ] Me → **Feedback round** (Today prompts it from day 45 of each quarter) → pick up to three people → **Start the round** (the ask is copied) → send it
+- [ ] Save each answer in their words → write what repeats → it appears in your career case under "What others say"
+
 ## 3. Tools & logging
 - [ ] Morning ritual (from Today before 11:00): 5 steps → finishing ticks the manifesto
 - [ ] Sigh tool: run it → "uses" and mastery level go up; the sigh item is ticked

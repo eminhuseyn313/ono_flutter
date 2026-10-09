@@ -1509,4 +1509,24 @@ void main() {
     p.removeRoleModel(m.id);
     expect(p.roleModels, isEmpty);
   });
+
+  test('feedback round: one per quarter, answers, themes into the case',
+      () async {
+    final p = await _commissioned();
+    expect(p.roundDue, isFalse, reason: 'day 32 of the quarter');
+    p.clock = () => _start.add(const Duration(days: 50));
+    expect(p.roundDue, isTrue);
+    final r = p.startRound(['Ali', 'Leyla', 'Tural', 'Fourth']);
+    expect((r.data['people'] as List).length, 3);
+    expect(p.roundDue, isFalse);
+    p.addRoundAnswer(r.id, 'Ali', 'Keep the BLUF; change: decide faster');
+    p.addRoundAnswer(r.id, 'Ali', 'Keep BLUF. Decide faster.');
+    expect(p.roundAnswers(p.roundFor(1)!).length, 1, reason: 'replaced');
+    p.setRoundThemes(r.id, 'Decide faster in the room');
+    expect(p.caseText(), contains('Quarter 1: Decide faster in the room'));
+    p.startRound(['Ali']);
+    expect(p.logsOf('feedback_round').length, 1);
+    expect(p.roundAnswers(p.roundFor(1)!).length, 1, reason: 'answers kept');
+    p.clock = () => _today;
+  });
 }

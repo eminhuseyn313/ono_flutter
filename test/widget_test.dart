@@ -304,6 +304,10 @@ void main() {
           learn: 'How she says no to the CEO without losing trust',
           question: 'How do you decide what not to build?')!;
       system.answerRoleModel(model.id, 'Write the trade-off down before the meeting');
+      // A feedback round with one answer in and a theme.
+      final round = system.startRound(['Ali', 'Leyla Aliyeva-Huseynova']);
+      system.addRoundAnswer(round.id, 'Ali',
+          'Keep writing decisions down first. Change: decide in the room instead of after it.');
       // One daily item of his own: 11 items, 8 hold the day.
       system.addDailyItem('Ten minutes of Spanish before dinner, with the app',
           lane: 'skill', when: 'evening', cue: 'When I sit down at home → app open');

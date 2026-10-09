@@ -331,6 +331,16 @@ class MeScreen extends StatelessWidget {
               ),
               const Divider(indent: 66),
               LinkRow(
+                icon: Icons.groups_2_outlined,
+                color: AppColors.social,
+                title: 'Feedback round',
+                subtitle: system.roundFor(system.programQuarter) == null
+                    ? 'One question, three people, once a quarter'
+                    : 'Quarter ${system.programQuarter}: ${system.roundAnswers(system.roundFor(system.programQuarter)!).length} answers',
+                onTap: () => context.push('/360'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
                 icon: Icons.emoji_people_outlined,
                 color: AppColors.skill,
                 title: 'Role models',
