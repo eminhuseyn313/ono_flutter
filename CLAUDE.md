@@ -69,7 +69,7 @@ Bottom tabs: **Today** `/home` · **Program** `/program?tab=0..3` (Journey/Sched
 ```
 /splash /welcome /sign-up /sign-in /forgot-password /commission
 /manifesto /protocols /evidence /library /style /career /weekly-coaching /checkin /plans /review /habits /cockpit(?tab=0..2)
-/shutdown /focus /letters /week /people /growth
+/shutdown /focus /letters /week /people /growth /values /coach /case
 /ritual-flow/:ritualId /gym /gym/:dayId (push|pull|legs) /month/:m (1–18)
 /tool/:id  sigh excited pause still bluf sixq read feynman scan pennebaker anki artifact(?month=) linkedin
 ```
@@ -151,6 +151,9 @@ Flow:
   - One `growth_focus` log per program month (`area`, `start`, `end` ratings 1–5). `setFocus`/`rateFocusEnd`/`focusRatings`; `suggestedArea` = the readiness gap.
   - `drillFor` suggests this week's drill (not yet practised this month, rotating by week). `logRep` saves a Kolb reflection (did, noticed, lesson, next) as a `rep` log; `logFeedback` saves a `feedback` log.
   - Today's growth card sits above the prompts; Log has a Growth filter; the brief leads with growth focus, reps this week and feedback this month.
+- **Values** (`/values`): one `values` log (3–5 `{name, meaning}` from `valueOptions`, edited in place, hidden from the Log tab). The values affirmation writes an `affirmation` log (value, text, before what). A weekly `values_check` (ratings 1–5, dated `weekStartOf`); `valueGap` = lowest below 4 → the brief. Today prompts the check on Sundays.
+- **Self-coaching** (`/coach`, GROW): `coaching` logs (goal as text; reality, options, will, `by`, commitment 1–10). `commitmentsDue(day)` until kept (`coach:<id>`) or dropped (`coach:<id>:dropped`); Today prompts the first; the brief gets open ones.
+- **Head of Product case** (`/case`, linked from Career): `caseFor(area)` = readiness rating, reps and feedback per professional area; `caseText()` adds shipped/in-review artifacts, decisions reviewed right, evidence "built" items, wins and the readiness gap, for copying.
 - **Big 3** (`/week`): one `week_plan` log per week (dated `weekStartOf`) holding `outcomes` (3) and `done` indexes. `setWeekOutcome`/`toggleWeekOutcome`/`weekOutcomeScore`. Today shows them tickable (or a prompt to set them); from Saturday `/week` also plans next week; the Sunday report reviews them and the brief gets them as `[done]`/`[open]`.
 - **People** (`/people`): `person` logs (name, `role`, `every` days); `touch` logs record contact. `lastContact` also counts `one_on_one` logs whose `with` matches the first name as a whole word. `peopleDue` (past cadence, most overdue first) prompts on Today and goes into the brief. People never show in the Log tab; `removePerson` also drops their touches.
 - The shutdown's "one good thing" is saved as a `win` (once per text per day).

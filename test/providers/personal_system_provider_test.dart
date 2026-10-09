@@ -971,4 +971,82 @@ void main() {
     expect(growthAreas.where((a) => !a.personal).map((a) => a.id),
         readinessDimensions.map((d) => d.id));
   });
+
+  test('values: saved in his words, weekly check, least-lived value', () async {
+    final p = await _commissioned(briefs: DeviceBriefGenerator());
+    expect(p.values, isEmpty);
+    p.setValues([
+      (name: 'Craft', meaning: 'Build things that last'),
+      (name: 'Family', meaning: 'Home comes first'),
+      (name: 'Courage', meaning: 'Say the hard thing'),
+    ]);
+    expect(p.values.map((v) => v.name), ['Craft', 'Family', 'Courage']);
+    expect(p.logsOf('values').length, 1);
+    p.setValues([(name: 'Craft', meaning: 'x'), (name: 'Calm', meaning: 'y'), (name: 'Courage', meaning: 'z')]);
+    expect(p.logsOf('values').length, 1, reason: 'edited in place');
+
+    p.saveValuesCheck(_today, {'Craft': 5, 'Calm': 2, 'Courage': 4});
+    expect(p.valueGap(_today), 'Calm');
+    p.saveValuesCheck(_today, {'Craft': 5, 'Calm': 4, 'Courage': 4});
+    expect(p.valueGap(_today), isNull, reason: 'all at 4+');
+    p.saveValuesCheck(_today, {'Craft': 5, 'Calm': 3, 'Courage': 4});
+
+    p.logAffirmation('Craft', 'I built Paya from nothing', before: 'pricing review');
+    expect(p.logsOf('affirmation').single.str('before'), 'pricing review');
+
+    final brief = await p.submitReport(WeeklyReport(
+      id: 'r',
+      weekStart: weekStartOf(_today),
+      nonNegotiableAverage: 7,
+      gymSessions: 3,
+      bestMoment: '',
+      hardestMoment: '',
+      workSituation: '',
+      createdAt: _today,
+    ));
+    expect(brief!.adjustments.join(' '), contains('reflected Calm least'));
+  });
+
+  test('self-coaching: commitment comes due, kept or dropped', () async {
+    final p = await _commissioned();
+    final c = p.logCoaching(
+        goal: 'Own Business ID onboarding',
+        reality: 'Ali assigns it piece by piece',
+        options: ['Ask directly', 'Write a proposal', ''],
+        will: 'Send Ali a one-page ownership proposal',
+        by: dayOnly(_today).add(const Duration(days: 3)),
+        commitment: 8);
+    expect(c.data['options'], ['Ask directly', 'Write a proposal']);
+    expect(p.commitmentsDue(_today), isEmpty);
+    final later = _today.add(const Duration(days: 3));
+    expect(p.commitmentsDue(later).single.id, c.id);
+    p.setCommitmentKept(c.id, true);
+    expect(p.commitmentsDue(later), isEmpty);
+    final d = p.logCoaching(
+        goal: 'g', reality: 'r', options: const [], will: 'w',
+        by: dayOnly(_today), commitment: 5);
+    p.dropCommitment(d.id);
+    expect(p.commitmentsDue(later), isEmpty);
+  });
+
+  test('Head of Product case: per dimension, honest about gaps', () async {
+    final p = await _commissioned();
+    p.saveReadiness({for (final d in readinessDimensions) d.id: 4, 'strategy': 2});
+    p.setFocus('communication', startRating: 2);
+    final area = p.focusArea()!;
+    p.logRep(area, area.drills.first,
+        did: 'BLUF update to Ali', lesson: 'Decision first gets a reply in minutes');
+    p.logFeedback(area, from: 'Ali', said: 'Clearer this month');
+    p.addLog('artifact', data: {'title': 'OST — onboarding', 'kind': 'OST', 'status': 'shipped', 'month': 1});
+    final c = p.caseFor('communication');
+    expect(c.rating, 4);
+    expect(c.reps.length, 1);
+    final text = p.caseText();
+    expect(text, contains('EXECUTIVE COMMUNICATION — 4/5 (bar 4)'));
+    expect(text, contains('→ Decision first gets a reply in minutes'));
+    expect(text, contains('Feedback from Ali: "Clearer this month"'));
+    expect(text, contains('OST — onboarding (OST, shipped)'));
+    expect(text, contains('Nothing logged yet'), reason: 'unpractised areas say so');
+    expect(text, contains("WHERE I'M STILL GROWING\nStrategy & business"));
+  });
 }

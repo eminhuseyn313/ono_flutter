@@ -158,6 +158,15 @@ Emin's direction: ONO is about personal and professional development, not app me
 | **Reflection on every rep** | Experience becomes learning only when you reflect, draw a lesson and plan the next attempt. | Kolb 1984; Di Stefano et al. 2014 |
 | **Asking for specific feedback** | Feedback-seeking predicts performance and is read as a sign of competence when the question is specific. | Ashford & Cummings 1983; Brooks et al. 2015 |
 
+## Tier 7: values, self-coaching, career case (built)
+
+| Feature | Why it works | Source |
+|---|---|---|
+| **Values affirmation before pressure moments** | Writing about a core value before an evaluative situation lowers the cortisol response and buffers identity threat — the impostor/exec-anxiety pattern in his diagnosis. | Creswell et al. 2005; Cohen & Sherman 2014 |
+| **Weekly values check** | Acting in line with one's values predicts wellbeing more than goal attainment alone. | Sheldon & Elliot 1999 (self-concordance) |
+| **Self-coaching (GROW) with a dated commitment** | A structured goal–reality–options–will conversation plus a committed action and check-back turns rumination into a decision. | Whitmore, *Coaching for Performance*; Grant 2012 |
+| **Head of Product case from real evidence** | Promotion conversations go better with concrete, dimension-by-dimension evidence than with self-assessment. | Brag-document practice; competency-based promotion |
+
 ## Tier 3: later
 
 - **Reflection journal with Claude** (Rosebud-style follow-up questions). Use the `weekly-brief` edge function once Supabase is back.

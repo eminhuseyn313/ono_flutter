@@ -242,6 +242,24 @@ class MeScreen extends StatelessWidget {
               ),
               const Divider(indent: 66),
               LinkRow(
+                icon: Icons.diamond_outlined,
+                color: AppColors.mind,
+                title: 'Your values',
+                subtitle: system.values.isEmpty
+                    ? 'Three to five, in your own words'
+                    : system.values.map((v) => v.name).join(' · '),
+                onTap: () => context.push('/values'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
+                icon: Icons.psychology_alt_outlined,
+                color: AppColors.mind,
+                title: 'Think it through',
+                subtitle: 'Coach yourself on a problem that keeps circling',
+                onTap: () => context.push('/coach'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
                 icon: Icons.group_outlined,
                 color: AppColors.social,
                 title: 'People',

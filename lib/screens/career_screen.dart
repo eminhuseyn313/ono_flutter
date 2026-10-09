@@ -63,6 +63,17 @@ class CareerScreen extends StatelessWidget {
             onTap: () => context.push('/cockpit'),
           ),
         ),
+        const SizedBox(height: 12),
+        OnoCard(
+          padding: EdgeInsets.zero,
+          child: LinkRow(
+            icon: Icons.assignment_ind_outlined,
+            color: AppColors.skill,
+            title: 'Your Head of Product case',
+            subtitle: 'Reps, feedback, artifacts and wins per dimension',
+            onTap: () => context.push('/case'),
+          ),
+        ),
         const SectionHeader('LinkedIn — exact rewrites'),
         OnoCard(
           padding: EdgeInsets.zero,

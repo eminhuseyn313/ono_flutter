@@ -247,6 +247,14 @@ void main() {
       system.clock = () => DateTime.now().subtract(const Duration(days: 35));
       system.setFocus('self_trust', startRating: 2);
       system.clock = DateTime.now;
+      // A self-coaching commitment due today: Today and /coach show it.
+      system.logCoaching(
+          goal: 'Be seen as the owner of Business ID onboarding end to end',
+          reality: 'Ali hands it over piece by piece',
+          options: ['Ask directly in the 1:1', 'Write an ownership proposal'],
+          will: 'Send Ali a one-page ownership proposal before Thursday\'s 1:1',
+          by: today,
+          commitment: 8);
       await _pumpFor(tester, const Duration(milliseconds: 500));
 
       final routes = <String>{
@@ -356,6 +364,28 @@ void main() {
         errors.add('$e');
       }
       if (errors.isNotEmpty) failures['/growth plan'] = errors.toSet();
+
+      // Values: the picker rendered in the route loop; with values saved,
+      // the list, affirmation and weekly check render.
+      errors.clear();
+      try {
+        system.setValues([
+          (name: 'Craft', meaning: 'Build things that outlast the meeting'),
+          (name: 'Family', meaning: 'Home is the reason, not the reward'),
+          (name: 'Courage', meaning: 'Say the true thing in the room, calmly'),
+        ]);
+        system.saveValuesCheck(today, {'Craft': 4, 'Family': 5});
+        await _go(tester, '/values');
+        await tester.tap(find.textContaining('Affirm before a hard moment'));
+        await _pumpFor(tester, const Duration(milliseconds: 800));
+        if (find.text('Why it matters').evaluate().isEmpty) {
+          errors.add('affirmation did not open');
+        }
+        await _go(tester, '/home');
+      } catch (e) {
+        errors.add('$e');
+      }
+      if (errors.isNotEmpty) failures['/values saved'] = errors.toSet();
 
       // Me: the seeded caffeine cut-offs show as a pattern.
       await _go(tester, '/profile');

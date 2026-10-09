@@ -21,7 +21,7 @@ class LogScreen extends StatefulWidget {
 
 const _filters = <String, Set<String>?>{
   'All': null,
-  'Growth': {'rep', 'feedback', 'growth_focus'},
+  'Growth': {'rep', 'feedback', 'growth_focus', 'coaching', 'affirmation', 'values_check'},
   'Notes': {'feynman', 'scan', 'pennebaker', 'note', 'win', 'month_review', 'shutdown'},
   'Protocols': {'sigh', 'excited', 'bluf', 'sixq', 'pause', 'still', 'ritual', 'read', 'anki'},
   'Body': {'weight', 'protein', 'gym', 'blood', 'checkin', 'sleep', 'vitals'},
@@ -66,7 +66,7 @@ class _LogScreenState extends State<LogScreen> {
             // Letters stay sealed: they only show on /letters.
             .where((e) => e.type != 'letter')
             // People are a list, not events; contact with them is a touch.
-            .where((e) => e.type != 'person')
+            .where((e) => e.type != 'person' && e.type != 'values')
             .toList()
         : system.allLogs(_filters[_filter]);
     final byDay = <String, List<LogEntry>>{};
@@ -268,6 +268,9 @@ class _EntryRow extends StatelessWidget {
     'shutdown': (Icons.nights_stay_outlined, 'mind', 'Shutdown'),
     'week_plan': (Icons.flag_rounded, 'skill', 'Big 3'),
     'rep': (Icons.trending_up_rounded, 'skill', 'Practice rep'),
+    'coaching': (Icons.psychology_alt_outlined, 'mind', 'Coached myself'),
+    'affirmation': (Icons.diamond_outlined, 'mind', 'Values affirmation'),
+    'values_check': (Icons.diamond_outlined, 'mind', 'Values check'),
     'feedback': (Icons.record_voice_over_outlined, 'social', 'Feedback'),
     'growth_focus': (Icons.track_changes_rounded, 'mind', 'Growth area'),
     'touch': (Icons.group_outlined, 'social', 'In touch'),
@@ -319,6 +322,14 @@ class _EntryRow extends StatelessWidget {
       case 'focus':
         final t = e.str('target');
         return '${e.number('minutes')} min${t == 'artifact' ? ' · artifact' : t == 'skill' ? ' · skill' : ''}';
+      case 'coaching':
+        return '${e.text} → ${e.str('will')}';
+      case 'affirmation':
+        final before = e.str('before') ?? '';
+        return '${e.str('value')}${before.isEmpty ? '' : ' · before $before'}';
+      case 'values_check':
+        final r = (e.data['ratings'] as Map? ?? const {});
+        return r.entries.map((x) => '${x.key} ${x.value}').join(' · ');
       case 'rep':
         final lesson = e.str('lesson') ?? '';
         return '${e.str('drill')} · ${lesson.isEmpty ? e.text : lesson}';

@@ -3,7 +3,9 @@ import 'package:go_router/go_router.dart';
 
 import 'providers/auth_provider.dart';
 import 'screens/career_screen.dart';
+import 'screens/case_screen.dart';
 import 'screens/checkin_screen.dart';
+import 'screens/coach_screen.dart';
 import 'screens/cockpit_screen.dart';
 import 'screens/commission_screen.dart';
 import 'screens/evidence_archive_screen.dart';
@@ -34,6 +36,7 @@ import 'screens/splash_screen.dart';
 import 'screens/style_screen.dart';
 import 'screens/tool_screens.dart';
 import 'screens/week_screen.dart';
+import 'screens/values_screen.dart';
 import 'screens/weekly_coaching_screen.dart';
 
 /// Every route in the app. Tabs: Today · Program · Log · Me.
@@ -79,6 +82,9 @@ const appRoutes = [
   '/week',
   '/people',
   '/growth',
+  '/values',
+  '/coach',
+  '/case',
 ];
 
 GoRouter createRouter(AuthProvider authProvider,
@@ -133,6 +139,9 @@ GoRouter createRouter(AuthProvider authProvider,
       _slide('/week', (_) => const WeekScreen()),
       _slide('/people', (_) => const PeopleScreen()),
       _slide('/growth', (_) => const GrowthScreen()),
+      _slide('/values', (_) => const ValuesScreen()),
+      _slide('/coach', (_) => const CoachScreen()),
+      _slide('/case', (_) => const CaseScreen()),
       _slide(
           '/cockpit',
           (s) => CockpitScreen(

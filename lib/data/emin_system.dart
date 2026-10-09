@@ -1563,6 +1563,13 @@ const List<GrowthArea> growthAreas = [
       ]),
 ];
 
+/// Values to choose from; he picks 3–5 and says what each means to him.
+const valueOptions = [
+  'Craft', 'Integrity', 'Family', 'Courage', 'Legacy', 'Growth',
+  'Faith', 'Calm', 'Curiosity', 'Excellence', 'Freedom', 'Health',
+  'Loyalty', 'Impact', 'Respect', 'Service', 'Independence', 'Honesty',
+];
+
 GrowthArea growthArea(String id) =>
     growthAreas.firstWhere((a) => a.id == id, orElse: () => growthAreas.first);
 

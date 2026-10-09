@@ -100,6 +100,13 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] **Ask for feedback** shows the exact question; after asking, **Log what they said**
 - [ ] End of month: rate again → the start → now change shows; next month starts fresh
 
+## 2l. New: values, self-coaching, your case
+- [ ] Me → **Your values** → pick 3–5, one sentence each → Save
+- [ ] Before a hard meeting: Values → **Affirm before a hard moment** → pick one, write why → Done
+- [ ] Sunday: Today asks whether the week reflected your values → rate each 1–5
+- [ ] Me → **Think it through** → goal, reality, three options, will, check-back day → Commit; on that day Today asks: kept it, or drop it on purpose
+- [ ] Program → Career → **Your Head of Product case** → per-dimension reps and feedback → Copy the whole case
+
 ## 3. Tools & logging
 - [ ] Morning ritual (from Today before 11:00): 5 steps → finishing ticks the manifesto
 - [ ] Sigh tool: run it → "uses" and mastery level go up; the sigh item is ticked

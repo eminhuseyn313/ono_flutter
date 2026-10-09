@@ -43,6 +43,12 @@ class BriefInput {
   final int repsThisWeek;
   final int feedbackThisMonth;
 
+  /// The value the week reflected least (rated below 4), if checked.
+  final String? valueGap;
+
+  /// Self-coaching commitments past their date and not yet kept.
+  final List<String> openCommitments;
+
   const BriefInput({
     required this.report,
     required this.forWeek,
@@ -69,6 +75,8 @@ class BriefInput {
     this.growthDrill,
     this.repsThisWeek = 0,
     this.feedbackThisMonth = 0,
+    this.valueGap,
+    this.openCommitments = const [],
   });
 
   Map<String, dynamic> toJson() => {
@@ -101,6 +109,8 @@ class BriefInput {
         'next_drill': growthDrill,
         'practice_reps_this_week': repsThisWeek,
         'feedback_this_month': feedbackThisMonth,
+        'value_least_lived': valueGap,
+        'open_commitments': openCommitments,
       };
 }
 
@@ -218,6 +228,10 @@ class DeviceBriefGenerator implements BriefGenerator {
         'Shoulders flagged on ${input.shoulderFlagDays} mornings. Keep the shoulder-sparing sessions and bring the check-in log to your rheumatologist.',
       if (input.avgSleep != null && input.avgSleep! < 7)
         'Average sleep ${input.avgSleep!.toStringAsFixed(1)} h. Protect 22:30 before adding anything else — sleep sets tomorrow\'s mind.',
+      if (input.valueGap != null)
+        'This week reflected ${input.valueGap} least. Name one moment next week where you\'ll choose it on purpose.',
+      if (input.openCommitments.isNotEmpty)
+        'You committed to: "${input.openCommitments.first}". Keep it, renegotiate it with yourself, or drop it on purpose — don\'t let it linger.',
       if (input.weekOutcomes.isEmpty)
         'No Big 3 for the week. Sunday night: three outcomes that would make next week a win, one tied to the artifact.',
       if (input.weekOutcomes.any((o) => o.startsWith('[open]')))

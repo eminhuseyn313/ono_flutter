@@ -1197,6 +1197,11 @@ class PersonalSystemProvider extends ChangeNotifier {
             ? null
             : drillFor(focusArea()!, report.weekStart.add(const Duration(days: 7))).title,
         repsThisWeek: repsInWeek(report.weekStart),
+        valueGap: valueGap(report.weekStart),
+        openCommitments: [
+          for (final c in commitmentsDue(report.weekStart.add(const Duration(days: 6))))
+            c.str('will') ?? ''
+        ],
         feedbackThisMonth: focusArea() == null
             ? 0
             : feedbackIn(focusArea()!.id, programMonth).length,
@@ -1668,6 +1673,180 @@ class PersonalSystemProvider extends ChangeNotifier {
               l.date.isBefore(monthStart(month + 1)))
             l
       ];
+
+  // ── Values ───────────────────────────────────────────────────────────
+
+  /// His values, each with what it means to him, in his order.
+  List<({String name, String meaning})> get values {
+    final l = logsOf('values');
+    if (l.isEmpty) return const [];
+    return [
+      for (final v in (l.first.data['values'] as List? ?? const []))
+        (
+          name: '${(v as Map)['name']}',
+          meaning: '${v['meaning'] ?? ''}',
+        )
+    ];
+  }
+
+  void setValues(List<({String name, String meaning})> list) {
+    final data = {
+      'values': [
+        for (final v in list) {'name': v.name, 'meaning': v.meaning.trim()}
+      ]
+    };
+    final l = logsOf('values');
+    if (l.isEmpty) {
+      addLog('values', data: data);
+    } else {
+      updateLog(l.first.copyWith(data: data));
+    }
+  }
+
+  /// A values affirmation: writing why a core value matters lowers the
+  /// stress response in evaluative moments (Creswell et al. 2005; Cohen &
+  /// Sherman 2014).
+  void logAffirmation(String value, String text, {String before = ''}) =>
+      addLog('affirmation',
+          text: text.trim(), data: {'value': value, 'before': before.trim()});
+
+  /// How much the week reflected each value, 1–5.
+  Map<String, int> valuesCheck(DateTime anyDay) {
+    final l = logsOn(weekStartOf(anyDay), 'values_check');
+    if (l.isEmpty) return const {};
+    return (l.last.data['ratings'] as Map? ?? const {})
+        .map((k, v) => MapEntry('$k', (v as num).toInt()));
+  }
+
+  void saveValuesCheck(DateTime anyDay, Map<String, int> ratings) =>
+      _upsertDayLog('values_check', weekStartOf(anyDay), {'ratings': ratings});
+
+  /// The value this week reflected least, if checked and below 4.
+  String? valueGap(DateTime anyDay) {
+    final r = valuesCheck(anyDay);
+    if (r.isEmpty) return null;
+    final low = r.entries.reduce((a, b) => a.value <= b.value ? a : b);
+    return low.value < 4 ? low.key : null;
+  }
+
+  // ── Self-coaching (GROW) ─────────────────────────────────────────────
+
+  /// One GROW session (Whitmore): goal, reality, options, will — with a
+  /// date to check back and how committed he is (1–10).
+  LogEntry logCoaching(
+          {required String goal,
+          required String reality,
+          required List<String> options,
+          required String will,
+          required DateTime by,
+          required int commitment}) =>
+      addLog('coaching', text: goal.trim(), data: {
+        'reality': reality.trim(),
+        'options': [for (final o in options) if (o.trim().isNotEmpty) o.trim()],
+        'will': will.trim(),
+        'by': dateKey(by),
+        'commitment': commitment,
+      })!;
+
+  List<LogEntry> get coachingSessions => logsOf('coaching');
+
+  bool commitmentKept(String id) => isDone('coach:$id');
+  void setCommitmentKept(String id, bool kept) => setDone('coach:$id', kept);
+
+  /// Commitments whose date has come and that aren't marked kept.
+  List<LogEntry> commitmentsDue(DateTime day) => [
+        for (final c in coachingSessions)
+          if (!dayOnly(day).isBefore(
+                  DateTime.tryParse(c.str('by') ?? '') ?? dayOnly(day)) &&
+              !commitmentKept(c.id) &&
+              !isDone('coach:${c.id}:dropped'))
+            c
+      ];
+
+  void dropCommitment(String id) => setDone('coach:$id:dropped', true);
+
+  // ── Head of Product case ─────────────────────────────────────────────
+
+  /// Everything logged that speaks to one professional area.
+  ({
+    int? rating,
+    List<LogEntry> reps,
+    List<LogEntry> feedback,
+  }) caseFor(String areaId) => (
+        rating: readiness[areaId],
+        reps: [for (final r in logsOf('rep')) if (r.str('area') == areaId) r],
+        feedback: [
+          for (final f in logsOf('feedback')) if (f.str('area') == areaId) f
+        ],
+      );
+
+  /// The case as plain text, to share or prepare a career conversation.
+  String caseText() {
+    final b = StringBuffer()
+      ..writeln('${EminIdentity.name} — towards Head of Product')
+      ..writeln('Day $programDay of $programDays · ${phase.name}')
+      ..writeln();
+    for (final a in growthAreas.where((a) => !a.personal)) {
+      final c = caseFor(a.id);
+      b.writeln('${a.name.toUpperCase()}'
+          '${c.rating == null ? '' : ' — ${c.rating}/5 (bar $readinessBar)'}');
+      b.writeln('Bar: ${a.bar}');
+      for (final r in c.reps.take(3)) {
+        final lesson = r.str('lesson') ?? '';
+        b.writeln('• ${r.text}${lesson.isEmpty ? '' : ' → $lesson'}');
+      }
+      for (final f in c.feedback.take(2)) {
+        b.writeln('• Feedback from ${f.str('from')}: "${f.text}"');
+      }
+      if (c.reps.isEmpty && c.feedback.isEmpty) {
+        b.writeln('• Nothing logged yet — still to build.');
+      }
+      b.writeln();
+    }
+    final artifacts = [
+      for (final a in logsOf('artifact'))
+        if (a.str('status') == 'shipped' || a.str('status') == 'review') a
+    ];
+    if (artifacts.isNotEmpty) {
+      b.writeln('ARTIFACTS');
+      for (final a in artifacts) {
+        b.writeln('• ${a.str('title')} (${a.str('kind')}, ${a.str('status')})');
+      }
+      b.writeln();
+    }
+    final right = [
+      for (final d in logsOf('decision'))
+        if (d.str('verdict') == 'right') d
+    ];
+    if (right.isNotEmpty) {
+      b.writeln('DECISIONS THAT PROVED RIGHT');
+      for (final d in right.take(5)) {
+        b.writeln('• ${d.text}');
+      }
+      b.writeln();
+    }
+    final wins = logsOf('win').take(8).toList();
+    final built = (_state?.evidence ?? const <EvidenceItem>[])
+        .where((e) => e.section == 'built')
+        .take(5)
+        .toList();
+    if (wins.isNotEmpty || built.isNotEmpty) {
+      b.writeln('EVIDENCE');
+      for (final e in built) {
+        b.writeln('• ${e.text}');
+      }
+      for (final w in wins) {
+        b.writeln('• ${w.text}');
+      }
+      b.writeln();
+    }
+    final gap = readinessGap;
+    if (gap != null) {
+      b.writeln('WHERE I\'M STILL GROWING');
+      b.writeln('${gap.name}: ${gap.bar}');
+    }
+    return b.toString().trimRight();
+  }
 
   // ── This week's Big 3 ────────────────────────────────────────────────
 

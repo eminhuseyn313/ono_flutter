@@ -877,6 +877,14 @@ class _Prompts extends StatelessWidget {
         _row(context, Icons.balance_rounded, AppColors.accent,
             'Decision review due',
             '"${reviews.first.text}" — was the call right?', '/cockpit?tab=1'),
+      for (final c in system.commitmentsDue(now).take(1))
+        _row(context, Icons.handshake_outlined, AppColors.accent,
+            'You committed: ${c.str('will')}', 'Kept it, or drop it on purpose?', '/coach'),
+      if (now.weekday == DateTime.sunday &&
+          system.values.isNotEmpty &&
+          system.valuesCheck(now).isEmpty)
+        _row(context, Icons.diamond_outlined, AppColors.mind,
+            'Did this week reflect your values?', '${system.values.map((v) => v.name).join(' · ')} · 1 minute', '/values'),
       if (system.lettersToOpen.isNotEmpty)
         _row(context, Icons.mark_email_unread_outlined, AppColors.accent,
             'A letter is ready to open',
