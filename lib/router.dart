@@ -45,6 +45,7 @@ import 'screens/partner_screens.dart';
 import 'screens/direction_screens.dart';
 import 'screens/move_screen.dart';
 import 'screens/conversation_screen.dart';
+import 'screens/money_screen.dart';
 import 'screens/review_screen.dart';
 import 'screens/ritual_flow_screen.dart';
 import 'screens/setback_screen.dart';
@@ -126,6 +127,7 @@ const appRoutes = [
   '/best-self',
   '/move',
   '/conversations',
+  '/money',
   '/goals/edit',
   '/growth/area',
   '/growth/area?template=t_strength',
@@ -210,6 +212,7 @@ GoRouter createRouter(AuthProvider authProvider,
       _slide('/best-self', (_) => const BestSelfScreen()),
       _slide('/move', (_) => const MoveScreen()),
       _slide('/conversations', (_) => const ConversationsScreen()),
+      _slide('/money', (_) => const MoneyScreen()),
       _slide(
           '/goals/edit',
           (s) => GoalEditScreen(

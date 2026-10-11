@@ -283,6 +283,19 @@ class MeScreen extends StatelessWidget {
               ),
               const Divider(indent: 66),
               LinkRow(
+                icon: Icons.savings_outlined,
+                color: AppColors.body,
+                title: 'Money check-in',
+                subtitle: system.moneySummary == null || system.moneySummary!.isEmpty
+                    ? 'Once a month: in, out, set aside, one decision'
+                    : 'Last: ${system.moneySummary}',
+                onTap: () {
+                  system.setDone('money:on', true);
+                  context.push('/money');
+                },
+              ),
+              const Divider(indent: 66),
+              LinkRow(
                 icon: Icons.donut_large_rounded,
                 color: AppColors.accent,
                 title: 'Quarterly review',

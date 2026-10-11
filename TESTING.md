@@ -189,6 +189,10 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] **Export everything** opens the share sheet with the JSON
 - [ ] On a test install only: **Delete everything** → the Delete button stays disabled until you type DELETE → the app returns to setup, reminders are gone, and (production) the `personal_system` row is deleted
 
+## 2zl. New: money check-in
+- [ ] Me → **Money check-in** → in, out, set aside → saved % and months of buffer update as you type → one decision → Save; Me shows "Last: saved …"
+- [ ] From day 25 of the next program month Today prompts it
+
 ## 2zk. New: people you're helping grow
 - [ ] People → tap someone → **Helping them grow**: what they're working on and your next help → Save → the row shows "Growing: …"
 - [ ] **I helped today** logs it (Log → Social) and clears the next help; Me → People shows "helping N grow"

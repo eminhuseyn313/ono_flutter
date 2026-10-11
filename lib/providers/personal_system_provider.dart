@@ -1512,6 +1512,7 @@ class PersonalSystemProvider extends ChangeNotifier {
         deepWorkHours: focusMinutesInWeek(report.weekStart) / 60,
         hardDays: hardDaysInWeek(report.weekStart),
         direction: odysseyLeaning,
+        money: moneySummary == null || moneySummary!.isEmpty ? null : moneySummary,
         growingOthers: [
           for (final p in peopleGrowing)
             '${p.text}: ${p.str('growing')} (${helpsInMonth(p, programMonth)} helps this month)'
@@ -2257,6 +2258,77 @@ class PersonalSystemProvider extends ChangeNotifier {
     }
     b.writeln('What I\'d like your view on:');
     return b.toString().trim();
+  }
+
+  // ── Money check-in ───────────────────────────────────────────────────
+
+  /// Once a month: what came in, what went out, what's set aside, and one
+  /// decision. Seeing it is most of the battle (self-monitoring; Harkin et
+  /// al. 2016). Numbers stay in your own currency; only the savings rate
+  /// and buffer go to the coach.
+  LogEntry? moneyCheckFor(int month) {
+    for (final l in logsOf('money_check')) {
+      if (l.number('month') == month) return l;
+    }
+    return null;
+  }
+
+  void saveMoneyCheck({
+    required double income,
+    required double spent,
+    double? savings,
+    String decision = '',
+    String worry = '',
+  }) {
+    final data = {
+      'month': programMonth,
+      'income': income,
+      'spent': spent,
+      'savings': savings,
+      'decision': decision.trim(),
+      'worry': worry.trim(),
+    };
+    final e = moneyCheckFor(programMonth);
+    if (e == null) {
+      addLog('money_check', data: data);
+    } else {
+      updateLog(e.copyWith(date: dayOnly(_now), data: data));
+    }
+  }
+
+  /// Share of income not spent, 0–1 (can be negative).
+  double? savingsRate(LogEntry check) {
+    final i = check.number('income')?.toDouble() ?? 0;
+    if (i <= 0) return null;
+    return (i - (check.number('spent')?.toDouble() ?? 0)) / i;
+  }
+
+  /// Months of spending the savings would cover.
+  double? bufferMonths(LogEntry check) {
+    final s = check.number('savings')?.toDouble();
+    final spent = check.number('spent')?.toDouble() ?? 0;
+    if (s == null || spent <= 0) return null;
+    return s / spent;
+  }
+
+  /// From day 25 of a program month until this month's check-in is done.
+  bool get moneyCheckDue =>
+      hasStarted && dayOfMonth >= 25 && moneyCheckFor(programMonth) == null &&
+      (logsOf('money_check').isNotEmpty || moneyOptedIn);
+
+  /// Prompting starts once they've done one, or asked for it.
+  bool get moneyOptedIn => isDone('money:on');
+
+  /// "Saved 18% · 2.5 months' buffer" from the latest check-in.
+  String? get moneySummary {
+    final l = logsOf('money_check');
+    if (l.isEmpty) return null;
+    final r = savingsRate(l.first);
+    final b = bufferMonths(l.first);
+    return [
+      if (r != null) 'saved ${(r * 100).round()}% of income',
+      if (b != null) '${b.toStringAsFixed(1)} months\' buffer',
+    ].join(' · ');
   }
 
   // ── Hard conversations ───────────────────────────────────────────────

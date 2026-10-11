@@ -1976,4 +1976,22 @@ void main() {
     expect(p.logsOf('win').first.text, 'Achieved: Run a half marathon');
     expect(p.allCards.any((c) => c.id == 'goal:${g.id}'), isTrue);
   });
+
+  test('money check-in: one a month, rate and buffer, only the rate in the brief',
+      () async {
+    final p = await _commissioned();
+    expect(p.moneyCheckDue, isFalse);
+    p.setDone('money:on', true);
+    p.clock = () => p.monthStart(2).add(const Duration(days: 26));
+    expect(p.moneyCheckDue, isTrue);
+    p.saveMoneyCheck(income: 4000, spent: 3000, savings: 7500, decision: 'Cancel two subscriptions');
+    p.saveMoneyCheck(income: 4000, spent: 3200, savings: 8000);
+    expect(p.logsOf('money_check').length, 1);
+    final c = p.moneyCheckFor(2)!;
+    expect(p.savingsRate(c), closeTo(0.2, 0.001));
+    expect(p.bufferMonths(c), closeTo(2.5, 0.001));
+    expect(p.moneySummary, 'saved 20% of income · 2.5 months\' buffer');
+    expect(p.moneyCheckDue, isFalse);
+    p.clock = () => _today;
+  });
 }

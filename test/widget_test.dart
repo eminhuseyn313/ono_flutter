@@ -382,6 +382,9 @@ void main() {
       system.setGrowing(mentee,
           workingOn: 'Presenting research to the leadership team with confidence',
           nextHelp: 'Rehearse the first three minutes together on Thursday');
+      // A money check-in with large numbers.
+      system.saveMoneyCheck(income: 12500000, spent: 9800000, savings: 32000000,
+          decision: 'Move the gym membership to the annual plan and cancel two streaming services');
       // A hard conversation due today.
       system.saveConversation(
           withWhom: 'Samira Abdullayeva-Karimova',

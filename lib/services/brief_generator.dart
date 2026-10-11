@@ -106,6 +106,9 @@ class BriefInput {
   /// People they're helping grow: "Sam: delegating (2 helps this month)".
   final List<String> growingOthers;
 
+  /// The latest money check-in: savings rate and buffer, no amounts.
+  final String? money;
+
   /// Who the brief is for: names, roles, key people and coach context.
   final Profile profile;
 
@@ -157,6 +160,7 @@ class BriefInput {
     this.strengthDays = 0,
     this.builtInPlan = true,
     this.growingOthers = const [],
+    this.money,
   }) : profile = profile ?? activeProfile;
 
   Map<String, dynamic> toJson() => {
@@ -174,6 +178,7 @@ class BriefInput {
         'five_year_direction': direction,
         'crafting_move': craftingMove,
         'people_they_are_growing': growingOthers,
+        'money': money,
         'move_minutes_moderate_equivalent': moveMinutes,
         'strength_days': strengthDays,
         'feedback_round_theme': feedbackThemes,

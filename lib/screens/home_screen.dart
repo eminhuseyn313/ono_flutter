@@ -1112,6 +1112,9 @@ class _PromptsState extends State<_Prompts> {
         _row(context, Icons.balance_rounded, AppColors.accent,
             'Decision review due',
             '"${reviews.first.text}" — was the call right?', '/cockpit?tab=1'),
+      if (system.moneyCheckDue)
+        _row(context, Icons.savings_outlined, AppColors.body, 'Money check-in',
+            'Ten minutes: in, out, set aside, one decision', '/money'),
       if (system.goalsToReflect.firstOrNull case final g?)
         _row(context, Icons.emoji_events_outlined, AppColors.accent,
             g.str('status') == 'achieved' ? 'You reached "${g.text}"' : 'Look back at "${g.text}"',
