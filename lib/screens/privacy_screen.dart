@@ -161,6 +161,23 @@ class PrivacyScreen extends StatelessWidget {
               ),
               const Divider(indent: 66),
               LinkRow(
+                icon: Icons.menu_book_outlined,
+                color: AppColors.steel,
+                title: 'Export your journal',
+                subtitle: 'Wins, lessons, reflections and reviews as readable text',
+                onTap: () async {
+                  final text = system.journalText();
+                  try {
+                    await Share.share(text, subject: 'My ONO journal');
+                  } catch (_) {
+                    if (context.mounted) {
+                      await copyText(context, text, message: 'Journal copied to clipboard');
+                    }
+                  }
+                },
+              ),
+              const Divider(indent: 66),
+              LinkRow(
                 icon: Icons.delete_forever_outlined,
                 color: AppColors.danger,
                 title: 'Delete everything',

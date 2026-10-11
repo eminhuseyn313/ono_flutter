@@ -2083,4 +2083,19 @@ void main() {
     expect(p.monthToReview, isNull);
     p.clock = () => _today;
   });
+
+  test('journal export: readable, dated, only reflective writing', () async {
+    final p = await _commissioned();
+    p.addLog('win', text: 'Shipped the review', data: {'why': 'Prepared early'});
+    p.addLog('note', text: 'A private thought');
+    p.logWeight(80);
+    final area = p.allGrowthAreas.first;
+    p.logRep(area, p.drillsOf(area).first, did: 'Ran it', lesson: 'Pause first');
+    final text = p.journalText();
+    expect(text, startsWith('${activeProfile.name} — journal from ONO'));
+    expect(text, contains('Win: Shipped the review (why: Prepared early)'));
+    expect(text, contains('Lesson: Pause first'));
+    expect(text, contains(dateKey(_today)));
+    expect(text, isNot(contains('80')), reason: 'no body numbers');
+  });
 }

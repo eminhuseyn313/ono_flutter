@@ -1130,6 +1130,9 @@ class _PromptsState extends State<_Prompts> {
         _row(context, Icons.balance_rounded, AppColors.accent,
             'Decision review due',
             '"${reviews.first.text}" — was the call right?', '/cockpit?tab=1'),
+      if (system.values.isEmpty && system.programDay >= 7 && system.programDay <= 30)
+        _row(context, Icons.diamond_outlined, AppColors.mind, 'What do you stand for?',
+            'Name three to five values — decisions and your brief use them', '/values'),
       if (system.monthReviewDue)
         _row(context, Icons.fact_check_outlined, AppColors.accent,
             'Close month ${system.monthToReview}',

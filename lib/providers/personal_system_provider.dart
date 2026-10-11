@@ -4522,6 +4522,52 @@ class PersonalSystemProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ── Journal export ───────────────────────────────────────────────────
+
+  /// Everything you wrote to learn from — wins, lessons, reflections,
+  /// reviews, letters you've opened — as readable text, newest first. Yours
+  /// to keep outside ONO.
+  String journalText() {
+    final b = StringBuffer()
+      ..writeln('${activeProfile.name} — journal from ONO')
+      ..writeln('Exported ${dateKey(_now)}')
+      ..writeln();
+    String line(LogEntry l) {
+      String f(String k) => (l.str(k) ?? '').trim();
+      return switch (l.type) {
+        'win' => 'Win: ${l.text}${f('why').isEmpty ? '' : ' (why: ${f('why')})'}',
+        'rep' => 'Practice — ${f('drill')}: ${l.text}${f('noticed').isEmpty ? '' : '\n  Noticed: ${f('noticed')}'}${f('lesson').isEmpty ? '' : '\n  Lesson: ${f('lesson')}'}',
+        'note' => 'Note: ${l.text}',
+        'feynman' => 'From memory (${f('book')}): ${l.text}',
+        'month_review' => 'Month ${l.number('month')} review: ${l.text}${f('lesson').isEmpty ? '' : '\n  Lesson: ${f('lesson')}'}',
+        'quarterly_review' => 'Quarter ${l.number('quarter')} review — next: ${l.text}${f('wins').isEmpty ? '' : '\n  Wins: ${f('wins')}'}${f('lessons').isEmpty ? '' : '\n  Lessons: ${f('lessons')}'}',
+        'setback' => 'Setback: ${l.text}${f('next').isEmpty ? '' : '\n  Next step: ${f('next')}'}',
+        'stepback' => 'Stepped back: ${l.text}${f('advice').isEmpty ? '' : '\n  Advice: ${f('advice')}'}',
+        'conversation' => 'Conversation with ${f('with')} — ${l.text}${f('learned').isEmpty ? '' : '\n  Learned: ${f('learned')}'}',
+        'feedback' => 'Feedback: ${l.text}',
+        'learning' => f('principle').isEmpty ? '' : 'Learned from ${l.text}: ${f('principle')}',
+        'letter' => letterIsOpen(l) ? 'Letter to myself (opened): ${l.text}' : '',
+        'gratitude' => 'Gratitude letter to ${f('to')}: ${l.text}',
+        'shutdown' => f('open').isEmpty ? '' : 'Evening, on my mind: ${f('open')}',
+        _ => '',
+      };
+    }
+    String? lastDay;
+    for (final l in allLogs()) {
+      final t = line(l);
+      if (t.isEmpty) continue;
+      final d = dateKey(l.date);
+      if (d != lastDay) {
+        b
+          ..writeln()
+          ..writeln(d);
+        lastDay = d;
+      }
+      b.writeln(t);
+    }
+    return b.toString().trim();
+  }
+
   // ── Backup ───────────────────────────────────────────────────────────
 
   String exportJson() =>
