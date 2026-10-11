@@ -220,7 +220,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SectionHeader('Body'),
                   if (system.isBuiltInPerson) _BodyCard(date: today),
                   const SectionHeader('Carry this'),
-                  if (system.isBuiltInPerson) _CoachNote(day: system.programDay),
+                  if (system.isBuiltInPerson)
+                    _CoachNote(day: system.programDay)
+                  else
+                    const _QuestionCard(),
                 ],
               ],
             ],
@@ -1947,6 +1950,69 @@ class _CoachNote extends StatefulWidget {
 
   @override
   State<_CoachNote> createState() => _CoachNoteState();
+}
+
+/// One question a day, answered in a line, saved as a note.
+class _QuestionCard extends StatefulWidget {
+  const _QuestionCard();
+
+  @override
+  State<_QuestionCard> createState() => _QuestionCardState();
+}
+
+class _QuestionCardState extends State<_QuestionCard> {
+  final _answer = TextEditingController();
+  bool _loaded = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_loaded) return;
+    _loaded = true;
+    _answer.text = context.read<PersonalSystemProvider>().questionAnswer?.text ?? '';
+  }
+
+  @override
+  void dispose() {
+    _answer.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final system = context.watch<PersonalSystemProvider>();
+    final q = system.questionOfTheDay;
+    return OnoCard(
+      accent: AppColors.mind,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('QUESTION OF THE DAY', style: AppText.eyebrow(color: AppColors.mind)),
+          const SizedBox(height: 8),
+          Text(q.$2, style: AppText.serif(size: 22)),
+          const SizedBox(height: 10),
+          TextField(
+            controller: _answer,
+            minLines: 1,
+            maxLines: 4,
+            style: AppText.body(color: AppColors.white),
+            decoration: const InputDecoration(hintText: 'A line is enough'),
+          ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: () {
+                system.answerQuestion(_answer.text);
+                FocusManager.instance.primaryFocus?.unfocus();
+                toast(context, 'Saved to your notes.');
+              },
+              child: Text(system.questionAnswer == null ? 'Save' : 'Update'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _CoachNoteState extends State<_CoachNote> {

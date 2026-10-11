@@ -2117,4 +2117,22 @@ void main() {
     p.logUsCheckin('Aysel', {'plan': 'A walk on Saturday'});
     expect(p.usStreak, 2);
   });
+
+  test('question of the day rotates and saves one note a day; partner stake in the update',
+      () async {
+    final p = await _commissioned();
+    final q = p.questionOfTheDay;
+    p.answerQuestion(' ');
+    expect(p.questionAnswer, isNull);
+    p.answerQuestion('Listening to Sam');
+    p.answerQuestion('Listening to Sam, properly');
+    expect(p.logsOn(_today, 'note').where((n) => n.str('question') == q.$2).single.text,
+        'Listening to Sam, properly');
+    p.clock = () => _today.add(const Duration(days: 1));
+    expect(p.questionOfTheDay, isNot(q));
+    expect(p.questionAnswer, isNull);
+    p.clock = () => _today;
+    p.setPartner('Sam', mine: 'Run', theirs: 'Write', weekday: 5, stake: 'Coffee');
+    expect(p.partnerUpdateText(_today), contains('Our stake if we miss: Coffee'));
+  });
 }

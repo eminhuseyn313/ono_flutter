@@ -31,3 +31,29 @@ const List<(String lane, String name, String line)> generalLanes = [
   ('skill', 'Skill', 'Practice that compounds'),
   ('social', 'Social', 'The people who matter'),
 ];
+
+/// One question a day, across the whole of life, for anyone. Answering in
+/// a line is enough; the answer is saved as a note.
+const List<(String area, String question)> dailyQuestions = [
+  ('career', 'What did you do today that the person you\'re becoming would do?'),
+  ('health', 'What gave you energy today, and what took it?'),
+  ('relationships', 'Who did you really listen to today?'),
+  ('mind', 'What worried you today — and what part of it can you act on?'),
+  ('growth', 'What did you notice today that you didn\'t know yesterday?'),
+  ('meaning', 'What felt worth doing today?'),
+  ('money', 'Did today\'s spending match what you care about?'),
+  ('family', 'Who would you like to thank, and haven\'t yet?'),
+  ('career', 'Where did you avoid something hard today? What would one small step be?'),
+  ('mind', 'What would you tell a friend who had your day?'),
+  ('growth', 'What will you practise tomorrow, on purpose?'),
+  ('relationships', 'What do the people closest to you need from you this week?'),
+  ('health', 'How did your body feel today, honestly?'),
+  ('meaning', 'What are you proud of this week that nobody saw?'),
+  ('career', 'What feedback did you get today — said or unsaid?'),
+  ('mind', 'What story did you tell yourself today that might not be true?'),
+  ('growth', 'What question would you like answered by the end of the month?'),
+  ('family', 'What small ritual could make home feel better this week?'),
+  ('meaning', 'If this week were a chapter, what would it be called?'),
+  ('career', 'What one decision would make next week easier?'),
+  ('relationships', 'Who have you been meaning to reach out to?'),
+];

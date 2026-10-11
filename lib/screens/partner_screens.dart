@@ -21,6 +21,7 @@ class _PartnerScreenState extends State<PartnerScreen> {
   final _mine = TextEditingController();
   final _theirs = TextEditingController();
   final _note = TextEditingController();
+  final _stake = TextEditingController();
   int _weekday = DateTime.friday;
   bool _editing = false;
   String _myAnswer = 'kept';
@@ -28,7 +29,7 @@ class _PartnerScreenState extends State<PartnerScreen> {
 
   @override
   void dispose() {
-    for (final c in [_name, _mine, _theirs, _note]) {
+    for (final c in [_name, _mine, _theirs, _note, _stake]) {
       c.dispose();
     }
     super.dispose();
@@ -38,6 +39,7 @@ class _PartnerScreenState extends State<PartnerScreen> {
     _name.text = p?.text ?? '';
     _mine.text = p?.str('mine') ?? '';
     _theirs.text = p?.str('theirs') ?? '';
+    _stake.text = p?.str('stake') ?? '';
     _weekday = (p?.number('weekday') ?? DateTime.friday).toInt();
     setState(() => _editing = true);
   }
@@ -85,6 +87,8 @@ class _PartnerScreenState extends State<PartnerScreen> {
           _field(_name, 'Partner', 'A friend, colleague or sibling'),
           _field(_mine, 'Your commitment', 'e.g. Train three times a week'),
           _field(_theirs, 'Their commitment', 'e.g. Write 500 words a day'),
+          _field(_stake, 'The stake if one of you misses (optional)',
+              'e.g. Buys the other coffee · gives 20 to a cause'),
           const SectionHeader('Check-in day'),
           Wrap(
             spacing: 6,
@@ -105,7 +109,7 @@ class _PartnerScreenState extends State<PartnerScreen> {
               return;
             }
             system.setPartner(_name.text,
-                mine: _mine.text, theirs: _theirs.text, weekday: _weekday);
+                mine: _mine.text, theirs: _theirs.text, weekday: _weekday, stake: _stake.text);
             FocusManager.instance.primaryFocus?.unfocus();
             setState(() => _editing = false);
           }),
@@ -121,6 +125,8 @@ class _PartnerScreenState extends State<PartnerScreen> {
                 if ((p.str('theirs') ?? '').isNotEmpty)
                   Text('${p.text.split(' ').first}: ${p.str('theirs')}',
                       style: AppText.body(color: AppColors.white)),
+                if ((p.str('stake') ?? '').isNotEmpty)
+                  Text('Stake: ${p.str('stake')}', style: AppText.small(color: AppColors.social)),
                 if (record.weeks > 0) ...[
                   const SizedBox(height: 8),
                   Text(

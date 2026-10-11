@@ -2137,12 +2137,13 @@ class PersonalSystemProvider extends ChangeNotifier {
   }
 
   LogEntry setPartner(String name,
-      {required String mine, required String theirs, required int weekday}) {
+      {required String mine, required String theirs, required int weekday, String stake = ''}) {
     final p = partner;
     final data = {
       'mine': mine.trim(),
       'theirs': theirs.trim(),
       'weekday': weekday.clamp(1, 7),
+      'stake': stake.trim(),
       'status': 'active',
     };
     if (p == null) return addLog('partner', text: name.trim(), data: data)!;
@@ -2210,6 +2211,7 @@ class PersonalSystemProvider extends ChangeNotifier {
       b.writeln('Hard days: ${[for (final e in hard.entries) '${e.value} ${(hardDayKinds[e.key] ?? e.key).toLowerCase()}${e.value == 1 ? '' : 's'}'].join(', ')}');
     }
     if (set > 0) b.writeln('Week\'s three: $done of $set done');
+    if ((p.str('stake') ?? '').isNotEmpty) b.writeln('Our stake if we miss: ${p.str('stake')}');
     b
       ..writeln()
       ..writeln('Your turn: how did "${p.str('theirs')}" go this week?');
@@ -4520,6 +4522,28 @@ class PersonalSystemProvider extends ChangeNotifier {
     _state = await _gateway.load(_userId);
     _applyProfile();
     notifyListeners();
+  }
+
+  // ── Question of the day ──────────────────────────────────────────────
+
+  /// Today's question, rotating through [dailyQuestions] by program day.
+  (String area, String question) get questionOfTheDay =>
+      dailyQuestions[(programDay < 1 ? 0 : programDay - 1) % dailyQuestions.length];
+
+  /// Today's answer, if written.
+  LogEntry? get questionAnswer {
+    final q = questionOfTheDay.$2;
+    return logsOn(dayOnly(_now), 'note').where((n) => n.str('question') == q).firstOrNull;
+  }
+
+  void answerQuestion(String answer) {
+    if (answer.trim().isEmpty) return;
+    final existing = questionAnswer;
+    if (existing != null) {
+      updateLog(existing.copyWith(text: answer.trim()));
+    } else {
+      addLog('note', text: answer.trim(), data: {'question': questionOfTheDay.$2});
+    }
   }
 
   // ── How to work with me ──────────────────────────────────────────────
