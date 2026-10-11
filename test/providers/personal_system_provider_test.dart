@@ -2020,4 +2020,20 @@ void main() {
     p.completeShutdown(_today, tomorrow: const ['a'], win: 'Calm 1:1');
     expect(p.logsOn(_today, 'win').length, 3, reason: 'no duplicates');
   });
+
+  test('someone else gets the general reminders, not the built-in schedule',
+      () async {
+    final p = await _commissioned();
+    final builtIn = p.plannedReminders().map((r) => r.title).toSet();
+    expect(builtIn.any((t) => t.startsWith('Domain scan')), isTrue);
+    p.saveProfile(activeProfile.copyWith(name: 'Someone Else'));
+    final general = p.plannedReminders();
+    // Check-in, items, shutdown daily (7 × 3) plus the Sunday report.
+    expect(general.length, 22);
+    expect(general.any((r) => r.title.startsWith('Domain scan')), isFalse);
+    expect(general.where((r) => r.route == '/weekly-coaching').single.weekday, DateTime.sunday);
+    p.setReminder('g_items', false);
+    expect(p.plannedReminders().length, 15);
+    p.resetProfile();
+  });
 }

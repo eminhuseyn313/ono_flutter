@@ -231,7 +231,7 @@ Flow:
 - **Sunday report** → `submitReport` → `BriefGenerator`:
   - `DeviceBriefGenerator` is rule-based and uses real data only.
   - `RemoteBriefGenerator` calls Claude via `supabase/functions/weekly-brief` and falls back to the device generator on any error.
-- **Reminders**: `plannedReminders()` builds weekly notifications from `reminderDefs` with today's content. `LocalReminderService` schedules them (flutter_local_notifications); tapping one opens its route. Web uses `NoopReminderService`.
+- **Reminders**: `plannedReminders()` builds weekly notifications from `activeReminderDefs` with today's content — `reminderDefs` (the built-in schedule) for the built-in person, `generalReminderDefs` (`lib/data/general_program.dart`: morning check-in 07:30, daily items 12:30, shutdown 21:00, Sunday report 18:00) for anyone else. `LocalReminderService` schedules them (flutter_local_notifications); tapping one opens its route. Web uses `NoopReminderService`.
 
 ## Supabase (project `kkgkbfxvovrtmnoezcha`)
 Not deployed from this repo automatically. To turn on sync and the Claude-written brief:

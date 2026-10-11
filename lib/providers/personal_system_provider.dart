@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 
 import '../data/daily_library.dart';
 import '../data/emin_system.dart';
+import '../data/general_program.dart';
 import '../data/growth_templates.dart';
 import '../data/life_wheel.dart';
 import '../data/plan_packs.dart';
@@ -1587,8 +1588,13 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   // ── Reminders ────────────────────────────────────────────────────────
 
+  /// The built-in person's reminders follow their schedule; anyone else
+  /// gets the general set.
+  List<ReminderDef> get activeReminderDefs =>
+      isBuiltInPerson ? reminderDefs : generalReminderDefs;
+
   bool reminderOn(String id) {
-    final def = reminderDefs.firstWhere((d) => d.id == id);
+    final def = [...reminderDefs, ...generalReminderDefs].firstWhere((d) => d.id == id);
     return _state?.reminders[id] ?? def.defaultOn;
   }
 
@@ -1606,8 +1612,9 @@ class PersonalSystemProvider extends ChangeNotifier {
     if (!isCommissioned) return const [];
     final out = <PlannedReminder>[];
     final book = currentBook(programMonth);
-    for (var i = 0; i < reminderDefs.length; i++) {
-      final def = reminderDefs[i];
+    final defs = activeReminderDefs;
+    for (var i = 0; i < defs.length; i++) {
+      final def = defs[i];
       if (!reminderOn(def.id)) continue;
       // Automatic habits don't need a nudge any more.
       if (itemReminder.entries
@@ -1659,6 +1666,17 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   String _reminderBody(String id) {
     switch (id) {
+      case 'g_checkin':
+        return 'Thirty seconds: energy, mood, sleep.';
+      case 'g_items':
+        final day = dailyItems.where((n) => n.when == 'day').map((n) => n.title).take(2).toList();
+        return day.isEmpty
+            ? 'A look at your list: what\'s left for today?'
+            : '${day.join(' · ')} — still on today\'s list?';
+      case 'g_shutdown':
+        return 'Tomorrow\'s three on paper, one good thing, then stop.';
+      case 'g_sunday':
+        return 'Five answers about your week; your brief comes straight back.';
       case 'wake':
         return '500ml before coffee, before the phone.';
       case 'winddown':

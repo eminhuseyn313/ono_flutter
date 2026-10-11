@@ -592,7 +592,7 @@ class MeScreen extends StatelessWidget {
                 color: AppColors.mind,
                 title: 'Reminders',
                 subtitle:
-                    '${reminderDefs.where((r) => system.reminderOn(r.id)).length} of ${reminderDefs.length} on',
+                    '${system.activeReminderDefs.where((r) => system.reminderOn(r.id)).length} of ${system.activeReminderDefs.length} on',
                 onTap: () => _remindersSheet(context),
               ),
               const Divider(indent: 66),
@@ -791,7 +791,7 @@ class MeScreen extends StatelessWidget {
               Text('Each opens the tool for that moment.',
                   style: AppText.small()),
               const SizedBox(height: 10),
-              for (final r in reminderDefs)
+              for (final r in system.activeReminderDefs)
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   dense: true,
