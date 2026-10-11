@@ -720,6 +720,25 @@ void main() {
       }
       if (errors.isNotEmpty) failures['/conversations editor'] = errors.toSet();
 
+      // Decide: options with long names render the values grid.
+      errors.clear();
+      try {
+        await _go(tester, '/decide');
+        final fields = find.byType(TextField);
+        await tester.enterText(fields.at(1), 'Accept the regional product lead role in another city');
+        await tester.enterText(fields.at(2), 'Stay and grow the current team for another year');
+        await _pumpFor(tester, const Duration(milliseconds: 500));
+        final choose = find.text('Choose this');
+        for (var i = 0; i < 20 && choose.evaluate().isEmpty; i++) {
+          await tester.drag(find.byType(ListView).last, const Offset(0, -300));
+          await tester.pump(const Duration(milliseconds: 100));
+        }
+        if (choose.evaluate().isEmpty) errors.add('values grid not shown');
+      } catch (e) {
+        errors.add('$e');
+      }
+      if (errors.isNotEmpty) failures['/decide grid'] = errors.toSet();
+
       // Plan packs: a pack's preview sheet renders and fits.
       errors.clear();
       try {

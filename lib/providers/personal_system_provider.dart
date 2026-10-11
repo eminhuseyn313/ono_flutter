@@ -921,6 +921,43 @@ class PersonalSystemProvider extends ChangeNotifier {
     });
   }
 
+  /// A decision weighed against your values: each option scored −1/0/+1 per
+  /// value, the 10/10/10 view and a premortem; saved to the decision
+  /// journal and reviewed after [reviewInDays].
+  void addValuesDecision({
+    required String question,
+    required String chosen,
+    required Map<String, Map<String, int>> scores,
+    String tenTenTen = '',
+    String premortem = '',
+    int reviewInDays = 90,
+  }) {
+    String total(String o) =>
+        '${(scores[o]?.values.fold<int>(0, (a, b) => a + b) ?? 0)}';
+    addDecision(
+      decision: '${question.trim()} → ${chosen.trim()}',
+      options: [for (final o in scores.keys) '$o (${total(o)})'].join(' · '),
+      why: [
+        if (tenTenTen.trim().isNotEmpty) '10/10/10: ${tenTenTen.trim()}',
+        'Values: ${[for (final e in (scores[chosen] ?? const <String, int>{}).entries) '${e.key} ${e.value > 0 ? '+' : e.value < 0 ? '−' : '·'}'].join(', ')}',
+      ].join('\n'),
+      expected: premortem.trim().isEmpty ? '' : 'Premortem: ${premortem.trim()}',
+      reviewInDays: reviewInDays,
+    );
+  }
+
+  /// Self-distanced reflection (Kross et al. 2014): the situation, the
+  /// feeling and the advice, written about yourself by name; and how much
+  /// it will matter in a year (temporal distance).
+  void logStepBack({required String what, String feeling = '', String advice = '', int? mattersInAYear}) {
+    if (what.trim().isEmpty) return;
+    addLog('stepback', text: what.trim(), data: {
+      'feeling': feeling.trim(),
+      'advice': advice.trim(),
+      'year': mattersInAYear,
+    });
+  }
+
   /// Decisions whose review date has come and that aren't reviewed yet.
   List<LogEntry> dueDecisionReviews(DateTime day) {
     final d = dateKey(dayOnly(day));

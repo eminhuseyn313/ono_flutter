@@ -189,6 +189,10 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] **Export everything** opens the share sheet with the JSON
 - [ ] On a test install only: **Delete everything** → the Delete button stays disabled until you type DELETE → the app returns to setup, reminders are gone, and (production) the `personal_system` row is deleted
 
+## 2zn. New: step back and decide
+- [ ] Me → Hard days → **Step back**: the questions use your first name → Done → it shows in Log → Notes
+- [ ] **Decide with your values**: a question, two options → each option shows your values with Against/Neutral/For and a total → Choose → 10/10/10 and premortem → saved to Career → Decisions, due for review in 90 days
+
 ## 2zm. New: health upkeep
 - [ ] Me → Body → **Health upkeep** → tap Dentist check-up and Blood tests → add your own with an interval → **Done** sets the next date; overdue ones show in amber and on Today
 

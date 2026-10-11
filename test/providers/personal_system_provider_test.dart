@@ -2036,4 +2036,28 @@ void main() {
     expect(p.plannedReminders().length, 15);
     p.resetProfile();
   });
+
+  test('values decision goes into the journal; step back is saved', () async {
+    final p = await _commissioned();
+    p.addValuesDecision(
+      question: 'Take the new role?',
+      chosen: 'Yes',
+      scores: {
+        'Yes': {'Growth': 1, 'Family': -1, 'Health': 0},
+        'No': {'Growth': -1, 'Family': 1, 'Health': 0},
+      },
+      tenTenTen: 'Nervous, settled, glad',
+      premortem: 'I took on too much at home at the same time',
+    );
+    final d = p.logsOf('decision').first;
+    expect(d.text, 'Take the new role? → Yes');
+    expect(d.str('options'), 'Yes (0) · No (0)');
+    expect(d.str('why'), contains('Growth +'));
+    expect(d.str('expected'), startsWith('Premortem:'));
+    expect(p.dueDecisionReviews(_today.add(const Duration(days: 90))).length, 1);
+    p.logStepBack(what: ' ');
+    expect(p.logsOf('stepback'), isEmpty);
+    p.logStepBack(what: 'Emin is facing a tough review', advice: 'Breathe', mattersInAYear: 1);
+    expect(p.logsOf('stepback').single.number('year'), 1);
+  });
 }

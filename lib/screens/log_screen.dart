@@ -22,7 +22,7 @@ class LogScreen extends StatefulWidget {
 const _filters = <String, Set<String>?>{
   'All': null,
   'Growth': {'rep', 'feedback', 'growth_focus', 'coaching', 'affirmation', 'values_check', 'goal_value', 'progress_note', 'setback', 'quarterly_review', 'learning', 'experiment', 'rest', 'detach', 'gratitude', 'feedback_round', 'wheel'},
-  'Notes': {'feynman', 'scan', 'pennebaker', 'note', 'win', 'month_review', 'shutdown'},
+  'Notes': {'feynman', 'scan', 'pennebaker', 'note', 'win', 'month_review', 'shutdown', 'stepback'},
   'Protocols': {'sigh', 'excited', 'bluf', 'sixq', 'pause', 'still', 'ritual', 'read', 'anki'},
   'Body': {'weight', 'protein', 'gym', 'blood', 'checkin', 'sleep', 'vitals', 'energy', 'move'},
   'Career': {'linkedin', 'artifact', 'one_on_one', 'decision', 'readiness', 'focus', 'week_plan', 'touch'},
@@ -283,6 +283,7 @@ class _EntryRow extends StatelessWidget {
     'hard_day': (Icons.healing_outlined, 'body', 'Hard day'),
     'move': (Icons.directions_walk_rounded, 'body', 'Movement'),
     'help': (Icons.volunteer_activism_outlined, 'social', 'Helped someone grow'),
+    'stepback': (Icons.zoom_out_map_rounded, 'mind', 'Stepped back'),
     'partner_checkin': (Icons.handshake_outlined, 'social', 'Partner check-in'),
     'detach': (Icons.power_settings_new_rounded, 'mind', 'Switched off'),
     'setback': (Icons.replay_rounded, 'mind', 'Setback, reset'),

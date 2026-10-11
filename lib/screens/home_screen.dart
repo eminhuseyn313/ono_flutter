@@ -618,7 +618,7 @@ class _ModeCard extends StatelessWidget {
                       AppColors.skill),
                   _tool(context, Icons.pause_circle_outline_rounded, 'Pause', '/tool/pause',
                       AppColors.social),
-                  _tool(context, Icons.replay_rounded, 'Reset', '/setback', AppColors.warning),
+                  _tool(context, Icons.zoom_out_map_rounded, 'Step back', '/stepback', AppColors.warning),
                 ],
               ),
             ],

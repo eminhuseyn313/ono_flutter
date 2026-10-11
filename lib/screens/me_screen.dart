@@ -509,6 +509,22 @@ class MeScreen extends StatelessWidget {
               ),
               const Divider(indent: 66),
               LinkRow(
+                icon: Icons.zoom_out_map_rounded,
+                color: AppColors.mind,
+                title: 'Step back',
+                subtitle: 'Talk to yourself by name when it all feels close',
+                onTap: () => context.push('/stepback'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
+                icon: Icons.alt_route_rounded,
+                color: AppColors.mind,
+                title: 'Decide with your values',
+                subtitle: 'Options, what matters, 10/10/10, a premortem',
+                onTap: () => context.push('/decide'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
                 icon: Icons.psychology_alt_outlined,
                 color: AppColors.mind,
                 title: 'Think it through',
