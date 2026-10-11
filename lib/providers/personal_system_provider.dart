@@ -259,11 +259,24 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   /// Today's daily items: the profile's built-in ones he hasn't retired,
   /// then the ones he added. Every score, streak and check reads this.
-  List<NonNegotiable> get dailyItems => [
+  // The daily list and the streak are read many times per frame and for
+  // every day of the program, so they are computed once per state.
+  PersonalSystemState? _dailyState;
+  List<NonNegotiable> _dailyCache = const [];
+  Set<String> _dailyIds = const {};
+
+  List<NonNegotiable> get dailyItems {
+    if (!identical(_dailyState, _state)) {
+      _dailyState = _state;
+      _dailyCache = [
         for (final n in nonNegotiables)
           if (!isDone('daily:off:${n.id}')) n,
         ...customDailyItems,
       ];
+      _dailyIds = {for (final n in _dailyCache) n.id};
+    }
+    return _dailyCache;
+  }
 
   List<NonNegotiable> get customDailyItems => [
         for (final l in logsOf('daily_item').reversed)
@@ -489,8 +502,8 @@ class PersonalSystemProvider extends ChangeNotifier {
   }
 
   int scoreFor(DateTime date) {
-    final ids = dailyItems.map((n) => n.id).toSet();
-    return _checks(date).where(ids.contains).length;
+    dailyItems;
+    return _checks(date).where(_dailyIds.contains).length;
   }
 
   bool gymDone(DateTime date) => isChecked(date, _gymId);
@@ -518,7 +531,19 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// Never miss twice: one day under 7 is forgiven, as long as the next
   /// day is held (or is today, still open) and no other day was forgiven in
   /// the 6 days before it. Two misses in a row end the streak.
+  PersonalSystemState? _streakState;
+  String _streakDay = '';
+  ({int current, int best, bool pending}) _streakCache = (current: 0, best: 0, pending: false);
+
   ({int current, int best, bool pending}) get _streaks {
+    final key = dateKey(_now);
+    if (identical(_streakState, _state) && _streakDay == key) return _streakCache;
+    _streakState = _state;
+    _streakDay = key;
+    return _streakCache = _computeStreaks();
+  }
+
+  ({int current, int best, bool pending}) _computeStreaks() {
     final today = dayOnly(_now);
     var run = 0, best = 0;
     var prevMiss = false;
