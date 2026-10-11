@@ -1866,4 +1866,16 @@ void main() {
     expect(p.allCards.where((c) => c.source == 'seed'), isEmpty);
     p.resetProfile();
   });
+
+  test('movement: vigorous counts double; strength days include gym sessions',
+      () async {
+    final p = await _commissioned();
+    p.logMove('walk', 30);
+    p.logMove('run', 20, vigorous: true);
+    p.logMove('strength', 40, day: _daysAgo(1));
+    expect(p.logMove('walk', 0), isNull);
+    expect(p.moveMinutesInWeek(_today), 30 + 40 + 40);
+    p.toggleGym(_today);
+    expect(p.strengthDaysInWeek(_today), 2);
+  });
 }

@@ -1500,6 +1500,8 @@ class PersonalSystemProvider extends ChangeNotifier {
         deepWorkHours: focusMinutesInWeek(report.weekStart) / 60,
         hardDays: hardDaysInWeek(report.weekStart),
         direction: odysseyLeaning,
+        moveMinutes: logsOf('move').isEmpty ? null : moveMinutesInWeek(report.weekStart),
+        strengthDays: strengthDaysInWeek(report.weekStart),
         craftingMove: craftingMove,
         partner: partner == null || partnerRecord().weeks == 0
             ? null
@@ -2230,6 +2232,57 @@ class PersonalSystemProvider extends ChangeNotifier {
     }
     b.writeln('What I\'d like your view on:');
     return b.toString().trim();
+  }
+
+  // ── Movement ─────────────────────────────────────────────────────────
+
+  /// Any movement, for anyone: a walk, a run, a game, a class. Weekly
+  /// targets follow the WHO 2020 guidelines: 150–300 minutes of moderate
+  /// activity (a vigorous minute counts double) and strength work on 2+
+  /// days.
+  static const moveKinds = {
+    'walk': 'Walk',
+    'run': 'Run',
+    'cycle': 'Cycle',
+    'swim': 'Swim',
+    'strength': 'Strength',
+    'sport': 'Sport',
+    'yoga': 'Yoga / mobility',
+    'other': 'Other',
+  };
+  static const weeklyMoveTarget = 150;
+  static const weeklyStrengthDays = 2;
+
+  LogEntry? logMove(String kind, int minutes, {bool vigorous = false, DateTime? day}) =>
+      minutes <= 0
+          ? null
+          : addLog('move',
+              date: day == null ? null : dayOnly(day),
+              data: {'kind': kind, 'minutes': minutes, 'vigorous': vigorous});
+
+  List<LogEntry> movesInWeek(DateTime anyDay) {
+    final from = weekStartOf(anyDay), to = from.add(const Duration(days: 7));
+    return [
+      for (final l in logsOf('move'))
+        if (!l.date.isBefore(from) && l.date.isBefore(to)) l
+    ];
+  }
+
+  /// Moderate-equivalent minutes in the week (vigorous counts double).
+  int moveMinutesInWeek(DateTime anyDay) => movesInWeek(anyDay).fold<int>(
+      0,
+      (s, l) =>
+          s + (l.number('minutes') ?? 0).toInt() * (l.data['vigorous'] == true ? 2 : 1));
+
+  /// Days with strength work: a strength move or a logged gym session.
+  int strengthDaysInWeek(DateTime anyDay) {
+    final days = <String>{
+      for (final l in movesInWeek(anyDay))
+        if (l.str('kind') == 'strength') dateKey(l.date),
+      for (final d in weekDays(anyDay))
+        if (gymDone(d)) dateKey(d),
+    };
+    return days.length;
   }
 
   // ── Odyssey plan ─────────────────────────────────────────────────────

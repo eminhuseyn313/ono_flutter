@@ -24,7 +24,7 @@ const _filters = <String, Set<String>?>{
   'Growth': {'rep', 'feedback', 'growth_focus', 'coaching', 'affirmation', 'values_check', 'goal_value', 'progress_note', 'setback', 'quarterly_review', 'learning', 'experiment', 'rest', 'detach', 'gratitude', 'feedback_round', 'wheel'},
   'Notes': {'feynman', 'scan', 'pennebaker', 'note', 'win', 'month_review', 'shutdown'},
   'Protocols': {'sigh', 'excited', 'bluf', 'sixq', 'pause', 'still', 'ritual', 'read', 'anki'},
-  'Body': {'weight', 'protein', 'gym', 'blood', 'checkin', 'sleep', 'vitals', 'energy'},
+  'Body': {'weight', 'protein', 'gym', 'blood', 'checkin', 'sleep', 'vitals', 'energy', 'move'},
   'Career': {'linkedin', 'artifact', 'one_on_one', 'decision', 'readiness', 'focus', 'week_plan', 'touch'},
 };
 
@@ -281,6 +281,7 @@ class _EntryRow extends StatelessWidget {
     'energy': (Icons.bolt_outlined, 'mind', 'Energy'),
     'wheel': (Icons.donut_large_rounded, 'mind', 'Life wheel'),
     'hard_day': (Icons.healing_outlined, 'body', 'Hard day'),
+    'move': (Icons.directions_walk_rounded, 'body', 'Movement'),
     'partner_checkin': (Icons.handshake_outlined, 'social', 'Partner check-in'),
     'detach': (Icons.power_settings_new_rounded, 'mind', 'Switched off'),
     'setback': (Icons.replay_rounded, 'mind', 'Setback, reset'),
@@ -339,6 +340,8 @@ class _EntryRow extends StatelessWidget {
         return '${e.number('minutes')} min${t == 'artifact' ? ' · artifact' : t == 'skill' ? ' · skill' : ''}';
       case 'partner_checkin':
         return 'With ${e.str('partner')}: you ${e.str('mine')}, they ${e.str('theirs')}';
+      case 'move':
+        return '${PersonalSystemProvider.moveKinds[e.str('kind')] ?? e.str('kind')} · ${e.number('minutes')} min${e.data['vigorous'] == true ? ' · vigorous' : ''}';
       case 'hard_day':
         return PersonalSystemProvider.hardDayKinds[e.str('kind')] ?? 'Hard day';
       case 'wheel':

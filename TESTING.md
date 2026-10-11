@@ -189,6 +189,9 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] **Export everything** opens the share sheet with the JSON
 - [ ] On a test install only: **Delete everything** → the Delete button stays disabled until you type DELETE → the app returns to setup, reminders are gone, and (production) the `personal_system` row is deleted
 
+## 2zi. New: movement
+- [ ] Me → Body → **N min moved** → log a 30-min walk and a 20-min vigorous run → 70 of 150 this week; a gym session counts as a strength day
+
 ## 2zh. New: direction tools (Me → Growth)
 - [ ] **Three possible lives**: write three, rate each, star one, add a prototype → Save → Me shows "Leaning towards …"; **Make it a goal** opens the goal editor with the title filled
 - [ ] **What gives and drains you**: list activities, rate −2…+2, pick one and a move → Save → Me and the next Sunday brief show the move

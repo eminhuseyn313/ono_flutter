@@ -43,6 +43,7 @@ import 'screens/privacy_screen.dart';
 import 'screens/packs_screen.dart';
 import 'screens/partner_screens.dart';
 import 'screens/direction_screens.dart';
+import 'screens/move_screen.dart';
 import 'screens/review_screen.dart';
 import 'screens/ritual_flow_screen.dart';
 import 'screens/setback_screen.dart';
@@ -122,6 +123,7 @@ const appRoutes = [
   '/odyssey',
   '/crafting',
   '/best-self',
+  '/move',
   '/goals/edit',
   '/growth/area',
   '/growth/area?template=t_strength',
@@ -204,6 +206,7 @@ GoRouter createRouter(AuthProvider authProvider,
       _slide('/odyssey', (_) => const OdysseyScreen()),
       _slide('/crafting', (_) => const CraftingScreen()),
       _slide('/best-self', (_) => const BestSelfScreen()),
+      _slide('/move', (_) => const MoveScreen()),
       _slide(
           '/goals/edit',
           (s) => GoalEditScreen(

@@ -173,7 +173,9 @@ class MeScreen extends StatelessWidget {
             onTap: () => context.push('/experiments'),
           ),
         ),
-        const SectionHeader('Body'),
+        SectionHeader('Body',
+            action: '${system.moveMinutesInWeek(DateTime.now())} min moved',
+            onAction: () => context.push('/move')),
         OnoCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

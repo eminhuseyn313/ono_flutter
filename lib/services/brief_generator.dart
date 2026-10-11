@@ -95,6 +95,10 @@ class BriefInput {
   final String? direction;
   final String? craftingMove;
 
+  /// Moderate-equivalent minutes moved and strength days this week.
+  final int? moveMinutes;
+  final int strengthDays;
+
   /// Who the brief is for: names, roles, key people and coach context.
   final Profile profile;
 
@@ -142,6 +146,8 @@ class BriefInput {
     this.partner,
     this.direction,
     this.craftingMove,
+    this.moveMinutes,
+    this.strengthDays = 0,
   }) : profile = profile ?? activeProfile;
 
   Map<String, dynamic> toJson() => {
@@ -158,6 +164,8 @@ class BriefInput {
         'accountability_partner': partner,
         'five_year_direction': direction,
         'crafting_move': craftingMove,
+        'move_minutes_moderate_equivalent': moveMinutes,
+        'strength_days': strengthDays,
         'feedback_round_theme': feedbackThemes,
         'report': report.toJson(),
         'for_week': dateKey(forWeek),
@@ -340,6 +348,8 @@ class DeviceBriefGenerator implements BriefGenerator {
         'Overdue to reach out: ${input.peopleOverdue.join(', ')}. One message each this week — a useful link or a question beats "catching up".',
       if (input.deepWorkHours < 3)
         'Deep work: ${input.deepWorkHours.toStringAsFixed(1)} h this week. Book two 90-minute blocks for the artifact${input.energyPeak == null ? '' : ' in your ${input.energyPeak}'} before Monday fills up.',
+      if (input.moveMinutes != null && input.moveMinutes! < 150)
+        'Moved ${input.moveMinutes} of 150 minutes this week. Add a 20-minute walk after lunch on three days — that alone closes most of the gap.',
       if (input.craftingMove != null)
         'Your crafting move: ${input.craftingMove}. Put it on next week\'s calendar once — small changes to the work are how it starts to fit you.',
       if (input.feedbackThemes != null)
