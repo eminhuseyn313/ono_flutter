@@ -45,11 +45,16 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
     super.didChangeDependencies();
     if (_loaded) return;
     _loaded = true;
-    final p = activeProfile;
-    _name.text = p.name;
-    _current.text = p.currentRole;
-    _target.text = p.targetRole;
-    _wheel.addAll(context.read<PersonalSystemProvider>().latestWheel);
+    // First run starts empty: the built-in profile is someone else's until
+    // its owner types their own name. A rebuild starts from the profile.
+    final system = context.read<PersonalSystemProvider>();
+    if (system.isCommissioned) {
+      final p = activeProfile;
+      _name.text = p.name;
+      _current.text = p.currentRole;
+      _target.text = p.targetRole;
+    }
+    _wheel.addAll(system.latestWheel);
   }
 
   @override
@@ -160,6 +165,8 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
     return OnoPage(
+      // A new key per step, so each step opens at the top.
+      key: ValueKey(_step),
       showBack: system.isCommissioned,
       eyebrow: 'Step ${_step + 1} of ${_steps.length} · ${_steps[_step]}',
       title: const [

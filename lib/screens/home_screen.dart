@@ -153,7 +153,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           now: _now,
                           score: system.scoreFor(date),
                           total: system.dailyCount,
-                          target: system.targetFor(date)),
+                          target: system.targetFor(date),
+                          label: system.isBuiltInPerson ? null : _nextUp(system, date)),
                     ),
                   ),
                 ),
@@ -375,16 +376,33 @@ class _DateSwitch extends StatelessWidget {
   }
 }
 
+/// The next unticked item for this part of the day, for a plan without a
+/// built-in schedule.
+({String eyebrow, String title}) _nextUp(PersonalSystemProvider system, DateTime date) {
+  final h = DateTime.now().hour;
+  final part = h < 12 ? 'morning' : (h < 18 ? 'day' : 'evening');
+  final open = [for (final n in system.dailyItems) if (!system.isChecked(date, n.id)) n];
+  final next = open.where((n) => n.when == part).firstOrNull ?? open.firstOrNull;
+  return (
+    eyebrow: switch (part) { 'morning' => 'THIS MORNING', 'day' => 'TODAY', _ => 'THIS EVENING' },
+    title: next?.title ?? 'All done for today',
+  );
+}
+
 class _DialCenter extends StatelessWidget {
   final DateTime now;
   final int score;
   final int total;
   final int target;
+
+  /// Without a built-in schedule: what's next on their own list.
+  final ({String eyebrow, String title})? label;
   const _DialCenter(
       {required this.now,
       required this.score,
       required this.total,
-      required this.target});
+      required this.target,
+      this.label});
 
   @override
   Widget build(BuildContext context) {
@@ -392,10 +410,10 @@ class _DialCenter extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text('${block.timeLabel} · NOW',
+        Text(label?.eyebrow ?? '${block.timeLabel} · NOW',
             style: AppText.eyebrow(color: AppColors.accent)),
         const SizedBox(height: 4),
-        Text(block.title,
+        Text(label?.title ?? block.title,
             textAlign: TextAlign.center,
             maxLines: 2,
             style: AppText.heading()),

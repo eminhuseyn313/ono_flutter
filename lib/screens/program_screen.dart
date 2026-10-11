@@ -127,7 +127,9 @@ class _Journey extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-            'Dots: milestones. Squares: every day\'s Daily 10 — the brighter, the higher. Tap a month.',
+            builtIn
+                ? 'Dots: milestones. Squares: every day\'s Daily 10 — the brighter, the higher. Tap a month.'
+                : 'Each square is a day — the brighter, the more of your daily list you held.',
             style: AppText.small().copyWith(fontSize: 11.5)),
         const SizedBox(height: 18),
         OnoCard(

@@ -1068,7 +1068,7 @@ const Map<String, String> defaultMinimums = {
 
 const nonNegotiableGroups = [
   ['morning', 'Morning'],
-  ['day', 'At work'],
+  ['day', 'During the day'],
   ['evening', 'Evening'],
 ];
 
