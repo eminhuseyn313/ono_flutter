@@ -108,7 +108,7 @@ class _SignUpScreenState extends State<SignUpScreen>
     );
 
     if (mounted && auth.isAuthenticated) {
-      context.go('/commission');
+      context.go('/start');
     }
   }
 

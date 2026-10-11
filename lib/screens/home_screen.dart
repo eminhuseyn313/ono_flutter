@@ -45,7 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _load() async {
     final system = context.read<PersonalSystemProvider>();
     await system.load(context.read<AuthProvider>().userId);
-    if (mounted && !system.isCommissioned) context.go('/commission');
+    if (mounted && !system.isCommissioned) context.go('/start');
     await system.syncHealth();
     await system.syncCalendar();
     await system.refreshWidget();

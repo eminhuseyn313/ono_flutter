@@ -96,7 +96,7 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
     return null;
   }
 
-  void _next(PersonalSystemProvider system) {
+  Future<void> _next(PersonalSystemProvider system) async {
     final problem = _problem();
     if (problem != null) {
       toast(context, problem);
@@ -108,6 +108,7 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
       return;
     }
     final now = DateTime.now();
+    final newPerson = _newPerson;
     system.buildPlan(
       name: _name.text,
       currentRole: _current.text,
@@ -121,8 +122,23 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
       plan: _plan.text,
       deadline: DateTime(now.year, now.month + _months, now.day),
       daily: List.of(_picks),
-      replaceDaily: _replace ?? _newPerson,
+      replaceDaily: _replace ?? newPerson,
     );
+    // First run: a new person starts today with their own plan and no
+    // built-in reminders (they switch on what they want under Me). The
+    // built-in person goes on to the full setup: training days, reminders.
+    if (!system.isCommissioned) {
+      if (!newPerson) {
+        if (mounted) context.go('/commission');
+        return;
+      }
+      await system.commission(
+        start: DateTime.now(),
+        gymDays: system.gymDays,
+        reminders: {for (final r in reminderDefs) r.id: false},
+      );
+    }
+    if (!mounted) return;
     HapticFeedback.heavyImpact();
     toast(context, 'Your plan is ready.');
     context.go('/home');
@@ -144,7 +160,7 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
     return OnoPage(
-      showBack: true,
+      showBack: system.isCommissioned,
       eyebrow: 'Step ${_step + 1} of ${_steps.length} · ${_steps[_step]}',
       title: const [
         'Who are you becoming?',

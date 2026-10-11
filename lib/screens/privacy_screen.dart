@@ -78,7 +78,7 @@ class PrivacyScreen extends StatelessWidget {
       await system.eraseEverything();
       if (context.mounted) {
         toast(context, 'Everything is deleted.');
-        context.go('/commission');
+        context.go('/start');
       }
     } catch (_) {
       if (context.mounted) {

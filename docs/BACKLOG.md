@@ -69,7 +69,7 @@ Status: ⬜ to do · 🟨 in progress · ✅ done. Effort: S = days, M = a week,
 
 | # | Item | Effort | Status |
 |---|---|---|---|
-| 18 | Onboarding that builds a plan in 5 minutes | L | ✅ (plan builder; first-run wiring open) |
+| 18 | Onboarding that builds a plan in 5 minutes | L | ✅ |
 | 19 | Languages: English, Azerbaijani, Russian | M | ⬜ |
 | 20 | Privacy and data ownership | M | ✅ |
 | 21 | Plan packs (shareable plans) | L | ✅ |

@@ -189,6 +189,11 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] **Export everything** opens the share sheet with the JSON
 - [ ] On a test install only: **Delete everything** → the Delete button stays disabled until you type DELETE → the app returns to setup, reminders are gone, and (production) the `personal_system` row is deleted
 
+## 2ze. New: first run starts with the plan builder
+- [ ] Fresh install (or Delete everything) → sign up → the plan builder opens, with no back arrow
+- [ ] A new name → finish → Today opens, set up, with your 3–7 items and no reminders on
+- [ ] Your own name → finish → the original setup (start date, training days, reminders, manifesto) follows
+
 ## 2zd. New: plan packs
 - [ ] Me → **Plan packs** → open "Money reset" → preview shows areas, goal, daily items with cues, stops → **Use this plan** → the toast counts what was added; using it again adds nothing
 - [ ] **Copy my plan to share** → paste it in Notes: first line "ONO plan: My plan", no names or numbers → copy it back → **Use a plan someone sent you** opens the preview

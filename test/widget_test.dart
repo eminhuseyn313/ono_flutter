@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:ono/main.dart';
+import 'package:ono/data/daily_library.dart';
 import 'package:ono/data/emin_system.dart';
 import 'package:ono/data/growth_templates.dart';
 import 'package:ono/data/life_wheel.dart';
@@ -17,7 +18,7 @@ import 'package:ono/models/personal_system.dart';
 import 'package:ono/providers/auth_provider.dart';
 import 'package:ono/providers/personal_system_provider.dart';
 import 'package:ono/router.dart';
-import 'package:ono/screens/commission_screen.dart';
+import 'package:ono/screens/plan_builder_screen.dart';
 import 'package:ono/services/calendar_service.dart';
 import 'package:ono/services/reminder_service.dart';
 
@@ -111,7 +112,7 @@ void main() {
     GoogleFonts.config.allowRuntimeFetching = false;
   });
 
-  testWidgets('first run: welcome, then commission after sign-in',
+  testWidgets('first run: welcome, then the plan builder after sign-in',
       (tester) async {
     tester.view.physicalSize = const Size(1179, 2556);
     tester.view.devicePixelRatio = 3;
@@ -128,10 +129,53 @@ void main() {
     await _pumpFor(tester, const Duration(seconds: 2));
     await _go(tester, '/home');
 
-    // Not commissioned yet → Today sends him to the commission.
+    // Not set up yet → Today sends them to the plan builder.
+    final onBuilder = find.byType(PlanBuilderScreen).evaluate().isNotEmpty;
+
+    // A new person builds a plan and lands on Today, set up.
+    final steps = <String>[];
+    var commissioned = false;
+    try {
+      Future<void> next(String label) async {
+        await tester.tap(find.text(label));
+        await _pumpFor(tester, const Duration(milliseconds: 600));
+      }
+      await tester.enterText(
+          find.widgetWithText(TextField, 'Your name'), 'Leyla Mammadova');
+      await tester.enterText(find.widgetWithText(TextField, 'Who you want to become'),
+          'Head nurse');
+      await next('Next');
+      for (final a in lifeAreas) {
+        final s = find.byKey(Key('plan-wheel-${a.id}'));
+        await tester.ensureVisible(s);
+        await tester.tap(s);
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      await next('Next');
+      await tester.tap(find.text(areaTemplates.first.name).first);
+      await tester.pump(const Duration(milliseconds: 200));
+      await next('Next');
+      steps.add('goal');
+      await next('Next');
+      for (final d in dailyLibrary.take(3)) {
+        final row = find.text(d.title);
+        await tester.ensureVisible(row);
+        await tester.tap(row);
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      await next('Build my plan');
+      await _pumpFor(tester, const Duration(seconds: 2));
+      final system = Provider.of<PersonalSystemProvider>(
+          tester.element(find.byType(Navigator).first),
+          listen: false);
+      commissioned = system.isCommissioned && system.dailyCount == 3;
+      system.resetProfile();
+    } catch (e) {
+      steps.add('$e');
+    }
     _restoreErrors();
-    expect(sawWelcome, isTrue);
-    expect(find.byType(CommissionScreen), findsOneWidget);
+    expect([sawWelcome, onBuilder, steps, commissioned, errors],
+        [true, true, ['goal'], true, isEmpty]);
     expect(errors, isEmpty, reason: errors.join('\n'));
   });
 
