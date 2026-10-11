@@ -1717,4 +1717,37 @@ void main() {
     final brief = p.briefs.first;
     expect(brief.adjustments.join(' '), contains('You were sick 2 days'));
   });
+
+  test('partner: pact, due on the check-in day, honest update, record',
+      () async {
+    final p = await _commissioned();
+    expect(p.partnerCheckinDue, isFalse);
+    // _today is a Friday.
+    p.setPartner('Sam Aliyev', mine: 'Train 3x', theirs: 'Write daily', weekday: DateTime.friday);
+    expect(p.partnerCheckinDue, isTrue);
+    p.setHardDay(_daysAgo(1), 'sick');
+    final text = p.partnerUpdateText(_today);
+    expect(text, contains('Hi Sam'));
+    expect(text, contains('My commitment: Train 3x'));
+    expect(text, contains('1 sick day'));
+    expect(text, contains('"Write daily"'));
+    p.recordPartnerCheckin(_today, mine: 'kept', theirs: 'partly');
+    expect(p.partnerCheckinDue, isFalse);
+    expect(p.partnerRecord(), (mine: 1, theirs: 0, weeks: 1));
+    p.endPartnership();
+    expect(p.partner, isNull);
+  });
+
+  test('coach report: the period in facts, no private writing', () async {
+    final p = await _commissioned();
+    _hold(p, _daysAgo(1));
+    p.addLog('note', text: 'very private thought');
+    p.addLog('win', text: 'Shipped the review');
+    p.setHardDay(_today, 'minimum');
+    final text = p.coachReportText(p.monthStart(p.programMonth), _today.add(const Duration(days: 1)));
+    expect(text, contains('DAILY PLAN'));
+    expect(text, contains('1 minimum day'));
+    expect(text, contains('Shipped the review'));
+    expect(text, isNot(contains('very private thought')));
+  });
 }

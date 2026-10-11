@@ -125,7 +125,7 @@ class PrivacyScreen extends StatelessWidget {
               _point(
                   Icons.send_outlined,
                   'Nothing is sent for you',
-                  'Progress notes, feedback asks and gratitude letters are copied for you to send yourself. ONO never messages anyone.'),
+                  'Progress notes, partner updates, coach reports, feedback asks and gratitude letters are copied for you to send yourself. ONO never messages anyone.'),
             ],
           ),
         ),

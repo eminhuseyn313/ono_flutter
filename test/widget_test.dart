@@ -364,6 +364,11 @@ void main() {
             date: DateTime.now().subtract(Duration(days: i + 1)),
             data: {'level': 2, 'hour': 15});
       }
+      // An accountability pact with a long commitment on each side.
+      system.setPartner('Samira Abdullayeva-Karimova',
+          mine: 'Three strength sessions and one long walk every single week',
+          theirs: 'Write five hundred words every morning before work',
+          weekday: DateTime.now().weekday);
       // Sick the day before yesterday: yesterday is the first day back.
       system.setHardDay(
           dayOnly(DateTime.now()).subtract(const Duration(days: 2)), 'sick');

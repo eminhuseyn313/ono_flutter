@@ -1404,6 +1404,9 @@ class PersonalSystemProvider extends ChangeNotifier {
         patterns: patterns().map((p) => p.sentence).take(3).toList(),
         deepWorkHours: focusMinutesInWeek(report.weekStart) / 60,
         hardDays: hardDaysInWeek(report.weekStart),
+        partner: partner == null || partnerRecord().weeks == 0
+            ? null
+            : 'with ${partner!.text}: you kept it ${partnerRecord().mine} of ${partnerRecord().weeks} weeks, they ${partnerRecord().theirs}',
         energyPeak: energyPeak == null
             ? null
             : '${energyPeak!.label.toLowerCase()} (${energyPeak!.from}:00–${energyPeak!.to}:00)',
@@ -1926,6 +1929,210 @@ class PersonalSystemProvider extends ChangeNotifier {
       if (d.minimum.trim().isNotEmpty) setMinimum(id, d.minimum);
     }
     return added;
+  }
+
+  // ── Accountability partner ───────────────────────────────────────────
+
+  /// One partner, a two-way pact and a weekly check-in. Reporting
+  /// progress to someone makes goals more likely to be reached (Harkin et
+  /// al. 2016); a pact makes it mutual. ONO never sends anything: the
+  /// update is copied and the answers are recorded by hand.
+  static const checkinAnswers = ['kept', 'partly', 'missed'];
+
+  LogEntry? get partner {
+    for (final l in logsOf('partner')) {
+      if ((l.str('status') ?? 'active') == 'active') return l;
+    }
+    return null;
+  }
+
+  LogEntry setPartner(String name,
+      {required String mine, required String theirs, required int weekday}) {
+    final p = partner;
+    final data = {
+      'mine': mine.trim(),
+      'theirs': theirs.trim(),
+      'weekday': weekday.clamp(1, 7),
+      'status': 'active',
+    };
+    if (p == null) return addLog('partner', text: name.trim(), data: data)!;
+    final next = p.copyWith(text: name.trim(), data: {...p.data, ...data});
+    updateLog(next);
+    return next;
+  }
+
+  void endPartnership() {
+    final p = partner;
+    if (p != null) {
+      updateLog(p.copyWith(data: {...p.data, 'status': 'ended', 'ended': dateKey(_now)}));
+    }
+  }
+
+  LogEntry? partnerCheckinFor(DateTime anyDay) {
+    final week = weekStartOf(anyDay);
+    for (final l in logsOf('partner_checkin')) {
+      if (dateKey(l.date) == dateKey(week)) return l;
+    }
+    return null;
+  }
+
+  /// Records this week's check-in: each side's answer from [checkinAnswers].
+  void recordPartnerCheckin(DateTime anyDay,
+      {required String mine, required String theirs, String note = ''}) {
+    final p = partner;
+    if (p == null) return;
+    _upsertDayLog('partner_checkin', weekStartOf(anyDay), {
+      'partner': p.text,
+      'mine': mine,
+      'theirs': theirs,
+      'note': note.trim(),
+    });
+  }
+
+  /// From the check-in weekday until this week's check-in is recorded.
+  bool get partnerCheckinDue {
+    final p = partner;
+    if (p == null || !hasStarted) return false;
+    final today = dayOnly(_now);
+    final day = (p.number('weekday') ?? 7).toInt();
+    return today.weekday >= day && partnerCheckinFor(today) == null;
+  }
+
+  /// The message for the partner: the pact, the week in numbers, honest
+  /// about hard days, and their turn.
+  String partnerUpdateText(DateTime anyDay) {
+    final p = partner;
+    if (p == null) return '';
+    final week = weekStartOf(anyDay);
+    final days = [
+      for (final d in weekDays(week))
+        if (!d.isAfter(dayOnly(_now)) && !d.isBefore(programStart)) d
+    ];
+    final held = days.where(isHeld).length;
+    final hard = hardDaysInWeek(week);
+    final (done, set) = weekOutcomeScore(week);
+    final b = StringBuffer()
+      ..writeln('Hi ${p.text.split(' ').first} — our weekly check-in.')
+      ..writeln()
+      ..writeln('My commitment: ${p.str('mine')}')
+      ..writeln('This week: held my daily plan $held of ${days.length} days');
+    if (hard.isNotEmpty) {
+      b.writeln('Hard days: ${[for (final e in hard.entries) '${e.value} ${(hardDayKinds[e.key] ?? e.key).toLowerCase()}${e.value == 1 ? '' : 's'}'].join(', ')}');
+    }
+    if (set > 0) b.writeln('Week\'s three: $done of $set done');
+    b
+      ..writeln()
+      ..writeln('Your turn: how did "${p.str('theirs')}" go this week?');
+    return b.toString().trim();
+  }
+
+  /// Weeks each side kept the pact, over the last [weeks] check-ins.
+  ({int mine, int theirs, int weeks}) partnerRecord({int weeks = 4}) {
+    final p = partner;
+    if (p == null) return (mine: 0, theirs: 0, weeks: 0);
+    final l = [
+      for (final c in logsOf('partner_checkin'))
+        if (c.str('partner') == p.text) c
+    ].take(weeks).toList();
+    return (
+      mine: l.where((c) => c.str('mine') == 'kept').length,
+      theirs: l.where((c) => c.str('theirs') == 'kept').length,
+      weeks: l.length,
+    );
+  }
+
+  // ── Coach mode ───────────────────────────────────────────────────────
+
+  /// A report for a coach, mentor or therapist over [from]–[to] (to
+  /// exclusive): goals, the daily plan, growth, feedback, experiments and
+  /// what was hard. Private writing (notes, letters, journal) never goes in.
+  String coachReportText(DateTime from, DateTime to, {bool mornings = true}) {
+    bool inRange(LogEntry l) => !l.date.isBefore(from) && l.date.isBefore(to);
+    final today = dayOnly(_now);
+    final days = <DateTime>[
+      for (var d = from; d.isBefore(to) && !d.isAfter(today); d = d.add(const Duration(days: 1)))
+        if (!d.isBefore(programStart)) d
+    ];
+    final p = activeProfile;
+    final b = StringBuffer()
+      ..writeln('${p.name} — progress ${dateKey(from)} to ${dateKey(to.subtract(const Duration(days: 1)))}')
+      ..writeln('${p.currentRole} → ${p.targetRole}')
+      ..writeln();
+    if (activeGoals.isNotEmpty) {
+      b.writeln('GOALS');
+      for (final g in activeGoals) {
+        final pace = goalPace(g);
+        b.writeln('• ${g.text}: ${(goalProgress(g) * 100).round()}%${pace == null ? '' : ' ($pace)'}');
+        if ((g.str('obstacle') ?? '').isNotEmpty) b.writeln('  Obstacle: ${g.str('obstacle')}');
+      }
+      b.writeln();
+    }
+    if (days.isNotEmpty) {
+      final counted = [for (final d in days) if (!isExcused(d)) d];
+      final held = counted.where(isHeld).length;
+      b.writeln('DAILY PLAN ($dailyCount items)');
+      b.writeln('• Held $held of ${counted.length} days');
+      final hard = <String, int>{};
+      for (final d in days) {
+        final k = hardDayOn(d);
+        if (k != null) hard[k] = (hard[k] ?? 0) + 1;
+      }
+      if (hard.isNotEmpty) {
+        b.writeln('• Hard days: ${[for (final e in hard.entries) '${e.value} ${(hardDayKinds[e.key] ?? e.key).toLowerCase()}'].join(', ')}');
+      }
+      final rates = itemRates(days).entries.toList()..sort((a, b) => a.value.compareTo(b.value));
+      if (rates.isNotEmpty) {
+        b.writeln('• Weakest: ${dailyItem(rates.first.key)?.title ?? rates.first.key} (${(rates.first.value * 100).round()}%)');
+        b.writeln('• Strongest: ${dailyItem(rates.last.key)?.title ?? rates.last.key} (${(rates.last.value * 100).round()}%)');
+      }
+      b.writeln();
+    }
+    final reps = logsOf('rep').where(inRange).toList();
+    final feedback = logsOf('feedback').where(inRange).toList();
+    final focus = [for (final l in logsOf('growth_focus')) if (inRange(l)) l];
+    if (reps.isNotEmpty || focus.isNotEmpty) {
+      b.writeln('GROWTH');
+      for (final f in focus) {
+        final end = f.number('end');
+        b.writeln('• ${f.str('name') ?? areaById(f.str('area') ?? '').name}: ${f.number('start')}${end == null ? '' : ' → $end'} of 5');
+      }
+      b.writeln('• ${reps.length} practice reps, ${feedback.length} pieces of feedback');
+      for (final r in reps.take(3)) {
+        if ((r.str('lesson') ?? '').isNotEmpty) b.writeln('  Lesson: ${r.str('lesson')}');
+      }
+      b.writeln();
+    }
+    final experiments = logsOf('experiment').where((e) => inRange(e) || e.str('status') == 'running').toList();
+    if (experiments.isNotEmpty) {
+      b.writeln('EXPERIMENTS');
+      for (final e in experiments.take(3)) {
+        b.writeln('• ${e.text} (${e.str('status')})${(e.str('result') ?? '').isEmpty ? '' : ': ${e.str('result')}'}');
+      }
+      b.writeln();
+    }
+    final setbacks = logsOf('setback').where(inRange).length;
+    final wins = [for (final w in logsOf('win')) if (inRange(w)) w.text];
+    if (wins.isNotEmpty || setbacks > 0) {
+      b.writeln('WINS AND SETBACKS');
+      for (final w in wins.take(3)) {
+        b.writeln('• $w');
+      }
+      if (setbacks > 0) b.writeln('• $setbacks setback${setbacks == 1 ? '' : 's'} met with a next step');
+      b.writeln();
+    }
+    if (mornings) {
+      final checkins = logsOf('checkin').where(inRange).toList();
+      final energy = averageOf(checkins, 'energy');
+      final sleep = averageOf(checkins, 'sleep');
+      if (energy != null || sleep != null) {
+        b.writeln('MORNINGS');
+        if (energy != null) b.writeln('• Energy ${energy.toStringAsFixed(1)} / 5');
+        if (sleep != null) b.writeln('• Sleep ${sleep.toStringAsFixed(1)} h');
+        b.writeln();
+      }
+    }
+    b.writeln('What I\'d like your view on:');
+    return b.toString().trim();
   }
 
   // ── Plan packs ───────────────────────────────────────────────────────

@@ -341,6 +341,24 @@ class MeScreen extends StatelessWidget {
               ),
               const Divider(indent: 66),
               LinkRow(
+                icon: Icons.handshake_outlined,
+                color: AppColors.social,
+                title: 'Accountability partner',
+                subtitle: system.partner == null
+                    ? 'One promise each, one check-in a week'
+                    : 'With ${system.partner!.text}',
+                onTap: () => context.push('/partner'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
+                icon: Icons.assignment_outlined,
+                color: AppColors.social,
+                title: 'Report for your coach',
+                subtitle: 'This month or quarter, ready to copy',
+                onTap: () => context.push('/coach-report'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
                 icon: Icons.groups_2_outlined,
                 color: AppColors.social,
                 title: 'Feedback round',

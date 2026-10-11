@@ -189,6 +189,11 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] **Export everything** opens the share sheet with the JSON
 - [ ] On a test install only: **Delete everything** → the Delete button stays disabled until you type DELETE → the app returns to setup, reminders are gone, and (production) the `personal_system` row is deleted
 
+## 2zg. New: accountability partner and coach report
+- [ ] Me → **Accountability partner** → name, your commitment, theirs, a check-in day → **Save the pact**
+- [ ] On the check-in day Today prompts it → **Copy my update** (held days, hard days, the week's three, their turn) → record Kept/Partly/Missed for each → the record line updates
+- [ ] Me → **Report for your coach** → month/quarter → the text has goals, the daily plan, growth, wins and no private notes → **Copy the report**
+
 ## 2zf. New: hard days
 - [ ] Today → under the daily list, **Hard day? Choose how today counts** → **Minimum day** → the card says half holds the day and each unticked item shows "Minimum: …"; **Undo** clears it
 - [ ] **Sick day** → "nothing is expected"; your streak doesn't drop tomorrow; the next day shows **Welcome back** and counts on the minimum

@@ -86,6 +86,10 @@ class BriefInput {
   /// Hard days this week by kind: minimum days, sick days, emergency skips.
   final Map<String, int> hardDays;
 
+  /// The accountability pact over the last 4 check-ins, e.g. "with Sam:
+  /// you kept it 3 of 4 weeks, they 2".
+  final String? partner;
+
   /// Who the brief is for: names, roles, key people and coach context.
   final Profile profile;
 
@@ -130,6 +134,7 @@ class BriefInput {
     this.energyPeak,
     this.feedbackThemes,
     this.hardDays = const {},
+    this.partner,
   }) : profile = profile ?? activeProfile;
 
   Map<String, dynamic> toJson() => {
@@ -143,6 +148,7 @@ class BriefInput {
         'rest_planned_next_8_weeks': restPlanned,
         'energy_peak': energyPeak,
         'hard_days': hardDays,
+        'accountability_partner': partner,
         'feedback_round_theme': feedbackThemes,
         'report': report.toJson(),
         'for_week': dateKey(forWeek),

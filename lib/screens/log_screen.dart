@@ -66,7 +66,7 @@ class _LogScreenState extends State<LogScreen> {
             // Letters stay sealed: they only show on /letters.
             .where((e) => e.type != 'letter')
             // People are a list, not events; contact with them is a touch.
-            .where((e) => !const {'person', 'values', 'growth_area', 'area_drills', 'goal', 'profile', 'daily_item', 'stop', 'role_model'}
+            .where((e) => !const {'person', 'values', 'growth_area', 'area_drills', 'goal', 'profile', 'daily_item', 'stop', 'role_model', 'partner'}
                 .contains(e.type))
             .toList()
         : system.allLogs(_filters[_filter]);
@@ -281,6 +281,7 @@ class _EntryRow extends StatelessWidget {
     'energy': (Icons.bolt_outlined, 'mind', 'Energy'),
     'wheel': (Icons.donut_large_rounded, 'mind', 'Life wheel'),
     'hard_day': (Icons.healing_outlined, 'body', 'Hard day'),
+    'partner_checkin': (Icons.handshake_outlined, 'social', 'Partner check-in'),
     'detach': (Icons.power_settings_new_rounded, 'mind', 'Switched off'),
     'setback': (Icons.replay_rounded, 'mind', 'Setback, reset'),
     'affirmation': (Icons.diamond_outlined, 'mind', 'Values affirmation'),
@@ -336,6 +337,8 @@ class _EntryRow extends StatelessWidget {
       case 'focus':
         final t = e.str('target');
         return '${e.number('minutes')} min${t == 'artifact' ? ' · artifact' : t == 'skill' ? ' · skill' : ''}';
+      case 'partner_checkin':
+        return 'With ${e.str('partner')}: you ${e.str('mine')}, they ${e.str('theirs')}';
       case 'hard_day':
         return PersonalSystemProvider.hardDayKinds[e.str('kind')] ?? 'Hard day';
       case 'wheel':
