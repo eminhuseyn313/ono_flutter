@@ -25,8 +25,12 @@ const _filters = <String, Set<String>?>{
   'Notes': {'feynman', 'scan', 'pennebaker', 'note', 'win', 'month_review', 'shutdown', 'stepback'},
   'Protocols': {'sigh', 'excited', 'bluf', 'sixq', 'pause', 'still', 'ritual', 'read', 'anki'},
   'Body': {'weight', 'protein', 'gym', 'blood', 'checkin', 'sleep', 'vitals', 'energy', 'move'},
+  'People': {'touch', 'help', 'partner_checkin', 'gratitude', 'feedback_round'},
   'Career': {'linkedin', 'artifact', 'one_on_one', 'decision', 'readiness', 'focus', 'week_plan', 'touch'},
 };
+
+/// Filters that only make sense for the built-in plan's protocols.
+const _builtInOnlyFilters = {'Protocols'};
 
 class _LogScreenState extends State<LogScreen> {
   String _filter = 'All';
@@ -86,19 +90,22 @@ class _LogScreenState extends State<LogScreen> {
           child: ListView(
             scrollDirection: Axis.horizontal,
             children: [
-              for (final a in const [
-                ('weight', Icons.monitor_weight_outlined, 'Weight'),
-                ('protein', Icons.egg_alt_outlined, 'Protein'),
+              for (final a in [
                 ('win', Icons.emoji_events_outlined, 'Win'),
                 ('note', Icons.edit_note_rounded, 'Note'),
-                ('blood', Icons.bloodtype_outlined, 'Bloodwork'),
+                if (!system.isBuiltInPerson) ('move', Icons.directions_walk_rounded, 'Movement'),
+                ('weight', Icons.monitor_weight_outlined, 'Weight'),
+                if (system.isBuiltInPerson) ('protein', Icons.egg_alt_outlined, 'Protein'),
+                if (system.isBuiltInPerson) ('blood', Icons.bloodtype_outlined, 'Bloodwork'),
               ])
                 Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: ActionChip(
                     avatar: Icon(a.$2, size: 16, color: AppColors.accent),
                     label: Text(a.$3),
-                    onPressed: () => _openAdd(context, a.$1),
+                    onPressed: () => a.$1 == 'move'
+                        ? context.push('/move')
+                        : _openAdd(context, a.$1),
                   ),
                 ),
             ],
@@ -142,6 +149,7 @@ class _LogScreenState extends State<LogScreen> {
                 trailing: '${system.briefs.length}',
                 onTap: () => context.push('/weekly-coaching'),
               ),
+              if (system.isBuiltInPerson) ...[
               const Divider(indent: 66),
               LinkRow(
                 icon: Icons.campaign_outlined,
@@ -165,6 +173,7 @@ class _LogScreenState extends State<LogScreen> {
                 title: 'Anki',
                 onTap: () => context.push('/tool/anki'),
               ),
+              ],
             ],
           ),
         ),
@@ -175,6 +184,7 @@ class _LogScreenState extends State<LogScreen> {
             scrollDirection: Axis.horizontal,
             children: [
               for (final f in _filters.keys)
+                if (system.isBuiltInPerson || !_builtInOnlyFilters.contains(f))
                 Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: ChoiceChip(

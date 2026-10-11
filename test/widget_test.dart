@@ -622,10 +622,10 @@ void main() {
           archetype: 'The Comeback Athlete',
           keyPeople: const [KeyPerson('Tural', 'Coach', every: 7, primary: true)],
         ));
-        for (final r in ['/home', '/profile', '/goals', '/note', '/profile/edit', '/career', '/people', '/program', '/checkin', '/growth', '/move']) {
+        for (final r in ['/home', '/profile', '/goals', '/note', '/profile/edit', '/career', '/people', '/program', '/checkin', '/growth', '/move', '/log', '/weekly-coaching']) {
           await _go(tester, r);
           // None of the built-in plan's specifics show for someone else.
-          for (final t in ['Shoulder pain', 'Domain scan', 'Face pulls', 'Lunch read']) {
+          for (final t in ['Shoulder pain', 'Domain scan', 'Face pulls', 'Lunch read', 'LinkedIn posts', 'Gym sessions']) {
             if (find.textContaining(t).evaluate().isNotEmpty) {
               errors.add('$r shows "$t"');
             }
