@@ -1595,7 +1595,7 @@ void main() {
         targetRole: 'Head nurse',
         area: p.focusArea()!,
         areaRating: 3,
-        daily: [picks.first, dailyLibrary.last]);
+        daily: [picks.first, dailyLibrary.firstWhere((d) => d.area == 'meaning')]);
     expect(p.dailyCount, picks.length + 1);
     expect(p.logsOf('growth_area').length, 1);
     p.resetProfile();

@@ -14,7 +14,7 @@ const List<LifeArea> lifeAreas = [
   LifeArea('career', 'Career & work', 'Progress, meaning and respect in your work', 't_people_leader'),
   LifeArea('health', 'Health & body', 'Energy, strength, sleep, how your body feels', 't_health'),
   LifeArea('relationships', 'Partner & close relationships', 'Closeness, support, time together', 't_relationships'),
-  LifeArea('family', 'Family & friends', 'Being there for the people who matter', 't_parenting'),
+  LifeArea('family', 'Family & friends', 'Being there for the people who matter', 't_friendship'),
   LifeArea('money', 'Money', 'Security, savings, freedom from money worry', 't_money'),
   LifeArea('mind', 'Mind & calm', 'Stress, mood, how you recover from hard days', 't_calm'),
   LifeArea('growth', 'Learning & growth', 'Getting better at things you care about', 't_learning'),
