@@ -1750,4 +1750,45 @@ void main() {
     expect(text, contains('Shipped the review'));
     expect(text, isNot(contains('very private thought')));
   });
+
+  test('a week or more of illness pauses the program clock', () async {
+    final p = await _commissioned();
+    expect(p.programDay, 32);
+    final end = p.programEnd;
+    // Six sick days: no pause.
+    for (var i = 6; i >= 1; i--) {
+      p.setHardDay(_daysAgo(i), 'sick');
+    }
+    expect(p.pausedDays, 0);
+    expect(p.programDay, 32);
+    // The seventh: the whole illness is paused, retroactively.
+    p.setHardDay(_daysAgo(7), 'sick');
+    expect(p.pausedDays, 7);
+    expect(p.programDay, 25);
+    expect(p.programMonth, 1, reason: 'month 2 not reached yet');
+    expect(p.programEnd, end.add(const Duration(days: 7)));
+    expect(p.isPaused(_daysAgo(3)), isTrue);
+    expect(p.isPaused(_today), isFalse);
+    // Month 2 now starts on program day 31 = 7 days later than before.
+    expect(dateKey(p.monthStart(2)), dateKey(DateTime(2026, 10, 8)));
+    // Clearing one sick day in the middle ends the pause.
+    p.setHardDay(_daysAgo(4), null);
+    expect(p.pausedDays, 0);
+    expect(p.programDay, 32);
+  });
+
+  test('emergency skips per month are set per person and travel with backups',
+      () async {
+    final p = await _commissioned();
+    expect(p.passesPerMonth, 2);
+    p.setPassesPerMonth(0);
+    expect(p.setHardDay(_today, 'pass'), isFalse);
+    p.setPassesPerMonth(99);
+    expect(p.passesPerMonth, PersonalSystemProvider.maxPassesPerMonth);
+    p.setPassesPerMonth(4);
+    final json = p.exportJson();
+    p.setPassesPerMonth(1);
+    expect(p.importJson(json), isTrue);
+    expect(p.passesPerMonth, 4);
+  });
 }

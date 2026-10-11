@@ -374,6 +374,9 @@ class PersonalSystemState {
   final Map<String, CardSchedule> cardSchedules;
   final List<StudyCard> customCards;
 
+  /// Emergency skips allowed per program month (hard days).
+  final int skipsPerMonth;
+
   const PersonalSystemState({
     required this.programStart,
     this.commissioned = false,
@@ -390,6 +393,7 @@ class PersonalSystemState {
     this.cues = const {},
     this.cardSchedules = const {},
     this.customCards = const [],
+    this.skipsPerMonth = 2,
   });
 
   PersonalSystemState copyWith({
@@ -408,6 +412,7 @@ class PersonalSystemState {
     Map<String, String>? cues,
     Map<String, CardSchedule>? cardSchedules,
     List<StudyCard>? customCards,
+    int? skipsPerMonth,
   }) =>
       PersonalSystemState(
         programStart: programStart ?? this.programStart,
@@ -425,6 +430,7 @@ class PersonalSystemState {
         cues: cues ?? this.cues,
         cardSchedules: cardSchedules ?? this.cardSchedules,
         customCards: customCards ?? this.customCards,
+        skipsPerMonth: skipsPerMonth ?? this.skipsPerMonth,
       );
 
   Map<String, dynamic> toJson() => {
@@ -445,6 +451,7 @@ class PersonalSystemState {
         'card_schedules':
             cardSchedules.map((k, v) => MapEntry(k, v.toJson())),
         'custom_cards': customCards.map((c) => c.toJson()).toList(),
+        'skips_per_month': skipsPerMonth,
       };
 
   factory PersonalSystemState.fromJson(Map<String, dynamic> json) {
@@ -483,6 +490,7 @@ class PersonalSystemState {
           .map((k, v) => MapEntry(
               k, CardSchedule.fromJson(Map<String, dynamic>.from(v as Map)))),
       customCards: list(json['custom_cards'], StudyCard.fromJson),
+      skipsPerMonth: (json['skips_per_month'] as num?)?.toInt() ?? 2,
     );
   }
 }

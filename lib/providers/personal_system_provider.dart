@@ -152,8 +152,44 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   DateTime get programStart => _state?.programStart ?? dayOnly(_now);
 
-  /// 1-based day of the program; ≤ 0 means it hasn't started yet.
-  int get programDay => dayOnly(_now).difference(programStart).inDays + 1;
+  /// 1-based day of the program; ≤ 0 means it hasn't started yet. Days of
+  /// a long illness don't count (see [pausedDays]).
+  int get programDay => programDayOf(_now);
+
+  /// The program day [date] falls on: calendar days since the start, minus
+  /// paused days before it. A paused day shares its number with the next.
+  int programDayOf(DateTime date) {
+    final d = dayOnly(date);
+    final calendar = d.difference(programStart).inDays + 1;
+    if (calendar < 1) return calendar;
+    _reindex();
+    return calendar - _pausedList.where((p) => p.isBefore(d)).length;
+  }
+
+  /// The first calendar date of program day [n], skipping paused days.
+  DateTime dateForProgramDay(int n) {
+    _reindex();
+    var date = programStart.add(Duration(days: n - 1));
+    for (final p in _pausedList) {
+      if (!p.isAfter(date)) date = date.add(const Duration(days: 1));
+    }
+    return date;
+  }
+
+  /// Sick days in a row from which the program clock pauses for the whole
+  /// illness, so 540 days of practice stay 540 days of practice.
+  static const pauseAfterSickDays = 7;
+
+  /// Calendar days the clock skipped for long illness.
+  int get pausedDays {
+    _reindex();
+    return _pausedList.length;
+  }
+
+  bool isPaused(DateTime day) {
+    _reindex();
+    return _pausedKeys.contains(dateKey(day));
+  }
 
   bool get hasStarted => programDay >= 1;
   int get daysUntilStart => hasStarted ? 0 : 1 - programDay;
@@ -166,8 +202,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// Day within the current month (1–30).
   int get dayOfMonth => hasStarted ? ((programDay - 1) % 30) + 1 : 0;
 
-  DateTime monthStart(int month) =>
-      programStart.add(Duration(days: (month - 1) * 30));
+  DateTime monthStart(int month) => dateForProgramDay((month - 1) * 30 + 1);
 
   void setProgramStart(DateTime date) {
     final s = _state;
@@ -261,12 +296,23 @@ class PersonalSystemProvider extends ChangeNotifier {
   };
 
   /// Emergency skips per program month; unused ones don't roll over.
-  static const passesPerMonth = 2;
+  /// Each person sets their own (some lives are more volatile).
+  int get passesPerMonth => _state?.skipsPerMonth ?? 2;
+
+  static const maxPassesPerMonth = 6;
+
+  void setPassesPerMonth(int n) {
+    final s = _state;
+    if (s == null) return;
+    _update(s.copyWith(skipsPerMonth: n.clamp(0, maxPassesPerMonth)));
+  }
 
   // Day-by-day lookups run for every day of the streak, so hard days and
   // rest ranges are indexed once per state.
   PersonalSystemState? _indexedState;
   Map<String, String> _hardIndex = const {};
+  List<DateTime> _pausedList = const [];
+  Set<String> _pausedKeys = const {};
   List<({DateTime from, DateTime to, bool rest})> _restIndex = const [];
 
   void _reindex() {
@@ -287,6 +333,25 @@ class PersonalSystemProvider extends ChangeNotifier {
     }
     _hardIndex = hard;
     _restIndex = rest;
+    // Runs of [pauseAfterSickDays]+ sick days pause the clock.
+    final sick = [
+      for (final e in hard.entries)
+        if (e.value == 'sick') DateTime.parse(e.key)
+    ]..sort();
+    final paused = <DateTime>[];
+    var run = <DateTime>[];
+    for (final d in [...sick, null]) {
+      if (d != null &&
+          run.isNotEmpty &&
+          dateKey(DateTime(run.last.year, run.last.month, run.last.day + 1)) == dateKey(d)) {
+        run.add(d);
+        continue;
+      }
+      if (run.length >= pauseAfterSickDays) paused.addAll(run);
+      run = d == null ? [] : [d];
+    }
+    _pausedList = paused;
+    _pausedKeys = {for (final d in paused) dateKey(d)};
   }
 
   String? hardDayOn(DateTime day) {
@@ -318,7 +383,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     }
     if (!hardDayKinds.containsKey(kind)) return false;
     if (kind == 'pass' && hardDayOn(d) != 'pass') {
-      final month = d.difference(programStart).inDays ~/ 30 + 1;
+      final month = (programDayOf(d) - 1) ~/ 30 + 1;
       if (passesUsedInMonth(month) >= passesPerMonth) return false;
     }
     _upsertDayLog('hard_day', d, {'kind': kind, 'note': note.trim()});
@@ -2878,8 +2943,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// 90-day quarters of the program: 1 = days 1–90, … 6 = days 451–540.
   int get programQuarter => hasStarted ? ((programDay - 1) ~/ 90) + 1 : 1;
 
-  DateTime quarterStart(int q) =>
-      programStart.add(Duration(days: (q - 1) * 90));
+  DateTime quarterStart(int q) => dateForProgramDay((q - 1) * 90 + 1);
 
   LogEntry? reviewFor(int quarter) {
     for (final l in logsOf('quarterly_review')) {
@@ -3582,8 +3646,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   // ── Letters to future you ────────────────────────────────────────────
 
   /// Last day of the program (day 540).
-  DateTime get programEnd =>
-      programStart.add(const Duration(days: programDays - 1));
+  DateTime get programEnd => dateForProgramDay(programDays);
 
   /// First day of the next phase, or null in the last one.
   DateTime? get nextPhaseStart {

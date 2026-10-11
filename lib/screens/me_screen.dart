@@ -78,7 +78,7 @@ class MeScreen extends StatelessWidget {
                       style: AppText.small()),
                   const Spacer(),
                   Text(
-                      'Ends ${shortDate(system.programStart.add(const Duration(days: programDays - 1)))}',
+                      'Ends ${shortDate(system.programEnd)}${system.pausedDays > 0 ? ' · paused ${system.pausedDays} d' : ''}',
                       style: AppText.small()),
                 ],
               ),
@@ -505,6 +505,14 @@ class MeScreen extends StatelessWidget {
               ),
               const Divider(indent: 66),
               LinkRow(
+                icon: Icons.flash_on_outlined,
+                color: AppColors.mind,
+                title: 'Emergency skips',
+                subtitle: '${system.passesPerMonth} a month · for days you couldn\'t plan for',
+                onTap: () => _skipsSheet(context, system),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
                 icon: Icons.ios_share_rounded,
                 color: AppColors.steel,
                 title: 'Export backup',
@@ -563,6 +571,44 @@ class MeScreen extends StatelessWidget {
       ],
     );
   }
+
+  Future<void> _skipsSheet(BuildContext context, PersonalSystemProvider system) =>
+      showModalBottomSheet<void>(
+        context: context,
+        backgroundColor: AppColors.card,
+        builder: (ctx) => SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Emergency skips', style: AppText.title()),
+                const SizedBox(height: 4),
+                Text(
+                    'A skip sets a day aside without breaking your streak. A small reserve keeps people going; a big one stops meaning anything. Most people do well with 2.',
+                    style: AppText.small()),
+                const SizedBox(height: 14),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    for (var n = 0; n <= PersonalSystemProvider.maxPassesPerMonth; n++)
+                      ChoiceChip(
+                        label: Text('$n a month'),
+                        selected: system.passesPerMonth == n,
+                        onSelected: (_) {
+                          system.setPassesPerMonth(n);
+                          Navigator.of(ctx).pop();
+                        },
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
 
   Future<void> _restore(
       BuildContext context, PersonalSystemProvider system) async {

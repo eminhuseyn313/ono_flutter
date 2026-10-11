@@ -200,6 +200,8 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] **Emergency skip** → 2 per month; the third is greyed out
 - [ ] If-then plans → edit an item's minimum version; it shows on the next minimum day
 - [ ] Two sick days in a week → the Sunday brief suggests coming back with the minimum
+- [ ] Seven sick days in a row → the card says the program clock is paused; Me shows "paused 7 d" and the end date moves a week later
+- [ ] Me → **Emergency skips** → choose 0–6 a month; the hard-day sheet shows the new number
 
 ## 2ze. New: first run starts with the plan builder
 - [ ] Fresh install (or Delete everything) → sign up → the plan builder opens, with no back arrow

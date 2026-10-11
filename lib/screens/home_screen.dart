@@ -1431,7 +1431,7 @@ Future<void> showHardDaySheet(BuildContext context, DateTime date) {
             option('sick', Icons.healing_outlined, 'Sick day',
                 'Rest is the plan. Nothing is expected; your streak waits for you.'),
             option('pass', Icons.flash_on_outlined, 'Emergency skip',
-                'Something you couldn\'t plan for. ${system.passesLeft} of ${PersonalSystemProvider.passesPerMonth} left this month; your streak waits.',
+                'Something you couldn\'t plan for. ${system.passesLeft} of ${system.passesPerMonth} left this month; your streak waits.',
                 enabled: system.passesLeft > 0),
           ],
         ),
@@ -1456,7 +1456,9 @@ class _HardDayCard extends StatelessWidget {
         ),
       'sick' => (
           'Sick day — rest is the plan',
-          sickRun >= 3
+          sickRun >= PersonalSystemProvider.pauseAfterSickDays
+              ? 'Day $sickRun. The program clock is paused while you recover — your day ${system.programDay} waits for you. If it isn\'t getting better, see a doctor.'
+              : sickRun >= 3
               ? 'Day $sickRun. Nothing is expected. If it isn\'t getting better, see a doctor. Your streak waits.'
               : 'Nothing is expected today. Sleep, water, rest. Your streak waits for you.'
         ),

@@ -26,6 +26,6 @@ Emin's observation: there are days a person can't follow the rules — sick, swa
 - Minimum versions are edited on If-then plans (`/plans`), next to each cue. General library items and plan packs carry their own.
 - The Sunday brief counts hard days by kind; after 2+ sick days it suggests returning on the minimum for two days; after 3+ minimum days or skips it suggests changing the plan, not the person's opinion of themselves.
 
-## Open questions for later
-- Should a long illness (a week or more) pause the program clock, so the 540 days don't run while someone is in bed?
-- Should the number of skips be configurable per person (some lives are more volatile)?
+## Decided with Emin
+- **A long illness pauses the program clock.** From the 7th sick day in a row, every day of that illness is skipped by the clock (retroactively), so the program day, month and quarter starts and the end date all move on by that many days. Clearing a sick day in the middle of the run ends the pause.
+- **Emergency skips are set per person**: 0–6 a month under Me → Emergency skips (default 2). A small reserve keeps people going; a large one stops meaning anything.
