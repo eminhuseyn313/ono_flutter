@@ -131,4 +131,4 @@ double? parseAmount(String raw) {
   if (m == null) return double.tryParse(t.replaceAll(RegExp(r'[.,]'), ''));
   final whole = t.substring(0, m.start).replaceAll(RegExp(r'[.,]'), '');
   return double.tryParse('${whole.isEmpty ? '0' : whole}.${m.group(1)}');
-  }
+}
