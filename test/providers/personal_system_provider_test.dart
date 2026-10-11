@@ -1923,7 +1923,10 @@ void main() {
     final all = [...brief.tasks, ...brief.adjustments].join(' ');
     expect(all, isNot(contains('Face pulls')));
     expect(all, isNot(contains('LinkedIn')));
-    expect(all, isNot(contains('artifact of the month')));
+    expect(all, isNot(contains('artifact')));
+    for (final t in ['manifesto', 'BLUF', 'Evidence Archive', 'Product Architect', '22:30', 'Scan rotation', 'six-questions']) {
+      expect('$all ${brief.domainBrief} ${brief.coaching}', isNot(contains(t)), reason: t);
+    }
     p.resetProfile();
   });
 

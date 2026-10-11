@@ -293,7 +293,9 @@ class DeviceBriefGenerator implements BriefGenerator {
       tasks.add('Publish 2 LinkedIn posts (Tue + Thu). Hook → insight → example → question.');
     }
     if (r.workSituation.trim().isNotEmpty) {
-      tasks.add('Before the meeting about this situation: six-questions-deep prep.');
+      tasks.add(input.builtInPlan
+          ? 'Before the meeting about this situation: six-questions-deep prep.'
+          : 'Before the conversation about this situation: prepare it in Hard conversations — what you want, the facts, your first sentence.');
     }
 
     // Domain brief: next week's rotation + one fact to own.
@@ -302,12 +304,24 @@ class DeviceBriefGenerator implements BriefGenerator {
         .where((d) => d.weekday <= DateTime.friday)
         .map((d) => '${_dayName(d.weekday).substring(0, 3)} ${d.title}')
         .join(' · ');
-    final domainBrief = 'Scan rotation: $rotation.\n\n'
-        'Fact to own this week — ${fact[0]}: ${fact[1]}.\n'
-        'Write one sentence connecting it to ${input.profile.focus} and use it in a meeting.';
+    final domainBrief = input.builtInPlan
+        ? 'Scan rotation: $rotation.\n\n'
+            'Fact to own this week — ${fact[0]}: ${fact[1]}.\n'
+            'Write one sentence connecting it to ${input.profile.focus} and use it in a meeting.'
+        : input.growthFocus == null
+            ? 'Choose one area to grow this month, and practise it twice next week on real situations.'
+            : 'This week\'s practice: ${input.growthFocus}${input.growthDrill == null ? '' : ' — ${input.growthDrill}'}. Do it twice, write what you noticed, and ask one person what they saw.';
 
     final situation = r.workSituation.trim();
-    final coaching = situation.isEmpty
+    final coaching = !input.builtInPlan
+        ? situation.isEmpty
+            ? 'No situation reported. Pick the moment next week you most want to go well — at work or at home — and decide your first sentence now.'
+            : 'Situation: "${_clip(situation, 160)}"\n\n'
+                '1. Decide what you really want — for you, for them, and for the relationship.\n'
+                '2. Separate the facts (what a camera would record) from the story you\'re telling yourself; imagine their story.\n'
+                '3. Write your first sentence: describe the gap and invite their view. Then one concrete ask.\n'
+                '4. Before it, three slow breaths. Afterwards, write what you learned.'
+        : situation.isEmpty
         ? 'No work situation reported. Pick the meeting you most want to go well next week and run six-questions-deep on it.'
         : 'Situation: "${_clip(situation, 160)}"\n\n'
             '1. Decide your position and write it as BLUF: the decision first, three reasons, what you need, by when.\n'
@@ -324,21 +338,23 @@ class DeviceBriefGenerator implements BriefGenerator {
       if (input.growthFocus != null && input.feedbackThisMonth == 0)
         'No feedback on ${input.growthFocus} yet this month. Ask one person one specific question — practice without feedback doesn\'t improve.',
       if (ratio < 0.6)
-        'Shrink to the core five next week: manifesto, scan, BLUF, protein, bed. Add the rest back when you hold 5/5.',
-      if (r.gymSessions < 2)
+        input.builtInPlan
+            ? 'Shrink to the core five next week: manifesto, scan, BLUF, protein, bed. Add the rest back when you hold 5/5.'
+            : 'Shrink the list next week: keep the three items that matter most, use their minimum versions on hard days, and add the rest back once those hold.',
+      if (input.builtInPlan && r.gymSessions < 2)
         'If a weekday slips, move the session to Saturday morning rather than skipping it.',
-      if (input.evidenceAddedThisWeek < 5)
+      if (input.builtInPlan && input.evidenceAddedThisWeek < 5)
         'Evidence Archive: add ${5 - input.evidenceAddedThisWeek} more items tonight — the impostor feeds on forgetting.',
       if (r.hardestMoment.trim().isNotEmpty)
-        'Hardest moment noted. Ask: what would the Product Architect do differently? Write the answer as one rule.',
+        'Hardest moment noted. Ask: what would ${input.profile.archetype.isEmpty ? 'the person you\'re becoming' : input.profile.archetype} do differently? Write the answer as one rule.',
       if (input.readinessGap != null)
-        '${input.profile.targetRole} gap: ${input.readinessGap}. Pick one thing this week that shows it, and log it in the Evidence Archive.',
+        '${input.profile.targetRole} gap: ${input.readinessGap}. Pick one thing this week that shows it, and log it as evidence.',
       if (input.openFollowUps >= 3)
         '${input.openFollowUps} open 1:1 follow-ups. Close or hand off the oldest before your next 1:1${input.profile.manager.isEmpty ? '' : ' with ${input.profile.manager}'}.',
       if (input.shoulderFlagDays >= 3)
         'Shoulders flagged on ${input.shoulderFlagDays} mornings. Keep the shoulder-sparing sessions and bring the check-in log to your rheumatologist.',
       if (input.avgSleep != null && input.avgSleep! < 7)
-        'Average sleep ${input.avgSleep!.toStringAsFixed(1)} h. Protect 22:30 before adding anything else — sleep sets tomorrow\'s mind.',
+        'Average sleep ${input.avgSleep!.toStringAsFixed(1)} h. Protect ${input.builtInPlan ? '22:30' : 'a fixed bedtime'} before adding anything else — sleep sets tomorrow\'s mind.',
       if ((input.hardDays['sick'] ?? 0) >= 2)
         'You were sick ${input.hardDays['sick']} days. Come back with the minimum version of each item for two days before the full plan — and if it isn\'t getting better, see a doctor.'
       else if ((input.hardDays['pass'] ?? 0) + (input.hardDays['minimum'] ?? 0) >= 3)
@@ -358,13 +374,13 @@ class DeviceBriefGenerator implements BriefGenerator {
       if (input.openCommitments.isNotEmpty)
         'You committed to: "${input.openCommitments.first}". Keep it, renegotiate it with yourself, or drop it on purpose — don\'t let it linger.',
       if (input.weekOutcomes.isEmpty)
-        'No Big 3 for the week. Sunday night: three outcomes that would make next week a win, one tied to the artifact.',
+        'No Big 3 for the week. Sunday night: three outcomes that would make next week a win, ${input.builtInPlan ? 'one tied to the artifact' : 'one tied to your goal'}.',
       if (input.weekOutcomes.any((o) => o.startsWith('[open]')))
         'Week outcomes: ${input.weekOutcomes.where((o) => o.startsWith('[done]')).length} of ${input.weekOutcomes.length} done. Carry the open one only if it still matters — otherwise drop it on purpose.',
       if (input.peopleOverdue.isNotEmpty)
         'Overdue to reach out: ${input.peopleOverdue.join(', ')}. One message each this week — a useful link or a question beats "catching up".',
       if (input.deepWorkHours < 3)
-        'Deep work: ${input.deepWorkHours.toStringAsFixed(1)} h this week. Book two 90-minute blocks for the artifact${input.energyPeak == null ? '' : ' in your ${input.energyPeak}'} before Monday fills up.',
+        'Deep work: ${input.deepWorkHours.toStringAsFixed(1)} h this week. Book two 90-minute blocks for ${input.builtInPlan ? 'the artifact' : 'what matters most'}${input.energyPeak == null ? '' : ' in your ${input.energyPeak}'} before Monday fills up.',
       if (input.moveMinutes != null && input.moveMinutes! < 150)
         'Moved ${input.moveMinutes} of 150 minutes this week. Add a 20-minute walk after lunch on three days — that alone closes most of the gap.',
       if (input.growingOthers.any((g) => g.contains('(0 helps')))
@@ -374,7 +390,7 @@ class DeviceBriefGenerator implements BriefGenerator {
       if (input.feedbackThemes != null)
         'What others told you: "${input.feedbackThemes}". Pick one moment next week to act on it where they can see it.',
       if (input.shutdowns < 4)
-        'Evening shutdown on ${input.shutdowns} of 7 nights. Three minutes at 21:30: tomorrow\'s three on paper, head empty, then bed.',
+        'Evening shutdown on ${input.shutdowns} of 7 nights. Three minutes ${input.builtInPlan ? 'at 21:30' : 'before bed'}: tomorrow\'s three on paper, head empty, then bed.',
       if (input.patterns.isNotEmpty)
         'From your own last 60 days: ${input.patterns.first}. A pattern, not proof — but worth protecting this week.',
       if (strongest != null && (input.itemRates[strongest] ?? 0) >= 0.85)

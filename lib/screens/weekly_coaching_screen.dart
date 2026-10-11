@@ -57,7 +57,10 @@ class _WeeklyCoachingScreenState extends State<WeeklyCoachingScreen> {
     final thisBrief = system.briefForWeek(now);
     final showForm = report == null || _editing;
     final avg = system.weekAverage(now);
-    final gym = system.gymSessionsInWeek(now);
+    final builtIn = system.isBuiltInPerson;
+    // Without the built-in training plan, the second number is movement and
+    // the report records strength days.
+    final gym = builtIn ? system.gymSessionsInWeek(now) : system.strengthDaysInWeek(now);
 
     return OnoPage(
       showBack: true,
@@ -83,7 +86,9 @@ class _WeeklyCoachingScreenState extends State<WeeklyCoachingScreen> {
               const SizedBox(width: 10),
               Expanded(
                 child: OnoCard(
-                  child: StatTile('$gym', '2 · Gym sessions', unit: '/3'),
+                  child: builtIn
+                      ? StatTile('$gym', '2 · Gym sessions', unit: '/3')
+                      : StatTile('${system.moveMinutesInWeek(now)}', '2 · Minutes moved', unit: '/150'),
                 ),
               ),
             ],
@@ -95,8 +100,8 @@ class _WeeklyCoachingScreenState extends State<WeeklyCoachingScreen> {
               'What went right — be specific.'),
           _field(_hardest, '4 · Hardest moment',
               'What was hard, and what it revealed.'),
-          _field(_situation, '5 · One work situation to coach through',
-              'People, stakes, what you\'re unsure of.'),
+          _field(_situation, '5 · One situation to coach through',
+              'At work or at home: people, stakes, what you\'re unsure of.'),
           const SizedBox(height: 6),
           PrimaryButton(
             system.isGeneratingBrief ? 'Writing your brief…' : 'Send report → get brief',
@@ -133,7 +138,7 @@ class _WeeklyCoachingScreenState extends State<WeeklyCoachingScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                      'Report sent ${shortDate(report.createdAt)} · ${report.nonNegotiableAverage.toStringAsFixed(1)}/10 · gym ${report.gymSessions}/3',
+                      'Report sent ${shortDate(report.createdAt)} · ${report.nonNegotiableAverage.toStringAsFixed(1)}/${system.dailyCount}${builtIn ? ' · gym ${report.gymSessions}/3' : ''}',
                       style: AppText.body()),
                 ),
                 TextButton(
