@@ -1878,4 +1878,52 @@ void main() {
     p.toggleGym(_today);
     expect(p.strengthDaysInWeek(_today), 2);
   });
+
+  test('someone else: own areas only, templates adopted on focus, no built-in brief tasks',
+      () async {
+    final p = await _commissioned();
+    expect(p.isBuiltInPerson, isTrue);
+    expect(p.allGrowthAreas.length, growthAreas.length);
+    p.buildPlan(
+        name: 'Leyla Mammadova',
+        currentRole: 'Runner',
+        targetRole: 'Sub-3 marathoner',
+        area: areaTemplates.first,
+        areaRating: 2,
+        daily: dailyLibrary.take(3).toList(),
+        replaceDaily: true);
+    expect(p.isBuiltInPerson, isFalse);
+    expect(p.allGrowthAreas.map((a) => a.custom), everyElement(isTrue));
+    expect(p.state!.evidence.where((e) => e.id.startsWith('seed_')), isEmpty);
+    final id = p.focusOn('t_money', startRating: 1);
+    expect(id, startsWith('c_'));
+    expect(p.focusArea()!.name, startsWith('Money'));
+    expect(p.focusOn('t_money', startRating: 2), id, reason: 'adopted once');
+    final brief = await DeviceBriefGenerator().generate(BriefInput(
+      report: WeeklyReport(
+          id: 'r',
+          weekStart: weekStartOf(_today),
+          nonNegotiableAverage: 2,
+          gymSessions: 0,
+          bestMoment: '',
+          hardestMoment: '',
+          workSituation: '',
+          createdAt: _today),
+      forWeek: weekStartOf(_today).add(const Duration(days: 7)),
+      programMonth: 3,
+      programWeek: 9,
+      itemRates: const {'a': 0.2, 'b': 0.9},
+      evidenceAddedThisWeek: 0,
+      artifactsThisMonth: 0,
+      postsThisWeek: 0,
+      gymDays: const [],
+      openUnlocks: const [],
+      builtInPlan: false,
+    ));
+    final all = [...brief.tasks, ...brief.adjustments].join(' ');
+    expect(all, isNot(contains('Face pulls')));
+    expect(all, isNot(contains('LinkedIn')));
+    expect(all, isNot(contains('artifact of the month')));
+    p.resetProfile();
+  });
 }

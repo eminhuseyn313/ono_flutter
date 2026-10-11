@@ -83,12 +83,14 @@ class _CheckinScreenState extends State<CheckinScreen> {
   @override
   Widget build(BuildContext context) {
     final flagged = _pain >= 5 || _stiffness >= 3;
+    // Shoulder pain and stiffness are the built-in person's condition.
+    final builtIn = context.watch<PersonalSystemProvider>().isBuiltInPerson;
     return OnoPage(
       showBack: true,
       eyebrow: 'Morning check-in · 15 seconds',
       title: 'How are you, really?',
       subtitle:
-          'What you did is in the Daily 10. This is how you were — it decides how hard today should push.',
+          'What you did is in your daily list. This is how you were — it decides how hard today should push.',
       bottomBar: PrimaryButton('Save check-in',
           icon: Icons.check_rounded, onPressed: _save),
       children: [
@@ -122,6 +124,7 @@ class _CheckinScreenState extends State<CheckinScreen> {
             onChanged: (v) => setState(() => _sleep = v),
           ),
         ),
+        if (builtIn) ...[
         _Section(
           label: 'Shoulder pain',
           trailing: '$_pain / 10',
@@ -152,6 +155,7 @@ class _CheckinScreenState extends State<CheckinScreen> {
             style: AppText.small(color: AppColors.greyLight),
           ),
         ),
+        ],
       ],
     );
   }

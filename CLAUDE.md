@@ -45,6 +45,15 @@ Services: ReminderService (local notifications), BriefGenerator (weekly brief)
   - `main.dart` is offline: mock gateways, local notifications.
   - `main_production.dart` is live: Supabase auth and sync, plus `RemoteBriefGenerator` → the `weekly-brief` edge function.
 
+### The built-in plan vs. someone else
+`isBuiltInPerson` (provider) = the active profile's name is `builtInProfile.name`. His plan's specifics apply only then; anyone else sees the general app built from their own plan:
+- Today: the Day Dial without `dailySchedule` (`DayDial.schedule`); `_ModeCard._general` (check-in → first morning item, breathe/focus/pause/reset, shutdown → a win, Sunday report); `_GeneralInputs` (review, deep work, movement, learning) instead of the podcast/scan/read/outfit strip; no `_BodyCard` (protein/weight/gym) or `_CoachNote`.
+- Program: the journey only — no Schedule/Body/Reference tabs, no month themes, unlocks or career milestones; `Spine.steps` from the profile's current and target role; phase text from `generalPhasePromises` (`lib/data/general_program.dart`); the month links to their growth area and goals.
+- Growth: `allGrowthAreas` = their own areas; the chooser offers `areaTemplates`, adopted on focus (`focusOn`); `suggestedArea` follows the lowest life area.
+- Me: no protocol mastery or readiness; Body shows `_MoveSummary`. Check-in: no shoulder pain/stiffness (his condition); Mornings shows mood instead.
+- Review deck: no `seedCards`. Brief: `builtInPlan: false` drops gym, artifact, LinkedIn and unlock tasks and the month theme/artifact/book; no readiness gap. A new person's plan builder also removes the seeded evidence.
+- New features must work in both modes; `test/widget_test.dart` renders a second person and fails if built-in specifics (shoulder pain, domain scan, face pulls, lunch read) appear.
+
 ## Critical Conventions
 
 - Providers take a named `gateway:` (`PersonalSystemProvider(gateway: …, reminders: …, briefGenerator: …)`). `clock` can be overridden in tests.

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../data/emin_system.dart';
+import '../data/growth_templates.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
@@ -97,11 +98,18 @@ class _ChooserState extends State<_Chooser> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        group('Career · ${activeProfile.targetRole}',
-            growthAreas.where((a) => !a.personal).toList()),
-        group('Personal', growthAreas.where((a) => a.personal).toList()),
+        if (system.isBuiltInPerson) ...[
+          group('Career · ${activeProfile.targetRole}',
+              growthAreas.where((a) => !a.personal).toList()),
+          group('Personal', growthAreas.where((a) => a.personal).toList()),
+        ],
         if (system.customAreas.isNotEmpty)
           group('Your own areas', system.customAreas),
+        if (!system.isBuiltInPerson)
+          group('Start from a template', [
+            for (final t in areaTemplates)
+              if (!system.customAreas.any((a) => a.name == t.name)) t
+          ]),
         const SizedBox(height: 8),
         GhostButton('Create your own area',
             icon: Icons.add_rounded,
@@ -117,7 +125,7 @@ class _ChooserState extends State<_Chooser> {
         const SizedBox(height: 16),
         PrimaryButton('Grow this for month ${system.programMonth}',
             icon: Icons.trending_up_rounded, onPressed: () {
-          system.setFocus(_area, startRating: _rating);
+          system.focusOn(_area, startRating: _rating);
           HapticFeedback.mediumImpact();
           if (Navigator.of(context).canPop() && widget.current != null) {
             Navigator.of(context).pop();

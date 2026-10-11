@@ -17,12 +17,16 @@ class DayDial extends StatelessWidget {
   final Widget center;
   final double size;
 
+  /// Schedule blocks drawn as lane arcs; empty for a plan without one.
+  final List<ScheduleBlock> schedule;
+
   const DayDial({
     super.key,
     required this.now,
     required this.ticks,
     required this.center,
     this.size = 280,
+    this.schedule = dailySchedule,
   });
 
   @override
@@ -35,7 +39,8 @@ class DayDial extends StatelessWidget {
         duration: const Duration(milliseconds: 900),
         curve: Curves.easeOutCubic,
         builder: (_, t, child) => CustomPaint(
-          painter: _DayDialPainter(now: now, ticks: ticks, reveal: t),
+          painter: _DayDialPainter(
+              now: now, ticks: ticks, reveal: t, schedule: schedule),
           child: child,
         ),
         child: Center(
@@ -50,9 +55,13 @@ class _DayDialPainter extends CustomPainter {
   final DateTime now;
   final List<({String lane, bool done})> ticks;
   final double reveal;
+  final List<ScheduleBlock> schedule;
 
   _DayDialPainter(
-      {required this.now, required this.ticks, required this.reveal});
+      {required this.now,
+      required this.ticks,
+      required this.reveal,
+      required this.schedule});
 
   static const _start = 135 * math.pi / 180; // bottom-left
   static const _sweep = 270 * math.pi / 180;
@@ -81,10 +90,10 @@ class _DayDialPainter extends CustomPainter {
         _sweep, false, track);
 
     // Schedule blocks.
-    for (var i = 0; i < dailySchedule.length; i++) {
-      final b = dailySchedule[i];
-      final endMin = i + 1 < dailySchedule.length
-          ? dailySchedule[i + 1].minuteOfDay
+    for (var i = 0; i < schedule.length; i++) {
+      final b = schedule[i];
+      final endMin = i + 1 < schedule.length
+          ? schedule[i + 1].minuteOfDay
           : _dayEnd;
       if (b.minuteOfDay >= _dayEnd) continue;
       final a0 = _angleFor(b.minuteOfDay);
@@ -183,11 +192,15 @@ class Spine extends StatelessWidget {
   final int currentMonth;
   final ValueChanged<int> onMonthTap;
 
+  /// Role steps along the top: [label, month].
+  final List<List<String>> steps;
+
   const Spine({
     super.key,
     required this.months,
     required this.currentMonth,
     required this.onMonthTap,
+    this.steps = pathSteps,
   });
 
   static const colW = 62.0;
@@ -244,7 +257,7 @@ class Spine extends StatelessWidget {
               width: colW * programMonths,
               child: Stack(
                 children: [
-                  for (final s in pathSteps)
+                  for (final s in steps)
                     Positioned(
                       left: colW * (int.parse(s[1]) - 1),
                       child: Text('▸ ${s[0]}',

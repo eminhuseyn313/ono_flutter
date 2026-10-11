@@ -99,6 +99,10 @@ class BriefInput {
   final int? moveMinutes;
   final int strengthDays;
 
+  /// Whether the built-in plan (its gym plan, monthly artifact, posts and
+  /// reading list) applies; false for anyone with a plan of their own.
+  final bool builtInPlan;
+
   /// Who the brief is for: names, roles, key people and coach context.
   final Profile profile;
 
@@ -148,6 +152,7 @@ class BriefInput {
     this.craftingMove,
     this.moveMinutes,
     this.strengthDays = 0,
+    this.builtInPlan = true,
   }) : profile = profile ?? activeProfile;
 
   Map<String, dynamic> toJson() => {
@@ -172,9 +177,11 @@ class BriefInput {
         'program_month': programMonth,
         'program_week': programWeek,
         'phase': phaseFor(programMonth).name,
-        'month_theme': monthThemes[programMonth],
-        'artifact_of_month': artifactFor(programMonth),
-        'book_of_month': currentBook(programMonth).title,
+        if (builtInPlan) ...{
+          'month_theme': monthThemes[programMonth],
+          'artifact_of_month': artifactFor(programMonth),
+          'book_of_month': currentBook(programMonth).title,
+        },
         'item_rates': itemRates,
         'item_titles': itemTitles,
         'daily_item_count': itemCount,
@@ -258,7 +265,7 @@ class DeviceBriefGenerator implements BriefGenerator {
         _taskFor[id] ??
             'Protect "${title(id)}": tie it to one fixed moment in your day, and make it smaller if it keeps slipping.',
     ];
-    if (r.gymSessions < 3) {
+    if (input.builtInPlan && r.gymSessions < 3 && input.gymDays.length >= 3) {
       final names = [
         for (var i = 0; i < 3; i++)
           '${_dayName(input.gymDays[i])} ${gymPlan[i].name}'
@@ -268,11 +275,11 @@ class DeviceBriefGenerator implements BriefGenerator {
     if (input.openUnlocks.isNotEmpty) {
       tasks.add('This month\'s open item: ${input.openUnlocks.first}.');
     }
-    if (input.artifactsThisMonth == 0) {
+    if (input.builtInPlan && input.artifactsThisMonth == 0) {
       tasks.add(
           'Block 2 × 45 min for the artifact of the month: ${artifactFor(input.programMonth)}.');
     }
-    if (input.programMonth >= 2 && input.postsThisWeek < 2) {
+    if (input.builtInPlan && input.programMonth >= 2 && input.postsThisWeek < 2) {
       tasks.add('Publish 2 LinkedIn posts (Tue + Thu). Hook → insight → example → question.');
     }
     if (r.workSituation.trim().isNotEmpty) {

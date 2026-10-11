@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../data/emin_system.dart';
+import '../data/general_program.dart';
 import '../models/personal_system.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
@@ -41,6 +42,11 @@ class _ProgramScreenState extends State<ProgramScreen> {
       title: 'Program',
       children: [
         const SizedBox(height: 18),
+        // Schedule, training plan and reference belong to the built-in
+        // plan; someone with their own plan sees the journey.
+        if (!system.isBuiltInPerson)
+          const _Journey()
+        else ...[
         Segmented(
           labels: const ['Journey', 'Schedule', 'Body', 'Reference'],
           index: _tab,
@@ -59,6 +65,7 @@ class _ProgramScreenState extends State<ProgramScreen> {
             },
           ),
         ),
+        ],
       ],
     );
   }
@@ -74,15 +81,17 @@ class _Journey extends StatelessWidget {
     final system = context.watch<PersonalSystemProvider>();
     final month = system.programMonth;
     final today = dayOnly(DateTime.now());
+    final builtIn = system.isBuiltInPerson;
+    final profile = activeProfile;
 
     final spine = [
       for (var m = 1; m <= programMonths; m++)
         SpineMonth(
           month: m,
-          milestonesDone: _milestones(m)
-              .where((id) => system.isDone(id))
-              .length,
-          milestonesTotal: _milestones(m).length,
+          milestonesDone: builtIn
+              ? _milestones(m).where((id) => system.isDone(id)).length
+              : 0,
+          milestonesTotal: builtIn ? _milestones(m).length : 0,
           scores: [
             for (var d = 0; d < 30; d++)
               () {
@@ -108,7 +117,13 @@ class _Journey extends StatelessWidget {
         Spine(
           months: spine,
           currentMonth: month,
-          onMonthTap: (m) => context.push('/month/$m'),
+          steps: builtIn
+              ? pathSteps
+              : [
+                  if (profile.currentRole.isNotEmpty) [profile.currentRole, '1'],
+                  if (profile.targetRole.isNotEmpty) [profile.targetRole, '13'],
+                ],
+          onMonthTap: (m) => builtIn ? context.push('/month/$m') : null,
         ),
         const SizedBox(height: 8),
         Text(
@@ -125,7 +140,8 @@ class _Journey extends StatelessWidget {
               const SizedBox(height: 6),
               Text(phase.name, style: AppText.title()),
               const SizedBox(height: 6),
-              Text(phase.promise, style: AppText.body()),
+              Text(builtIn ? phase.promise : generalPhasePromises[phase.id] ?? '',
+                  style: AppText.body()),
               const SizedBox(height: 16),
               Row(
                 children: [
@@ -146,6 +162,35 @@ class _Journey extends StatelessWidget {
             ],
           ),
         ),
+        if (!builtIn) ...[
+          SectionHeader('Month $month'),
+          OnoCard(
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: [
+                LinkRow(
+                  icon: Icons.trending_up_rounded,
+                  color: AppColors.accent,
+                  title: system.focusArea()?.name ?? 'Choose this month\'s area',
+                  subtitle: system.focusArea() == null
+                      ? 'One thing to practise for 30 days'
+                      : '${system.repsIn(system.focusArea()!.id, month).length} reps this month',
+                  onTap: () => context.push('/growth'),
+                ),
+                const Divider(indent: 66),
+                LinkRow(
+                  icon: Icons.flag_circle_outlined,
+                  color: AppColors.accent,
+                  title: system.activeGoals.isEmpty ? 'Set your first goal' : 'Goals',
+                  subtitle: system.activeGoals.isEmpty
+                      ? 'The outcome all of this serves'
+                      : system.activeGoals.map((g) => g.text).join(' · '),
+                  onTap: () => context.push('/goals'),
+                ),
+              ],
+            ),
+          ),
+        ] else ...[
         SectionHeader('Month $month', action: 'Open',
             onAction: () => context.push('/month/$month')),
         Text(monthThemes[month] ?? '', style: AppText.body()),
@@ -172,6 +217,7 @@ class _Journey extends StatelessWidget {
               icon: Icons.fact_check_outlined,
               onPressed: () => context.push(
                   '/month/${system.dayOfMonth >= 24 ? month : month - 1}')),
+        ],
         ],
       ],
     );

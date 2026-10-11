@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 
 import '../data/daily_library.dart';
 import '../data/emin_system.dart';
+import '../data/growth_templates.dart';
 import '../data/life_wheel.dart';
 import '../data/plan_packs.dart';
 import '../gateways/personal_system_gateway.dart';
@@ -1486,15 +1487,18 @@ class PersonalSystemProvider extends ChangeNotifier {
             'artifact', monthStart(programMonth), monthStart(programMonth + 1)),
         postsThisWeek: countBetween('linkedin', report.weekStart,
             report.weekStart.add(const Duration(days: 7))),
-        gymDays: gymDays,
-        openUnlocks: unlocksFor(programMonth)
-            .where((u) => u.doneKey == null || !isDone(u.doneKey!))
-            .map((u) => u.title)
-            .toList(),
+        gymDays: isBuiltInPerson ? gymDays : const [],
+        builtInPlan: isBuiltInPerson,
+        openUnlocks: !isBuiltInPerson
+            ? const []
+            : unlocksFor(programMonth)
+                .where((u) => u.doneKey == null || !isDone(u.doneKey!))
+                .map((u) => u.title)
+                .toList(),
         latestWeight: latestWeight,
         avgEnergy: averageOf(weekCheckins, 'energy'),
         avgSleep: averageOf(weekCheckins, 'sleep'),
-        readinessGap: readinessGap?.name,
+        readinessGap: isBuiltInPerson ? readinessGap?.name : null,
         openFollowUps: openFollowUps.length,
         patterns: patterns().map((p) => p.sentence).take(3).toList(),
         deepWorkHours: focusMinutesInWeek(report.weekStart) / 60,
@@ -1987,6 +1991,15 @@ class PersonalSystemProvider extends ChangeNotifier {
             path: const [],
             keyPeople: const [],
           ));
+    // The seeded evidence is the built-in person's; a new person starts
+    // with none.
+    if (!isBuiltInPerson && (_state?.evidence.any((e) => e.id.startsWith('seed_')) ?? false)) {
+      final s = _state!;
+      _update(s.copyWith(evidence: [
+        for (final e in s.evidence)
+          if (!e.id.startsWith('seed_')) e
+      ]));
+    }
     if (wheel.isNotEmpty) addLog('wheel', data: {'wheel': wheel});
     final areaId = area.custom || growthAreas.any((a) => a.id == area.id)
         ? area.id
@@ -3287,11 +3300,14 @@ class PersonalSystemProvider extends ChangeNotifier {
       ];
 
   /// His profile's areas first, then his own.
-  List<GrowthArea> get allGrowthAreas => [...growthAreas, ...customAreas];
+  /// The built-in person's areas (their job and diagnosis) plus their own;
+  /// anyone else has only their own.
+  List<GrowthArea> get allGrowthAreas =>
+      [if (isBuiltInPerson) ...growthAreas, ...customAreas];
 
   /// Any area by id; a removed one reads as "Removed area".
   GrowthArea areaById(String id) {
-    for (final a in allGrowthAreas) {
+    for (final a in [...allGrowthAreas, ...growthAreas, ...areaTemplates]) {
       if (a.id == id) return a;
     }
     return GrowthArea(id, 'Removed area',
@@ -3369,8 +3385,27 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   /// What to suggest when nothing is chosen: the readiness gap, else the
   /// first area.
-  GrowthArea get suggestedArea =>
-      readinessGap == null ? growthAreas.first : areaById(readinessGap!.id);
+  GrowthArea get suggestedArea {
+    if (!isBuiltInPerson) {
+      final own = customAreas;
+      if (own.isNotEmpty) return own.first;
+      return areaById(lowestLifeArea?.template ?? 't_health');
+    }
+    return readinessGap == null ? growthAreas.first : areaById(readinessGap!.id);
+  }
+
+  /// Focuses on [areaId]; a template (`t_…`) first becomes an area of
+  /// your own. Returns the id used.
+  String focusOn(String areaId, {required int startRating}) {
+    var id = areaId;
+    if (areaTemplates.any((t) => t.id == areaId)) {
+      final t = areaTemplates.firstWhere((t) => t.id == areaId);
+      final existing = customAreas.where((a) => a.name == t.name);
+      id = existing.isNotEmpty ? existing.first.id : saveCustomArea(t.copyWith(id: '')).id;
+    }
+    setFocus(id, startRating: startRating);
+    return id;
+  }
 
   /// Chooses this month's area, rated 1–5 where you are now.
   void setFocus(String areaId, {required int startRating}) {

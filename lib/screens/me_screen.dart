@@ -117,6 +117,7 @@ class MeScreen extends StatelessWidget {
             ],
           ),
         ),
+        if (system.isBuiltInPerson) ...[
         const SectionHeader('Protocol mastery'),
         OnoCard(
           padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
@@ -153,6 +154,7 @@ class MeScreen extends StatelessWidget {
             ],
           ),
         ),
+        ],
         SectionHeader('Mornings',
             action: 'Check in', onAction: () => context.push('/checkin')),
         const _Mornings(),
@@ -176,6 +178,9 @@ class MeScreen extends StatelessWidget {
         SectionHeader('Body',
             action: '${system.moveMinutesInWeek(DateTime.now())} min moved',
             onAction: () => context.push('/move')),
+        if (!system.isBuiltInPerson)
+          const _MoveSummary()
+        else
         OnoCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -264,8 +269,8 @@ class MeScreen extends StatelessWidget {
                     : system.values.map((v) => v.name).join(' · '),
                 onTap: () => context.push('/values'),
               ),
-              const Divider(indent: 66),
-              LinkRow(
+              if (system.isBuiltInPerson) const Divider(indent: 66),
+              if (system.isBuiltInPerson) LinkRow(
                 icon: Icons.trending_up_rounded,
                 color: AppColors.skill,
                 title: '${activeProfile.targetRole} readiness',
@@ -854,7 +859,7 @@ class _Mornings extends StatelessWidget {
     final week = system.checkinsEnding(today, 7);
     if (week.isEmpty) {
       return const EmptyNote(
-          'No check-ins yet. Fifteen seconds each morning shows how sleep, energy and your shoulders move together.',
+          'No check-ins yet. Fifteen seconds each morning shows how sleep, energy and mood move together.',
           icon: Icons.wb_twilight_rounded);
     }
     String avg(String key, int digits) {
@@ -873,14 +878,15 @@ class _Mornings extends StatelessWidget {
               Expanded(child: StatTile(avg('energy', 1), 'energy', unit: '/5')),
               Expanded(child: StatTile(avg('sleep', 1), 'sleep', unit: 'h')),
               Expanded(
-                  child:
-                      StatTile(avg('pain', 1), 'shoulder pain', unit: '/10')),
+                  child: system.isBuiltInPerson
+                      ? StatTile(avg('pain', 1), 'shoulder pain', unit: '/10')
+                      : StatTile(avg('mood', 1), 'mood', unit: '−2…2')),
             ],
           ),
           const SizedBox(height: 4),
           Text('Averages of the last ${week.length} check-ins',
               style: AppText.small().copyWith(fontSize: 11.5)),
-          if (month.length >= 2) ...[
+          if (month.length >= 2 && system.isBuiltInPerson) ...[
             const SizedBox(height: 14),
             Text('SHOULDER PAIN · 30 DAYS', style: AppText.eyebrow()),
             const SizedBox(height: 8),
@@ -894,7 +900,7 @@ class _Mornings extends StatelessWidget {
               unit: '/10',
             ),
           ],
-          if (flags >= 3) ...[
+          if (flags >= 3 && system.isBuiltInPerson) ...[
             const SizedBox(height: 12),
             OnoCard(
               accent: AppColors.warning,
@@ -1042,6 +1048,30 @@ class _AppleHealth extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Movement this week for someone without the built-in training plan.
+class _MoveSummary extends StatelessWidget {
+  const _MoveSummary();
+
+  @override
+  Widget build(BuildContext context) {
+    final system = context.watch<PersonalSystemProvider>();
+    final now = DateTime.now();
+    return OnoCard(
+      onTap: () => context.push('/move'),
+      child: Row(
+        children: [
+          Expanded(
+              child: StatTile('${system.moveMinutesInWeek(now)}', 'of 150 min this week')),
+          Expanded(
+              child: StatTile('${system.strengthDaysInWeek(now)}', 'of 2 strength days')),
+          Expanded(
+              child: StatTile(system.latestWeight?.toStringAsFixed(1) ?? '—', 'kg', unit: 'kg')),
+        ],
       ),
     );
   }

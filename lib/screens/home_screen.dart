@@ -144,6 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     onTap: () => context.go('/program?tab=1'),
                     child: DayDial(
                       now: _now,
+                      schedule: system.isBuiltInPerson ? dailySchedule : const [],
                       ticks: [
                         for (final n in system.dailyItems)
                           (lane: n.lane, done: system.isChecked(date, n.id))
@@ -211,11 +212,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     _BriefCard(brief: brief),
                   ],
                   const SectionHeader('Today\'s inputs'),
-                  _InputsStrip(date: today, month: system.programMonth),
+                  if (system.isBuiltInPerson)
+                    _InputsStrip(date: today, month: system.programMonth)
+                  else
+                    _GeneralInputs(date: today),
                   const SectionHeader('Body'),
-                  _BodyCard(date: today),
+                  if (system.isBuiltInPerson) _BodyCard(date: today),
                   const SectionHeader('Carry this'),
-                  _CoachNote(day: system.programDay),
+                  if (system.isBuiltInPerson) _CoachNote(day: system.programDay),
                 ],
               ],
             ],
@@ -467,6 +471,7 @@ class _ModeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
     final today = dayOnly(now);
+    if (!system.isBuiltInPerson) return _general(context, system, today);
     switch (mode) {
       case _Mode.morning:
         final ritualDone = system.logsOn(today, 'ritual').isNotEmpty;
@@ -569,6 +574,81 @@ class _ModeCard extends StatelessWidget {
           cta: done ? 'Open the brief' : 'Write the report',
           route: '/weekly-coaching',
         );
+    }
+  }
+
+  /// The same moments for someone with their own plan: no built-in
+  /// schedule, ritual or training plan.
+  Widget _general(BuildContext context, PersonalSystemProvider system, DateTime today) {
+    switch (mode) {
+      case _Mode.morning:
+        if (system.checkinFor(today) == null) {
+          return _action(context,
+              eyebrow: 'Morning',
+              title: 'How are you this morning?',
+              body: 'Thirty seconds: energy, mood, sleep. It shapes what today should ask of you.',
+              cta: 'Check in',
+              route: '/checkin');
+        }
+        final next = system.dailyItems
+            .where((n) => n.when == 'morning' && !system.isChecked(today, n.id))
+            .firstOrNull;
+        return _action(context,
+            eyebrow: 'Morning',
+            title: next == null ? 'Name today\'s three' : next.title,
+            body: next == null
+                ? 'The three things that would make today a good day — below, then start the first.'
+                : system.cueFor(next.id).isEmpty
+                    ? 'The first thing on your list this morning.'
+                    : system.cueFor(next.id),
+            cta: 'Plan the week',
+            route: '/week');
+      case _Mode.work:
+        return OnoCard(
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('WHEN IT GETS HARD', style: AppText.eyebrow()),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  _tool(context, Icons.air_rounded, 'Breathe', '/tool/sigh', AppColors.mind),
+                  _tool(context, Icons.center_focus_strong_rounded, 'Focus', '/focus',
+                      AppColors.skill),
+                  _tool(context, Icons.pause_circle_outline_rounded, 'Pause', '/tool/pause',
+                      AppColors.social),
+                  _tool(context, Icons.replay_rounded, 'Reset', '/setback', AppColors.warning),
+                ],
+              ),
+            ],
+          ),
+        );
+      case _Mode.evening:
+        if (system.shutdownFor(today) == null) {
+          return _action(context,
+              eyebrow: 'Evening',
+              title: 'Close the day in three minutes',
+              body: 'Tick what happened, write tomorrow\'s three, empty your head. Then stop.',
+              cta: 'Start shutdown',
+              route: '/shutdown');
+        }
+        return _action(context,
+            eyebrow: 'Evening',
+            title: 'One good thing from today',
+            body: 'Name it before you sleep. Small wins are what keep people going.',
+            cta: 'Log a win',
+            route: '/log?add=win');
+      case _Mode.sunday:
+        final done = system.reportForWeek(now) != null;
+        return _action(context,
+            eyebrow: 'Sunday',
+            title: done ? 'Report sent — read your brief' : 'Five answers about your week',
+            body: done
+                ? 'Next week\'s plan comes from it.'
+                : 'Your daily average fills itself. Your brief for next week comes back straight away.',
+            cta: done ? 'Open the brief' : 'Write the report',
+            route: '/weekly-coaching');
     }
   }
 
@@ -1586,6 +1666,78 @@ class _PrioritiesState extends State<_Priorities> {
             ),
         ],
       ),
+    );
+  }
+}
+
+/// Inputs for someone with their own plan: review, deep work, movement
+/// and what they are learning.
+class _GeneralInputs extends StatelessWidget {
+  final DateTime date;
+  const _GeneralInputs({required this.date});
+
+  @override
+  Widget build(BuildContext context) {
+    final system = context.watch<PersonalSystemProvider>();
+    final due = system.dueCards(date).length;
+    final focusH = system.focusMinutesInWeek(date) / 60;
+    final moved = system.moveMinutesInWeek(date);
+    final learning = system.learningWith('active');
+    final tiles = [
+      (Icons.style_rounded, AppColors.mind, 'Review',
+          due == 0 ? 'All caught up' : '$due cards due', 'Your lessons, spaced · 5 min', '/review'),
+      (Icons.center_focus_strong_rounded, AppColors.skill, 'Deep work',
+          system.focusArea()?.name ?? 'One block, one thing',
+          '${focusH.toStringAsFixed(focusH % 1 == 0 ? 0 : 1)} h this week', '/focus'),
+      (Icons.directions_walk_rounded, AppColors.body, 'Move', '$moved of 150 min',
+          '${system.strengthDaysInWeek(date)} of 2 strength days', '/move'),
+      (Icons.school_outlined, AppColors.skill, 'Learning',
+          learning.isEmpty ? 'Nothing active' : learning.first.text,
+          'Learn it, then apply it', '/learning'),
+    ];
+    return Column(
+      children: [
+        for (var i = 0; i < tiles.length; i += 2)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Row(
+              children: [
+                for (final t in tiles.sublist(i, i + 2)) ...[
+                  Expanded(
+                    child: OnoCard(
+                      padding: const EdgeInsets.all(14),
+                      onTap: () => context.push(t.$6),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(t.$1, size: 18, color: t.$2),
+                              const SizedBox(width: 6),
+                              Text(t.$3.toUpperCase(),
+                                  style: AppText.eyebrow().copyWith(fontSize: 10)),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(t.$4,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppText.heading().copyWith(fontSize: 15)),
+                          const SizedBox(height: 2),
+                          Text(t.$5,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppText.small()),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (t == tiles[i]) const SizedBox(width: 10),
+                ],
+              ],
+            ),
+          ),
+      ],
     );
   }
 }
