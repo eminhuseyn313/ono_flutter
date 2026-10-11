@@ -181,6 +181,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
                     switch (card!.source) {
                       'feynman' => 'YOUR FEYNMAN NOTE',
                       'custom' => 'YOUR CARD',
+                      'lesson' => 'A LESSON YOU WROTE',
+                      'principle' => 'FROM YOUR LEARNING',
+                      'value' => 'YOUR VALUE',
                       _ => system.scheduleOf(card.id) == null
                           ? 'NEW CARD'
                           : 'REVIEW',

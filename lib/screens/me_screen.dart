@@ -218,7 +218,7 @@ class MeScreen extends StatelessWidget {
             ],
           ),
         ),
-        const SectionHeader('Growth'),
+        const SectionHeader('Direction'),
         OnoCard(
           padding: EdgeInsets.zero,
           child: Column(
@@ -244,12 +244,23 @@ class MeScreen extends StatelessWidget {
               ),
               const Divider(indent: 66),
               LinkRow(
-                icon: Icons.autorenew_rounded,
-                color: AppColors.body,
-                title: 'Is it a habit yet?',
-                subtitle:
-                    '${system.automaticItems.length} of ${system.dailyCount} automatic',
-                onTap: () => context.push('/habits'),
+                icon: Icons.explore_outlined,
+                color: AppColors.skill,
+                title: 'Three possible lives',
+                subtitle: system.odysseyLeaning == null
+                    ? 'An Odyssey plan: your options for the next five years'
+                    : 'Leaning towards: ${system.odysseyLeaning}',
+                onTap: () => context.push('/odyssey'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
+                icon: Icons.diamond_outlined,
+                color: AppColors.mind,
+                title: 'Your values',
+                subtitle: system.values.isEmpty
+                    ? 'Three to five, in your own words'
+                    : system.values.map((v) => v.name).join(' · '),
+                onTap: () => context.push('/values'),
               ),
               const Divider(indent: 66),
               LinkRow(
@@ -265,16 +276,6 @@ class MeScreen extends StatelessWidget {
               ),
               const Divider(indent: 66),
               LinkRow(
-                icon: Icons.diamond_outlined,
-                color: AppColors.mind,
-                title: 'Your values',
-                subtitle: system.values.isEmpty
-                    ? 'Three to five, in your own words'
-                    : system.values.map((v) => v.name).join(' · '),
-                onTap: () => context.push('/values'),
-              ),
-              const Divider(indent: 66),
-              LinkRow(
                 icon: Icons.donut_large_rounded,
                 color: AppColors.accent,
                 title: 'Quarterly review',
@@ -285,49 +286,57 @@ class MeScreen extends StatelessWidget {
               ),
               const Divider(indent: 66),
               LinkRow(
-                icon: Icons.send_rounded,
-                color: AppColors.social,
-                title: 'Progress note',
-                subtitle: system.noteSentInWeek(DateTime.now())
-                    ? 'Sent this week'
-                    : 'Tell one person how the week went',
-                onTap: () => context.push('/note'),
+                icon: Icons.mail_outline_rounded,
+                color: AppColors.accent,
+                title: 'Letters to future you',
+                subtitle: system.letters.isEmpty
+                    ? 'Seal one for the next phase or day 540'
+                    : '${system.letters.where((l) => !system.letterIsOpen(l)).length} sealed · ${system.letters.where(system.letterIsOpen).length} opened',
+                onTap: () => context.push('/letters'),
+              ),
+            ],
+          ),
+        ),
+        const SectionHeader('Practice'),
+        OnoCard(
+          padding: EdgeInsets.zero,
+          child: Column(
+            children: [
+              LinkRow(
+                icon: Icons.school_outlined,
+                color: AppColors.skill,
+                title: 'Learning',
+                subtitle: system.learningWith('active').isEmpty
+                    ? 'Learn it, then apply it'
+                    : 'Now: ${system.learningWith('active').map((l) => l.text).join(' · ')}',
+                onTap: () => context.push('/learning'),
               ),
               const Divider(indent: 66),
               LinkRow(
-                icon: Icons.beach_access_outlined,
-                color: AppColors.body,
-                title: 'Plan your rest',
-                subtitle: system.restPlannedSoon
-                    ? 'Rest is in the plan'
-                    : 'Nothing planned in the next 8 weeks',
-                onTap: () => context.push('/rest'),
+                icon: Icons.center_focus_strong_rounded,
+                color: AppColors.skill,
+                title: 'Deep work',
+                subtitle:
+                    '${(system.focusMinutesInWeek(DateTime.now()) / 60).toStringAsFixed(1)} h this week · ${(system.artifactMinutesThisMonth / 60).toStringAsFixed(1)} h on the artifact this month',
+                onTap: () => context.push('/focus'),
               ),
               const Divider(indent: 66),
               LinkRow(
-                icon: Icons.replay_rounded,
-                color: AppColors.warning,
-                title: 'It slipped — reset',
-                subtitle: 'Kindness, facts, the smallest next step',
-                onTap: () => context.push('/setback'),
-              ),
-              const Divider(indent: 66),
-              LinkRow(
-                icon: Icons.psychology_alt_outlined,
+                icon: Icons.style_rounded,
                 color: AppColors.mind,
-                title: 'Think it through',
-                subtitle: 'Coach yourself on a problem that keeps circling',
-                onTap: () => context.push('/coach'),
+                title: 'Review deck',
+                subtitle:
+                    '${system.deckStats.total} cards · ${system.deckStats.mature} mature',
+                onTap: () => context.push('/review'),
               ),
               const Divider(indent: 66),
               LinkRow(
-                icon: Icons.group_outlined,
-                color: AppColors.social,
-                title: 'People',
-                subtitle: system.people.isEmpty
-                    ? 'Who you invest in, and how often'
-                    : '${system.people.length} people · ${system.peopleDue.length} due',
-                onTap: () => context.push('/people'),
+                icon: Icons.autorenew_rounded,
+                color: AppColors.body,
+                title: 'Is it a habit yet?',
+                subtitle:
+                    '${system.automaticItems.length} of ${system.dailyCount} automatic',
+                onTap: () => context.push('/habits'),
               ),
               const Divider(indent: 66),
               LinkRow(
@@ -341,6 +350,51 @@ class MeScreen extends StatelessWidget {
               ),
               const Divider(indent: 66),
               LinkRow(
+                icon: Icons.battery_charging_full_rounded,
+                color: AppColors.skill,
+                title: 'What gives and drains you',
+                subtitle: system.craftingMove ?? 'Rate a normal week, then change one thing',
+                onTap: () => context.push('/crafting'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
+                icon: Icons.do_not_disturb_on_outlined,
+                color: AppColors.warning,
+                title: 'Stop doing',
+                subtitle: system.stopList.isEmpty
+                    ? 'What you give up to make room'
+                    : '${system.stopList.length} given up',
+                onTap: () => context.push('/stop'),
+              ),
+            ],
+          ),
+        ),
+        const SectionHeader('People'),
+        OnoCard(
+          padding: EdgeInsets.zero,
+          child: Column(
+            children: [
+              LinkRow(
+                icon: Icons.group_outlined,
+                color: AppColors.social,
+                title: 'People',
+                subtitle: system.people.isEmpty
+                    ? 'Who you invest in, and how often'
+                    : '${system.people.length} people · ${system.peopleDue.length} due',
+                onTap: () => context.push('/people'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
+                icon: Icons.send_rounded,
+                color: AppColors.social,
+                title: 'Progress note',
+                subtitle: system.noteSentInWeek(DateTime.now())
+                    ? 'Sent this week'
+                    : 'Tell one person how the week went',
+                onTap: () => context.push('/note'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
                 icon: Icons.handshake_outlined,
                 color: AppColors.social,
                 title: 'Accountability partner',
@@ -351,14 +405,6 @@ class MeScreen extends StatelessWidget {
               ),
               const Divider(indent: 66),
               LinkRow(
-                icon: Icons.assignment_outlined,
-                color: AppColors.social,
-                title: 'Report for your coach',
-                subtitle: 'This month or quarter, ready to copy',
-                onTap: () => context.push('/coach-report'),
-              ),
-              const Divider(indent: 66),
-              LinkRow(
                 icon: Icons.groups_2_outlined,
                 color: AppColors.social,
                 title: 'Feedback round',
@@ -366,24 +412,6 @@ class MeScreen extends StatelessWidget {
                     ? 'One question, three people, once a quarter'
                     : 'Quarter ${system.programQuarter}: ${system.roundAnswers(system.roundFor(system.programQuarter)!).length} answers',
                 onTap: () => context.push('/360'),
-              ),
-              const Divider(indent: 66),
-              LinkRow(
-                icon: Icons.explore_outlined,
-                color: AppColors.skill,
-                title: 'Three possible lives',
-                subtitle: system.odysseyLeaning == null
-                    ? 'An Odyssey plan: your options for the next five years'
-                    : 'Leaning towards: ${system.odysseyLeaning}',
-                onTap: () => context.push('/odyssey'),
-              ),
-              const Divider(indent: 66),
-              LinkRow(
-                icon: Icons.battery_charging_full_rounded,
-                color: AppColors.skill,
-                title: 'What gives and drains you',
-                subtitle: system.craftingMove ?? 'Rate a normal week, then change one thing',
-                onTap: () => context.push('/crafting'),
               ),
               const Divider(indent: 66),
               LinkRow(
@@ -405,16 +433,6 @@ class MeScreen extends StatelessWidget {
               ),
               const Divider(indent: 66),
               LinkRow(
-                icon: Icons.do_not_disturb_on_outlined,
-                color: AppColors.warning,
-                title: 'Stop doing',
-                subtitle: system.stopList.isEmpty
-                    ? 'What you give up to make room'
-                    : '${system.stopList.length} given up',
-                onTap: () => context.push('/stop'),
-              ),
-              const Divider(indent: 66),
-              LinkRow(
                 icon: Icons.favorite_outline_rounded,
                 color: AppColors.social,
                 title: 'Gratitude letter',
@@ -423,41 +441,44 @@ class MeScreen extends StatelessWidget {
               ),
               const Divider(indent: 66),
               LinkRow(
-                icon: Icons.school_outlined,
-                color: AppColors.skill,
-                title: 'Learning',
-                subtitle: system.learningWith('active').isEmpty
-                    ? 'Learn it, then apply it'
-                    : 'Now: ${system.learningWith('active').map((l) => l.text).join(' · ')}',
-                onTap: () => context.push('/learning'),
+                icon: Icons.assignment_outlined,
+                color: AppColors.social,
+                title: 'Report for your coach',
+                subtitle: 'This month or quarter, ready to copy',
+                onTap: () => context.push('/coach-report'),
+              ),
+            ],
+          ),
+        ),
+        const SectionHeader('Hard days'),
+        OnoCard(
+          padding: EdgeInsets.zero,
+          child: Column(
+            children: [
+              LinkRow(
+                icon: Icons.replay_rounded,
+                color: AppColors.warning,
+                title: 'It slipped — reset',
+                subtitle: 'Kindness, facts, the smallest next step',
+                onTap: () => context.push('/setback'),
               ),
               const Divider(indent: 66),
               LinkRow(
-                icon: Icons.center_focus_strong_rounded,
-                color: AppColors.skill,
-                title: 'Deep work',
-                subtitle:
-                    '${(system.focusMinutesInWeek(DateTime.now()) / 60).toStringAsFixed(1)} h this week · ${(system.artifactMinutesThisMonth / 60).toStringAsFixed(1)} h on the artifact this month',
-                onTap: () => context.push('/focus'),
-              ),
-              const Divider(indent: 66),
-              LinkRow(
-                icon: Icons.mail_outline_rounded,
-                color: AppColors.accent,
-                title: 'Letters to future you',
-                subtitle: system.letters.isEmpty
-                    ? 'Seal one for the next phase or day 540'
-                    : '${system.letters.where((l) => !system.letterIsOpen(l)).length} sealed · ${system.letters.where(system.letterIsOpen).length} opened',
-                onTap: () => context.push('/letters'),
-              ),
-              const Divider(indent: 66),
-              LinkRow(
-                icon: Icons.style_rounded,
+                icon: Icons.psychology_alt_outlined,
                 color: AppColors.mind,
-                title: 'Review deck',
-                subtitle:
-                    '${system.deckStats.total} cards · ${system.deckStats.mature} mature',
-                onTap: () => context.push('/review'),
+                title: 'Think it through',
+                subtitle: 'Coach yourself on a problem that keeps circling',
+                onTap: () => context.push('/coach'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
+                icon: Icons.beach_access_outlined,
+                color: AppColors.body,
+                title: 'Plan your rest',
+                subtitle: system.restPlannedSoon
+                    ? 'Rest is in the plan'
+                    : 'Nothing planned in the next 8 weeks',
+                onTap: () => context.push('/rest'),
               ),
             ],
           ),

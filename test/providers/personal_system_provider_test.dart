@@ -1845,4 +1845,25 @@ void main() {
     ));
     expect(brief.adjustments.join(' '), contains('Your crafting move: Status meeting'));
   });
+
+  test('review deck: lessons, principles and values become cards; seeds only for the built-in person',
+      () async {
+    final p = await _commissioned();
+    final seeds = seedCards.length;
+    expect(p.allCards.length, seeds);
+    final area = p.allGrowthAreas.first;
+    p.logRep(area, p.drillsOf(area).first,
+        did: 'Ran the meeting', noticed: 'I rushed', lesson: 'Pause before the ask', next: 'Try again');
+    final l = p.addLearning('Thinking in Bets', kind: 'book');
+    p.applyLearning(l!.id, principle: 'Judge decisions by process', experiment: 'Decision log');
+    p.setValues([(name: 'Courage', meaning: 'Say the true thing kindly')]);
+    final ids = p.allCards.map((c) => c.id.split(':').first).toSet();
+    expect(ids, containsAll(['lesson', 'principle', 'value']));
+    expect(p.allCards.firstWhere((c) => c.source == 'principle').back, contains('Decision log'));
+
+    p.saveProfile(activeProfile.copyWith(name: 'Someone Else'));
+    expect(p.isBuiltInPerson, isFalse);
+    expect(p.allCards.where((c) => c.source == 'seed'), isEmpty);
+    p.resetProfile();
+  });
 }

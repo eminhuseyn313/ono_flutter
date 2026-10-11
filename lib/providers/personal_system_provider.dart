@@ -738,9 +738,39 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   // ── Study deck (spaced repetition) ────────────────────────────────────
 
-  /// Seed cards, one card per Feynman note, and your own cards.
+  /// Whether the built-in person is using ONO (their content — seed cards,
+  /// gym plan, schedule — only applies to them).
+  bool get isBuiltInPerson => activeProfile.name == builtInProfile.name;
+
+  /// Seed cards (built-in person only), one card per Feynman note, lesson,
+  /// applied principle and value, and your own cards. Retrieval keeps what
+  /// you learned (Roediger & Karpicke 2006).
   List<StudyCard> get allCards => [
-        ...seedCards,
+        if (isBuiltInPerson) ...seedCards,
+        for (final r in logsOf('rep').reversed)
+          if ((r.str('lesson') ?? '').trim().isNotEmpty)
+            StudyCard(
+              'lesson:${r.id}',
+              'What did you learn from: ${r.str('drill') ?? 'a practice rep'}?',
+              r.str('lesson')!.trim(),
+              source: 'lesson',
+            ),
+        for (final l in logsOf('learning').reversed)
+          if ((l.str('principle') ?? '').trim().isNotEmpty)
+            StudyCard(
+              'principle:${l.id}',
+              'The principle you took from "${l.text}"?',
+              '${l.str('principle')!.trim()}${(l.str('experiment') ?? '').isEmpty ? '' : '\n\nYour experiment: ${l.str('experiment')}'}',
+              source: 'principle',
+            ),
+        for (final v in values)
+          if (v.meaning.trim().isNotEmpty)
+            StudyCard(
+              'value:${v.name.toLowerCase()}',
+              'What does ${v.name} mean to you?',
+              v.meaning.trim(),
+              source: 'value',
+            ),
         for (final n in logsOf('feynman').reversed)
           if (n.text.trim().isNotEmpty)
             StudyCard(

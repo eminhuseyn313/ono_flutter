@@ -77,6 +77,8 @@ Shared widgets:
 
 ## Routes
 
+Me groups its links as Direction, Practice, People, Hard days, then Settings.
+
 Bottom tabs: **Today** `/home` · **Program** `/program?tab=0..3` (Journey/Schedule/Body/Reference) · **Log** `/log?add=weight|protein|win|note|blood` · **Me** `/profile`.
 
 ```
@@ -125,7 +127,7 @@ Flow:
   - Never give medication or supplement advice.
 - **Review deck** (`/review`):
   - SM-2 scheduling via `CardSchedule.review` in `models/personal_system.dart`.
-  - Cards are `seedCards` (key facts, thesis, protocols, RA rules), one card per Feynman note, and custom cards.
+  - Cards are `seedCards` (key facts, thesis, protocols, RA rules — only while `isBuiltInPerson`), one card per Feynman note, rep lesson (`lesson:`), applied learning principle (`principle:`) and value meaning (`value:`), and custom cards.
   - At most `newCardsPerDay` (5) new cards a day.
   - Finishing a session logs `anki` kind `review`, so the Anki streak keeps counting.
 - **Career cockpit** (`/cockpit`): three tabs.
