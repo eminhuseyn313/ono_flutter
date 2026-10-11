@@ -1112,6 +1112,9 @@ class _PromptsState extends State<_Prompts> {
         _row(context, Icons.balance_rounded, AppColors.accent,
             'Decision review due',
             '"${reviews.first.text}" — was the call right?', '/cockpit?tab=1'),
+      if (system.upkeepDue.where((u) => system.upkeepNextDue(u) != null).firstOrNull case final u?)
+        _row(context, Icons.health_and_safety_outlined, AppColors.body, '${u.text} is due',
+            'Book it this week — it only takes a call', '/upkeep'),
       if (system.moneyCheckDue)
         _row(context, Icons.savings_outlined, AppColors.body, 'Money check-in',
             'Ten minutes: in, out, set aside, one decision', '/money'),

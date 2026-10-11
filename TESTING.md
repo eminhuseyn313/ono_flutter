@@ -189,6 +189,9 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] **Export everything** opens the share sheet with the JSON
 - [ ] On a test install only: **Delete everything** → the Delete button stays disabled until you type DELETE → the app returns to setup, reminders are gone, and (production) the `personal_system` row is deleted
 
+## 2zm. New: health upkeep
+- [ ] Me → Body → **Health upkeep** → tap Dentist check-up and Blood tests → add your own with an interval → **Done** sets the next date; overdue ones show in amber and on Today
+
 ## 2zl. New: money check-in
 - [ ] Me → **Money check-in** → in, out, set aside → saved % and months of buffer update as you type → one decision → Save; Me shows "Last: saved …"
 - [ ] From day 25 of the next program month Today prompts it

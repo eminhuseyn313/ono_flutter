@@ -74,6 +74,7 @@ Status: ⬜ to do · 🟨 in progress · ✅ done. Effort: S = days, M = a week,
 | 31 | People you're helping grow: what they work on, your next help, help given (protégé effect) | S | ✅ |
 | 32 | Look back when a goal closes: what made it happen, advice to someone starting → win + review card | S | ✅ |
 | 33 | Monthly money check-in: savings rate, buffer months, one decision | S | ✅ |
+| 34 | Health upkeep: recurring checkups with intervals you set and due dates | S | ✅ |
 | 24 | Hard days: minimum day, sick day, emergency skips, welcome back (Emin's request) | M | ✅ |
 
 ## P3 — The mass version

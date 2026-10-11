@@ -382,6 +382,10 @@ void main() {
       system.setGrowing(mentee,
           workingOn: 'Presenting research to the leadership team with confidence',
           nextHelp: 'Rehearse the first three minutes together on Thursday');
+      // Health upkeep: one overdue, one never done.
+      system.addUpkeep('Dentist check-up and cleaning', 180,
+          lastDone: DateTime.now().subtract(const Duration(days: 220)));
+      system.addUpkeep('Blood tests', 180);
       // A money check-in with large numbers.
       system.saveMoneyCheck(income: 12500000, spent: 9800000, savings: 32000000,
           decision: 'Move the gym membership to the annual plan and cancel two streaming services');

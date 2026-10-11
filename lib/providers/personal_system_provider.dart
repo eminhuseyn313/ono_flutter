@@ -2260,6 +2260,54 @@ class PersonalSystemProvider extends ChangeNotifier {
     return b.toString().trim();
   }
 
+  // ── Health upkeep ────────────────────────────────────────────────────
+
+  /// Recurring checkups you set yourself — dentist, a yearly check, blood
+  /// tests, eyes — with how often and when last done. ONO only keeps the
+  /// dates; how often is for you and your doctor to decide.
+  static const upkeepSuggestions = [
+    ('Dentist check-up', 180),
+    ('General check-up', 365),
+    ('Blood tests', 180),
+    ('Eye test', 730),
+  ];
+
+  List<LogEntry> get upkeep => logsOf('upkeep');
+
+  LogEntry? addUpkeep(String name, int everyDays, {DateTime? lastDone}) =>
+      name.trim().isEmpty || everyDays <= 0
+          ? null
+          : addLog('upkeep', text: name.trim(), data: {
+              'every': everyDays,
+              'last': lastDone == null ? null : dateKey(lastDone),
+            });
+
+  void markUpkeepDone(String id, {DateTime? on}) {
+    final l = upkeep.where((u) => u.id == id);
+    if (l.isEmpty) return;
+    updateLog(l.first.copyWith(data: {...l.first.data, 'last': dateKey(on ?? _now)}));
+  }
+
+  void removeUpkeep(String id) => removeLog(id);
+
+  /// When it's next due; null if never done (due now).
+  DateTime? upkeepNextDue(LogEntry u) {
+    final last = DateTime.tryParse(u.str('last') ?? '');
+    if (last == null) return null;
+    return last.add(Duration(days: (u.number('every') ?? 365).toInt()));
+  }
+
+  /// Due within 14 days, overdue first; never-done items count as due.
+  List<LogEntry> get upkeepDue {
+    final horizon = dayOnly(_now).add(const Duration(days: 14));
+    final due = [
+      for (final u in upkeep)
+        if (upkeepNextDue(u) == null || !upkeepNextDue(u)!.isAfter(horizon)) u
+    ];
+    due.sort((a, b) => (upkeepNextDue(a) ?? DateTime(2000)).compareTo(upkeepNextDue(b) ?? DateTime(2000)));
+    return due;
+  }
+
   // ── Money check-in ───────────────────────────────────────────────────
 
   /// Once a month: what came in, what went out, what's set aside, and one

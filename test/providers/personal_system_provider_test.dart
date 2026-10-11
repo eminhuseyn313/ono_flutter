@@ -1994,4 +1994,17 @@ void main() {
     expect(p.moneyCheckDue, isFalse);
     p.clock = () => _today;
   });
+
+  test('health upkeep: next due from last done; overdue first', () async {
+    final p = await _commissioned();
+    final dentist = p.addUpkeep('Dentist', 180, lastDone: _today.subtract(const Duration(days: 200)))!;
+    final eyes = p.addUpkeep('Eye test', 730, lastDone: _today.subtract(const Duration(days: 30)))!;
+    p.addUpkeep('Blood tests', 180);
+    expect(p.addUpkeep(' ', 30), isNull);
+    expect(p.upkeepDue.map((u) => u.text), ['Blood tests', 'Dentist']);
+    p.markUpkeepDone(dentist.id);
+    expect(p.upkeepDue.map((u) => u.text), ['Blood tests']);
+    expect(dateKey(p.upkeepNextDue(p.upkeep.firstWhere((u) => u.id == eyes.id))!),
+        dateKey(_today.subtract(const Duration(days: 30)).add(const Duration(days: 730))));
+  });
 }

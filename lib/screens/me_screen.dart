@@ -178,6 +178,21 @@ class MeScreen extends StatelessWidget {
         SectionHeader('Body',
             action: '${system.moveMinutesInWeek(DateTime.now())} min moved',
             onAction: () => context.push('/move')),
+        OnoCard(
+          padding: EdgeInsets.zero,
+          child: LinkRow(
+            icon: Icons.health_and_safety_outlined,
+            color: AppColors.body,
+            title: 'Health upkeep',
+            subtitle: system.upkeep.isEmpty
+                ? 'Checkups that slip when life is busy'
+                : system.upkeepDue.isEmpty
+                    ? '${system.upkeep.length} tracked · nothing due'
+                    : 'Due: ${system.upkeepDue.map((u) => u.text).join(' · ')}',
+            onTap: () => context.push('/upkeep'),
+          ),
+        ),
+        const SizedBox(height: 10),
         if (!system.isBuiltInPerson)
           const _MoveSummary()
         else
