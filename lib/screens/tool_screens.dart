@@ -410,7 +410,7 @@ class _SighToolState extends State<_SighTool>
           PrimaryButton('Log it', onPressed: () {
             context.read<PersonalSystemProvider>().logProtocolUse('sigh',
                 text: _context.text.trim());
-            _doneAndBack(context, 'Sigh logged — Daily 10 updated.');
+            _doneAndBack(context, 'Sigh logged — today\'s list updated.');
           }),
         ],
       ],
@@ -601,7 +601,7 @@ class _BlufToolState extends State<_BlufTool> {
                 }
                 system.logProtocolUse('bluf',
                     text: _composed, data: {'to': _to.text.trim()});
-                _doneAndBack(context, 'BLUF saved — Daily 10 updated.');
+                _doneAndBack(context, 'BLUF saved — today\'s list updated.');
               }),
             ),
           ],
@@ -822,7 +822,7 @@ class _FeynmanToolState extends State<_FeynmanTool> {
           system.logProtocolUse('feynman',
               text: _note.text.trim(),
               data: {'book': book.title, 'chapter': _chapter.text.trim()});
-          _doneAndBack(context, 'Feynman note saved — Daily 10 updated.');
+          _doneAndBack(context, 'Feynman note saved — today\'s list updated.');
         }),
         _history(
             context,
@@ -878,7 +878,7 @@ class _ScanToolState extends State<_ScanTool> {
         PrimaryButton('Save insight & tick', onPressed: () {
           system.logProtocolUse('scan',
               text: _insight.text.trim(), data: {'source': src.title});
-          _doneAndBack(context, 'Scan logged — Daily 10 updated.');
+          _doneAndBack(context, 'Scan logged — today\'s list updated.');
         }),
         _history(
             context,

@@ -110,7 +110,7 @@ class MeScreen extends StatelessWidget {
                           color: heatColor(s),
                           borderRadius: BorderRadius.circular(2)),
                     ),
-                  Text('more · Daily 10',
+                  Text('more · Daily ${system.dailyCount}',
                       style: AppText.small().copyWith(fontSize: 11)),
                 ],
               ),
@@ -853,7 +853,7 @@ class _Patterns extends StatelessWidget {
     if (found.isEmpty) {
       return const EmptyNote(
           'Patterns show here once there are 5+ days with and without a habit: '
-          'sleep vs your Daily 10, bedtime vs morning energy, caffeine vs sleep. '
+          'sleep vs your daily list, bedtime vs morning energy, caffeine vs sleep. '
           'Morning check-ins make them appear sooner.',
           icon: Icons.insights_rounded);
     }

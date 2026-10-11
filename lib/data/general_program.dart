@@ -23,3 +23,11 @@ const List<ReminderDef> generalReminderDefs = [
   ReminderDef('g_sunday', 'Sunday report', 18, 0,
       weekdays: [DateTime.sunday], route: '/weekly-coaching'),
 ];
+
+/// The four lanes in a line each, for anyone (the welcome screen).
+const List<(String lane, String name, String line)> generalLanes = [
+  ('mind', 'Mind', 'Calm under pressure, clear thinking'),
+  ('body', 'Body', 'Sleep, movement, energy'),
+  ('skill', 'Skill', 'Practice that compounds'),
+  ('social', 'Social', 'The people who matter'),
+];

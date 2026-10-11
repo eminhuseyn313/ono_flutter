@@ -47,7 +47,7 @@ class _PlansScreenState extends State<PlansScreen> {
     final system = context.watch<PersonalSystemProvider>();
     return OnoPage(
       showBack: true,
-      eyebrow: 'Daily 10',
+      eyebrow: 'Daily ${system.dailyCount}',
       title: 'If-then plans',
       subtitle:
           'Name the moment, not the intention. "When I park at the office → sigh ×3" beats "be calmer".',
