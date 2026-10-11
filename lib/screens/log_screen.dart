@@ -282,6 +282,7 @@ class _EntryRow extends StatelessWidget {
     'wheel': (Icons.donut_large_rounded, 'mind', 'Life wheel'),
     'hard_day': (Icons.healing_outlined, 'body', 'Hard day'),
     'move': (Icons.directions_walk_rounded, 'body', 'Movement'),
+    'help': (Icons.volunteer_activism_outlined, 'social', 'Helped someone grow'),
     'partner_checkin': (Icons.handshake_outlined, 'social', 'Partner check-in'),
     'detach': (Icons.power_settings_new_rounded, 'mind', 'Switched off'),
     'setback': (Icons.replay_rounded, 'mind', 'Setback, reset'),
@@ -340,6 +341,8 @@ class _EntryRow extends StatelessWidget {
         return '${e.number('minutes')} min${t == 'artifact' ? ' · artifact' : t == 'skill' ? ' · skill' : ''}';
       case 'partner_checkin':
         return 'With ${e.str('partner')}: you ${e.str('mine')}, they ${e.str('theirs')}';
+      case 'help':
+        return '${e.str('name')}: ${e.text}';
       case 'move':
         return '${PersonalSystemProvider.moveKinds[e.str('kind')] ?? e.str('kind')} · ${e.number('minutes')} min${e.data['vigorous'] == true ? ' · vigorous' : ''}';
       case 'hard_day':

@@ -103,6 +103,9 @@ class BriefInput {
   /// reading list) applies; false for anyone with a plan of their own.
   final bool builtInPlan;
 
+  /// People they're helping grow: "Sam: delegating (2 helps this month)".
+  final List<String> growingOthers;
+
   /// Who the brief is for: names, roles, key people and coach context.
   final Profile profile;
 
@@ -153,6 +156,7 @@ class BriefInput {
     this.moveMinutes,
     this.strengthDays = 0,
     this.builtInPlan = true,
+    this.growingOthers = const [],
   }) : profile = profile ?? activeProfile;
 
   Map<String, dynamic> toJson() => {
@@ -169,6 +173,7 @@ class BriefInput {
         'accountability_partner': partner,
         'five_year_direction': direction,
         'crafting_move': craftingMove,
+        'people_they_are_growing': growingOthers,
         'move_minutes_moderate_equivalent': moveMinutes,
         'strength_days': strengthDays,
         'feedback_round_theme': feedbackThemes,
@@ -357,6 +362,8 @@ class DeviceBriefGenerator implements BriefGenerator {
         'Deep work: ${input.deepWorkHours.toStringAsFixed(1)} h this week. Book two 90-minute blocks for the artifact${input.energyPeak == null ? '' : ' in your ${input.energyPeak}'} before Monday fills up.',
       if (input.moveMinutes != null && input.moveMinutes! < 150)
         'Moved ${input.moveMinutes} of 150 minutes this week. Add a 20-minute walk after lunch on three days — that alone closes most of the gap.',
+      if (input.growingOthers.any((g) => g.contains('(0 helps')))
+        'You\'re helping ${input.growingOthers.firstWhere((g) => g.contains('(0 helps')).split(':').first} grow, but haven\'t this month. One question or one piece of feedback this week is enough.',
       if (input.craftingMove != null)
         'Your crafting move: ${input.craftingMove}. Put it on next week\'s calendar once — small changes to the work are how it starts to fit you.',
       if (input.feedbackThemes != null)

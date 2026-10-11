@@ -31,6 +31,8 @@ class _PeopleScreenState extends State<PeopleScreen> {
   void _sheet(PersonalSystemProvider system, LogEntry p) {
     final note = TextEditingController();
     final ritual = TextEditingController(text: system.ritualOf(p));
+    final growing = TextEditingController(text: p.str('growing') ?? '');
+    final nextHelp = TextEditingController(text: p.str('next_help') ?? '');
     int? quality;
     showModalBottomSheet<void>(
       context: context,
@@ -94,6 +96,47 @@ class _PeopleScreenState extends State<PeopleScreen> {
                   },
                   child: const Text('Save ritual only'),
                 ),
+                const SizedBox(height: 14),
+                Text('Helping them grow', style: AppText.small()),
+                const SizedBox(height: 6),
+                TextField(
+                  controller: growing,
+                  style: AppText.body(color: AppColors.white),
+                  decoration: const InputDecoration(
+                      hintText: 'What they\'re working on, e.g. presenting, reading, delegating'),
+                ),
+                const SizedBox(height: 6),
+                TextField(
+                  controller: nextHelp,
+                  style: AppText.body(color: AppColors.white),
+                  decoration: const InputDecoration(
+                      hintText: 'Your next way to help: a question, feedback, an intro'),
+                ),
+                Row(
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        system.setGrowing(p, workingOn: growing.text, nextHelp: nextHelp.text);
+                        Navigator.of(ctx).pop();
+                      },
+                      child: const Text('Save'),
+                    ),
+                    const Spacer(),
+                    TextButton(
+                      onPressed: () {
+                        if (nextHelp.text.trim().isEmpty) {
+                          toast(context, 'Write how you helped first.');
+                          return;
+                        }
+                        system.setGrowing(p, workingOn: growing.text, nextHelp: nextHelp.text);
+                        system.logHelp(p, nextHelp.text);
+                        Navigator.of(ctx).pop();
+                        toast(context, 'Logged. Teaching it teaches you too.');
+                      },
+                      child: const Text('I helped today'),
+                    ),
+                  ],
+                ),
                 GhostButton('Remove ${p.text.split(' ').first}',
                     icon: Icons.delete_outline_rounded, onPressed: () {
                   system.removePerson(p.id);
@@ -107,6 +150,8 @@ class _PeopleScreenState extends State<PeopleScreen> {
     ).whenComplete(() {
       note.dispose();
       ritual.dispose();
+      growing.dispose();
+      nextHelp.dispose();
     });
   }
 
@@ -219,6 +264,12 @@ class _PeopleScreenState extends State<PeopleScreen> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: AppText.small()),
+                  if ((p.str('growing') ?? '').isNotEmpty)
+                    Text(
+                        'Growing: ${p.str('growing')}${(p.str('next_help') ?? '').isEmpty ? '' : ' · next: ${p.str('next_help')}'}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppText.small(color: AppColors.skill)),
                   if (system.ritualOf(p).isNotEmpty ||
                       system.presenceOf(p) != null)
                     Text(

@@ -1504,6 +1504,10 @@ class PersonalSystemProvider extends ChangeNotifier {
         deepWorkHours: focusMinutesInWeek(report.weekStart) / 60,
         hardDays: hardDaysInWeek(report.weekStart),
         direction: odysseyLeaning,
+        growingOthers: [
+          for (final p in peopleGrowing)
+            '${p.text}: ${p.str('growing')} (${helpsInMonth(p, programMonth)} helps this month)'
+        ],
         moveMinutes: logsOf('move').isEmpty ? null : moveMinutesInWeek(report.weekStart),
         strengthDays: strengthDaysInWeek(report.weekStart),
         craftingMove: craftingMove,
@@ -3845,7 +3849,8 @@ class PersonalSystemProvider extends ChangeNotifier {
     _update(s.copyWith(
         logs: s.logs
             .where((l) =>
-                l.id != id && !(l.type == 'touch' && l.str('person') == id))
+                l.id != id &&
+                !((l.type == 'touch' || l.type == 'help') && l.str('person') == id))
             .toList()));
   }
 
@@ -3860,6 +3865,46 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   /// A ritual with this person ("Friday dinner, phones away"), or ''.
   String ritualOf(LogEntry person) => person.str('ritual') ?? '';
+
+  // People you're helping grow: a team member, a mentee, a child. Helping
+  // others learn deepens your own learning (the protégé effect, Nestojko et
+  // al. 2014) and developing people is the core of leading.
+
+  /// What they're working on and your next way to help.
+  void setGrowing(LogEntry person, {required String workingOn, String nextHelp = ''}) {
+    final p = logsOf('person').where((x) => x.id == person.id);
+    if (p.isEmpty) return;
+    updateLog(p.first.copyWith(data: {
+      ...p.first.data,
+      'growing': workingOn.trim(),
+      'next_help': nextHelp.trim(),
+    }));
+  }
+
+  List<LogEntry> get peopleGrowing => [
+        for (final p in people)
+          if ((p.str('growing') ?? '').isNotEmpty) p
+      ];
+
+  /// Records help given; the next way to help is cleared once done.
+  void logHelp(LogEntry person, String what) {
+    if (what.trim().isEmpty) return;
+    addLog('help', text: what.trim(), data: {'person': person.id, 'name': person.text});
+    final p = logsOf('person').where((x) => x.id == person.id);
+    if (p.isNotEmpty && (p.first.str('next_help') ?? '') == what.trim()) {
+      updateLog(p.first.copyWith(data: {...p.first.data, 'next_help': ''}));
+    }
+  }
+
+  List<LogEntry> helpsFor(LogEntry person) =>
+      [for (final h in logsOf('help')) if (h.str('person') == person.id) h];
+
+  int helpsInMonth(LogEntry person, int month) {
+    final from = monthStart(month), to = monthStart(month + 1);
+    return helpsFor(person)
+        .where((h) => !h.date.isBefore(from) && h.date.isBefore(to))
+        .length;
+  }
 
   void setRitual(LogEntry person, String ritual) {
     final p = logsOf('person').where((x) => x.id == person.id);

@@ -377,6 +377,11 @@ void main() {
       system.addBestSelfStory('Leyla', 'You calmed the room when the launch failed and gave everyone one clear next step.');
       system.addBestSelfStory('Tural', 'You explained the plan so everyone got it.');
       system.saveBestSelfPortrait(themes: 'Calm, clarity', portrait: 'When I\'m at my best, I make hard things clear and keep people calm.');
+      // Someone they're helping grow, with a long focus.
+      final mentee = system.addPerson('Nigar Hasanova-Mammadli', role: 'Team', every: 14);
+      system.setGrowing(mentee,
+          workingOn: 'Presenting research to the leadership team with confidence',
+          nextHelp: 'Rehearse the first three minutes together on Thursday');
       // A hard conversation due today.
       system.saveConversation(
           withWhom: 'Samira Abdullayeva-Karimova',

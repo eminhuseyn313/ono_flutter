@@ -1947,4 +1947,18 @@ void main() {
     expect(p.plannedConversations, isEmpty);
     expect(p.conversationById(c.id)!.str('outcome'), 'better');
   });
+
+  test('people you are growing: what they work on, help given, into the brief',
+      () async {
+    final p = await _commissioned();
+    final sam = p.addPerson('Sam', role: 'Team');
+    expect(p.peopleGrowing, isEmpty);
+    p.setGrowing(sam, workingOn: 'Presenting', nextHelp: 'Review his slides');
+    expect(p.peopleGrowing.single.str('growing'), 'Presenting');
+    p.logHelp(p.peopleGrowing.single, 'Review his slides');
+    expect(p.helpsInMonth(sam, p.programMonth), 1);
+    expect(p.peopleGrowing.single.str('next_help'), '', reason: 'done, cleared');
+    p.removePerson(sam.id);
+    expect(p.logsOf('help'), isEmpty);
+  });
 }

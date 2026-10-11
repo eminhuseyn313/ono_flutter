@@ -189,6 +189,10 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] **Export everything** opens the share sheet with the JSON
 - [ ] On a test install only: **Delete everything** → the Delete button stays disabled until you type DELETE → the app returns to setup, reminders are gone, and (production) the `personal_system` row is deleted
 
+## 2zk. New: people you're helping grow
+- [ ] People → tap someone → **Helping them grow**: what they're working on and your next help → Save → the row shows "Growing: …"
+- [ ] **I helped today** logs it (Log → Social) and clears the next help; Me → People shows "helping N grow"
+
 ## 2zj. New: hard conversations
 - [ ] Me → People → **Hard conversations** → Prepare: with whom, about, what you want (you/them/us), facts, your story, their story, first sentence, ask → **Today**
 - [ ] Today prompts "The conversation with …"; open it → mark how it went and what you learned → it moves to "Had"
