@@ -3735,10 +3735,57 @@ class PersonalSystemProvider extends ChangeNotifier {
   }
 
   /// Rates the month's area again at the end; the gap is the growth.
-  void rateFocusEnd(int rating) {
-    final l = _focusLog(programMonth);
+  void rateFocusEnd(int rating, {int? month}) {
+    final l = _focusLog(month ?? programMonth);
     if (l == null) return;
     updateLog(l.copyWith(data: {...l.data, 'end': rating}));
+  }
+
+  // ── Month review (for anyone) ────────────────────────────────────────
+
+  /// The month to review: this one from day 27, otherwise the previous one
+  /// during the first 5 days of a month.
+  int? get monthToReview {
+    if (!hasStarted) return null;
+    if (dayOfMonth >= 27) return programMonth;
+    if (dayOfMonth <= 5 && programMonth > 1) return programMonth - 1;
+    return null;
+  }
+
+  LogEntry? monthReviewFor(int month) {
+    for (final l in logsOf('month_review')) {
+      if (l.number('month') == month) return l;
+    }
+    return null;
+  }
+
+  bool get monthReviewDue =>
+      monthToReview != null && monthReviewFor(monthToReview!) == null;
+
+  /// Held days out of the days that counted (excused days left out).
+  ({int held, int counted, Map<String, int> hard}) monthHeld(int month) {
+    final from = monthStart(month), to = monthStart(month + 1);
+    final today = dayOnly(_now);
+    var held = 0, counted = 0;
+    final hard = <String, int>{};
+    for (var d = from; d.isBefore(to) && !d.isAfter(today); d = d.add(const Duration(days: 1))) {
+      final k = hardDayOn(d);
+      if (k != null) hard[k] = (hard[k] ?? 0) + 1;
+      if (isExcused(d)) continue;
+      counted++;
+      if (isHeld(d)) held++;
+    }
+    return (held: held, counted: counted, hard: hard);
+  }
+
+  void saveMonthReview(int month, {required String carry, String lesson = ''}) {
+    final existing = monthReviewFor(month);
+    final data = {'month': month, 'lesson': lesson.trim()};
+    if (existing == null) {
+      addLog('month_review', text: carry.trim(), data: data);
+    } else {
+      updateLog(existing.copyWith(text: carry.trim(), data: {...existing.data, ...data}));
+    }
   }
 
   /// (start, end) ratings for [month]'s area; end is null until rated.

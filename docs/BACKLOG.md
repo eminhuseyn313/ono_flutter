@@ -78,6 +78,7 @@ Status: ⬜ to do · 🟨 in progress · ✅ done. Effort: S = days, M = a week,
 | 35 | General reminders for anyone with their own plan | S | ✅ |
 | 36 | Step back: self-distanced talk (Kross 2014) | S | ✅ |
 | 37 | Decide with your values: options × values, 10/10/10, premortem → decision journal | M | ✅ |
+| 38 | Month review for anyone: held days, area rating, wins, goals, lesson, carry-over | S | ✅ |
 | 24 | Hard days: minimum day, sick day, emergency skips, welcome back (Emin's request) | M | ✅ |
 
 ## P3 — The mass version

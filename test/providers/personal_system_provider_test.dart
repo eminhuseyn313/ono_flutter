@@ -2063,4 +2063,24 @@ void main() {
     p.logStepBack(what: 'Emin is facing a tough review', advice: 'Breathe', mattersInAYear: 1);
     expect(p.logsOf('stepback').single.number('year'), 1);
   });
+
+  test('month review: due at month end and early next month; held excludes excused',
+      () async {
+    final p = await _commissioned();
+    // _today is day 32 (month 2, day 2): month 1 is due.
+    expect(p.monthToReview, 1);
+    expect(p.monthReviewDue, isTrue);
+    _hold(p, p.monthStart(1));
+    p.setHardDay(p.monthStart(1).add(const Duration(days: 1)), 'sick');
+    final h = p.monthHeld(1);
+    expect(h.counted, 29);
+    expect(h.held, 1);
+    expect(h.hard['sick'], 1);
+    p.saveMonthReview(1, carry: 'Keep the morning walk', lesson: 'Smaller is steadier');
+    expect(p.monthReviewDue, isFalse);
+    expect(p.monthReviewFor(1)!.str('lesson'), 'Smaller is steadier');
+    p.clock = () => p.monthStart(2).add(const Duration(days: 10));
+    expect(p.monthToReview, isNull);
+    p.clock = () => _today;
+  });
 }

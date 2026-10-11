@@ -189,6 +189,16 @@ class _Journey extends StatelessWidget {
                       : system.activeGoals.map((g) => g.text).join(' · '),
                   onTap: () => context.push('/goals'),
                 ),
+                const Divider(indent: 66),
+                LinkRow(
+                  icon: Icons.fact_check_outlined,
+                  color: AppColors.accent,
+                  title: 'Close the month',
+                  subtitle: system.monthReviewFor(month) == null
+                      ? 'What held, one lesson, what comes with you'
+                      : 'Reviewed · ${system.monthReviewFor(month)!.text}',
+                  onTap: () => context.push('/month-review'),
+                ),
               ],
             ),
           ),
