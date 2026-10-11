@@ -217,8 +217,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     _InputsStrip(date: today, month: system.programMonth)
                   else
                     _GeneralInputs(date: today),
-                  const SectionHeader('Body'),
-                  if (system.isBuiltInPerson) _BodyCard(date: today),
+                  if (system.isBuiltInPerson) ...[
+                    const SectionHeader('Body'),
+                    _BodyCard(date: today),
+                  ],
                   const SectionHeader('Carry this'),
                   if (system.isBuiltInPerson)
                     _CoachNote(day: system.programDay)
@@ -1962,14 +1964,15 @@ class _QuestionCard extends StatefulWidget {
 
 class _QuestionCardState extends State<_QuestionCard> {
   final _answer = TextEditingController();
-  bool _loaded = false;
+  String? _loadedFor;
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_loaded) return;
-    _loaded = true;
-    _answer.text = context.read<PersonalSystemProvider>().questionAnswer?.text ?? '';
+  /// Loads today's answer whenever the question changes (e.g. past
+  /// midnight with ONO open).
+  void _sync(PersonalSystemProvider system) {
+    final q = system.questionOfTheDay.$2;
+    if (_loadedFor == q) return;
+    _loadedFor = q;
+    _answer.text = system.questionAnswer?.text ?? '';
   }
 
   @override
@@ -1981,6 +1984,7 @@ class _QuestionCardState extends State<_QuestionCard> {
   @override
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
+    _sync(system);
     final q = system.questionOfTheDay;
     return OnoCard(
       accent: AppColors.mind,

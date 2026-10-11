@@ -3799,6 +3799,8 @@ class PersonalSystemProvider extends ChangeNotifier {
       final k = hardDayOn(d);
       if (k != null) hard[k] = (hard[k] ?? 0) + 1;
       if (isExcused(d)) continue;
+      // Today is still open: it counts once it's held.
+      if (d == today && !isHeld(d)) continue;
       counted++;
       if (isHeld(d)) held++;
     }
@@ -4615,7 +4617,9 @@ class PersonalSystemProvider extends ChangeNotifier {
     }
     final learned = [
       for (final l in learningWith('done'))
-        if ((l.str('principle') ?? '').isNotEmpty) l
+        if ((l.str('principle') ?? '').isNotEmpty &&
+            (l.str('finished') ?? dateKey(l.date)).compareTo(dateKey(from)) >= 0)
+          l
     ];
     if (learned.isNotEmpty) {
       b

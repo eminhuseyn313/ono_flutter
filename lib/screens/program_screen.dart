@@ -194,9 +194,9 @@ class _Journey extends StatelessWidget {
                   icon: Icons.fact_check_outlined,
                   color: AppColors.accent,
                   title: 'Close the month',
-                  subtitle: system.monthReviewFor(month) == null
+                  subtitle: system.monthReviewFor(system.monthToReview ?? month) == null
                       ? 'What held, one lesson, what comes with you'
-                      : 'Reviewed · ${system.monthReviewFor(month)!.text}',
+                      : 'Month ${system.monthToReview ?? month} reviewed · ${system.monthReviewFor(system.monthToReview ?? month)!.text}',
                   onTap: () => context.push('/month-review'),
                 ),
               ],

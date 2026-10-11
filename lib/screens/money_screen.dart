@@ -49,7 +49,8 @@ class _MoneyScreenState extends State<MoneyScreen> {
   }
 
   double? _parse(TextEditingController c) =>
-      double.tryParse(c.text.replaceAll(RegExp(r'[^0-9.]'), ''));
+      parseAmount(c.text);
+
 
   Widget _field(TextEditingController c, String label, {bool number = true, String hint = ''}) => Padding(
         padding: const EdgeInsets.only(top: 10),
@@ -121,3 +122,13 @@ class _MoneyScreenState extends State<MoneyScreen> {
     );
   }
 }
+
+/// Accepts "1500,50", "1.234,50", "1,234.50" and "1 234": the last
+/// separator followed by one or two digits is the decimal point.
+double? parseAmount(String raw) {
+  final t = raw.replaceAll(RegExp(r'[^0-9.,]'), '');
+  final m = RegExp(r'[.,](\d{1,2})$').firstMatch(t);
+  if (m == null) return double.tryParse(t.replaceAll(RegExp(r'[.,]'), ''));
+  final whole = t.substring(0, m.start).replaceAll(RegExp(r'[.,]'), '');
+  return double.tryParse('${whole.isEmpty ? '0' : whole}.${m.group(1)}');
+  }

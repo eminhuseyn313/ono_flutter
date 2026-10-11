@@ -12,6 +12,7 @@ import 'package:ono/providers/auth_provider.dart';
 import 'package:ono/models/personal_system.dart';
 import 'package:ono/providers/personal_system_provider.dart';
 import 'package:ono/router.dart';
+import 'package:ono/screens/money_screen.dart' show parseAmount;
 import 'package:ono/services/app_shortcuts.dart';
 import 'package:ono/services/brief_generator.dart';
 import 'package:ono/services/calendar_service.dart';
@@ -2150,5 +2151,29 @@ void main() {
     expect(text, contains('Achieved: Launch the onboarding redesign'));
     expect(text, contains('October 2026'));
     expect(text, contains('1 time, 1 person: Sam'));
+  });
+
+  test('amounts with comma or point decimals parse correctly', () {
+    expect(parseAmount('1500,50'), 1500.5);
+    expect(parseAmount('1.234,50'), 1234.5);
+    expect(parseAmount('1,234.50'), 1234.5);
+    expect(parseAmount('1,234'), 1234);
+    expect(parseAmount('1 234'), 1234);
+    expect(parseAmount('12.5 AZN'), 12.5);
+    expect(parseAmount(''), isNull);
+  });
+
+  test('month held: an open today is not a miss; brag learning respects the range',
+      () async {
+    final p = await _commissioned();
+    final h = p.monthHeld(p.programMonth);
+    // _today is day 2 of month 2: day 1 counted, today open and unheld.
+    expect(h.counted, 1);
+    _hold(p, _today);
+    expect(p.monthHeld(p.programMonth).counted, 2);
+    final l = p.addLearning('Old book')!;
+    p.applyLearning(l.id, principle: 'Old idea', experiment: 'x');
+    expect(p.bragText(since: _today.add(const Duration(days: 1))), isNot(contains('Old idea')));
+    expect(p.bragText(), contains('Old idea'));
   });
 }

@@ -119,13 +119,15 @@ class _DecideScreenState extends State<DecideScreen> {
       subtitle:
           'Name the options, weigh them against what matters to you, look ten years out, imagine it failing. Then decide — and review it in 90 days.',
       bottomBar: PrimaryButton('Decide and save', icon: Icons.gavel_rounded, onPressed: () {
-        if (_question.text.trim().isEmpty || _chosen == null) {
+        if (_question.text.trim().isEmpty ||
+            _chosen == null ||
+            _options[_chosen!].text.trim().isEmpty) {
           toast(context, 'Write the question and choose an option.');
           return;
         }
         system.addValuesDecision(
           question: _question.text,
-          chosen: _options[_chosen!].text,
+          chosen: _options[_chosen!].text.trim(),
           scores: {
             for (final i in named) _options[i].text.trim(): {..._scores[i] ?? const {}}
           },
