@@ -1599,4 +1599,21 @@ void main() {
     expect(p.logsOf('growth_area').length, 1);
     p.resetProfile();
   });
+
+  test('erase everything: data, profile and reminders gone, back to commission',
+      () async {
+    final p = await _commissioned();
+    p.addLog('note', text: 'private');
+    p.saveProfile(activeProfile.copyWith(name: 'Someone Else'));
+    expect(p.dataSummary.entries, greaterThan(0));
+    expect(p.syncsToCloud, isFalse);
+    expect(p.coachIsRemote, isFalse);
+    await p.eraseEverything();
+    expect(p.isCommissioned, isFalse);
+    expect(p.logsOf('note'), isEmpty);
+    expect(activeProfile.name, builtInProfile.name);
+    final reloaded = await MockPersonalSystemGateway().load('test');
+    expect(reloaded.commissioned, isFalse);
+    expect(reloaded.logs, isEmpty);
+  });
 }

@@ -184,6 +184,11 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] Me → **Build your plan** → keep your name → rate the wheel → pick an area (lowest first) → a goal → add 3 daily items to your list → Today shows the goal, the area and the new items with their cues
 - [ ] Try a different name (then Me → Your profile → reset): the profile starts blank and "Replace my current daily list" is on by default
 
+## 2zc. New: your data & privacy
+- [ ] Me → **Your data & privacy**: the text matches your build (phone only offline; phone + private cloud in production; device coach vs cloud coach)
+- [ ] **Export everything** opens the share sheet with the JSON
+- [ ] On a test install only: **Delete everything** → the Delete button stays disabled until you type DELETE → the app returns to setup, reminders are gone, and (production) the `personal_system` row is deleted
+
 ## 3. Tools & logging
 - [ ] Morning ritual (from Today before 11:00): 5 steps → finishing ticks the manifesto
 - [ ] Sigh tool: run it → "uses" and mastery level go up; the sigh item is ticked

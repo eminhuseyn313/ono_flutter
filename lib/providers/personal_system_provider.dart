@@ -3315,6 +3315,45 @@ class PersonalSystemProvider extends ChangeNotifier {
     return out;
   }
 
+  // ── Your data ────────────────────────────────────────────────────────
+
+  bool get syncsToCloud => _gateway.syncsToCloud;
+
+  /// Whether the Sunday brief is written by the cloud coach (Claude) rather
+  /// than on the device.
+  bool get coachIsRemote => _briefs is RemoteBriefGenerator;
+
+  /// What is stored, by kind, for the "Your data" screen.
+  ({int days, int entries, int health, int reports, int people}) get dataSummary {
+    final s = _state;
+    if (s == null) return (days: 0, entries: 0, health: 0, reports: 0, people: 0);
+    const health = {'weight', 'protein', 'gym', 'blood', 'checkin', 'sleep', 'vitals', 'energy'};
+    return (
+      days: s.dailyChecks.keys.length,
+      entries: s.logs.length,
+      health: s.logs.where((l) => health.contains(l.type)).length,
+      reports: s.reports.length + s.briefs.length,
+      people: s.logs.where((l) => l.type == 'person').length,
+    );
+  }
+
+  /// Deletes everything — on this device and, with sync on, in the cloud —
+  /// cancels every reminder and starts over. Throws if the cloud delete
+  /// fails, leaving the data in place.
+  Future<void> eraseEverything() async {
+    await _gateway.erase(_userId);
+    _widgetTimer?.cancel();
+    await _reminders?.sync(const []);
+    await _reminders?.cancel(restNotificationId);
+    await _reminders?.cancel(timerNotificationId);
+    for (var i = 0; i < 40; i++) {
+      await _reminders?.cancel(onceIdBase + 100 + i);
+    }
+    _state = await _gateway.load(_userId);
+    _applyProfile();
+    notifyListeners();
+  }
+
   // ── Backup ───────────────────────────────────────────────────────────
 
   String exportJson() =>

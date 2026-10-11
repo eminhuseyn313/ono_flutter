@@ -60,6 +60,20 @@ class MockPersonalSystemGateway implements PersonalSystemGateway {
   }
 
   @override
+  bool get syncsToCloud => false;
+
+  @override
+  Future<void> erase(String userId) async {
+    final prefs = await SharedPreferences.getInstance();
+    for (final k in prefs.getKeys().toList()) {
+      if (k == _key(userId) || k.startsWith('${_key(userId)}_corrupt_')) {
+        await prefs.remove(k);
+      }
+    }
+    await prefs.remove(programStartKey);
+  }
+
+  @override
   Future<void> save(String userId, PersonalSystemState state) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_key(userId), jsonEncode(state.toJson()));

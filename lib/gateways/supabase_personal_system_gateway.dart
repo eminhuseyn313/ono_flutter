@@ -65,6 +65,18 @@ class SyncedPersonalSystemGateway implements PersonalSystemGateway {
     }
   }
 
+  @override
+  bool get syncsToCloud => true;
+
+  /// Deletes the cloud row first, so a failure leaves the device copy.
+  @override
+  Future<void> erase(String userId) async {
+    await _client.from('personal_system').delete().eq('user_id', userId);
+    await _local.erase(userId);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_savedAtKey(userId));
+  }
+
   Future<void> _push(String userId, PersonalSystemState state) =>
       _client.from('personal_system').upsert({
         'user_id': userId,

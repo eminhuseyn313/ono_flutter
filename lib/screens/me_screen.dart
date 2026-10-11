@@ -506,6 +506,16 @@ class MeScreen extends StatelessWidget {
               ),
               const Divider(indent: 66),
               LinkRow(
+                icon: Icons.shield_outlined,
+                color: AppColors.steel,
+                title: 'Your data & privacy',
+                subtitle: system.syncsToCloud
+                    ? 'On this phone and your private cloud · delete anytime'
+                    : 'Only on this phone · export or delete anytime',
+                onTap: () => context.push('/privacy'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
                 icon: Icons.logout_rounded,
                 color: AppColors.danger,
                 title: 'Sign out',
@@ -520,7 +530,9 @@ class MeScreen extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         Text(
-            'Data is stored on this device. Export a backup before deleting the app or changing phones.',
+            system.syncsToCloud
+                ? 'Data is on this device with a copy in your private cloud. Export a backup to keep your own copy.'
+                : 'Data is stored on this device. Export a backup before deleting the app or changing phones.',
             style: AppText.small()),
       ],
     );

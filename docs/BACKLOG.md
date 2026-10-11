@@ -71,7 +71,7 @@ Status: ⬜ to do · 🟨 in progress · ✅ done. Effort: S = days, M = a week,
 |---|---|---|---|
 | 18 | Onboarding that builds a plan in 5 minutes | L | ✅ (plan builder; first-run wiring open) |
 | 19 | Languages: English, Azerbaijani, Russian | M | ⬜ |
-| 20 | Privacy and data ownership | M | ⬜ |
+| 20 | Privacy and data ownership | M | ✅ |
 | 21 | Plan packs (shareable plans) | L | ⬜ |
 | 22 | Accountability partners in the app | L | ⬜ |
 | 23 | Coach mode | L | ⬜ |
