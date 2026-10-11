@@ -4522,6 +4522,99 @@ class PersonalSystemProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ── How to work with me ──────────────────────────────────────────────
+
+  /// A personal user manual to share with a team, a partner or a coach:
+  /// drafted from what ONO knows, then edited in your own words.
+  static const manualSections = [
+    ('best', 'When I\'m at my best'),
+    ('values', 'What I care about'),
+    ('energy', 'When to catch me'),
+    ('communication', 'How I like to communicate'),
+    ('feedback', 'How to give me feedback'),
+    ('watch', 'What to watch for when I\'m stretched'),
+  ];
+
+  LogEntry? get manual {
+    final l = logsOf('manual');
+    return l.isEmpty ? null : l.first;
+  }
+
+  /// The saved text of a section, or a draft from your data.
+  String manualSection(String key) {
+    final saved = manual?.str(key);
+    if (saved != null) return saved;
+    return switch (key) {
+      'best' => bestSelfPortrait ?? '',
+      'values' => values.map((v) => v.meaning.isEmpty ? v.name : '${v.name}: ${v.meaning}').join('\n'),
+      'energy' => energyPeak == null
+          ? ''
+          : 'I\'m sharpest in the ${energyPeak!.label.toLowerCase()} (${energyPeak!.from}:00–${energyPeak!.to}:00). Bring hard problems then.',
+      _ => '',
+    };
+  }
+
+  void saveManual(Map<String, String> sections) {
+    final data = {for (final e in sections.entries) e.key: e.value.trim()};
+    final m = manual;
+    if (m == null) {
+      addLog('manual', data: data);
+    } else {
+      updateLog(m.copyWith(date: dayOnly(_now), data: data));
+    }
+  }
+
+  String manualText() {
+    final b = StringBuffer('How to work with ${activeProfile.firstName.isEmpty ? 'me' : activeProfile.firstName}\n');
+    for (final s in manualSections) {
+      final t = manualSection(s.$1).trim();
+      if (t.isEmpty) continue;
+      b
+        ..writeln()
+        ..writeln(s.$2)
+        ..writeln(t);
+    }
+    return b.toString().trim();
+  }
+
+  // ── Couple check-in ──────────────────────────────────────────────────
+
+  /// A weekly 20-minute check-in with a partner: appreciation first, then
+  /// what's been hard, what each needs, and one plan together. Small
+  /// rituals of connection and expressed appreciation keep relationships
+  /// strong (Gottman & Silver 1999).
+  static const usQuestions = [
+    ('appreciate', 'Something I appreciated about you this week'),
+    ('hard', 'What was hard for me this week'),
+    ('need', 'What I need from you next week'),
+    ('plan', 'One thing we\'ll do together'),
+  ];
+
+  void logUsCheckin(String partnerName, Map<String, String> answers) {
+    if (answers.values.every((a) => a.trim().isEmpty)) return;
+    _upsertDayLog('us_checkin', weekStartOf(_now), {
+      'with': partnerName.trim(),
+      for (final e in answers.entries) e.key: e.value.trim(),
+    });
+  }
+
+  LogEntry? usCheckinFor(DateTime anyDay) {
+    final l = logsOn(weekStartOf(anyDay), 'us_checkin');
+    return l.isEmpty ? null : l.last;
+  }
+
+  /// Weeks in a row (up to this one or last) with a check-in.
+  int get usStreak {
+    var n = 0;
+    var w = weekStartOf(_now);
+    if (usCheckinFor(w) == null) w = w.subtract(const Duration(days: 7));
+    while (usCheckinFor(w) != null) {
+      n++;
+      w = w.subtract(const Duration(days: 7));
+    }
+    return n;
+  }
+
   // ── Journal export ───────────────────────────────────────────────────
 
   /// Everything you wrote to learn from — wins, lessons, reflections,

@@ -2098,4 +2098,23 @@ void main() {
     expect(text, contains(dateKey(_today)));
     expect(text, isNot(contains('80')), reason: 'no body numbers');
   });
+
+  test('user manual drafts from data; couple check-in keeps a weekly streak',
+      () async {
+    final p = await _commissioned();
+    p.setValues([(name: 'Courage', meaning: 'Say the true thing kindly')]);
+    expect(p.manualSection('values'), 'Courage: Say the true thing kindly');
+    expect(p.manualSection('feedback'), '');
+    p.saveManual({'feedback': 'Directly, in private', 'values': ''});
+    expect(p.manualSection('values'), '', reason: 'saved text wins over the draft');
+    expect(p.manualText(), contains('How to give me feedback\nDirectly, in private'));
+
+    p.logUsCheckin('Aysel', {'appreciate': '', 'hard': ''});
+    expect(p.usStreak, 0, reason: 'empty answers are not saved');
+    p.clock = () => _today.subtract(const Duration(days: 7));
+    p.logUsCheckin('Aysel', {'appreciate': 'The dinner'});
+    p.clock = () => _today;
+    p.logUsCheckin('Aysel', {'plan': 'A walk on Saturday'});
+    expect(p.usStreak, 2);
+  });
 }

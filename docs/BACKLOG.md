@@ -79,6 +79,9 @@ Status: ⬜ to do · 🟨 in progress · ✅ done. Effort: S = days, M = a week,
 | 36 | Step back: self-distanced talk (Kross 2014) | S | ✅ |
 | 37 | Decide with your values: options × values, 10/10/10, premortem → decision journal | M | ✅ |
 | 38 | Month review for anyone: held days, area rating, wins, goals, lesson, carry-over | S | ✅ |
+| 39 | Journal export as readable text | S | ✅ |
+| 40 | How to work with me: a personal user manual drafted from your data | S | ✅ |
+| 41 | A check-in for two: weekly appreciation, hard, need, plan (Gottman) | S | ✅ |
 | 24 | Hard days: minimum day, sick day, emergency skips, welcome back (Emin's request) | M | ✅ |
 
 ## P3 — The mass version

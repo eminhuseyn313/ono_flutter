@@ -430,6 +430,26 @@ class MeScreen extends StatelessWidget {
               ),
               const Divider(indent: 66),
               LinkRow(
+                icon: Icons.favorite_outline_rounded,
+                color: AppColors.social,
+                title: 'A check-in for two',
+                subtitle: system.usStreak == 0
+                    ? 'Twenty minutes a week with your partner'
+                    : '${system.usStreak} week${system.usStreak == 1 ? '' : 's'} in a row',
+                onTap: () => context.push('/us'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
+                icon: Icons.menu_book_rounded,
+                color: AppColors.social,
+                title: 'How to work with me',
+                subtitle: system.manual == null
+                    ? 'A one-page user manual for your team or partner'
+                    : 'Updated ${shortDate(system.manual!.date)}',
+                onTap: () => context.push('/manual'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
                 icon: Icons.forum_outlined,
                 color: AppColors.social,
                 title: 'Hard conversations',
