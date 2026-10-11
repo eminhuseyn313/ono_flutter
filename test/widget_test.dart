@@ -19,6 +19,7 @@ import 'package:ono/providers/auth_provider.dart';
 import 'package:ono/providers/personal_system_provider.dart';
 import 'package:ono/router.dart';
 import 'package:ono/screens/plan_builder_screen.dart';
+import 'package:ono/screens/need_screen.dart';
 import 'package:ono/services/calendar_service.dart';
 import 'package:ono/services/reminder_service.dart';
 
@@ -440,6 +441,7 @@ void main() {
         for (var m = 1; m <= programMonths; m++)
           for (final u in unlocksFor(m))
             if (u.route != null) u.route!,
+        ...NeedScreen.routes,
       };
 
       final failures = <String, Set<String>>{};

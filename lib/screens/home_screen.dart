@@ -200,6 +200,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 date: date,
                 review: _mode == _Mode.evening || _yesterday,
               ),
+              if (!_yesterday && system.hasStarted)
+                Center(
+                  child: TextButton.icon(
+                    onPressed: () => context.push('/need'),
+                    icon: const Icon(Icons.support_rounded, size: 18),
+                    label: const Text('What do you need right now?'),
+                  ),
+                ),
               // Everything that isn't today's next action: one tap away.
               if (!_yesterday && system.hasStarted) ...[
                 _PlanToggle(now: _now),

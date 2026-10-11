@@ -84,6 +84,7 @@ Status: ⬜ to do · 🟨 in progress · ✅ done. Effort: S = days, M = a week,
 | 41 | A check-in for two: weekly appreciation, hard, need, plan (Gottman) | S | ✅ |
 | 42 | Question of the day; stake on the partner pact | S | ✅ |
 | 43 | Brag document for reviews, promotion cases and CVs | S | ✅ |
+| 44 | What do you need right now? — moments mapped to tools, from Today | S | ✅ |
 | 24 | Hard days: minimum day, sick day, emergency skips, welcome back (Emin's request) | M | ✅ |
 
 ## P3 — The mass version
