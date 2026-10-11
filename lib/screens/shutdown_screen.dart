@@ -22,6 +22,7 @@ class _ShutdownScreenState extends State<ShutdownScreen> {
   late final List<TextEditingController> _next;
   final _open = TextEditingController();
   final _win = TextEditingController();
+  final _why = TextEditingController();
   late final DateTime _today;
   bool _ready = false;
 
@@ -50,6 +51,7 @@ class _ShutdownScreenState extends State<ShutdownScreen> {
     }
     _open.dispose();
     _win.dispose();
+    _why.dispose();
     super.dispose();
   }
 
@@ -58,7 +60,8 @@ class _ShutdownScreenState extends State<ShutdownScreen> {
     system.completeShutdown(_today,
         tomorrow: [for (final c in _next) c.text],
         open: _open.text,
-        win: _win.text);
+        win: _win.text,
+        why: _why.text);
     HapticFeedback.heavyImpact();
     toast(context,
         'Shutdown complete. Tomorrow is on paper — the day is closed.');
@@ -137,12 +140,21 @@ class _ShutdownScreenState extends State<ShutdownScreen> {
             ],
           ),
         ),
-        const SectionHeader('3 · One good thing today'),
+        const SectionHeader('3 · Good things today'),
         TextField(
           controller: _win,
+          minLines: 1,
+          maxLines: 3,
           style: AppText.body(color: AppColors.white),
           decoration: const InputDecoration(
-              hintText: 'What went well? Saved as a win.'),
+              hintText: 'One to three things that went well, one per line'),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _why,
+          style: AppText.body(color: AppColors.white),
+          decoration: const InputDecoration(
+              hintText: 'Why did the first one happen? (makes it repeatable)'),
         ),
         const SectionHeader('4 · Still open in your head?'),
         TextField(

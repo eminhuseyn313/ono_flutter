@@ -1900,11 +1900,21 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// quiets them (Masicampo & Baumeister 2011); a written to-do list before
   /// bed shortens sleep onset (Scullin et al. 2018).
   void completeShutdown(DateTime day,
-      {required List<String> tomorrow, String open = '', String win = ''}) {
-    // One good thing, written down (Seligman et al. 2005). It's a win.
-    if (win.trim().isNotEmpty &&
-        !logsOn(day, 'win').any((w) => w.text == win.trim())) {
-      addLog('win', date: dayOnly(day), text: win.trim());
+      {required List<String> tomorrow, String open = '', String win = '', String why = ''}) {
+    // Up to three good things, one per line, and why the first happened
+    // (Seligman et al. 2005: "three good things" lifted happiness for six
+    // months). Each is a win.
+    final goods = [
+      for (final l in win.split('\n'))
+        if (l.trim().isNotEmpty) l.trim()
+    ].take(3).toList();
+    for (final (i, g) in goods.indexed) {
+      if (!logsOn(day, 'win').any((w) => w.text == g)) {
+        addLog('win',
+            date: dayOnly(day),
+            text: g,
+            data: i == 0 && why.trim().isNotEmpty ? {'why': why.trim()} : const {});
+      }
     }
     final next = dayOnly(day).add(const Duration(days: 1));
     for (var i = 0; i < 3; i++) {

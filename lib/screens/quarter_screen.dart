@@ -62,6 +62,25 @@ class _QuarterScreenState extends State<QuarterScreen> {
         decoration: InputDecoration(hintText: hint),
       );
 
+  /// The quarterly tools not yet done this quarter.
+  List<(IconData, String, String, String)> _deeper(PersonalSystemProvider system) {
+    final odysseyAge = system.odyssey == null
+        ? null
+        : DateTime.now().difference(system.odyssey!.date).inDays;
+    return [
+      if (system.roundFor(system.programQuarter) == null)
+        (Icons.groups_2_outlined, 'Feedback round', 'One question to three people', '/360'),
+      if (system.energyAudit == null)
+        (Icons.battery_charging_full_rounded, 'What gives and drains you',
+            'Rate a normal week, change one thing', '/crafting'),
+      if (odysseyAge == null || odysseyAge > 80)
+        (Icons.explore_outlined, 'Three possible lives',
+            odysseyAge == null ? 'Sketch your options for five years' : 'Revisit the plan you made', '/odyssey'),
+      if (system.bestSelf == null)
+        (Icons.auto_awesome_outlined, 'You, at your best', 'Stories from people who have seen it', '/best-self'),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
@@ -191,6 +210,26 @@ class _QuarterScreenState extends State<QuarterScreen> {
         ],
         SectionHeader('${system.activeGoals.isEmpty ? 4 : 5} · Next quarter'),
         _field(_next, 'The one thing that would make the next 90 days a success'),
+        if (_deeper(system).isNotEmpty) ...[
+          const SectionHeader('Go deeper this quarter'),
+          OnoCard(
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: [
+                for (final (i, d) in _deeper(system).indexed) ...[
+                  if (i > 0) const Divider(indent: 66),
+                  LinkRow(
+                    icon: d.$1,
+                    color: AppColors.skill,
+                    title: d.$2,
+                    subtitle: d.$3,
+                    onTap: () => context.push(d.$4),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
         const SizedBox(height: 16),
       ],
     );

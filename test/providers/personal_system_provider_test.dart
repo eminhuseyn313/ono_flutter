@@ -2007,4 +2007,17 @@ void main() {
     expect(dateKey(p.upkeepNextDue(p.upkeep.firstWhere((u) => u.id == eyes.id))!),
         dateKey(_today.subtract(const Duration(days: 30)).add(const Duration(days: 730))));
   });
+
+  test('three good things: one win per line, the first with its why', () async {
+    final p = await _commissioned();
+    p.completeShutdown(_today,
+        tomorrow: const ['a'],
+        win: 'Calm 1:1\n\nGym before work\nCalled Mum\nA fourth',
+        why: 'I prepared the opening line');
+    final wins = p.logsOn(_today, 'win');
+    expect(wins.map((w) => w.text), ['Calm 1:1', 'Gym before work', 'Called Mum']);
+    expect(wins.first.str('why'), 'I prepared the opening line');
+    p.completeShutdown(_today, tomorrow: const ['a'], win: 'Calm 1:1');
+    expect(p.logsOn(_today, 'win').length, 3, reason: 'no duplicates');
+  });
 }
