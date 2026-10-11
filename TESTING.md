@@ -189,6 +189,20 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] **Export everything** opens the share sheet with the JSON
 - [ ] On a test install only: **Delete everything** → the Delete button stays disabled until you type DELETE → the app returns to setup, reminders are gone, and (production) the `personal_system` row is deleted
 
+## 2zo. New: someone else sees a general app
+- [ ] Fresh install → the welcome screen says what ONO is for anyone (no training plan or career path) → the plan builder starts empty
+- [ ] Build a plan as someone else → Today: the dial has no schedule arcs and its centre shows your next item; the mode card offers check-in / breathe-focus-pause-step back / shutdown; Inputs show review, deep work, movement, learning; the question of the day sits in Your plan
+- [ ] Program shows only the journey (your roles on the spine, general phase text, your area and goals, Close the month); Me has no protocol mastery, readiness or gym body card; the check-in has no shoulder questions; reminders are check-in, daily items, shutdown and Sunday report
+- [ ] The Sunday report shows minutes moved instead of gym sessions; the brief has no scan, BLUF, artifact or LinkedIn lines
+
+## 2zp. New: month review, manual, check-in for two, brag document, journal export
+- [ ] From day 27 Today offers **Close month N** (someone else → `/month-review`; the built-in person → the month page): held days, area rating, wins, goals, lesson, carry-over → Save
+- [ ] Me → People → **How to work with me**: drafted from your values, best-self portrait and energy peak → edit → Save and copy
+- [ ] Me → People → **A check-in for two**: four answers → Save; next week the count says "2 weeks in a row"
+- [ ] Me → Direction → **Brag document**: 3/6 months/all → goals reached, wins by month, feedback, people helped, learning → Copy
+- [ ] Me → Your data & privacy → **Export your journal**: readable text by date
+- [ ] Accountability partner: add a stake → it shows on the pact and in the copied update
+
 ## 2zn. New: step back and decide
 - [ ] Me → Hard days → **Step back**: the questions use your first name → Done → it shows in Log → Notes
 - [ ] **Decide with your values**: a question, two options → each option shows your values with Against/Neutral/For and a total → Choose → 10/10/10 and premortem → saved to Career → Decisions, due for review in 90 days
