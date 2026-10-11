@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import '../data/daily_library.dart';
 import '../data/emin_system.dart';
 import '../data/life_wheel.dart';
+import '../data/plan_packs.dart';
 import '../gateways/personal_system_gateway.dart';
 import '../models/personal_system.dart';
 import '../services/brief_generator.dart';
@@ -1764,17 +1765,82 @@ class PersonalSystemProvider extends ChangeNotifier {
         removeLog(l.id);
       }
     }
-    var i = 0;
-    for (final d in daily) {
-      if (dailyCount >= maxDailyItems) break;
-      if (dailyItems.any((x) => x.title == d.title)) continue;
-      final id = 'd_${_now.microsecondsSinceEpoch}_${i++}';
-      addLog('daily_item',
-          text: d.title, data: {'id': id, 'lane': d.lane, 'when': d.when});
-      setCue(id, d.cue, reschedule: false);
-    }
+    _addIdeas(daily);
     setDone(planBuiltKey, true);
     _syncReminders();
+  }
+
+  /// Adds daily items with their cues, skipping titles already there.
+  /// Returns how many were added.
+  int _addIdeas(List<DailyIdea> ideas) {
+    var added = 0;
+    for (final d in ideas) {
+      if (dailyCount >= maxDailyItems) break;
+      if (dailyItems.any((x) => x.title.toLowerCase() == d.title.toLowerCase())) continue;
+      final id = 'd_${_now.microsecondsSinceEpoch}_${added++}';
+      addLog('daily_item',
+          text: d.title, data: {'id': id, 'lane': d.lane, 'when': d.when});
+      if (d.cue.trim().isNotEmpty) setCue(id, d.cue, reschedule: false);
+    }
+    return added;
+  }
+
+  // ── Plan packs ───────────────────────────────────────────────────────
+
+  /// This plan, to pass on: own growth areas, the daily list with cues,
+  /// the first goal's shape (no numbers or dates) and the stop list.
+  /// Never includes the profile, people or any log.
+  PlanPack myPack({String name = 'My plan', bool withGoal = true}) {
+    final g = activeGoals.firstOrNull;
+    return PlanPack(name,
+        areas: customAreas,
+        goal: !withGoal || g == null
+            ? null
+            : PackGoal(g.text,
+                obstacle: g.str('obstacle') ?? '', plan: g.str('plan') ?? ''),
+        daily: [
+          for (final d in dailyItems) DailyIdea(d.title, d.lane, d.when, '', cueFor(d.id))
+        ],
+        stops: [for (final s in stopList) s.text]);
+  }
+
+  /// Adds a pack to this plan: its areas (skipping names already there),
+  /// its goal (if there is room for one more), daily items and stops.
+  /// [replaceDaily] retires the current daily list first.
+  ({int areas, int items, bool goal}) applyPack(PlanPack pack,
+      {bool replaceDaily = false, bool withGoal = true}) {
+    var areas = 0;
+    for (final a in pack.areas) {
+      if (allGrowthAreas.any((x) => x.name.toLowerCase() == a.name.toLowerCase())) continue;
+      saveCustomArea(a.copyWith(id: ''));
+      areas++;
+    }
+    var goal = false;
+    final g = pack.goal;
+    if (withGoal && g != null && g.title.trim().isNotEmpty &&
+        !activeGoals.any((x) => x.text == g.title)) {
+      final now = _now;
+      goal = saveGoal(
+              title: g.title,
+              obstacle: g.obstacle,
+              plan: g.plan,
+              deadline: DateTime(now.year, now.month + g.months, now.day)) !=
+          null;
+    }
+    if (replaceDaily && pack.daily.length >= minDailyItems) {
+      for (final b in nonNegotiables) {
+        setDone('daily:off:${b.id}', true);
+      }
+      for (final l in logsOf('daily_item')) {
+        removeLog(l.id);
+      }
+    }
+    final items = _addIdeas(pack.daily);
+    for (final s in pack.stops) {
+      if (!stopList.any((x) => x.text == s)) addStop(s);
+    }
+    _syncReminders();
+    return (areas: areas, items: items, goal: goal);
   }
 
   // ── Goals ────────────────────────────────────────────────────────────

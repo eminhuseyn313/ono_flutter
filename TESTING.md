@@ -189,6 +189,10 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] **Export everything** opens the share sheet with the JSON
 - [ ] On a test install only: **Delete everything** → the Delete button stays disabled until you type DELETE → the app returns to setup, reminders are gone, and (production) the `personal_system` row is deleted
 
+## 2zd. New: plan packs
+- [ ] Me → **Plan packs** → open "Money reset" → preview shows areas, goal, daily items with cues, stops → **Use this plan** → the toast counts what was added; using it again adds nothing
+- [ ] **Copy my plan to share** → paste it in Notes: first line "ONO plan: My plan", no names or numbers → copy it back → **Use a plan someone sent you** opens the preview
+
 ## 3. Tools & logging
 - [ ] Morning ritual (from Today before 11:00): 5 steps → finishing ticks the manifesto
 - [ ] Sigh tool: run it → "uses" and mastery level go up; the sigh item is ticked

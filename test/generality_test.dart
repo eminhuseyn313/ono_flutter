@@ -15,7 +15,7 @@ void main() {
         r"\bAli\b|Rustam|Business ID|PASHA|Kapital|Bir Ecosystem|BirBank|Head of Product|Azerbaijan|Baku|\bEmin\b");
     final offenders = <String>[];
     final general = [
-      for (final f in ['growth_templates', 'life_wheel', 'daily_library'])
+      for (final f in ['growth_templates', 'life_wheel', 'daily_library', 'plan_packs'])
         File('lib/data/$f.dart')
     ];
     for (final dir in ['lib/screens', 'lib/providers', 'lib/services', 'lib/widgets', 'supabase/functions', 'GENERAL']) {

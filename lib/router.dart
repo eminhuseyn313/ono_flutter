@@ -40,6 +40,7 @@ import 'screens/round_screen.dart';
 import 'screens/energy_screen.dart';
 import 'screens/plan_builder_screen.dart';
 import 'screens/privacy_screen.dart';
+import 'screens/packs_screen.dart';
 import 'screens/review_screen.dart';
 import 'screens/ritual_flow_screen.dart';
 import 'screens/setback_screen.dart';
@@ -113,6 +114,7 @@ const appRoutes = [
   '/energy',
   '/start',
   '/privacy',
+  '/packs',
   '/goals/edit',
   '/growth/area',
   '/growth/area?template=t_strength',
@@ -189,6 +191,7 @@ GoRouter createRouter(AuthProvider authProvider,
       _slide('/energy', (_) => const EnergyScreen()),
       _slide('/start', (_) => const PlanBuilderScreen()),
       _slide('/privacy', (_) => const PrivacyScreen()),
+      _slide('/packs', (_) => const PacksScreen()),
       _slide(
           '/goals/edit',
           (s) => GoalEditScreen(

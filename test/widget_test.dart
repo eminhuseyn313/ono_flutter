@@ -10,6 +10,7 @@ import 'package:ono/main.dart';
 import 'package:ono/data/emin_system.dart';
 import 'package:ono/data/growth_templates.dart';
 import 'package:ono/data/life_wheel.dart';
+import 'package:ono/data/plan_packs.dart';
 import 'package:ono/gateways/mock_auth_gateway.dart';
 import 'package:ono/gateways/mock_personal_system_gateway.dart';
 import 'package:ono/models/personal_system.dart';
@@ -570,6 +571,24 @@ void main() {
         errors.add('$e');
       }
       if (errors.isNotEmpty) failures['/start steps'] = errors.toSet();
+
+      // Plan packs: a pack's preview sheet renders and fits.
+      errors.clear();
+      try {
+        await _go(tester, '/packs');
+        await tester.tap(find.text(planPacks.first.name));
+        await _pumpFor(tester, const Duration(milliseconds: 800));
+        final title = find.text(planPacks.first.name);
+        if (title.evaluate().length < 2) {
+          errors.add('pack preview did not open');
+        } else {
+          Navigator.of(tester.element(title.last)).pop();
+        }
+        await _pumpFor(tester, const Duration(milliseconds: 500));
+      } catch (e) {
+        errors.add('$e');
+      }
+      if (errors.isNotEmpty) failures['/packs preview'] = errors.toSet();
 
       // Me: the seeded caffeine cut-offs show as a pattern.
       await _go(tester, '/profile');

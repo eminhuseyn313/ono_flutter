@@ -434,6 +434,14 @@ class MeScreen extends StatelessWidget {
               ),
               const Divider(indent: 66),
               LinkRow(
+                icon: Icons.inventory_2_outlined,
+                color: AppColors.accent,
+                title: 'Plan packs',
+                subtitle: 'Start from a ready plan, or share yours',
+                onTap: () => context.push('/packs'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
                 icon: Icons.badge_outlined,
                 color: AppColors.accent,
                 title: 'Your profile',

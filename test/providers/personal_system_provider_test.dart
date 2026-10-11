@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ono/data/emin_system.dart';
 import 'package:ono/data/daily_library.dart';
 import 'package:ono/data/growth_templates.dart';
+import 'package:ono/data/plan_packs.dart';
 import 'package:ono/data/life_wheel.dart';
 import 'package:ono/gateways/mock_auth_gateway.dart';
 import 'package:ono/gateways/mock_personal_system_gateway.dart';
@@ -1615,5 +1616,41 @@ void main() {
     final reloaded = await MockPersonalSystemGateway().load('test');
     expect(reloaded.commissioned, isFalse);
     expect(reloaded.logs, isEmpty);
+  });
+
+  test('plan packs: built-ins apply once, mine travels as text without personal data',
+      () async {
+    final p = await _commissioned();
+    final pack = planPacks.firstWhere((x) => x.name == 'Money reset');
+    final before = p.dailyCount;
+    final r = p.applyPack(pack);
+    expect(r.areas, 1);
+    expect(r.items, pack.daily.length);
+    expect(r.goal, isTrue);
+    expect(p.dailyCount, before + pack.daily.length);
+    expect(p.stopList.map((s) => s.text), contains(pack.stops.first));
+    final again = p.applyPack(pack);
+    expect((again.areas, again.items, again.goal), (0, 0, false));
+
+    p.addPerson('Leyla', role: 'Friend');
+    final text = p.myPack(name: 'Shared').toText();
+    expect(text, startsWith('ONO plan: Shared'));
+    expect(text, isNot(contains('Leyla')));
+    expect(text, isNot(contains(activeProfile.name)));
+    final back = PlanPack.fromText('Try this:\n$text\nGood luck')!;
+    expect(back.daily.length, p.dailyCount);
+    expect(back.areas.single.name, startsWith('Money'));
+    expect(back.goal!.title, pack.goal!.title);
+    expect(PlanPack.fromText('no plan here'), isNull);
+
+    final fresh = PersonalSystemProvider(gateway: MockPersonalSystemGateway())
+      ..clock = () => _today;
+    await fresh.load('someone-else');
+    await fresh.commission(
+        start: _start, gymDays: const [1], reminders: const {});
+    expect(fresh.activeGoals, isEmpty);
+    fresh.applyPack(back, replaceDaily: true, withGoal: false);
+    expect(fresh.dailyCount, back.daily.length);
+    expect(fresh.activeGoals, isEmpty);
   });
 }

@@ -192,6 +192,15 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
   }
 
   List<Widget> _you() => [
+        if (_step == 0)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: TextButton.icon(
+              onPressed: () => context.push('/packs'),
+              icon: const Icon(Icons.inventory_2_outlined, size: 18),
+              label: const Text('Or start from a ready-made plan'),
+            ),
+          ),
         _field(_name, 'Your name', 'First and last'),
         _field(_current, 'What you do now', 'e.g. Team lead, nurse, student, runner'),
         _field(_target, 'Who you want to become', 'e.g. Director, sub-4 marathoner, a calmer parent'),
