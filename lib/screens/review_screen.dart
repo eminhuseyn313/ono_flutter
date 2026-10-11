@@ -184,6 +184,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
                       'lesson' => 'A LESSON YOU WROTE',
                       'principle' => 'FROM YOUR LEARNING',
                       'value' => 'YOUR VALUE',
+                      'goal' => 'A GOAL YOU REACHED',
                       _ => system.scheduleOf(card.id) == null
                           ? 'NEW CARD'
                           : 'REVIEW',

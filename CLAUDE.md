@@ -185,6 +185,7 @@ Flow:
   - A `goal` log: text = the wish; `why`, `obstacle`, `plan` (WOOP), `identity`, `deadline`, `areas` (growth area ids), `status` (active/achieved/dropped, `closed_on`).
   - Measured by a number (`unit`, `start`, `target`; lower-is-better works) with `goal_value` logs, or by `milestones` (`{text, done}`; ticks survive edits).
   - `goalProgress` 0–1, `goalExpected` (straight line from start to deadline), `goalPace` (ahead/on track/behind, ±10 points). `goalsToMeasure` = numeric goals unmeasured for 14+ days (Today prompt).
+  - Closing a goal (achieved or dropped) asks to look back: `reflectOnGoal(id, whatWorked:, advice:)` stores `reflection`/`advice` on the goal; an achieved one also logs a win and becomes a `goal:` review card. `goalsToReflect` (closed in the last 14 days, no reflection) prompts on Today.
   - Today's Goals card sits above the growth card; the profile suggests "Become <targetRole>"; `goalSummaries()` feed the brief.
 - **Progress note** (`/note`): `progressNoteText(week, to:, ask:)` from goals, the Big 3, the growth area's reps and lesson, and wins; editable; "Copy and mark sent" writes a `progress_note` log (ONO never sends anything). Defaults to the profile's primary person. `noteDue` (Fri–Sun, something to report, not sent) prompts on Today; the brief gets `noteSent`.
 - **Setback protocol** (`/setback`): kindness, facts, smallest next step → `setback` log; the next step fills today's first empty priority. Offered on the recovery card and Me; the brief counts `setbacksInWeek`.

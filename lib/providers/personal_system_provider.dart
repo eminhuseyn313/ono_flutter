@@ -764,6 +764,14 @@ class PersonalSystemProvider extends ChangeNotifier {
               '${l.str('principle')!.trim()}${(l.str('experiment') ?? '').isEmpty ? '' : '\n\nYour experiment: ${l.str('experiment')}'}',
               source: 'principle',
             ),
+        for (final g in goals)
+          if (g.str('status') == 'achieved' && (g.str('reflection') ?? '').isNotEmpty)
+            StudyCard(
+              'goal:${g.id}',
+              'What made "${g.text}" happen?',
+              '${g.str('reflection')}${(g.str('advice') ?? '').isEmpty ? '' : '\n\nTo someone starting: ${g.str('advice')}'}',
+              source: 'goal',
+            ),
         for (final v in values)
           if (v.meaning.trim().isNotEmpty)
             StudyCard(
@@ -2691,6 +2699,34 @@ class PersonalSystemProvider extends ChangeNotifier {
       'status': status,
       'closed_on': status == 'active' ? null : dateKey(_now),
     }));
+  }
+
+  /// Looking back at a closed goal: what made it happen (or why it was
+  /// dropped and what that taught), and what you'd tell someone starting.
+  /// An achieved goal's reflection becomes a review card and a win.
+  void reflectOnGoal(String id, {required String whatWorked, String advice = ''}) {
+    final g = goalById(id);
+    if (g == null || whatWorked.trim().isEmpty) return;
+    updateLog(g.copyWith(data: {
+      ...g.data,
+      'reflection': whatWorked.trim(),
+      'advice': advice.trim(),
+    }));
+    if (g.str('status') == 'achieved') {
+      addLog('win', text: 'Achieved: ${g.text}');
+    }
+  }
+
+  /// Goals closed in the last 14 days with no reflection yet.
+  List<LogEntry> get goalsToReflect {
+    final since = dateKey(dayOnly(_now).subtract(const Duration(days: 14)));
+    return [
+      for (final g in goals)
+        if ((g.str('status') ?? 'active') != 'active' &&
+            (g.str('reflection') ?? '').isEmpty &&
+            (g.str('closed_on') ?? '').compareTo(since) >= 0)
+          g
+    ];
   }
 
   /// Removes a goal and its measurements.

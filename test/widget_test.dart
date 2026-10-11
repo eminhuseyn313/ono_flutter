@@ -564,6 +564,16 @@ void main() {
         }
         await _go(tester, '/goals/view?id=${roleGoal!.id}');
         await _go(tester, '/goals/edit?id=${run.id}');
+        // A closed goal asks to look back, then shows the reflection.
+        final done = system.saveGoal(title: 'Read twelve books this year')!;
+        system.setGoalStatus(done.id, 'achieved');
+        await _go(tester, '/goals/view?id=${done.id}');
+        if (find.text('Look back').evaluate().isEmpty) errors.add('no look-back on a closed goal');
+        system.reflectOnGoal(done.id,
+            whatWorked: 'Twenty pages every night before the phone, and a list of the next three books ready.',
+            advice: 'Start with short books.');
+        await _go(tester, '/goals/view?id=${done.id}');
+        if (find.text('What made it happen').evaluate().isEmpty) errors.add('reflection not shown');
         await _go(tester, '/home');
       } catch (e) {
         errors.add('$e');

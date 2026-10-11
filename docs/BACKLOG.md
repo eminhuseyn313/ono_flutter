@@ -72,6 +72,7 @@ Status: ⬜ to do · 🟨 in progress · ✅ done. Effort: S = days, M = a week,
 | 29 | Someone else sees a general app: the built-in plan's schedule, gym, journey content, job areas, health fields and seed cards only for the built-in person | L | ✅ |
 | 30 | Hard conversations: prepare (wants, facts vs story, their story, first sentence, ask) and debrief | M | ✅ |
 | 31 | People you're helping grow: what they work on, your next help, help given (protégé effect) | S | ✅ |
+| 32 | Look back when a goal closes: what made it happen, advice to someone starting → win + review card | S | ✅ |
 | 24 | Hard days: minimum day, sick day, emergency skips, welcome back (Emin's request) | M | ✅ |
 
 ## P3 — The mass version

@@ -313,11 +313,22 @@ class _GoalScreenState extends State<GoalScreen> {
               ),
             ],
           ),
-        ] else
+        ] else ...[
+          if ((g.str('reflection') ?? '').isNotEmpty) ...[
+            SectionHeader(g.str('status') == 'achieved' ? 'What made it happen' : 'What dropping it taught'),
+            Text(g.str('reflection')!, style: AppText.body(color: AppColors.white)),
+            if ((g.str('advice') ?? '').isNotEmpty) ...[
+              const SizedBox(height: 6),
+              Text('To someone starting: ${g.str('advice')}', style: AppText.small()),
+            ],
+          ] else
+            _GoalReflection(goal: g),
+          const SizedBox(height: 8),
           TextButton(
             onPressed: () => system.setGoalStatus(g.id, 'active'),
             child: const Text('Reopen'),
           ),
+        ],
         const SizedBox(height: 16),
       ],
     );
@@ -566,6 +577,63 @@ class _GoalEditScreenState extends State<GoalEditScreen> {
           ),
         ],
         const SizedBox(height: 16),
+      ],
+    );
+  }
+}
+
+/// Looking back once a goal is closed.
+class _GoalReflection extends StatefulWidget {
+  final LogEntry goal;
+  const _GoalReflection({required this.goal});
+
+  @override
+  State<_GoalReflection> createState() => _GoalReflectionState();
+}
+
+class _GoalReflectionState extends State<_GoalReflection> {
+  final _worked = TextEditingController();
+  final _advice = TextEditingController();
+
+  @override
+  void dispose() {
+    _worked.dispose();
+    _advice.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final achieved = widget.goal.str('status') == 'achieved';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SectionHeader('Look back'),
+        TextField(
+          controller: _worked,
+          minLines: 2,
+          maxLines: 5,
+          style: AppText.body(color: AppColors.white),
+          decoration: InputDecoration(
+              hintText: achieved
+                  ? 'What made it happen? Habits, people, decisions'
+                  : 'Why drop it — and what did it teach you?'),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _advice,
+          minLines: 1,
+          maxLines: 3,
+          style: AppText.body(color: AppColors.white),
+          decoration: const InputDecoration(hintText: 'What would you tell someone starting it?'),
+        ),
+        const SizedBox(height: 10),
+        GhostButton('Save', icon: Icons.check_rounded, onPressed: () {
+          context
+              .read<PersonalSystemProvider>()
+              .reflectOnGoal(widget.goal.id, whatWorked: _worked.text, advice: _advice.text);
+          toast(context, achieved ? 'Saved — and added to your wins.' : 'Saved.');
+        }),
       ],
     );
   }

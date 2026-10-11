@@ -1112,6 +1112,10 @@ class _PromptsState extends State<_Prompts> {
         _row(context, Icons.balance_rounded, AppColors.accent,
             'Decision review due',
             '"${reviews.first.text}" — was the call right?', '/cockpit?tab=1'),
+      if (system.goalsToReflect.firstOrNull case final g?)
+        _row(context, Icons.emoji_events_outlined, AppColors.accent,
+            g.str('status') == 'achieved' ? 'You reached "${g.text}"' : 'Look back at "${g.text}"',
+            'Two minutes: what made the difference', '/goals/view?id=${g.id}'),
       if (system.conversationsDue(now).firstOrNull case final c?)
         _row(context, Icons.forum_outlined, AppColors.social,
             'The conversation with ${c.str('with')}',

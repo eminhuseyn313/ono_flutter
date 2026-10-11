@@ -1961,4 +1961,19 @@ void main() {
     p.removePerson(sam.id);
     expect(p.logsOf('help'), isEmpty);
   });
+
+  test('closing a goal asks for a look back; achieved ones become a win and a card',
+      () async {
+    final p = await _commissioned();
+    final g = p.saveGoal(title: 'Run a half marathon')!;
+    expect(p.goalsToReflect, isEmpty);
+    p.setGoalStatus(g.id, 'achieved');
+    expect(p.goalsToReflect.single.id, g.id);
+    p.reflectOnGoal(g.id, whatWorked: '', advice: 'x');
+    expect(p.goalsToReflect, isNotEmpty, reason: 'empty reflection ignored');
+    p.reflectOnGoal(g.id, whatWorked: 'Three runs a week, one long', advice: 'Go slow');
+    expect(p.goalsToReflect, isEmpty);
+    expect(p.logsOf('win').first.text, 'Achieved: Run a half marathon');
+    expect(p.allCards.any((c) => c.id == 'goal:${g.id}'), isTrue);
+  });
 }
