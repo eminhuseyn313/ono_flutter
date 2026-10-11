@@ -321,6 +321,14 @@ class MeScreen extends StatelessWidget {
               ),
               const Divider(indent: 66),
               LinkRow(
+                icon: Icons.workspace_premium_outlined,
+                color: AppColors.accent,
+                title: 'Brag document',
+                subtitle: 'What you\'ve done, ready for a review or a CV',
+                onTap: () => context.push('/brag'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
                 icon: Icons.mail_outline_rounded,
                 color: AppColors.accent,
                 title: 'Letters to future you',

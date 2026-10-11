@@ -2135,4 +2135,20 @@ void main() {
     p.setPartner('Sam', mine: 'Run', theirs: 'Write', weekday: 5, stake: 'Coffee');
     expect(p.partnerUpdateText(_today), contains('Our stake if we miss: Coffee'));
   });
+
+  test('brag document gathers goals, wins by month, feedback, help and learning',
+      () async {
+    final p = await _commissioned();
+    final g = p.saveGoal(title: 'Launch the onboarding redesign')!;
+    p.setGoalStatus(g.id, 'achieved');
+    p.reflectOnGoal(g.id, whatWorked: 'Weekly user tests');
+    final sam = p.addPerson('Sam');
+    p.logHelp(sam, 'Reviewed slides');
+    final text = p.bragText();
+    expect(text, contains('GOALS REACHED'));
+    expect(text, contains('How: Weekly user tests'));
+    expect(text, contains('Achieved: Launch the onboarding redesign'));
+    expect(text, contains('October 2026'));
+    expect(text, contains('1 time, 1 person: Sam'));
+  });
 }

@@ -50,6 +50,7 @@ import 'screens/upkeep_screen.dart';
 import 'screens/mind_tools_screens.dart';
 import 'screens/month_review_screen.dart';
 import 'screens/together_screens.dart';
+import 'screens/brag_screen.dart';
 import 'screens/review_screen.dart';
 import 'screens/ritual_flow_screen.dart';
 import 'screens/setback_screen.dart';
@@ -138,6 +139,7 @@ const appRoutes = [
   '/month-review',
   '/manual',
   '/us',
+  '/brag',
   '/goals/edit',
   '/growth/area',
   '/growth/area?template=t_strength',
@@ -229,6 +231,7 @@ GoRouter createRouter(AuthProvider authProvider,
       _slide('/month-review', (_) => const MonthReviewScreen()),
       _slide('/manual', (_) => const ManualScreen()),
       _slide('/us', (_) => const UsScreen()),
+      _slide('/brag', (_) => const BragScreen()),
       _slide(
           '/goals/edit',
           (s) => GoalEditScreen(

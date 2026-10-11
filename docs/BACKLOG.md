@@ -82,6 +82,8 @@ Status: ⬜ to do · 🟨 in progress · ✅ done. Effort: S = days, M = a week,
 | 39 | Journal export as readable text | S | ✅ |
 | 40 | How to work with me: a personal user manual drafted from your data | S | ✅ |
 | 41 | A check-in for two: weekly appreciation, hard, need, plan (Gottman) | S | ✅ |
+| 42 | Question of the day; stake on the partner pact | S | ✅ |
+| 43 | Brag document for reviews, promotion cases and CVs | S | ✅ |
 | 24 | Hard days: minimum day, sick day, emergency skips, welcome back (Emin's request) | M | ✅ |
 
 ## P3 — The mass version

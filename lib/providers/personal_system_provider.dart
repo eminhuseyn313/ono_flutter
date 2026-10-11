@@ -4524,6 +4524,85 @@ class PersonalSystemProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ── Brag document ────────────────────────────────────────────────────
+
+  /// Everything you achieved, for a review, a promotion or a CV: goals
+  /// reached with what made them happen, wins by month, what others said,
+  /// people you helped grow and what you learned and applied. Memory is
+  /// unreliable at review time; a running record isn't.
+  String bragText({DateTime? since}) {
+    final from = since ?? programStart;
+    bool after(LogEntry l) => !l.date.isBefore(from);
+    final b = StringBuffer()
+      ..writeln('${activeProfile.name} — what I\'ve done since ${dateKey(from)}')
+      ..writeln(activeProfile.roleLine);
+    final achieved = [
+      for (final g in goals)
+        if (g.str('status') == 'achieved' && (g.str('closed_on') ?? '').compareTo(dateKey(from)) >= 0) g
+    ];
+    if (achieved.isNotEmpty) {
+      b
+        ..writeln()
+        ..writeln('GOALS REACHED');
+      for (final g in achieved) {
+        b.writeln('• ${g.text} (${g.str('closed_on')})');
+        if ((g.str('reflection') ?? '').isNotEmpty) b.writeln('  How: ${g.str('reflection')}');
+      }
+    }
+    final wins = [for (final w in logsOf('win')) if (after(w)) w];
+    if (wins.isNotEmpty) {
+      b
+        ..writeln()
+        ..writeln('WINS');
+      String? month;
+      for (final w in wins) {
+        const names = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
+          'August', 'September', 'October', 'November', 'December'];
+        final m = '${names[w.date.month - 1]} ${w.date.year}';
+        if (m != month) {
+          b.writeln(m);
+          month = m;
+        }
+        b.writeln('• ${w.text}');
+      }
+    }
+    final themes = [
+      for (final r in logsOf('feedback_round'))
+        if (after(r) && (r.str('themes') ?? '').isNotEmpty) r.str('themes')!
+    ];
+    final portrait = bestSelfPortrait;
+    if (themes.isNotEmpty || portrait != null) {
+      b
+        ..writeln()
+        ..writeln('WHAT OTHERS SAY');
+      for (final t in themes) {
+        b.writeln('• $t');
+      }
+      if (portrait != null) b.writeln('• At my best: $portrait');
+    }
+    final helped = [for (final h in logsOf('help')) if (after(h)) h];
+    if (helped.isNotEmpty) {
+      final names = {for (final h in helped) h.str('name') ?? ''}..remove('');
+      b
+        ..writeln()
+        ..writeln('PEOPLE I HELPED GROW')
+        ..writeln('• ${helped.length} time${helped.length == 1 ? '' : 's'}, ${names.length} ${names.length == 1 ? 'person' : 'people'}: ${names.join(', ')}');
+    }
+    final learned = [
+      for (final l in learningWith('done'))
+        if ((l.str('principle') ?? '').isNotEmpty) l
+    ];
+    if (learned.isNotEmpty) {
+      b
+        ..writeln()
+        ..writeln('LEARNED AND APPLIED');
+      for (final l in learned.take(8)) {
+        b.writeln('• ${l.text}: ${l.str('principle')}');
+      }
+    }
+    return b.toString().trim();
+  }
+
   // ── Question of the day ──────────────────────────────────────────────
 
   /// Today's question, rotating through [dailyQuestions] by program day.
