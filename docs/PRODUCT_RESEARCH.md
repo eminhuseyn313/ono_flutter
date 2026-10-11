@@ -97,6 +97,27 @@ Every item passes both tests: useful to Emin now, and useful to anyone. Effort: 
 | G2 | **Energy audit and one job-crafting move** (rate a normal week's activities; do more, less, or reshape one) | Shape the PO role towards what energises him | Home and family work too | Wrzesniewski & Dutton 2001; Rudolph et al. 2017 (meta-analysis: job crafting ↔ engagement, performance) | S |
 | G3 | **Reflected best self** (stories of you at your best from people in different parts of life → themes → portrait) | Self-trust, one of his three personal areas | Anyone who doubts their strengths | Roberts, Spreitzer, Dutton et al., HBR 2005 | S |
 
+### H. Third pass: the whole person, for anyone (built overnight, 11–12 Oct 2026)
+| # | Feature | For Emin now | For anyone | Evidence | Status |
+|---|---|---|---|---|---|
+| H1 | **Movement minutes** (vigorous ×2) and strength days | Walking and running count, not only gym | Every adult | WHO 2020 physical activity guidelines | ✅ |
+| H2 | **Hard conversations** (wants for me/them/us, facts vs story, their story, first sentence, ask, debrief) | Feedback and stakeholder moments | Partners, parents, leaders | Patterson et al., *Crucial Conversations*; Stone, Patton & Heen, *Difficult Conversations* | ✅ |
+| H3 | **People you're helping grow** | Developing his team | Mentors, parents, coaches | Protégé effect (Nestojko et al. 2014) | ✅ |
+| H4 | **Look back when a goal closes** | Turns wins into lessons | Anyone | After-action reviews; testing effect for the resulting card | ✅ |
+| H5 | **Money check-in** (savings rate, buffer, one decision) | Household finance | Anyone | Self-monitoring (Harkin et al. 2016) | ✅ |
+| H6 | **Health upkeep** (checkups with intervals you set) | Bloodwork and checkups with RA | Anyone | Preventive care adherence improves with reminders; no medical advice given | ✅ |
+| H7 | **Three good things** at shutdown | Evening reflection | Anyone | Seligman et al. 2005 | ✅ |
+| H8 | **Step back** (self-distanced talk) | Composure under pressure | Anyone in a hard moment | Kross et al. 2014; temporal distancing (Bruehlman-Senecal & Ayduk 2015) | ✅ |
+| H9 | **Decide with your values** (+10/10/10, premortem) | Life and career choices | Anyone | Values clarification; premortem (Klein 2007) | ✅ |
+| H10 | **Month review for anyone** | — (has his own) | Monthly loop for every plan | Reflection in Kolb's cycle; fresh-start effect | ✅ |
+| H11 | **Journal export** | Owns his reflections | Data ownership | Trust and portability | ✅ |
+| H12 | **How to work with me** (user manual) | His team | Teams, partners | Common leadership practice; psychological safety | ✅ |
+| H13 | **A check-in for two** | Marriage | Couples | Gottman & Silver 1999 (rituals of connection, appreciation) | ✅ |
+| H14 | **Question of the day** | — (has coach tips) | Daily reflection for anyone | Expressive writing and reflection literature | ✅ |
+| H15 | **Stake on the partner pact** | Optional | Anyone with a partner | Commitment contracts (Giné, Karlan & Zinman 2010) | ✅ |
+
+Also overnight: anyone but the built-in person now sees a general app (Today, Program, growth areas, check-in, brief, reminders, welcome), with a test that fails if the built-in plan's specifics leak.
+
 ### E. Relationships
 | # | Feature | For Emin now | For anyone | Evidence | Effort |
 |---|---|---|---|---|---|
