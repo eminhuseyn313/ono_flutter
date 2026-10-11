@@ -280,6 +280,7 @@ class _EntryRow extends StatelessWidget {
     'feedback_round': (Icons.groups_2_outlined, 'social', 'Feedback round'),
     'energy': (Icons.bolt_outlined, 'mind', 'Energy'),
     'wheel': (Icons.donut_large_rounded, 'mind', 'Life wheel'),
+    'hard_day': (Icons.healing_outlined, 'body', 'Hard day'),
     'detach': (Icons.power_settings_new_rounded, 'mind', 'Switched off'),
     'setback': (Icons.replay_rounded, 'mind', 'Setback, reset'),
     'affirmation': (Icons.diamond_outlined, 'mind', 'Values affirmation'),
@@ -335,6 +336,8 @@ class _EntryRow extends StatelessWidget {
       case 'focus':
         final t = e.str('target');
         return '${e.number('minutes')} min${t == 'artifact' ? ' · artifact' : t == 'skill' ? ' · skill' : ''}';
+      case 'hard_day':
+        return PersonalSystemProvider.hardDayKinds[e.str('kind')] ?? 'Hard day';
       case 'wheel':
         final w = (e.data['wheel'] as Map? ?? const {});
         return '${w.length} areas rated';

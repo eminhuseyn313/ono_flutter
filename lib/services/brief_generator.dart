@@ -83,6 +83,9 @@ class BriefInput {
   /// The theme from their latest quarterly feedback round.
   final String? feedbackThemes;
 
+  /// Hard days this week by kind: minimum days, sick days, emergency skips.
+  final Map<String, int> hardDays;
+
   /// Who the brief is for: names, roles, key people and coach context.
   final Profile profile;
 
@@ -126,6 +129,7 @@ class BriefInput {
     this.itemCount = 10,
     this.energyPeak,
     this.feedbackThemes,
+    this.hardDays = const {},
   }) : profile = profile ?? activeProfile;
 
   Map<String, dynamic> toJson() => {
@@ -138,6 +142,7 @@ class BriefInput {
         'experiments': experiments,
         'rest_planned_next_8_weeks': restPlanned,
         'energy_peak': energyPeak,
+        'hard_days': hardDays,
         'feedback_round_theme': feedbackThemes,
         'report': report.toJson(),
         'for_week': dateKey(forWeek),
@@ -294,6 +299,10 @@ class DeviceBriefGenerator implements BriefGenerator {
         'Shoulders flagged on ${input.shoulderFlagDays} mornings. Keep the shoulder-sparing sessions and bring the check-in log to your rheumatologist.',
       if (input.avgSleep != null && input.avgSleep! < 7)
         'Average sleep ${input.avgSleep!.toStringAsFixed(1)} h. Protect 22:30 before adding anything else — sleep sets tomorrow\'s mind.',
+      if ((input.hardDays['sick'] ?? 0) >= 2)
+        'You were sick ${input.hardDays['sick']} days. Come back with the minimum version of each item for two days before the full plan — and if it isn\'t getting better, see a doctor.'
+      else if ((input.hardDays['pass'] ?? 0) + (input.hardDays['minimum'] ?? 0) >= 3)
+        '${(input.hardDays['pass'] ?? 0) + (input.hardDays['minimum'] ?? 0)} hard days this week. Look at what kept happening — if it will happen again, change the plan, not your opinion of yourself.',
       if (input.goals.isEmpty)
         'No goals set. Name the one outcome that would make the next six months a success — and the obstacle most likely to stop you.',
       if (behind.isNotEmpty)

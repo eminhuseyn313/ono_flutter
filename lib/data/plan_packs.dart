@@ -52,7 +52,13 @@ class PlanPack {
         if (goal != null) 'goal': goal!.toJson(),
         'daily': [
           for (final d in daily)
-            {'title': d.title, 'lane': d.lane, 'when': d.when, 'cue': d.cue}
+            {
+              'title': d.title,
+              'lane': d.lane,
+              'when': d.when,
+              'cue': d.cue,
+              if (d.minimum.isNotEmpty) 'min': d.minimum,
+            }
         ],
         'stops': stops,
       };
@@ -70,7 +76,8 @@ class PlanPack {
           for (final d in (m['daily'] as List? ?? const []))
             if (d is Map && '${d['title'] ?? ''}'.trim().isNotEmpty)
               DailyIdea('${d['title']}', '${d['lane'] ?? 'mind'}',
-                  '${d['when'] ?? 'day'}', '', '${d['cue'] ?? ''}')
+                  '${d['when'] ?? 'day'}', '', '${d['cue'] ?? ''}',
+                  minimum: '${d['min'] ?? ''}')
         ],
         stops: [for (final s in (m['stops'] as List? ?? const [])) '$s'],
       );
@@ -110,7 +117,8 @@ final List<PlanPack> planPacks = [
         _idea('Write today\'s three priorities'),
         _idea('One focused block on the most important work'),
         const DailyIdea('One real conversation with someone on the team', 'social', 'day', 'career',
-            'When I walk past someone\'s desk or open chat, I ask how their week is really going.'),
+            'When I walk past someone\'s desk or open chat, I ask how their week is really going.',
+            minimum: 'One genuine question in chat'),
         _idea('Close the day: tomorrow\'s three on paper'),
       ],
       stops: const ['Answering every message within minutes']),

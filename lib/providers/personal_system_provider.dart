@@ -88,7 +88,7 @@ class PersonalSystemProvider extends ChangeNotifier {
       dateKey: dateKey(today),
       score: scoreFor(today),
       total: dailyCount,
-      target: holdTarget,
+      target: targetFor(today),
       streak: streak,
       programDay: hasStarted ? programDay : 0,
       protein: proteinFor(today),
@@ -239,7 +239,146 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// Holding the day = 70% of the items (7 of 10), at least 1.
   int get holdTarget => dailyCount == 0 ? 1 : (dailyCount * 0.7).ceil();
 
-  bool isHeld(DateTime date) => scoreFor(date) >= holdTarget;
+  bool isHeld(DateTime date) => scoreFor(date) >= targetFor(date);
+
+  /// What holds [date]: the usual 70%, or half on a minimum day.
+  int targetFor(DateTime date) => isMinimumDay(date) ? minimumTarget : holdTarget;
+
+  /// Half the items, rounded up: the minimum day's bar.
+  int get minimumTarget => dailyCount == 0 ? 1 : (dailyCount / 2).ceil();
+
+  // ── Hard days ────────────────────────────────────────────────────────
+
+  /// Days the plan can't be kept as written. A minimum day lowers the bar
+  /// to the smallest version of each item; an emergency skip and a sick
+  /// day are neutral for the streak, like planned rest. Skips are a small
+  /// monthly reserve: goals with an emergency reserve are kept more often
+  /// than easy or rigid ones (Sharif & Shu 2019).
+  static const hardDayKinds = {
+    'minimum': 'Minimum day',
+    'sick': 'Sick day',
+    'pass': 'Emergency skip',
+  };
+
+  /// Emergency skips per program month; unused ones don't roll over.
+  static const passesPerMonth = 2;
+
+  // Day-by-day lookups run for every day of the streak, so hard days and
+  // rest ranges are indexed once per state.
+  PersonalSystemState? _indexedState;
+  Map<String, String> _hardIndex = const {};
+  List<({DateTime from, DateTime to, bool rest})> _restIndex = const [];
+
+  void _reindex() {
+    if (identical(_indexedState, _state)) return;
+    _indexedState = _state;
+    final hard = <String, String>{};
+    final rest = <({DateTime from, DateTime to, bool rest})>[];
+    for (final l in _state?.logs ?? const <LogEntry>[]) {
+      if (l.type == 'hard_day') {
+        hard[dateKey(l.date)] = l.str('kind') ?? '';
+      } else if (l.type == 'rest') {
+        final from = DateTime.tryParse(l.str('from') ?? '');
+        final to = DateTime.tryParse(l.str('to') ?? '');
+        if (from != null && to != null) {
+          rest.add((from: from, to: to, rest: l.str('kind') != 'light'));
+        }
+      }
+    }
+    _hardIndex = hard;
+    _restIndex = rest;
+  }
+
+  String? hardDayOn(DateTime day) {
+    _reindex();
+    return _hardIndex[dateKey(day)];
+  }
+
+  int passesUsedInMonth(int month) {
+    final from = monthStart(month), to = monthStart(month + 1);
+    return logsOf('hard_day')
+        .where((l) =>
+            l.str('kind') == 'pass' && !l.date.isBefore(from) && l.date.isBefore(to))
+        .length;
+  }
+
+  int get passesLeft => passesPerMonth - passesUsedInMonth(programMonth);
+
+  /// Marks [day] (today or yesterday) as a hard day, or clears it with
+  /// null. A skip needs one left in that day's month. Returns false when
+  /// refused.
+  bool setHardDay(DateTime day, String? kind, {String note = ''}) {
+    final d = dayOnly(day);
+    final existing = logsOn(d, 'hard_day');
+    if (kind == null) {
+      for (final l in existing) {
+        removeLog(l.id);
+      }
+      return true;
+    }
+    if (!hardDayKinds.containsKey(kind)) return false;
+    if (kind == 'pass' && hardDayOn(d) != 'pass') {
+      final month = d.difference(programStart).inDays ~/ 30 + 1;
+      if (passesUsedInMonth(month) >= passesPerMonth) return false;
+    }
+    _upsertDayLog('hard_day', d, {'kind': kind, 'note': note.trim()});
+    return true;
+  }
+
+  /// Neither held nor missed: planned rest, a sick day or a skip.
+  bool isExcused(DateTime day) =>
+      isRestDay(day) || const {'sick', 'pass'}.contains(hardDayOn(day));
+
+  /// The first day back after being sick, or after two or more days off:
+  /// the minimum counts, so the return is easy (a lapse becomes a relapse
+  /// when the first day back feels impossible).
+  bool isReentryDay(DateTime day) {
+    final d = dayOnly(day);
+    if (isExcused(d)) return false;
+    final prev = d.subtract(const Duration(days: 1));
+    if (prev.isBefore(programStart)) return false;
+    if (hardDayOn(prev) == 'sick') return true;
+    return isExcused(prev) && isExcused(prev.subtract(const Duration(days: 1)));
+  }
+
+  bool isMinimumDay(DateTime day) =>
+      hardDayOn(day) == 'minimum' || isReentryDay(day);
+
+  /// Sick days in a row up to [day].
+  int sickDaysInRow(DateTime day) {
+    var n = 0;
+    for (var d = dayOnly(day); hardDayOn(d) == 'sick'; d = d.subtract(const Duration(days: 1))) {
+      n++;
+    }
+    return n;
+  }
+
+  /// Hard days in the week of [anyDay], by kind.
+  Map<String, int> hardDaysInWeek(DateTime anyDay) {
+    final out = <String, int>{};
+    for (final d in weekDays(anyDay)) {
+      final k = hardDayOn(d);
+      if (k != null) out[k] = (out[k] ?? 0) + 1;
+    }
+    return out;
+  }
+
+  /// The smallest version of an item, for hard days.
+  String minimumFor(String id) =>
+      _state?.cues['min:$id'] ?? defaultMinimums[id] ?? '';
+
+  void setMinimum(String id, String text) {
+    final s = _state;
+    if (s == null) return;
+    final next = Map<String, String>.from(s.cues);
+    final t = text.trim();
+    if (t.isEmpty || t == defaultMinimums[id]) {
+      next.remove('min:$id');
+    } else {
+      next['min:$id'] = t;
+    }
+    _update(s.copyWith(cues: next));
+  }
 
   static const minDailyItems = 3;
   static const maxDailyItems = 15;
@@ -324,8 +463,8 @@ class PersonalSystemProvider extends ChangeNotifier {
       if (held) {
         run++;
         prevMiss = false;
-      } else if (isRestDay(d)) {
-        // Planned rest: neither held nor missed.
+      } else if (isExcused(d)) {
+        // Planned rest, a sick day or a skip: neither held nor missed.
       } else if (d == today) {
         // Today is still open — it can't break anything yet.
       } else if (!prevMiss &&
@@ -354,9 +493,9 @@ class PersonalSystemProvider extends ChangeNotifier {
     final yesterday = today.subtract(const Duration(days: 1));
     if (yesterday.isBefore(programStart)) return false;
     return !isHeld(yesterday) &&
-        !isRestDay(yesterday) &&
+        !isExcused(yesterday) &&
         !isHeld(today) &&
-        !isRestDay(today);
+        !isExcused(today);
   }
 
   /// Days held in the current program month.
@@ -374,7 +513,9 @@ class PersonalSystemProvider extends ChangeNotifier {
   }
 
   /// Completion rate of each Daily 10 item over the given days.
-  Map<String, double> itemRates(List<DateTime> days) {
+  /// Sick days, skips and rest don't count against an item.
+  Map<String, double> itemRates(List<DateTime> all) {
+    final days = [for (final d in all) if (!isExcused(d)) d];
     if (days.isEmpty) return {for (final n in dailyItems) n.id: 0};
     return {
       for (final n in dailyItems)
@@ -1262,6 +1403,7 @@ class PersonalSystemProvider extends ChangeNotifier {
         openFollowUps: openFollowUps.length,
         patterns: patterns().map((p) => p.sentence).take(3).toList(),
         deepWorkHours: focusMinutesInWeek(report.weekStart) / 60,
+        hardDays: hardDaysInWeek(report.weekStart),
         energyPeak: energyPeak == null
             ? null
             : '${energyPeak!.label.toLowerCase()} (${energyPeak!.from}:00–${energyPeak!.to}:00)',
@@ -1781,6 +1923,7 @@ class PersonalSystemProvider extends ChangeNotifier {
       addLog('daily_item',
           text: d.title, data: {'id': id, 'lane': d.lane, 'when': d.when});
       if (d.cue.trim().isNotEmpty) setCue(id, d.cue, reschedule: false);
+      if (d.minimum.trim().isNotEmpty) setMinimum(id, d.minimum);
     }
     return added;
   }
@@ -1799,7 +1942,8 @@ class PersonalSystemProvider extends ChangeNotifier {
             : PackGoal(g.text,
                 obstacle: g.str('obstacle') ?? '', plan: g.str('plan') ?? ''),
         daily: [
-          for (final d in dailyItems) DailyIdea(d.title, d.lane, d.when, '', cueFor(d.id))
+          for (final d in dailyItems)
+            DailyIdea(d.title, d.lane, d.when, '', cueFor(d.id), minimum: minimumFor(d.id))
         ],
         stops: [for (final s in stopList) s.text]);
   }
@@ -2250,8 +2394,10 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   /// A planned rest day or holiday (a lighter week still counts days).
   bool isRestDay(DateTime day) {
-    final r = restOn(day);
-    return r != null && r.str('kind') != 'light';
+    _reindex();
+    final d = dayOnly(day);
+    return _restIndex
+        .any((r) => r.rest && !d.isBefore(r.from) && !d.isAfter(r.to));
   }
 
   /// Rest planned to start in the next 8 weeks (or running now).

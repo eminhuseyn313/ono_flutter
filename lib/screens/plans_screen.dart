@@ -17,6 +17,7 @@ class PlansScreen extends StatefulWidget {
 
 class _PlansScreenState extends State<PlansScreen> {
   final Map<String, TextEditingController> _c = {};
+  final Map<String, TextEditingController> _m = {};
   late PersonalSystemProvider _system;
 
   @override
@@ -27,6 +28,7 @@ class _PlansScreenState extends State<PlansScreen> {
     final system = _system;
     for (final n in system.dailyItems) {
       _c[n.id] = TextEditingController(text: system.cueFor(n.id));
+      _m[n.id] = TextEditingController(text: system.minimumFor(n.id));
     }
   }
 
@@ -34,7 +36,7 @@ class _PlansScreenState extends State<PlansScreen> {
   void dispose() {
     // Reminders carry the cues; reschedule once, not on every keystroke.
     _system.resyncReminders();
-    for (final c in _c.values) {
+    for (final c in [..._c.values, ..._m.values]) {
       c.dispose();
     }
     super.dispose();
@@ -91,6 +93,21 @@ class _PlansScreenState extends State<PlansScreen> {
                           decoration: const InputDecoration(
                             isDense: true,
                             hintText: 'When … → I …',
+                            contentPadding: EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 10),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        TextField(
+                          controller: _m[n.id],
+                          maxLines: null,
+                          style: AppText.small(color: AppColors.greyLight),
+                          textInputAction: TextInputAction.done,
+                          onChanged: (v) => system.setMinimum(n.id, v),
+                          decoration: const InputDecoration(
+                            isDense: true,
+                            labelText: 'Minimum version, for hard days',
+                            hintText: 'The 2-minute version',
                             contentPadding: EdgeInsets.symmetric(
                                 horizontal: 12, vertical: 10),
                           ),

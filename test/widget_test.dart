@@ -364,6 +364,9 @@ void main() {
             date: DateTime.now().subtract(Duration(days: i + 1)),
             data: {'level': 2, 'hour': 15});
       }
+      // Sick the day before yesterday: yesterday is the first day back.
+      system.setHardDay(
+          dayOnly(DateTime.now()).subtract(const Duration(days: 2)), 'sick');
       // One daily item of his own: 11 items, 8 hold the day.
       system.addDailyItem('Ten minutes of Spanish before dinner, with the app',
           lane: 'skill', when: 'evening', cue: 'When I sit down at home → app open');
@@ -615,6 +618,36 @@ void main() {
         errors.add('$e');
       }
       if (errors.isNotEmpty) failures['/start steps'] = errors.toSet();
+
+      // Hard days: the sheet opens, and a minimum day shows its card.
+      errors.clear();
+      try {
+        await _go(tester, '/home');
+        final link = find.text('Hard day? Choose how today counts');
+        for (var i = 0; i < 30 && link.evaluate().isEmpty; i++) {
+          await tester.drag(find.byType(ListView).first, const Offset(0, -300));
+          await tester.pump(const Duration(milliseconds: 100));
+        }
+        await tester.ensureVisible(link);
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.tap(link);
+        await _pumpFor(tester, const Duration(milliseconds: 800));
+        await tester.tap(find.text('Minimum day').last);
+        await _pumpFor(tester, const Duration(milliseconds: 600));
+        if (system.hardDayOn(DateTime.now()) != 'minimum') {
+          errors.add('minimum day not set from the sheet');
+        }
+        final card = find.textContaining('smallest version of each item counts');
+        for (var i = 0; i < 30 && card.evaluate().isEmpty; i++) {
+          await tester.drag(find.byType(ListView).first, const Offset(0, 300));
+          await tester.pump(const Duration(milliseconds: 100));
+        }
+        if (card.evaluate().isEmpty) errors.add('minimum day card not shown');
+        system.setHardDay(DateTime.now(), null);
+      } catch (e) {
+        errors.add('$e');
+      }
+      if (errors.isNotEmpty) failures['hard days'] = errors.toSet();
 
       // Plan packs: a pack's preview sheet renders and fits.
       errors.clear();

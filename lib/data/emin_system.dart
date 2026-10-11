@@ -1051,6 +1051,21 @@ const Map<String, String> defaultCues = {
   'bed': 'When the 22:00 alarm rings → phone goes outside the bedroom',
 };
 
+/// The smallest version of each Daily 10 item, for a hard day: enough to
+/// keep the identity alive, small enough to do when sick or swamped.
+const Map<String, String> defaultMinimums = {
+  'manifesto': 'Read the first line',
+  'scan': 'One headline from the domain, two minutes',
+  'sigh': 'One sigh, once',
+  'bluf': 'One message with the ask in the first line',
+  'pause': 'One breath before one answer',
+  'read': 'One page',
+  'feynman': 'One sentence from memory',
+  'caffeine': 'No coffee after 13:00',
+  'protein': 'Protein at one meal',
+  'bed': 'Phone out of the bedroom',
+};
+
 const nonNegotiableGroups = [
   ['morning', 'Morning'],
   ['day', 'At work'],

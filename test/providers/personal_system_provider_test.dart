@@ -1653,4 +1653,68 @@ void main() {
     expect(fresh.dailyCount, back.daily.length);
     expect(fresh.activeGoals, isEmpty);
   });
+
+  test('hard days: minimum lowers the bar, sick and skips are neutral, skips are scarce',
+      () async {
+    final p = await _commissioned();
+    // _today is day 32. Hold days 25–28, then a sick day and a skip.
+    for (var i = 7; i >= 4; i--) {
+      _hold(p, _daysAgo(i));
+    }
+    expect(p.setHardDay(_daysAgo(3), 'sick'), isTrue);
+    expect(p.setHardDay(_daysAgo(2), 'pass'), isTrue);
+    expect(p.isExcused(_daysAgo(3)), isTrue);
+    // First day back after two days off: the minimum counts.
+    expect(p.isReentryDay(_daysAgo(1)), isTrue);
+    expect(p.targetFor(_daysAgo(1)), p.minimumTarget);
+    expect(p.minimumTarget, 5);
+    _hold(p, _daysAgo(1), 5);
+    expect(p.isHeld(_daysAgo(1)), isTrue);
+    expect(p.streak, 5, reason: 'sick and skip neither break nor add');
+
+    // Item rates ignore excused days.
+    final rates = p.itemRates([_daysAgo(3), _daysAgo(1)]);
+    expect(rates[nonNegotiables.first.id], 1.0);
+
+    // Two skips a program month (the one above was in month 1).
+    expect(p.passesLeft, 2);
+    expect(p.setHardDay(_today, 'pass'), isTrue);
+    expect(p.passesLeft, 1);
+    expect(p.setHardDay(_today, 'minimum'), isTrue, reason: 'switching kind gives it back');
+    expect(p.passesLeft, 2);
+    expect(p.setHardDay(_today, 'pass'), isTrue);
+    expect(p.setHardDay(_today.add(const Duration(days: 1)), 'pass'), isTrue);
+    expect(p.setHardDay(_today.add(const Duration(days: 2)), 'pass'), isFalse);
+    p.setHardDay(_today.add(const Duration(days: 1)), null);
+    p.setHardDay(_today, null);
+    expect(p.hardDayOn(_today), isNull);
+
+    // A minimum day: half holds, and the minimum version shows.
+    p.setHardDay(_today, 'minimum');
+    expect(p.isMinimumDay(_today), isTrue);
+    expect(p.minimumFor('read'), isNotEmpty);
+    p.setMinimum('read', 'Two pages');
+    expect(p.minimumFor('read'), 'Two pages');
+
+    expect(p.hardDaysInWeek(_today).values.fold<int>(0, (a, b) => a + b), greaterThan(0));
+    expect(p.sickDaysInRow(_daysAgo(3)), 1);
+  });
+
+  test('device brief: two sick days ask for an easy return', () async {
+    final p = await _commissioned(briefs: DeviceBriefGenerator());
+    final week = weekStartOf(_today);
+    p.setHardDay(week, 'sick');
+    p.setHardDay(week.add(const Duration(days: 1)), 'sick');
+    await p.submitReport(WeeklyReport(
+        id: 'r',
+        weekStart: week,
+        nonNegotiableAverage: 5,
+        gymSessions: 1,
+        bestMoment: '',
+        hardestMoment: '',
+        workSituation: '',
+        createdAt: _today));
+    final brief = p.briefs.first;
+    expect(brief.adjustments.join(' '), contains('You were sick 2 days'));
+  });
 }

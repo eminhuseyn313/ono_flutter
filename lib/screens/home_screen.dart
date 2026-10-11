@@ -152,7 +152,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           now: _now,
                           score: system.scoreFor(date),
                           total: system.dailyCount,
-                          target: system.holdTarget),
+                          target: system.targetFor(date)),
                     ),
                   ),
                 ),
@@ -184,6 +184,11 @@ class _HomeScreenState extends State<HomeScreen> {
               SectionHeader('Daily ${system.dailyCount}',
                   action: 'Edit',
                   onAction: () => context.push('/daily')),
+              if (system.hasStarted &&
+                  (system.hardDayOn(date) != null || system.isReentryDay(date))) ...[
+                _HardDayCard(date: date),
+                const SizedBox(height: 10),
+              ],
               _DailyTen(date: date),
               SectionHeader(_mode == _Mode.evening && !_yesterday
                   ? 'Did the three happen?'
@@ -1300,6 +1305,9 @@ class _DailyTen extends StatelessWidget {
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
     final score = system.scoreFor(date);
+    final target = system.targetFor(date);
+    final minimum = system.isMinimumDay(date);
+    final excused = system.isExcused(date);
     final automatic = system.automaticItems;
     return OnoCard(
       padding: const EdgeInsets.fromLTRB(18, 16, 10, 6),
@@ -1322,9 +1330,11 @@ class _DailyTen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-              score >= system.holdTarget
-                  ? '$score of ${system.dailyCount} — held'
-                  : '$score of ${system.dailyCount} · ${system.holdTarget - score} more holds the day',
+              excused
+                  ? '$score of ${system.dailyCount} · nothing is expected today'
+                  : score >= target
+                      ? '$score of ${system.dailyCount} — held'
+                      : '$score of ${system.dailyCount} · ${target - score} more holds the day${minimum ? ' (minimum day)' : ''}',
               style: AppText.small()),
           for (final g in nonNegotiableGroups)
             if (system.dailyItems.any(
@@ -1338,7 +1348,9 @@ class _DailyTen extends StatelessWidget {
                 title: n.title,
                 subtitle: system.isChecked(date, n.id)
                     ? null
-                    : system.cueFor(n.id),
+                    : minimum && system.minimumFor(n.id).isNotEmpty
+                        ? 'Minimum: ${system.minimumFor(n.id)}'
+                        : system.cueFor(n.id),
                 lane: n.lane,
                 padding: const EdgeInsets.symmetric(vertical: 9),
                 onChanged: (_) => system.toggleCheck(date, n.id),
@@ -1360,6 +1372,118 @@ class _DailyTen extends StatelessWidget {
                 onChanged: (_) => system.toggleCheck(date, n.id),
               ),
           ],
+          if (system.hasStarted && system.hardDayOn(date) == null)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                onPressed: () => showHardDaySheet(context, date),
+                style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                child: const Text('Hard day? Choose how today counts'),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// How a hard day counts: the smallest version, sick, or an emergency skip.
+Future<void> showHardDaySheet(BuildContext context, DateTime date) {
+  final system = context.read<PersonalSystemProvider>();
+  Widget option(String kind, IconData icon, String title, String body,
+          {bool enabled = true}) =>
+      ListTile(
+        enabled: enabled,
+        contentPadding: EdgeInsets.zero,
+        leading: Icon(icon, color: enabled ? AppColors.accent : AppColors.faint),
+        title: Text(title, style: AppText.heading()),
+        subtitle: Text(body, style: AppText.small()),
+        onTap: () {
+          Navigator.of(context).pop();
+          if (!system.setHardDay(date, kind)) {
+            toast(context, 'No emergency skips left this month.');
+          }
+        },
+      );
+  return showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: AppColors.card,
+    builder: (ctx) => SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Some days the plan can\'t happen', style: AppText.title()),
+            const SizedBox(height: 4),
+            Text(
+                'That\'s part of any plan worth keeping. Choose honestly — what matters is coming back tomorrow.',
+                style: AppText.small()),
+            const SizedBox(height: 10),
+            option('minimum', Icons.compress_rounded, 'Minimum day',
+                'Swamped or low. Do the smallest version of each item; ${system.minimumTarget} of ${system.dailyCount} holds the day.'),
+            option('sick', Icons.healing_outlined, 'Sick day',
+                'Rest is the plan. Nothing is expected; your streak waits for you.'),
+            option('pass', Icons.flash_on_outlined, 'Emergency skip',
+                'Something you couldn\'t plan for. ${system.passesLeft} of ${PersonalSystemProvider.passesPerMonth} left this month; your streak waits.',
+                enabled: system.passesLeft > 0),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+class _HardDayCard extends StatelessWidget {
+  final DateTime date;
+  const _HardDayCard({required this.date});
+
+  @override
+  Widget build(BuildContext context) {
+    final system = context.watch<PersonalSystemProvider>();
+    final kind = system.hardDayOn(date);
+    final sickRun = system.sickDaysInRow(date);
+    final (title, body) = switch (kind) {
+      'minimum' => (
+          'Minimum day',
+          'The smallest version of each item counts. ${system.minimumTarget} of ${system.dailyCount} holds the day — showing up is the point.'
+        ),
+      'sick' => (
+          'Sick day — rest is the plan',
+          sickRun >= 3
+              ? 'Day $sickRun. Nothing is expected. If it isn\'t getting better, see a doctor. Your streak waits.'
+              : 'Nothing is expected today. Sleep, water, rest. Your streak waits for you.'
+        ),
+      'pass' => (
+          'Emergency skip',
+          'Today is set aside. ${system.passesLeft} left this month. Tomorrow, start with the first item.'
+        ),
+      _ => (
+          'Welcome back',
+          'First day back counts on the minimum: ${system.minimumTarget} of ${system.dailyCount}, smallest versions are fine. Full plan from tomorrow.'
+        ),
+    };
+    return OnoCard(
+      accent: kind == 'sick' ? AppColors.body : AppColors.accent,
+      padding: const EdgeInsets.fromLTRB(16, 14, 8, 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: AppText.heading()),
+          const SizedBox(height: 4),
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: Text(body, style: AppText.small()),
+          ),
+          if (kind != null)
+            TextButton(
+              onPressed: () => system.setHardDay(date, null),
+              style: TextButton.styleFrom(padding: EdgeInsets.zero),
+              child: const Text('Undo — it\'s a normal day'),
+            ),
+          if (kind == null) const SizedBox(height: 8),
         ],
       ),
     );

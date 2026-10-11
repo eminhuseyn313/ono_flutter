@@ -189,6 +189,13 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] **Export everything** opens the share sheet with the JSON
 - [ ] On a test install only: **Delete everything** → the Delete button stays disabled until you type DELETE → the app returns to setup, reminders are gone, and (production) the `personal_system` row is deleted
 
+## 2zf. New: hard days
+- [ ] Today → under the daily list, **Hard day? Choose how today counts** → **Minimum day** → the card says half holds the day and each unticked item shows "Minimum: …"; **Undo** clears it
+- [ ] **Sick day** → "nothing is expected"; your streak doesn't drop tomorrow; the next day shows **Welcome back** and counts on the minimum
+- [ ] **Emergency skip** → 2 per month; the third is greyed out
+- [ ] If-then plans → edit an item's minimum version; it shows on the next minimum day
+- [ ] Two sick days in a week → the Sunday brief suggests coming back with the minimum
+
 ## 2ze. New: first run starts with the plan builder
 - [ ] Fresh install (or Delete everything) → sign up → the plan builder opens, with no back arrow
 - [ ] A new name → finish → Today opens, set up, with your 3–7 items and no reminders on

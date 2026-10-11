@@ -101,6 +101,11 @@ Flow:
   - sigh, bluf, pause, feynman, scan and read are ticked when the tool is used;
   - finishing the ritual ticks the manifesto;
   - protein ticks itself at 150 g.
+- **Hard days** (see `docs/HARD_DAYS.md`): Today's "Hard day? Choose how today counts" (`showHardDaySheet`, today or yesterday) writes one `hard_day` log per day (`kind` minimum/sick/pass; `setHardDay(day, null)` clears).
+  - Minimum day: `targetFor(day)` = `minimumTarget` (half, rounded up); items show `minimumFor(id)` (`defaultMinimums` in `emin_system.dart`, overrides as cues `min:<id>` via `setMinimum`, edited on `/plans`; `DailyIdea.minimum` and plan packs carry them).
+  - Sick day and emergency skip (`passesPerMonth` = 2 per program month, `passesLeft`) are `isExcused`, like planned rest: neutral in the streak and `isRecoveryDay`, excluded from `itemRates`.
+  - `isReentryDay` (after a sick day or 2+ excused days) makes the day a minimum day automatically; Today shows `_HardDayCard` ("Welcome back"). `sickDaysInRow` ≥ 3 adds "see a doctor if it isn't getting better" — no other medical advice.
+  - `isHeld` uses `targetFor`; hard days and rest ranges are indexed once per state (`_reindex`) because the streak checks every day. The brief gets `hardDays` (by kind).
 - **Recovery planning** (`/rest`): `rest` logs (kind day/light/holiday from `restKinds`, `from`, `to`, note). `isRestDay` (day or holiday, not a lighter week) is neutral in the streak and suppresses the recovery card; Today shows `_RestCard` with a detachment question (`detach` log, 1–3). `restPlannedSoon` (next 8 weeks) → the brief suggests planning rest if false.
 - **Streak, "never miss twice"** (`_streaks` in the provider):
   - one day under 7 is forgiven if the next day is held (or is today, still open);

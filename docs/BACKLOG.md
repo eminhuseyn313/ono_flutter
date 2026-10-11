@@ -65,12 +65,14 @@ Status: ⬜ to do · 🟨 in progress · ✅ done. Effort: S = days, M = a week,
 | 16 | Quarterly 360-lite | M | ✅ |
 | 17 | Energy map | M | ✅ |
 
+| 24 | Hard days: minimum day, sick day, emergency skips, welcome back (Emin's request) | M | ✅ |
+
 ## P3 — The mass version
 
 | # | Item | Effort | Status |
 |---|---|---|---|
 | 18 | Onboarding that builds a plan in 5 minutes | L | ✅ |
-| 19 | Languages: English, Azerbaijani, Russian | M | ⬜ |
+| 19 | Languages: English, Azerbaijani, Russian | M | ⏸ not now (Emin) |
 | 20 | Privacy and data ownership | M | ✅ |
 | 21 | Plan packs (shareable plans) | L | ✅ |
 | 22 | Accountability partners in the app | L | ⬜ |
