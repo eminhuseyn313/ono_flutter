@@ -105,8 +105,9 @@ class _MoneyScreenState extends State<MoneyScreen> {
                 style: AppText.small()),
           ),
         const SectionHeader('One decision'),
-        _field(_decision, 'What will you change or keep next month?', number: false),
-        _field(_worry, 'Anything worrying you about money? (optional)', number: false),
+        _field(_decision, 'Change or keep next month', number: false,
+            hint: 'e.g. Cancel two subscriptions'),
+        _field(_worry, 'A money worry (optional)', number: false),
         if (history.length > 1) ...[
           const SectionHeader('Savings rate by month'),
           for (final h in history.take(6))
