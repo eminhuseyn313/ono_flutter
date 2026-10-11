@@ -377,6 +377,12 @@ void main() {
       system.addBestSelfStory('Leyla', 'You calmed the room when the launch failed and gave everyone one clear next step.');
       system.addBestSelfStory('Tural', 'You explained the plan so everyone got it.');
       system.saveBestSelfPortrait(themes: 'Calm, clarity', portrait: 'When I\'m at my best, I make hard things clear and keep people calm.');
+      // A hard conversation due today.
+      system.saveConversation(
+          withWhom: 'Samira Abdullayeva-Karimova',
+          about: 'The last three missed deadlines on the onboarding project',
+          opening: 'I want to talk about the last three deadlines, because I think we see them differently.',
+          by: DateTime.now());
       // An accountability pact with a long commitment on each side.
       system.setPartner('Samira Abdullayeva-Karimova',
           mine: 'Three strength sessions and one long walk every single week',
@@ -673,6 +679,24 @@ void main() {
         errors.add('$e');
       }
       if (errors.isNotEmpty) failures['hard days'] = errors.toSet();
+
+      // Hard conversations: the editor renders and fits.
+      errors.clear();
+      try {
+        await _go(tester, '/conversations');
+        await tester.tap(find.text('Prepare a conversation'));
+        await _pumpFor(tester, const Duration(milliseconds: 800));
+        if (find.text('Prepare it').evaluate().isEmpty) errors.add('editor did not open');
+        Navigator.of(tester.element(find.text('Prepare it'))).pop();
+        await _pumpFor(tester, const Duration(milliseconds: 500));
+        await tester.tap(find.textContaining('With Samira').first);
+        await _pumpFor(tester, const Duration(milliseconds: 800));
+        Navigator.of(tester.element(find.textContaining('With Samira').first)).pop();
+        await _pumpFor(tester, const Duration(milliseconds: 500));
+      } catch (e) {
+        errors.add('$e');
+      }
+      if (errors.isNotEmpty) failures['/conversations editor'] = errors.toSet();
 
       // Plan packs: a pack's preview sheet renders and fits.
       errors.clear();

@@ -1112,6 +1112,10 @@ class _PromptsState extends State<_Prompts> {
         _row(context, Icons.balance_rounded, AppColors.accent,
             'Decision review due',
             '"${reviews.first.text}" — was the call right?', '/cockpit?tab=1'),
+      if (system.conversationsDue(now).firstOrNull case final c?)
+        _row(context, Icons.forum_outlined, AppColors.social,
+            'The conversation with ${c.str('with')}',
+            'Have it today, or debrief it if it happened', '/conversations'),
       if (system.partnerCheckinDue)
         _row(context, Icons.handshake_outlined, AppColors.social,
             'Check in with ${system.partner!.text.split(' ').first}',

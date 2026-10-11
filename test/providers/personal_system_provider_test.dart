@@ -1926,4 +1926,25 @@ void main() {
     expect(all, isNot(contains('artifact of the month')));
     p.resetProfile();
   });
+
+  test('hard conversations: prepare, due on the day, debrief', () async {
+    final p = await _commissioned();
+    expect(p.saveConversation(withWhom: ' ', about: 'x'), isNull);
+    final c = p.saveConversation(
+        withWhom: 'Sam',
+        about: 'Missed deadlines',
+        wantMe: 'Reliable delivery',
+        facts: 'Three dates missed in May',
+        opening: 'I want to talk about the last three deadlines.',
+        by: _today.add(const Duration(days: 1)))!;
+    expect(p.plannedConversations.length, 1);
+    expect(p.conversationsDue(_today), isEmpty);
+    expect(p.conversationsDue(_today.add(const Duration(days: 1))).single.id, c.id);
+    p.saveConversation(id: c.id, withWhom: 'Sam', about: 'Deadlines', ask: 'Flag risks a week early');
+    expect(p.conversations.length, 1);
+    expect(p.conversationById(c.id)!.str('facts'), '');
+    p.debriefConversation(c.id, outcome: 'better', learned: 'They were overloaded');
+    expect(p.plannedConversations, isEmpty);
+    expect(p.conversationById(c.id)!.str('outcome'), 'better');
+  });
 }

@@ -402,6 +402,16 @@ class MeScreen extends StatelessWidget {
               ),
               const Divider(indent: 66),
               LinkRow(
+                icon: Icons.forum_outlined,
+                color: AppColors.social,
+                title: 'Hard conversations',
+                subtitle: system.plannedConversations.isEmpty
+                    ? 'Prepare the one you\'ve been avoiding'
+                    : '${system.plannedConversations.length} ahead · with ${system.plannedConversations.map((c) => c.str('with')).join(', ')}',
+                onTap: () => context.push('/conversations'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
                 icon: Icons.handshake_outlined,
                 color: AppColors.social,
                 title: 'Accountability partner',

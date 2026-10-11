@@ -70,6 +70,7 @@ Status: ⬜ to do · 🟨 in progress · ✅ done. Effort: S = days, M = a week,
 | 27 | You, at your best: reflected best self (Roberts et al. 2005) | S | ✅ |
 | 28 | Movement for anyone: weekly minutes and strength days (WHO 2020) | S | ✅ |
 | 29 | Someone else sees a general app: the built-in plan's schedule, gym, journey content, job areas, health fields and seed cards only for the built-in person | L | ✅ |
+| 30 | Hard conversations: prepare (wants, facts vs story, their story, first sentence, ask) and debrief | M | ✅ |
 | 24 | Hard days: minimum day, sick day, emergency skips, welcome back (Emin's request) | M | ✅ |
 
 ## P3 — The mass version

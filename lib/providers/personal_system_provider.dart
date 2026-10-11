@@ -2247,6 +2247,88 @@ class PersonalSystemProvider extends ChangeNotifier {
     return b.toString().trim();
   }
 
+  // ── Hard conversations ───────────────────────────────────────────────
+
+  /// Prepare a conversation you've been avoiding — feedback, a conflict, a
+  /// boundary, at work or at home. Start with what you really want for you,
+  /// them and the relationship; separate facts from your story; imagine
+  /// theirs (Patterson et al., Crucial Conversations; Stone, Patton & Heen,
+  /// Difficult Conversations). Debriefed after it happened.
+  static const conversationOutcomes = {
+    'better': 'Better than I feared',
+    'same': 'About as expected',
+    'worse': 'Harder than I hoped',
+  };
+
+  List<LogEntry> get conversations => logsOf('conversation');
+
+  LogEntry? conversationById(String id) {
+    for (final c in conversations) {
+      if (c.id == id) return c;
+    }
+    return null;
+  }
+
+  LogEntry? saveConversation({
+    String? id,
+    required String withWhom,
+    required String about,
+    String wantMe = '',
+    String wantThem = '',
+    String wantUs = '',
+    String facts = '',
+    String myStory = '',
+    String theirStory = '',
+    String opening = '',
+    String ask = '',
+    DateTime? by,
+  }) {
+    if (withWhom.trim().isEmpty) return null;
+    final data = {
+      'with': withWhom.trim(),
+      'want_me': wantMe.trim(),
+      'want_them': wantThem.trim(),
+      'want_us': wantUs.trim(),
+      'facts': facts.trim(),
+      'my_story': myStory.trim(),
+      'their_story': theirStory.trim(),
+      'opening': opening.trim(),
+      'ask': ask.trim(),
+      'by': by == null ? null : dateKey(by),
+    };
+    final existing = id == null ? null : conversationById(id);
+    if (existing == null) {
+      return addLog('conversation', text: about.trim(), data: {...data, 'status': 'planned'});
+    }
+    final next = existing.copyWith(text: about.trim(), data: {...existing.data, ...data});
+    updateLog(next);
+    return next;
+  }
+
+  void debriefConversation(String id, {required String outcome, String learned = ''}) {
+    final c = conversationById(id);
+    if (c == null) return;
+    updateLog(c.copyWith(data: {
+      ...c.data,
+      'status': 'done',
+      'outcome': outcome,
+      'learned': learned.trim(),
+      'done_on': dateKey(_now),
+    }));
+  }
+
+  List<LogEntry> get plannedConversations =>
+      [for (final c in conversations) if (c.str('status') == 'planned') c];
+
+  /// Planned conversations whose day has come: debrief them, or have them.
+  List<LogEntry> conversationsDue(DateTime day) {
+    final d = dateKey(dayOnly(day));
+    return [
+      for (final c in plannedConversations)
+        if ((c.str('by') ?? '').isNotEmpty && c.str('by')!.compareTo(d) <= 0) c
+    ];
+  }
+
   // ── Movement ─────────────────────────────────────────────────────────
 
   /// Any movement, for anyone: a walk, a run, a game, a class. Weekly
