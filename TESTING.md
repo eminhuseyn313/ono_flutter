@@ -189,6 +189,11 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] **Export everything** opens the share sheet with the JSON
 - [ ] On a test install only: **Delete everything** → the Delete button stays disabled until you type DELETE → the app returns to setup, reminders are gone, and (production) the `personal_system` row is deleted
 
+## 2zh. New: direction tools (Me → Growth)
+- [ ] **Three possible lives**: write three, rate each, star one, add a prototype → Save → Me shows "Leaning towards …"; **Make it a goal** opens the goal editor with the title filled
+- [ ] **What gives and drains you**: list activities, rate −2…+2, pick one and a move → Save → Me and the next Sunday brief show the move
+- [ ] **You, at your best**: Copy the ask → add two stories → themes and portrait → Save → the setback screen shows the portrait at the top
+
 ## 2zg. New: accountability partner and coach report
 - [ ] Me → **Accountability partner** → name, your commitment, theirs, a check-in day → **Save the pact**
 - [ ] On the check-in day Today prompts it → **Copy my update** (held days, hard days, the week's three, their turn) → record Kept/Partly/Missed for each → the record line updates

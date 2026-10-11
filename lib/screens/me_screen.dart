@@ -369,6 +369,32 @@ class MeScreen extends StatelessWidget {
               ),
               const Divider(indent: 66),
               LinkRow(
+                icon: Icons.explore_outlined,
+                color: AppColors.skill,
+                title: 'Three possible lives',
+                subtitle: system.odysseyLeaning == null
+                    ? 'An Odyssey plan: your options for the next five years'
+                    : 'Leaning towards: ${system.odysseyLeaning}',
+                onTap: () => context.push('/odyssey'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
+                icon: Icons.battery_charging_full_rounded,
+                color: AppColors.skill,
+                title: 'What gives and drains you',
+                subtitle: system.craftingMove ?? 'Rate a normal week, then change one thing',
+                onTap: () => context.push('/crafting'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
+                icon: Icons.auto_awesome_outlined,
+                color: AppColors.skill,
+                title: 'You, at your best',
+                subtitle: system.bestSelfPortrait ?? 'Stories from people who have seen it',
+                onTap: () => context.push('/best-self'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
                 icon: Icons.emoji_people_outlined,
                 color: AppColors.skill,
                 title: 'Role models',

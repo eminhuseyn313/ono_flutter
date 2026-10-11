@@ -1469,6 +1469,8 @@ class PersonalSystemProvider extends ChangeNotifier {
         patterns: patterns().map((p) => p.sentence).take(3).toList(),
         deepWorkHours: focusMinutesInWeek(report.weekStart) / 60,
         hardDays: hardDaysInWeek(report.weekStart),
+        direction: odysseyLeaning,
+        craftingMove: craftingMove,
         partner: partner == null || partnerRecord().weeks == 0
             ? null
             : 'with ${partner!.text}: you kept it ${partnerRecord().mine} of ${partnerRecord().weeks} weeks, they ${partnerRecord().theirs}',
@@ -2198,6 +2200,177 @@ class PersonalSystemProvider extends ChangeNotifier {
     }
     b.writeln('What I\'d like your view on:');
     return b.toString().trim();
+  }
+
+  // ── Odyssey plan ─────────────────────────────────────────────────────
+
+  /// Three different five-year lives, rated on the same four questions, so
+  /// direction is chosen rather than drifted into (Burnett & Evans 2016).
+  static const odysseyPrompts = [
+    'The life you\'re heading for',
+    'If that path disappeared tomorrow',
+    'If money and other people\'s opinion didn\'t matter',
+  ];
+
+  /// Ratings each life gets, 1–5.
+  static const odysseyGauges = {
+    'resources': 'Resources — do you have what it takes?',
+    'like': 'How much you like it',
+    'confidence': 'Confidence you could do it',
+    'coherence': 'Fits who you are and what you value',
+  };
+
+  LogEntry? get odyssey {
+    final l = logsOf('odyssey');
+    return l.isEmpty ? null : l.first;
+  }
+
+  List<Map<String, dynamic>> get odysseyLives {
+    final raw = odyssey?.data['lives'] as List? ?? const [];
+    return [
+      for (var i = 0; i < 3; i++)
+        i < raw.length ? Map<String, dynamic>.from(raw[i] as Map) : <String, dynamic>{}
+    ];
+  }
+
+  /// Saves the three lives, the one leaning towards (or null), and the next
+  /// small prototype: a conversation or experience that tests it.
+  void saveOdyssey(List<Map<String, dynamic>> lives,
+      {int? leaning, String prototype = ''}) {
+    final data = {
+      'lives': lives.take(3).toList(),
+      'leaning': leaning,
+      'prototype': prototype.trim(),
+    };
+    final o = odyssey;
+    if (o == null) {
+      addLog('odyssey', data: data);
+    } else {
+      updateLog(o.copyWith(date: dayOnly(_now), data: data));
+    }
+  }
+
+  /// The life leaned towards, e.g. "Founder in Lisbon".
+  String? get odysseyLeaning {
+    final i = (odyssey?.number('leaning'))?.toInt();
+    if (i == null) return null;
+    final t = '${odysseyLives[i]['title'] ?? ''}'.trim();
+    return t.isEmpty ? null : t;
+  }
+
+  // ── Energy audit (job crafting) ──────────────────────────────────────
+
+  /// The recurring activities of a normal week, each giving or draining
+  /// energy (-2…2), and one crafting move: do more of a giving one, less
+  /// of a draining one, or reshape it. Job crafting is linked to
+  /// engagement and performance (Wrzesniewski & Dutton 2001; Rudolph et
+  /// al. 2017) and works the same for home and family.
+  static const craftMoves = {
+    'more': 'Do more of it',
+    'less': 'Do less of it — delegate, drop or batch',
+    'reshape': 'Reshape it — change how, when or with whom',
+  };
+
+  /// One audit per program quarter; the latest is edited in place.
+  LogEntry? get energyAudit {
+    for (final l in logsOf('energy_audit')) {
+      if (l.number('quarter') == programQuarter) return l;
+    }
+    return null;
+  }
+
+  LogEntry? get latestEnergyAudit {
+    final l = logsOf('energy_audit');
+    return l.isEmpty ? null : l.first;
+  }
+
+  List<({String name, int energy})> auditActivities(LogEntry audit) => [
+        for (final a in (audit.data['activities'] as List? ?? const []))
+          (name: '${(a as Map)['name']}', energy: (a['energy'] as num? ?? 0).toInt())
+      ];
+
+  void saveEnergyAudit(List<({String name, int energy})> activities,
+      {String craftActivity = '', String craftMove = '', String craftHow = ''}) {
+    final data = {
+      'quarter': programQuarter,
+      'activities': [
+        for (final a in activities)
+          if (a.name.trim().isNotEmpty)
+            {'name': a.name.trim(), 'energy': a.energy.clamp(-2, 2)}
+      ],
+      'craft': craftActivity.trim(),
+      'move': craftMove,
+      'how': craftHow.trim(),
+    };
+    final e = energyAudit;
+    if (e == null) {
+      addLog('energy_audit', data: data);
+    } else {
+      updateLog(e.copyWith(date: dayOnly(_now), data: data));
+    }
+  }
+
+  /// The crafting move in a line, e.g. "Weekly report: reshape it — …".
+  String? get craftingMove {
+    final a = latestEnergyAudit;
+    if (a == null || (a.str('craft') ?? '').isEmpty) return null;
+    final how = a.str('how') ?? '';
+    return '${a.str('craft')}: ${(craftMoves[a.str('move')] ?? '').split(' —').first.toLowerCase()}${how.isEmpty ? '' : ' — $how'}';
+  }
+
+  // ── Reflected best self ──────────────────────────────────────────────
+
+  /// Stories from people who have seen you at your best, the themes across
+  /// them, and a portrait in your words (Roberts et al. 2005). Shown again
+  /// on hard days and setbacks.
+  static const bestSelfAsk =
+      'Could you tell me about a time you saw me at my best — what I did, and why it mattered? A short story is perfect.';
+
+  LogEntry? get bestSelf {
+    final l = logsOf('best_self');
+    return l.isEmpty ? null : l.first;
+  }
+
+  List<({String from, String story})> bestSelfStories() => [
+        for (final s in (bestSelf?.data['stories'] as List? ?? const []))
+          (from: '${(s as Map)['from']}', story: '${s['story']}')
+      ];
+
+  void _saveBestSelf(Map<String, dynamic> patch) {
+    final b = bestSelf;
+    if (b == null) {
+      addLog('best_self', data: {'stories': const [], 'themes': '', 'portrait': '', ...patch});
+    } else {
+      updateLog(b.copyWith(data: {...b.data, ...patch}));
+    }
+  }
+
+  void addBestSelfStory(String from, String story) {
+    if (story.trim().isEmpty) return;
+    _saveBestSelf({
+      'stories': [
+        for (final s in bestSelfStories()) {'from': s.from, 'story': s.story},
+        {'from': from.trim(), 'story': story.trim()},
+      ]
+    });
+  }
+
+  void removeBestSelfStory(int index) {
+    final s = bestSelfStories();
+    if (index < 0 || index >= s.length) return;
+    s.removeAt(index);
+    _saveBestSelf({
+      'stories': [for (final x in s) {'from': x.from, 'story': x.story}]
+    });
+  }
+
+  void saveBestSelfPortrait({required String themes, required String portrait}) =>
+      _saveBestSelf({'themes': themes.trim(), 'portrait': portrait.trim()});
+
+  /// "When I'm at my best, I…", once written.
+  String? get bestSelfPortrait {
+    final p = bestSelf?.str('portrait') ?? '';
+    return p.isEmpty ? null : p;
   }
 
   // ── Plan packs ───────────────────────────────────────────────────────

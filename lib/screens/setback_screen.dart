@@ -69,6 +69,24 @@ class _SetbackScreenState extends State<SetbackScreen> {
         context.canPop() ? context.pop() : context.go('/home');
       }),
       children: [
+        if (system.bestSelfPortrait case final portrait?) ...[
+          const SizedBox(height: 14),
+          OnoCard(
+            accent: AppColors.accent,
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('YOU, AT YOUR BEST', style: AppText.eyebrow(color: AppColors.accent)),
+                const SizedBox(height: 6),
+                Text(portrait, style: AppText.body(color: AppColors.white)),
+                const SizedBox(height: 4),
+                Text('From people who have seen it. One slip doesn\'t change it.',
+                    style: AppText.small()),
+              ],
+            ),
+          ),
+        ],
         _step('1', 'Talk to yourself like a friend',
             'What would you say to a friend who had this day or week?', _kind,
             'It happens. You were carrying a lot. It doesn\'t erase what you\'ve built…',

@@ -1791,4 +1791,58 @@ void main() {
     expect(p.importJson(json), isTrue);
     expect(p.passesPerMonth, 4);
   });
+
+  test('odyssey, energy audit and best self feed the brief and the setback screen',
+      () async {
+    final p = await _commissioned();
+    expect(p.odysseyLeaning, isNull);
+    p.saveOdyssey([
+      {'title': 'Lead product at a scale-up', 'like': 5},
+      {'title': 'Teach and write'},
+      {'title': 'Build my own company'},
+    ], leaning: 2, prototype: 'Coffee with two founders');
+    expect(p.odysseyLeaning, 'Build my own company');
+    expect(p.odysseyLives.first['like'], 5);
+    p.saveOdyssey(p.odysseyLives, leaning: 0);
+    expect(p.logsOf('odyssey').length, 1);
+
+    p.saveEnergyAudit([
+      (name: 'Status meeting', energy: -2),
+      (name: 'Customer calls', energy: 2),
+      (name: '  ', energy: 0),
+    ], craftActivity: 'Status meeting', craftMove: 'reshape', craftHow: 'Written update instead');
+    expect(p.auditActivities(p.energyAudit!).length, 2);
+    expect(p.craftingMove, 'Status meeting: reshape it — Written update instead');
+
+    p.addBestSelfStory('Leyla', 'You calmed the room when the launch failed.');
+    p.addBestSelfStory('Tural', 'You explained the plan so everyone got it.');
+    p.removeBestSelfStory(5);
+    expect(p.bestSelfStories().length, 2);
+    p.saveBestSelfPortrait(themes: 'Calm, clarity', portrait: 'When I\'m at my best, I make hard things clear.');
+    expect(p.bestSelfPortrait, contains('make hard things clear'));
+
+    final brief = await DeviceBriefGenerator().generate(BriefInput(
+      report: WeeklyReport(
+          id: 'r',
+          weekStart: weekStartOf(_today),
+          nonNegotiableAverage: 7,
+          gymSessions: 3,
+          bestMoment: '',
+          hardestMoment: '',
+          workSituation: '',
+          createdAt: _today),
+      forWeek: weekStartOf(_today).add(const Duration(days: 7)),
+      programMonth: 2,
+      programWeek: 5,
+      itemRates: const {'sigh': 0.5, 'bed': 0.9},
+      evidenceAddedThisWeek: 0,
+      artifactsThisMonth: 0,
+      postsThisWeek: 0,
+      gymDays: const [1, 3, 5],
+      openUnlocks: const [],
+      craftingMove: p.craftingMove,
+      direction: p.odysseyLeaning,
+    ));
+    expect(brief.adjustments.join(' '), contains('Your crafting move: Status meeting'));
+  });
 }

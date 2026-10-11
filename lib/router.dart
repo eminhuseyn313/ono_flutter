@@ -42,6 +42,7 @@ import 'screens/plan_builder_screen.dart';
 import 'screens/privacy_screen.dart';
 import 'screens/packs_screen.dart';
 import 'screens/partner_screens.dart';
+import 'screens/direction_screens.dart';
 import 'screens/review_screen.dart';
 import 'screens/ritual_flow_screen.dart';
 import 'screens/setback_screen.dart';
@@ -118,6 +119,9 @@ const appRoutes = [
   '/packs',
   '/partner',
   '/coach-report',
+  '/odyssey',
+  '/crafting',
+  '/best-self',
   '/goals/edit',
   '/growth/area',
   '/growth/area?template=t_strength',
@@ -197,6 +201,9 @@ GoRouter createRouter(AuthProvider authProvider,
       _slide('/packs', (_) => const PacksScreen()),
       _slide('/partner', (_) => const PartnerScreen()),
       _slide('/coach-report', (_) => const CoachReportScreen()),
+      _slide('/odyssey', (_) => const OdysseyScreen()),
+      _slide('/crafting', (_) => const CraftingScreen()),
+      _slide('/best-self', (_) => const BestSelfScreen()),
       _slide(
           '/goals/edit',
           (s) => GoalEditScreen(

@@ -90,6 +90,13 @@ Every item passes both tests: useful to Emin now, and useful to anyone. Effort: 
 | D2 | **Recovery planning** (rest days, deload weeks, holidays planned in advance; detachment checks) | RA, beta thalassemia, a demanding job | Athletes, founders, parents | Psychological detachment and recovery (Sonnentag & Fritz 2007) | S |
 | D3 | **Energy map** (when check-ins show he is sharpest; hardest work goes there) | Uses check-in data he already has | Anyone who checks in | Chronotype and time-of-day performance | M |
 
+### G. Direction and self-knowledge (second research pass)
+| # | Feature | For Emin now | For anyone | Evidence | Effort |
+|---|---|---|---|---|---|
+| G1 | **Odyssey plan** (three five-year lives rated on resources, liking, confidence, coherence; one prototype) | Head of Product vs. other paths, chosen on purpose | A student, a parent returning to work, an athlete after sport | Burnett & Evans, *Designing Your Life* (2016) | M |
+| G2 | **Energy audit and one job-crafting move** (rate a normal week's activities; do more, less, or reshape one) | Shape the PO role towards what energises him | Home and family work too | Wrzesniewski & Dutton 2001; Rudolph et al. 2017 (meta-analysis: job crafting ↔ engagement, performance) | S |
+| G3 | **Reflected best self** (stories of you at your best from people in different parts of life → themes → portrait) | Self-trust, one of his three personal areas | Anyone who doubts their strengths | Roberts, Spreitzer, Dutton et al., HBR 2005 | S |
+
 ### E. Relationships
 | # | Feature | For Emin now | For anyone | Evidence | Effort |
 |---|---|---|---|---|---|

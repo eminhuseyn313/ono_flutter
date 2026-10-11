@@ -65,6 +65,9 @@ Status: ⬜ to do · 🟨 in progress · ✅ done. Effort: S = days, M = a week,
 | 16 | Quarterly 360-lite | M | ✅ |
 | 17 | Energy map | M | ✅ |
 
+| 25 | Odyssey plan: three possible five-year lives (Burnett & Evans 2016) | M | ✅ |
+| 26 | What gives and drains you: energy audit + one job-crafting move (Wrzesniewski & Dutton 2001) | S | ✅ |
+| 27 | You, at your best: reflected best self (Roberts et al. 2005) | S | ✅ |
 | 24 | Hard days: minimum day, sick day, emergency skips, welcome back (Emin's request) | M | ✅ |
 
 ## P3 — The mass version

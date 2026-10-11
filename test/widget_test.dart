@@ -364,6 +364,19 @@ void main() {
             date: DateTime.now().subtract(Duration(days: i + 1)),
             data: {'level': 2, 'hour': 15});
       }
+      // Direction tools with long text, so their screens render filled.
+      system.saveOdyssey([
+        {'title': 'Lead product for a regional fintech platform', 'story': 'Long days, big team', 'like': 4},
+        {'title': 'Teach product management at a university'},
+        {'title': 'Start a company with two friends'},
+      ], leaning: 0, prototype: 'Coffee with a CPO');
+      system.saveEnergyAudit([
+        (name: 'Weekly status meeting with stakeholders', energy: -2),
+        (name: 'Customer interviews', energy: 2),
+      ], craftActivity: 'Weekly status meeting with stakeholders', craftMove: 'reshape', craftHow: 'Send a written update and cancel the meeting twice a month');
+      system.addBestSelfStory('Leyla', 'You calmed the room when the launch failed and gave everyone one clear next step.');
+      system.addBestSelfStory('Tural', 'You explained the plan so everyone got it.');
+      system.saveBestSelfPortrait(themes: 'Calm, clarity', portrait: 'When I\'m at my best, I make hard things clear and keep people calm.');
       // An accountability pact with a long commitment on each side.
       system.setPartner('Samira Abdullayeva-Karimova',
           mine: 'Three strength sessions and one long walk every single week',

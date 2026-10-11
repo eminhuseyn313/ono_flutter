@@ -90,6 +90,11 @@ class BriefInput {
   /// you kept it 3 of 4 weeks, they 2".
   final String? partner;
 
+  /// The life they lean towards in their Odyssey plan, and the crafting
+  /// move from their latest energy audit.
+  final String? direction;
+  final String? craftingMove;
+
   /// Who the brief is for: names, roles, key people and coach context.
   final Profile profile;
 
@@ -135,6 +140,8 @@ class BriefInput {
     this.feedbackThemes,
     this.hardDays = const {},
     this.partner,
+    this.direction,
+    this.craftingMove,
   }) : profile = profile ?? activeProfile;
 
   Map<String, dynamic> toJson() => {
@@ -149,6 +156,8 @@ class BriefInput {
         'energy_peak': energyPeak,
         'hard_days': hardDays,
         'accountability_partner': partner,
+        'five_year_direction': direction,
+        'crafting_move': craftingMove,
         'feedback_round_theme': feedbackThemes,
         'report': report.toJson(),
         'for_week': dateKey(forWeek),
@@ -331,6 +340,8 @@ class DeviceBriefGenerator implements BriefGenerator {
         'Overdue to reach out: ${input.peopleOverdue.join(', ')}. One message each this week — a useful link or a question beats "catching up".',
       if (input.deepWorkHours < 3)
         'Deep work: ${input.deepWorkHours.toStringAsFixed(1)} h this week. Book two 90-minute blocks for the artifact${input.energyPeak == null ? '' : ' in your ${input.energyPeak}'} before Monday fills up.',
+      if (input.craftingMove != null)
+        'Your crafting move: ${input.craftingMove}. Put it on next week\'s calendar once — small changes to the work are how it starts to fit you.',
       if (input.feedbackThemes != null)
         'What others told you: "${input.feedbackThemes}". Pick one moment next week to act on it where they can see it.',
       if (input.shutdowns < 4)
