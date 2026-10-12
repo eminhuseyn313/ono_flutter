@@ -70,7 +70,7 @@ class _LogScreenState extends State<LogScreen> {
             // Letters stay sealed: they only show on /letters.
             .where((e) => e.type != 'letter')
             // People are a list, not events; contact with them is a touch.
-            .where((e) => !const {'person', 'values', 'growth_area', 'area_drills', 'goal', 'profile', 'daily_item', 'stop', 'role_model', 'partner', 'odyssey', 'energy_audit', 'best_self', 'conversation', 'money_check', 'upkeep', 'manual', 'us_checkin', 'day_shape', 'strengths', 'best_future', 'life_story', 'kindness_plan', 'worry', 'worry_plan', 'year_review'}
+            .where((e) => !const {'person', 'values', 'growth_area', 'area_drills', 'goal', 'profile', 'daily_item', 'stop', 'role_model', 'partner', 'odyssey', 'energy_audit', 'best_self', 'conversation', 'money_check', 'upkeep', 'manual', 'us_checkin', 'day_shape', 'strengths', 'best_future', 'life_story', 'kindness_plan', 'worry', 'worry_plan', 'year_review', 'daily_list'}
                 .contains(e.type))
             .toList()
         : system.allLogs(_filters[_filter]);

@@ -2714,5 +2714,28 @@ void main() {
     p.startNextProgram(days: 90);
     expect(p.isReentryDay(back), isTrue);
   });
+
+  test('changing the daily list does not rewrite the past', () async {
+    final p = await _commissioned();
+    final today = dayOnly(_today);
+    for (var d = _start; d.isBefore(today); d = d.plusDays(1)) {
+      _hold(p, d); // 7 of 10
+    }
+    final streak = p.streak, held = p.monthHeld(1).held;
+    expect(streak, greaterThan(20));
+    p.addDailyItem('Walk after lunch', lane: 'body', when: 'day');
+    expect(p.dailyCount, 11);
+    expect(p.streak, streak, reason: 'past days keep their 7-of-10 bar');
+    expect(p.monthHeld(1).held, held);
+    expect(p.targetFor(today), 8); // today: 8 of 11
+    expect(p.isHeld(today.minusDays(1)), isTrue);
+
+    // Retiring an item that was ticked on past days doesn't undo them.
+    final ticked = nonNegotiables.first.id;
+    expect(p.setItemActive(ticked, false), isTrue);
+    expect(p.streak, streak);
+    expect(p.scoreFor(today.minusDays(1)), 7);
+    expect(p.logsOf('daily_list').length, 2); // the old list, then today's
+  });
 }
 

@@ -528,8 +528,63 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   bool isHeld(DateTime date) => scoreFor(date) >= targetFor(date);
 
-  /// What holds [date]: the usual 70%, or half on a minimum day.
-  int targetFor(DateTime date) => isMinimumDay(date) ? minimumTarget : holdTarget;
+  /// What holds [date]: the usual 70%, or half on a minimum day — of the
+  /// list as it was that day.
+  int targetFor(DateTime date) {
+    final n = itemIdsOn(date).length;
+    if (n == 0) return 1;
+    return isMinimumDay(date) ? (n / 2).ceil() : (n * 0.7).ceil();
+  }
+
+  // ── The daily list over time ─────────────────────────────────────────
+
+  // Changing the list must not rewrite the past: adding an eleventh item
+  // would otherwise turn every 7-of-10 day into a 7-of-11 miss. Each
+  // change saves a `daily_list` snapshot (ids) dated the day it happened;
+  // a day is scored against the list in effect on it.
+  PersonalSystemState? _listState;
+  List<(String, Set<String>)> _listHistory = const [];
+
+  List<(String, Set<String>)> get _snapshots {
+    if (!identical(_listState, _state)) {
+      _listState = _state;
+      // Oldest first.
+      _listHistory = [
+        for (final l in logsOf('daily_list').reversed)
+          (dateKey(l.date), {for (final i in (l.data['ids'] as List? ?? const [])) '$i'})
+      ];
+    }
+    return _listHistory;
+  }
+
+  /// The ids of the daily items in effect on [date].
+  Set<String> itemIdsOn(DateTime date) {
+    dailyItems;
+    final s = _snapshots;
+    if (s.isEmpty) return _dailyIds;
+    final k = dateKey(date);
+    Set<String>? found;
+    for (final (d, ids) in s) {
+      if (d.compareTo(k) > 0) break;
+      found = ids;
+    }
+    // Days before the first change used the first list on record.
+    return found ?? s.first.$2;
+  }
+
+  /// Runs [change] to the daily list and records the list it leaves, so
+  /// earlier days keep the list they had.
+  T _changingList<T>(T Function() change) {
+    final before = {for (final n in dailyItems) n.id};
+    final out = change();
+    final after = {for (final n in dailyItems) n.id};
+    if (before.length == after.length && before.containsAll(after)) return out;
+    if (logsOf('daily_list').isEmpty) {
+      addLog('daily_list', date: dayOnly(journeyStart), data: {'ids': before.toList()});
+    }
+    _upsertDayLog('daily_list', dayOnly(_now), {'ids': after.toList()});
+    return out;
+  }
 
   /// Half the items, rounded up: the minimum day's bar.
   int get minimumTarget => dailyCount == 0 ? 1 : (dailyCount / 2).ceil();
@@ -707,7 +762,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   bool setItemActive(String id, bool active) {
     if (!active && dailyCount <= minDailyItems) return false;
     if (active && dailyCount >= maxDailyItems) return false;
-    setDone('daily:off:$id', !active);
+    _changingList(() => setDone('daily:off:$id', !active));
     _syncReminders();
     return true;
   }
@@ -717,8 +772,8 @@ class PersonalSystemProvider extends ChangeNotifier {
       {required String lane, required String when, String cue = ''}) {
     if (title.trim().isEmpty || dailyCount >= maxDailyItems) return null;
     final id = 'd_${_uid()}';
-    addLog('daily_item',
-        text: title.trim(), data: {'id': id, 'lane': lane, 'when': when});
+    _changingList(() => addLog('daily_item',
+        text: title.trim(), data: {'id': id, 'lane': lane, 'when': when}));
     if (cue.trim().isNotEmpty) setCue(id, cue.trim());
     return dailyItems.firstWhere((n) => n.id == id);
   }
@@ -727,7 +782,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     if (dailyCount <= minDailyItems) return false;
     final l = logsOf('daily_item').where((x) => x.str('id') == id);
     if (l.isEmpty) return false;
-    removeLog(l.first.id);
+    _changingList(() => removeLog(l.first.id));
     return true;
   }
 
@@ -739,8 +794,8 @@ class PersonalSystemProvider extends ChangeNotifier {
   }
 
   int scoreFor(DateTime date) {
-    dailyItems;
-    return _checks(date).where(_dailyIds.contains).length;
+    final ids = itemIdsOn(date);
+    return _checks(date).where(ids.contains).length;
   }
 
   bool gymDone(DateTime date) => isChecked(date, _gymId);
@@ -2509,15 +2564,17 @@ class PersonalSystemProvider extends ChangeNotifier {
           deadline: deadline,
           areas: [areaId]);
     }
-    if (replaceDaily && daily.length >= minDailyItems) {
-      for (final b in nonNegotiables) {
-        setDone('daily:off:${b.id}', true);
+    _changingList(() {
+      if (replaceDaily && daily.length >= minDailyItems) {
+        for (final b in nonNegotiables) {
+          setDone('daily:off:${b.id}', true);
+        }
+        for (final l in logsOf('daily_item')) {
+          removeLog(l.id);
+        }
       }
-      for (final l in logsOf('daily_item')) {
-        removeLog(l.id);
-      }
-    }
-    _addIdeas(daily);
+      _addIdeas(daily);
+    });
     setDone(planBuiltKey, true);
     _syncReminders();
   }
@@ -3211,15 +3268,17 @@ class PersonalSystemProvider extends ChangeNotifier {
               deadline: DateTime(now.year, now.month + g.months, now.day)) !=
           null;
     }
-    if (replaceDaily && pack.daily.length >= minDailyItems) {
-      for (final b in nonNegotiables) {
-        setDone('daily:off:${b.id}', true);
+    final items = _changingList(() {
+      if (replaceDaily && pack.daily.length >= minDailyItems) {
+        for (final b in nonNegotiables) {
+          setDone('daily:off:${b.id}', true);
+        }
+        for (final l in logsOf('daily_item')) {
+          removeLog(l.id);
+        }
       }
-      for (final l in logsOf('daily_item')) {
-        removeLog(l.id);
-      }
-    }
-    final items = _addIdeas(pack.daily);
+      return _addIdeas(pack.daily);
+    });
     for (final s in pack.stops) {
       if (!stopList.any((x) => x.text == s)) addStop(s);
     }
