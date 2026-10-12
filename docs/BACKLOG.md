@@ -85,6 +85,7 @@ Status: ⬜ to do · 🟨 in progress · ✅ done. Effort: S = days, M = a week,
 | 42 | Question of the day; stake on the partner pact | S | ✅ |
 | 43 | Brag document for reviews, promotion cases and CVs | S | ✅ |
 | 44 | What do you need right now? — moments mapped to tools, from Today | S | ✅ |
+| 45 | Your day: wake, work, bed draw the dial and time the reminders for anyone | S | ✅ |
 | 24 | Hard days: minimum day, sick day, emergency skips, welcome back (Emin's request) | M | ✅ |
 
 ## P3 — The mass version

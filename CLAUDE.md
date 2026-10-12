@@ -52,7 +52,7 @@ Services: ReminderService (local notifications), BriefGenerator (weekly brief)
 - Growth: `allGrowthAreas` = their own areas; the chooser offers `areaTemplates`, adopted on focus (`focusOn`); `suggestedArea` follows the lowest life area.
 - Me: no protocol mastery or readiness; Body shows `_MoveSummary`. Check-in: no shoulder pain/stiffness (his condition); Mornings shows mood instead.
 - Review deck: no `seedCards`. Brief: `builtInPlan: false` drops gym, artifact, LinkedIn and unlock tasks and the month theme/artifact/book; no readiness gap. A new person's plan builder also removes the seeded evidence.
-- New features must work in both modes; `test/widget_test.dart` renders a second person and fails if built-in specifics (shoulder pain, domain scan, face pulls, lunch read) appear.
+- New features must work in both modes; `test/widget_test.dart` renders a second person and fails if built-in specifics (shoulder pain, the 07:45 desk card and scan tile, face pulls, lunch read, LinkedIn posts, gym sessions) appear.
 
 ## Critical Conventions
 
@@ -93,7 +93,7 @@ Bottom tabs: **Today** `/home` · **Program** `/program?tab=0..3` (Journey/Sched
 ```
 /splash /welcome /sign-up /sign-in /forgot-password /commission
 /manifesto /protocols /evidence /library /style /career /weekly-coaching /checkin /plans /review /habits /cockpit(?tab=0..2)
-/shutdown /focus /letters /week /people /growth /values /coach /case /growth/area(?id=|template=) /goals /goals/edit /goals/view?id= /note /setback /quarter /profile/edit /daily /learning /experiments /rest /stop /gratitude /models /360 /energy /start /privacy /packs /partner /coach-report /odyssey /crafting /best-self /move /conversations /money /upkeep /stepback /decide /month-review /manual /us /brag /need
+/shutdown /focus /letters /week /people /growth /values /coach /case /growth/area(?id=|template=) /goals /goals/edit /goals/view?id= /note /setback /quarter /profile/edit /daily /learning /experiments /rest /stop /gratitude /models /360 /energy /start /privacy /packs /partner /coach-report /odyssey /crafting /best-self /move /conversations /money /upkeep /stepback /decide /month-review /manual /us /brag /need /day
 /ritual-flow/:ritualId /gym /gym/:dayId (push|pull|legs) /month/:m (1–18)
 /tool/:id  sigh excited pause still bluf sixq read feynman scan pennebaker anki artifact(?month=) linkedin
 ```
@@ -199,6 +199,7 @@ Flow:
 - **Accountability partner** (`/partner`, Me; Today prompts from the check-in weekday): one active `partner` log (name, `mine`, `theirs` commitments, optional `stake` if one misses — a commitment device, `weekday`, status; hidden from the Log tab). Weekly `partner_checkin` log dated `weekStartOf` (`mine`/`theirs` from `checkinAnswers` kept/partly/missed, note). `partnerUpdateText` (held days, hard days, Big 3, their turn) is copied, never sent; `partnerRecord()` over the last 4 → the brief (`accountability_partner`). `endPartnership` keeps the history.
 - **Coach mode** (`/coach-report`, Me → Report for your coach): `coachReportText(from, to, mornings:)` for this month or quarter — goals and pace, daily plan held (excused days excluded) with hard days, weakest/strongest item, growth ratings, reps, lessons and feedback, experiments, wins and setbacks, optional energy and sleep. Never notes, letters or journal entries. Copied, never sent.
 - **Month review for anyone** (`/month-review`; Today prompts from day 27 and in the first 5 days of the next month — the built-in person is sent to `/month/:m` instead; Program's month section links it for anyone else): `monthToReview`, `monthReviewDue`, `monthHeld(month)` (held of counted days, excused left out, hard days by kind), growth area end rating (`rateFocusEnd(rating, month:)`), wins, goals, one lesson → `saveMonthReview` writes the `month_review` log (`lesson` in data).
+- **Your day** (`/day`, Me → Settings, Today prompts from day 2 for anyone but the built-in person): one `day_shape` log (`wake`, `work_start`, `work_end`, `bed` in minutes; equal work times = no fixed hours). `personalSchedule` (morning, work, evening or a day block, wind down, sleep) draws the Day Dial; `personalBlockAt` labels the dial centre; `activeReminderDefs` times the general reminders from it (check-in wake+30, items mid-work, shutdown bed−90). The Gym days setting is the built-in person's only.
 - **What do you need right now?** (`/need`, a link under Today's priorities): eleven moments (stressed, too close, deciding, hard conversation, slipped, hard day, circling problem, can't focus, closeness, self-doubt, direction) each mapped to one tool. `NeedScreen.routes` are resolved by the smoke test.
 - **Brag document** (`/brag`, Me → Direction): `bragText(since:)` — goals reached (with how), wins by month, feedback-round themes and best-self portrait, people helped grow, learning applied; 3 months / 6 months / all; copied.
 - **Question of the day** (anyone but the built-in person, in Today's plan section instead of the coach note): `questionOfTheDay` rotates `dailyQuestions` (`general_program.dart`, 21 across life areas) by program day; `answerQuestion` saves or updates one `note` per day with `question` in data.

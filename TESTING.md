@@ -195,6 +195,9 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] Program shows only the journey (your roles on the spine, general phase text, your area and goals, Close the month); Me has no protocol mastery, readiness or gym body card; the check-in has no shoulder questions; reminders are check-in, daily items, shutdown and Sunday report
 - [ ] The Sunday report shows minutes moved instead of gym sessions; the brief has no scan, BLUF, artifact or LinkedIn lines
 
+## 2zq. New: your day (someone else)
+- [ ] Today prompts **Shape your day** → set wake, work and lights out (or switch off fixed hours) → Save → the dial shows Morning/Work/Evening/Wind down/Sleep arcs and its centre names the current block; Me → Reminders shows the check-in 30 min after waking and the shutdown 90 min before bed
+
 ## 2zp. New: month review, manual, check-in for two, brag document, journal export
 - [ ] From day 27 Today offers **Close month N** (someone else → `/month-review`; the built-in person → the month page): held days, area rating, wins, goals, lesson, carry-over → Save
 - [ ] Me → People → **How to work with me**: drafted from your values, best-self portrait and energy peak → edit → Save and copy

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart' show IconData, Icons;
 
 import '../data/daily_library.dart';
 import '../data/emin_system.dart';
@@ -1651,9 +1652,90 @@ class PersonalSystemProvider extends ChangeNotifier {
   // ── Reminders ────────────────────────────────────────────────────────
 
   /// The built-in person's reminders follow their schedule; anyone else
-  /// gets the general set.
-  List<ReminderDef> get activeReminderDefs =>
-      isBuiltInPerson ? reminderDefs : generalReminderDefs;
+  /// gets the general set, timed to their own day once they've shaped it.
+  List<ReminderDef> get activeReminderDefs {
+    if (isBuiltInPerson) return reminderDefs;
+    final d = dayShape;
+    if (d == null) return generalReminderDefs;
+    ReminderDef at(ReminderDef r, int minute) => ReminderDef(
+        r.id, r.label, (minute ~/ 60) % 24, minute % 60,
+        weekdays: r.weekdays, route: r.route, defaultOn: r.defaultOn);
+    final midday = d.workStart < d.workEnd
+        ? d.workStart + (d.workEnd - d.workStart) ~/ 2
+        : d.wake + 300;
+    return [
+      for (final r in generalReminderDefs)
+        switch (r.id) {
+          'g_checkin' => at(r, d.wake + 30),
+          'g_items' => at(r, midday),
+          'g_shutdown' => at(r, (d.bed - 90).clamp(d.wake + 60, 23 * 60 + 30)),
+          _ => r,
+        }
+    ];
+  }
+
+  // ── Your day ─────────────────────────────────────────────────────────
+
+  /// The shape of an ordinary day for anyone without the built-in schedule:
+  /// wake, work and bed times (minutes after midnight). It draws the dial
+  /// and times their reminders.
+  ({int wake, int workStart, int workEnd, int bed})? get dayShape {
+    final l = logsOf('day_shape');
+    if (l.isEmpty) return null;
+    int m(String k, int d) => (l.first.number(k) ?? d).toInt();
+    return (
+      wake: m('wake', 7 * 60),
+      workStart: m('work_start', 9 * 60),
+      workEnd: m('work_end', 17 * 60 + 30),
+      bed: m('bed', 23 * 60),
+    );
+  }
+
+  void saveDayShape({required int wake, required int workStart, required int workEnd, required int bed}) {
+    final data = {'wake': wake, 'work_start': workStart, 'work_end': workEnd, 'bed': bed};
+    final l = logsOf('day_shape');
+    if (l.isEmpty) {
+      addLog('day_shape', data: data);
+    } else {
+      updateLog(l.first.copyWith(data: data));
+    }
+    _syncReminders();
+  }
+
+  /// Their day as schedule blocks (for the dial); empty until shaped.
+  List<ScheduleBlock> get personalSchedule {
+    final d = dayShape;
+    if (d == null) return const [];
+    ScheduleBlock b(int minute, String title, String detail, String lane, IconData icon) =>
+        ScheduleBlock((minute ~/ 60) % 24, minute % 60, title, detail, lane, icon);
+    final hasWork = d.workStart < d.workEnd;
+    return [
+      b(d.wake, 'Morning', 'Your first items, before the day takes over', 'body',
+          Icons.wb_twilight_rounded),
+      if (hasWork) ...[
+        b(d.workStart, 'Work', 'One block on what matters most', 'skill',
+            Icons.center_focus_strong_rounded),
+        b(d.workEnd, 'Evening', 'People, movement, rest', 'social', Icons.home_outlined),
+      ] else
+        b(d.wake + 120, 'Day', 'What matters most first', 'skill',
+            Icons.center_focus_strong_rounded),
+      b(d.bed - 60, 'Wind down', 'Tomorrow\'s three, screens off', 'mind',
+          Icons.nights_stay_outlined),
+      b(d.bed, 'Sleep', 'Lights out', 'body', Icons.bedtime_outlined),
+    ]..sort((a, c) => a.minuteOfDay.compareTo(c.minuteOfDay));
+  }
+
+  /// The block they're in now, if their day is shaped.
+  ScheduleBlock? personalBlockAt(DateTime now) {
+    final s = personalSchedule;
+    if (s.isEmpty) return null;
+    final m = now.hour * 60 + now.minute;
+    var active = s.last;
+    for (final b in s) {
+      if (b.minuteOfDay <= m) active = b;
+    }
+    return active;
+  }
 
   bool reminderOn(String id) {
     final def = [...reminderDefs, ...generalReminderDefs].firstWhere((d) => d.id == id);

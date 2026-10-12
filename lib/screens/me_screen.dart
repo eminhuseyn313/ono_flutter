@@ -619,18 +619,32 @@ class MeScreen extends StatelessWidget {
                   if (picked != null) system.setProgramStart(picked);
                 },
               ),
+              if (system.isBuiltInPerson) ...[
+                const Divider(indent: 66),
+                LinkRow(
+                  icon: Icons.fitness_center_rounded,
+                  color: AppColors.body,
+                  title: 'Gym days',
+                  subtitle: [
+                    for (var i = 0; i < 3; i++)
+                      '${gymPlan[i].letter} ${weekdayName(system.gymDays[i]).substring(0, 3)}'
+                  ].join(' · '),
+                  onTap: () => _gymDaysSheet(context, system),
+                ),
+              ],
               const Divider(indent: 66),
-              LinkRow(
-                icon: Icons.fitness_center_rounded,
-                color: AppColors.body,
-                title: 'Gym days',
-                subtitle: [
-                  for (var i = 0; i < 3; i++)
-                    '${gymPlan[i].letter} ${weekdayName(system.gymDays[i]).substring(0, 3)}'
-                ].join(' · '),
-                onTap: () => _gymDaysSheet(context, system),
-              ),
-              const Divider(indent: 66),
+              if (!system.isBuiltInPerson) ...[
+                LinkRow(
+                  icon: Icons.schedule_rounded,
+                  color: AppColors.mind,
+                  title: 'Your day',
+                  subtitle: system.dayShape == null
+                      ? 'Wake, work and bed times'
+                      : 'Wake ${(system.dayShape!.wake ~/ 60).toString().padLeft(2, '0')}:${(system.dayShape!.wake % 60).toString().padLeft(2, '0')} · lights out ${(system.dayShape!.bed ~/ 60).toString().padLeft(2, '0')}:${(system.dayShape!.bed % 60).toString().padLeft(2, '0')}',
+                  onTap: () => context.push('/day'),
+                ),
+                const Divider(indent: 66),
+              ],
               LinkRow(
                 icon: Icons.notifications_none_rounded,
                 color: AppColors.mind,

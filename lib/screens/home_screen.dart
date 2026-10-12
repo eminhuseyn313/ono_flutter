@@ -144,7 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     onTap: () => context.go('/program?tab=1'),
                     child: DayDial(
                       now: _now,
-                      schedule: system.isBuiltInPerson ? dailySchedule : const [],
+                      schedule: system.isBuiltInPerson ? dailySchedule : system.personalSchedule,
                       ticks: [
                         for (final n in system.dailyItems)
                           (lane: n.lane, done: system.isChecked(date, n.id))
@@ -396,8 +396,11 @@ class _DateSwitch extends StatelessWidget {
   final part = h < 12 ? 'morning' : (h < 18 ? 'day' : 'evening');
   final open = [for (final n in system.dailyItems) if (!system.isChecked(date, n.id)) n];
   final next = open.where((n) => n.when == part).firstOrNull ?? open.firstOrNull;
+  final block = system.personalBlockAt(DateTime.now());
   return (
-    eyebrow: switch (part) { 'morning' => 'THIS MORNING', 'day' => 'TODAY', _ => 'THIS EVENING' },
+    eyebrow: block != null
+        ? '${block.title.toUpperCase()} · NOW'
+        : switch (part) { 'morning' => 'THIS MORNING', 'day' => 'TODAY', _ => 'THIS EVENING' },
     title: next?.title ?? 'All done for today',
   );
 }
@@ -1143,6 +1146,9 @@ class _PromptsState extends State<_Prompts> {
         _row(context, Icons.balance_rounded, AppColors.accent,
             'Decision review due',
             '"${reviews.first.text}" — was the call right?', '/cockpit?tab=1'),
+      if (!system.isBuiltInPerson && system.dayShape == null && system.programDay >= 2)
+        _row(context, Icons.schedule_rounded, AppColors.mind, 'Shape your day',
+            'Wake, work, bed — your dial and reminders follow it', '/day'),
       if (system.values.isEmpty && system.programDay >= 7 && system.programDay <= 30)
         _row(context, Icons.diamond_outlined, AppColors.mind, 'What do you stand for?',
             'Name three to five values — decisions and your brief use them', '/values'),

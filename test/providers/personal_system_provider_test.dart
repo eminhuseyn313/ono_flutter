@@ -2176,4 +2176,24 @@ void main() {
     expect(p.bragText(since: _today.add(const Duration(days: 1))), isNot(contains('Old idea')));
     expect(p.bragText(), contains('Old idea'));
   });
+
+  test('your day: schedule blocks and reminder times follow it', () async {
+    final p = await _commissioned();
+    p.saveProfile(activeProfile.copyWith(name: 'Someone Else'));
+    expect(p.personalSchedule, isEmpty);
+    expect(p.activeReminderDefs.firstWhere((r) => r.id == 'g_checkin').hour, 7);
+    p.saveDayShape(wake: 6 * 60 + 30, workStart: 8 * 60, workEnd: 16 * 60, bed: 22 * 60 + 30);
+    expect(p.personalSchedule.map((b) => b.title), ['Morning', 'Work', 'Evening', 'Wind down', 'Sleep']);
+    final defs = {for (final r in p.activeReminderDefs) r.id: r.timeLabel};
+    expect(defs['g_checkin'], '07:00');
+    expect(defs['g_items'], '12:00');
+    expect(defs['g_shutdown'], '21:00');
+    expect(p.personalBlockAt(DateTime(2026, 10, 2, 9))!.title, 'Work');
+    // No fixed hours: a day block instead of work and evening.
+    p.saveDayShape(wake: 8 * 60, workStart: 8 * 60, workEnd: 8 * 60, bed: 24 * 60 - 15);
+    expect(p.personalSchedule.map((b) => b.title), ['Morning', 'Day', 'Wind down', 'Sleep']);
+    expect(p.logsOf('day_shape').length, 1);
+    p.resetProfile();
+    expect(p.activeReminderDefs, same(reminderDefs));
+  });
 }
