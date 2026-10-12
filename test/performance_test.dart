@@ -86,6 +86,8 @@ void main() {
       'journal': ms(() => p.journalText()),
       'say-do': ms(() => p.sayDo()),
       'program summary': ms(() => p.programSummary()),
+      'year summary': ms(() => p.yearSummary(today.year)),
+      'ask record': ms(() => p.askRecord()),
       'merge with itself': ms(() => mergeStateJson(state.toJson(), state.toJson(), state.toJson())),
     };
     // Generous limits for a slow CI machine; on a phone these are a
