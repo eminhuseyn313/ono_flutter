@@ -276,6 +276,26 @@ class MeScreen extends StatelessWidget {
               ),
               const Divider(indent: 66),
               LinkRow(
+                icon: Icons.wb_sunny_outlined,
+                color: AppColors.skill,
+                title: 'Your best possible future',
+                subtitle: system.bestFuture == null
+                    ? 'Write it as if it already happened'
+                    : 'Last written ${shortDate(system.bestFuture!.date)}',
+                onTap: () => context.push('/best-future'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
+                icon: Icons.auto_stories_outlined,
+                color: AppColors.mind,
+                title: 'Life chapters',
+                subtitle: system.lifeChapters.isEmpty
+                    ? 'Your story so far, and the next chapter'
+                    : '${system.lifeChapters.length} chapters${(system.lifeStory?.str('next') ?? '').isEmpty ? '' : ' · next: ${system.lifeStory!.str('next')}'}',
+                onTap: () => context.push('/chapters'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
                 icon: Icons.diamond_outlined,
                 color: AppColors.mind,
                 title: 'Your values',
@@ -506,6 +526,16 @@ class MeScreen extends StatelessWidget {
               ),
               const Divider(indent: 66),
               LinkRow(
+                icon: Icons.volunteer_activism_outlined,
+                color: AppColors.social,
+                title: 'Kindness day',
+                subtitle: system.kindnessDay == null
+                    ? 'Five small kind acts, one day a week'
+                    : '${weekdayName(system.kindnessDay!)}s · ${system.kindnessInWeek(DateTime.now())} this week',
+                onTap: () => context.push('/kindness'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
                 icon: Icons.favorite_outline_rounded,
                 color: AppColors.social,
                 title: 'Gratitude letter',
@@ -542,6 +572,26 @@ class MeScreen extends StatelessWidget {
                 title: 'Step back',
                 subtitle: 'Talk to yourself by name when it all feels close',
                 onTap: () => context.push('/stepback'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
+                icon: Icons.psychology_outlined,
+                color: AppColors.mind,
+                title: 'Thought check',
+                subtitle: system.thoughtRelief == null
+                    ? 'Put a painful thought to the test'
+                    : 'Takes the feeling down ${system.thoughtRelief!.round()} points on average',
+                onTap: () => context.push('/thought'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
+                icon: Icons.local_parking_rounded,
+                color: AppColors.mind,
+                title: 'Worry time',
+                subtitle: system.parkedWorries.isEmpty
+                    ? 'Park worries, deal with them once a day'
+                    : '${system.parkedWorries.length} parked',
+                onTap: () => context.push('/worry'),
               ),
               const Divider(indent: 66),
               LinkRow(

@@ -88,6 +88,19 @@ Status: ⬜ to do · 🟨 in progress · ✅ done. Effort: S = days, M = a week,
 | 45 | Your day: wake, work, bed draw the dial and time the reminders for anyone | S | ✅ |
 | 24 | Hard days: minimum day, sick day, emergency skips, welcome back (Emin's request) | M | ✅ |
 
+## P4 — Fourth discovery pass: the inner life (12 Oct 2026)
+
+Mind and meaning were the thinnest lanes; each item is a short, well-studied exercise that works for anyone and that Emin can use now (self-trust, composure, public voice).
+
+| # | Item | Effort | Status |
+|---|---|---|---|
+| 46 | Thought check: a CBT thought record with the feeling rated before and after (Beck 1979; Hofmann et al. 2012) | S | ✅ |
+| 47 | Best possible future: write life 1–5 years out when it went well, then this week's step (King 2001; Carrillo et al. 2019) | S | ✅ |
+| 48 | Kindness day: five kind acts on one chosen day a week (Lyubomirsky, Sheldon & Schkade 2005) | S | ✅ |
+| 49 | Worry time: park worries, deal with them in one daily slot → next step or let go (Borkovec et al. 1983; McGowan & Behar 2013) | S | ✅ |
+| 50 | Life chapters: high, low and lesson per chapter, the one you're in, the next one's title (McAdams & McLean 2013; Adler 2012) | S | ✅ |
+| 51 | Sync between the iPhone and the web app (three-way merge, Supabase) | M | ✅ (Emin: make the repo public, turn on Pages, email setting) |
+
 ## P3 — The mass version
 
 | # | Item | Effort | Status |

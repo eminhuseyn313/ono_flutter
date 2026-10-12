@@ -120,6 +120,19 @@ Every item passes both tests: useful to Emin now, and useful to anyone. Effort: 
 
 Also overnight: anyone but the built-in person now sees a general app (Today, Program, growth areas, check-in, brief, reminders, welcome), with a test that fails if the built-in plan's specifics leak.
 
+### I. Fourth pass: the inner life (12 Oct 2026)
+Mind and meaning had the fewest tools. Each item below is short, has good evidence, works for anyone, and serves Emin's personal areas now (self-trust, composure under pressure, public voice).
+
+| # | Feature | For Emin now | For anyone | Evidence | Status |
+|---|---|---|---|---|---|
+| I1 | **Thought check** (situation, thought, feeling 0–100, evidence for/against, balanced thought, re-rate) | The impostor voice before reviews | Anxiety, self-doubt, anger | Beck 1979; Hofmann et al. 2012 (meta-analysis of CBT) | ✅ |
+| I2 | **Best possible future** (write it as already true, then one step this week) | Hope on hard weeks; links to goals | Anyone | King 2001; Meevissen et al. 2011; Carrillo et al. 2019 (meta-analysis) | ✅ |
+| I3 | **Kindness day** (five acts on one day a week) | Team and family | Anyone | Lyubomirsky, Sheldon & Schkade 2005 | ✅ |
+| I4 | **Worry time** (park, then one daily slot: next step or let go) | Composure; evenings free | Chronic worriers | Borkovec et al. 1983; McGowan & Behar 2013 (RCT) | ✅ |
+| I5 | **Life chapters** (high, low, lesson; now; the next chapter's title) | Meaning, identity in transition | Anyone at a turning point | McAdams & McLean 2013; Adler 2012 | ✅ |
+
+All five are private: the coach gets only how many thoughts were checked and kind acts logged.
+
 ### E. Relationships
 | # | Feature | For Emin now | For anyone | Evidence | Effort |
 |---|---|---|---|---|---|

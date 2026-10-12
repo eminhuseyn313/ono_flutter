@@ -1171,6 +1171,12 @@ class _PromptsState extends State<_Prompts> {
         _row(context, Icons.forum_outlined, AppColors.social,
             'The conversation with ${c.str('with')}',
             'Have it today, or debrief it if it happened', '/conversations'),
+      if (system.worryTimeDue(now))
+        _row(context, Icons.local_parking_rounded, AppColors.mind, 'Worry time',
+            '${system.parkedWorries.length} parked — a next step or let go', '/worry'),
+      if (system.kindnessDue(now))
+        _row(context, Icons.volunteer_activism_outlined, AppColors.social,
+            'Kindness day', '${system.kindnessOn(now).length} of ${PersonalSystemProvider.kindnessPerDay} kind acts today', '/kindness'),
       if (system.partnerCheckinDue)
         _row(context, Icons.handshake_outlined, AppColors.social,
             'Check in with ${system.partner!.text.split(' ').first}',

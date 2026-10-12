@@ -195,6 +195,18 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] Program shows only the journey (your roles on the spine, general phase text, your area and goals, Close the month); Me has no protocol mastery, readiness or gym body card; the check-in has no shoulder questions; reminders are check-in, daily items, shutdown and Sunday report
 - [ ] The Sunday report shows minutes moved instead of gym sessions; the brief has no scan, BLUF, artifact or LinkedIn lines
 
+## 2zs. New: sync between the iPhone and the web
+- [ ] iPhone (Install on my iPhone) → sign up with your email → your existing data is still there
+- [ ] Web → sign in with the same email → the same Today; tick an item on the web → within a minute (or on reopening the app) it is ticked on the iPhone
+- [ ] Log a note on each device at about the same time → both notes are on both devices
+
+## 2zr. New: thought check, best future, kindness day, worry time, life chapters
+- [ ] What do you need? → **A thought keeps getting to me** → write the thought, pick a feeling, rate it, the evidence, a balanced thought, rate it again → Save → the toast says how many points lighter; it shows in Log → Notes
+- [ ] **I can't stop worrying** → set a worry time → park two worries → at that time Today prompts **Worry time** → Deal with it → a next step lands in today's priorities; Let it go removes it
+- [ ] Me → People → **Kindness day** → pick today → Today prompts until five acts are logged
+- [ ] Me → Direction → **Your best possible future** → 3 years → write two parts and this week's step → Save → it shows under "Last time"; **Life chapters** → two chapters and the next chapter's title → Me shows "next: …"
+- [ ] Privacy → the coach section says thoughts, worries and the life story are never sent (counts only for thoughts and kindness)
+
 ## 2zq. New: your day (someone else)
 - [ ] Today prompts **Shape your day** → set wake, work and lights out (or switch off fixed hours) → Save → the dial shows Morning/Work/Evening/Wind down/Sleep arcs and its centre names the current block; Me → Reminders shows the check-in 30 min after waking and the shutdown 90 min before bed
 

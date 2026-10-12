@@ -58,6 +58,10 @@ class BriefInput {
   /// Setbacks met with the protocol this week.
   final int setbacks;
 
+  /// Counts only: kind acts logged and thoughts checked this week.
+  final int kindnessActs;
+  final int thoughtsChecked;
+
   /// Whether rest is planned (or running) within the next 8 weeks.
   final bool restPlanned;
 
@@ -144,6 +148,8 @@ class BriefInput {
     this.goals = const [],
     this.noteSent = false,
     this.setbacks = 0,
+    this.kindnessActs = 0,
+    this.thoughtsChecked = 0,
     this.lowestLifeArea,
     this.learningApplied = const [],
     this.experiments = const [],
@@ -168,6 +174,8 @@ class BriefInput {
         'goals': goals,
         'progress_note_sent': noteSent,
         'setbacks_handled': setbacks,
+        'kindness_acts_this_week': kindnessActs,
+        'thoughts_checked_this_week': thoughtsChecked,
         'lowest_life_area': lowestLifeArea,
         'learning_applied': learningApplied,
         'experiments': experiments,
@@ -369,6 +377,10 @@ class DeviceBriefGenerator implements BriefGenerator {
         'No progress note went out this week. Friday: five lines to ${input.profile.manager.isEmpty ? 'one person you trust' : input.profile.manager} — reported progress moves goals faster than private tracking.',
       if (input.setbacks > 0)
         '${input.setbacks} setback${input.setbacks == 1 ? '' : 's'} met with a next step instead of a spiral. That is the skill.',
+      if (input.thoughtsChecked > 0)
+        'You put ${input.thoughtsChecked} hard thought${input.thoughtsChecked == 1 ? '' : 's'} to the test this week instead of believing ${input.thoughtsChecked == 1 ? 'it' : 'them'}.',
+      if (input.kindnessActs >= 5)
+        '${input.kindnessActs} kind acts this week — they count for you too.',
       if (input.valueGap != null)
         'This week reflected ${input.valueGap} least. Name one moment next week where you\'ll choose it on purpose.',
       if (input.openCommitments.isNotEmpty)

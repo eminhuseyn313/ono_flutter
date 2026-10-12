@@ -2215,4 +2215,89 @@ void main() {
     p.setWeekOutcomeGoal(_today, 0, null);
     expect(p.weekOutcomesFor(g.id, _today), 0);
   });
+
+  test('thought check: saved with before and after; relief needs two checks',
+      () async {
+    final p = await _commissioned();
+    expect(p.logThought(situation: 'Review', thought: ' '), isNull);
+    p.logThought(
+        situation: 'Review meeting',
+        thought: 'They think I am not good enough',
+        feeling: 'Anxious',
+        before: 80,
+        evidenceAgainst: 'They asked me to lead the next one',
+        balanced: 'One hard question is not a verdict',
+        after: 40);
+    expect(p.thoughts.single.number('before'), 80);
+    expect(p.thoughtRelief, isNull);
+    p.logThought(situation: 'Call', thought: 'I will fail', before: 70, after: 50);
+    expect(p.thoughtRelief, 30);
+    expect(p.thoughtsInWeek(_today), 2);
+    expect(p.journalText(), contains('More balanced: One hard question is not a verdict'));
+  });
+
+  test('best possible future: kept per writing, empty areas dropped', () async {
+    final p = await _commissioned();
+    p.saveBestFuture(years: 3, areas: {'work': ' '});
+    expect(p.bestFuture, isNull);
+    p.saveBestFuture(
+        years: 3,
+        areas: {'work': 'I lead a product team I am proud of.', 'body': ''},
+        step: 'Ask for the stretch project');
+    expect(p.bestFuture!.number('years'), 3);
+    expect((p.bestFuture!.data['areas'] as Map).keys, ['work']);
+    expect(p.journalText(), contains('This week: Ask for the stretch project'));
+  });
+
+  test('kindness day: five acts on the chosen weekday', () async {
+    final p = await _commissioned();
+    expect(p.kindnessDue(_today), isFalse);
+    p.setKindnessDay(_today.weekday);
+    p.setKindnessDay(_today.weekday); // one plan, not two
+    expect(p.logsOf('kindness_plan').length, 1);
+    expect(p.kindnessDue(_today), isTrue);
+    for (var i = 0; i < 5; i++) {
+      p.logKindness('Act $i');
+    }
+    expect(p.kindnessDue(_today), isFalse);
+    expect(p.kindnessInWeek(_today), 5);
+    p.setKindnessDay(null);
+    expect(p.kindnessDay, isNull);
+  });
+
+  test('worry time: parked until the slot, a next step becomes a priority',
+      () async {
+    final p = await _commissioned();
+    p.parkWorry('The budget review');
+    p.parkWorry('Mum\'s appointment');
+    expect(p.worryTimeDue(_today), isFalse); // no slot set
+    p.setWorryTime(18 * 60);
+    expect(p.worryTimeDue(_today), isFalse); // 12:00
+    expect(p.worryTimeDue(DateTime(2026, 10, 2, 18, 5)), isTrue);
+    final first = p.parkedWorries.first;
+    expect(first.text, 'The budget review');
+    p.resolveWorry(first.id, outcome: 'keep');
+    expect(p.parkedWorries.length, 2);
+    p.resolveWorry(first.id, outcome: 'acted', step: 'Draft the three numbers');
+    expect(p.prioritiesFor(_today), contains('Draft the three numbers'));
+    p.resolveWorry(p.parkedWorries.single.id, outcome: 'let_go');
+    expect(p.parkedWorries, isEmpty);
+  });
+
+  test('life chapters: edited in place, untitled chapters dropped', () async {
+    final p = await _commissioned();
+    p.saveLifeStory(chapters: [
+      {'title': 'Leaving home', 'years': '2012–2016', 'taught': 'I can start over'},
+      {'title': ' ', 'high': 'x'},
+    ], next: 'Leading');
+    expect(p.lifeChapters.single['title'], 'Leaving home');
+    p.saveLifeStory(chapters: [
+      {'title': 'Leaving home'},
+      {'title': 'First team'},
+    ], next: 'Leading');
+    expect(p.logsOf('life_story').length, 1);
+    expect(p.lifeChapters.length, 2);
+    expect(p.journalText(), contains('Next chapter: Leading'));
+  });
 }
+

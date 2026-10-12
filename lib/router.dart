@@ -47,6 +47,7 @@ import 'screens/move_screen.dart';
 import 'screens/conversation_screen.dart';
 import 'screens/money_screen.dart';
 import 'screens/upkeep_screen.dart';
+import 'screens/inner_tools_screens.dart';
 import 'screens/mind_tools_screens.dart';
 import 'screens/month_review_screen.dart';
 import 'screens/together_screens.dart';
@@ -143,6 +144,11 @@ const appRoutes = [
   '/us',
   '/brag',
   '/need',
+  '/thought',
+  '/best-future',
+  '/kindness',
+  '/worry',
+  '/chapters',
   '/day',
   '/goals/edit',
   '/growth/area',
@@ -237,6 +243,11 @@ GoRouter createRouter(AuthProvider authProvider,
       _slide('/us', (_) => const UsScreen()),
       _slide('/brag', (_) => const BragScreen()),
       _slide('/need', (_) => const NeedScreen()),
+      _slide('/thought', (_) => const ThoughtScreen()),
+      _slide('/best-future', (_) => const BestFutureScreen()),
+      _slide('/kindness', (_) => const KindnessScreen()),
+      _slide('/worry', (_) => const WorryScreen()),
+      _slide('/chapters', (_) => const ChaptersScreen()),
       _slide('/day', (_) => const DayScreen()),
       _slide(
           '/goals/edit',

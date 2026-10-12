@@ -1658,6 +1658,8 @@ class PersonalSystemProvider extends ChangeNotifier {
         goals: goalSummaries(),
         noteSent: noteSentInWeek(report.weekStart),
         setbacks: setbacksInWeek(report.weekStart),
+        kindnessActs: kindnessInWeek(report.weekStart),
+        thoughtsChecked: thoughtsInWeek(report.weekStart),
         restPlanned: restPlannedSoon,
         experiments: [
           for (final e in [...experimentsWith('running'), ...experimentsWith('kept').take(2)])
@@ -4954,6 +4956,10 @@ class PersonalSystemProvider extends ChangeNotifier {
         'letter' => letterIsOpen(l) ? 'Letter to myself (opened): ${l.text}' : '',
         'gratitude' => 'Gratitude letter to ${f('to')}: ${l.text}',
         'shutdown' => f('open').isEmpty ? '' : 'Evening, on my mind: ${f('open')}',
+        'thought' => 'Checked a thought: ${l.text}${f('balanced').isEmpty ? '' : '\n  More balanced: ${f('balanced')}'}',
+        'kindness' => 'Kindness: ${l.text}',
+        'best_future' => 'My best possible future in ${l.number('years')} years:${[for (final a in bestFutureAreas) if ((l.data['areas'] as Map?)?[a.$1] != null) '\n  ${a.$2}: ${(l.data['areas'] as Map)[a.$1]}'].join()}${l.text.isEmpty ? '' : '\n  This week: ${l.text}'}',
+        'life_story' => 'My life in chapters:${[for (final c in lifeChapters) '\n  ${c['title']}${(c['years'] ?? '').isEmpty ? '' : ' (${c['years']})'}${(c['taught'] ?? '').isEmpty ? '' : ' — taught me: ${c['taught']}'}'].join()}${f('next').isEmpty ? '' : '\n  Next chapter: ${f('next')}'}',
         _ => '',
       };
     }
@@ -4971,6 +4977,239 @@ class PersonalSystemProvider extends ChangeNotifier {
       b.writeln(t);
     }
     return b.toString().trim();
+  }
+
+  // ── Thought check (CBT thought record) ───────────────────────────────
+
+  /// Feelings offered on the thought check; the person can type their own.
+  static const thoughtFeelings = [
+    'Anxious', 'Sad', 'Angry', 'Ashamed', 'Guilty', 'Hurt', 'Overwhelmed',
+  ];
+
+  /// A thought put to the test: the situation, the thought, the feeling
+  /// and how strong it was (0–100), the evidence for and against, a more
+  /// balanced thought, and the feeling again. Cognitive restructuring is
+  /// the core of CBT (Beck 1979; Hofmann et al. 2012, meta-analysis).
+  LogEntry? logThought({
+    required String situation,
+    required String thought,
+    String feeling = '',
+    int? before,
+    String evidenceFor = '',
+    String evidenceAgainst = '',
+    String balanced = '',
+    int? after,
+  }) {
+    if (thought.trim().isEmpty) return null;
+    return addLog('thought', text: thought.trim(), data: {
+      'situation': situation.trim(),
+      'feeling': feeling.trim(),
+      'before': before,
+      'for': evidenceFor.trim(),
+      'against': evidenceAgainst.trim(),
+      'balanced': balanced.trim(),
+      'after': after,
+    });
+  }
+
+  List<LogEntry> get thoughts => logsOf('thought');
+
+  /// How much a check took the edge off, on average (points of 0–100,
+  /// from before to after) over the last 30 days; null under 2 checks.
+  double? get thoughtRelief {
+    final from = dayOnly(_now).subtract(const Duration(days: 30));
+    final drops = [
+      for (final t in thoughts)
+        if (!t.date.isBefore(from) &&
+            t.number('before') != null &&
+            t.number('after') != null)
+          t.number('before')! - t.number('after')!,
+    ];
+    if (drops.length < 2) return null;
+    return drops.reduce((a, b) => a + b) / drops.length;
+  }
+
+  int thoughtsInWeek(DateTime anyDay) {
+    final week = weekStartOf(anyDay);
+    return countBetween('thought', week, week.add(const Duration(days: 7)));
+  }
+
+  // ── Best possible future (King 2001) ─────────────────────────────────
+
+  /// The areas the best-possible-future writing walks through.
+  static const bestFutureAreas = [
+    ('work', 'Work and what you build'),
+    ('people', 'The people around you'),
+    ('body', 'Your health and energy'),
+    ('self', 'Who you have become'),
+  ];
+
+  /// Writing about your life when things have gone as well as they
+  /// realistically could raises optimism and positive mood (King 2001;
+  /// Meevissen et al. 2011; Carrillo et al. 2019, meta-analysis). Each
+  /// writing is kept, so it can be done again.
+  void saveBestFuture({
+    required int years,
+    required Map<String, String> areas,
+    String step = '',
+  }) {
+    final filled = {
+      for (final e in areas.entries)
+        if (e.value.trim().isNotEmpty) e.key: e.value.trim(),
+    };
+    if (filled.isEmpty) return;
+    addLog('best_future', text: step.trim(), data: {
+      'years': years,
+      'areas': filled,
+    });
+  }
+
+  LogEntry? get bestFuture {
+    final l = logsOf('best_future');
+    return l.isEmpty ? null : l.first;
+  }
+
+  // ── Kindness day (Lyubomirsky, Sheldon & Schkade 2005) ───────────────
+
+  /// Five acts of kindness on one day a week raised well-being; the same
+  /// acts spread over the week did not.
+  static const kindnessPerDay = 5;
+
+  /// The weekday chosen for kindness, or null.
+  int? get kindnessDay {
+    final l = logsOf('kindness_plan');
+    return l.isEmpty ? null : l.first.number('weekday')?.toInt();
+  }
+
+  void setKindnessDay(int? weekday) {
+    final s = _state;
+    if (s == null) return;
+    final rest = s.logs.where((l) => l.type != 'kindness_plan').toList();
+    if (weekday == null) {
+      _update(s.copyWith(logs: rest));
+      return;
+    }
+    _update(s.copyWith(logs: [
+      ...rest,
+      _entry('kindness_plan', _now, data: {'weekday': weekday}),
+    ]));
+  }
+
+  void logKindness(String act, {DateTime? day}) {
+    if (act.trim().isEmpty) return;
+    addLog('kindness', date: day ?? _now, text: act.trim());
+  }
+
+  List<LogEntry> kindnessOn(DateTime day) => logsOn(day, 'kindness');
+
+  int kindnessInWeek(DateTime anyDay) {
+    final week = weekStartOf(anyDay);
+    return countBetween('kindness', week, week.add(const Duration(days: 7)));
+  }
+
+  /// Today is the kindness day and the five aren't done yet.
+  bool kindnessDue(DateTime day) =>
+      kindnessDay == day.weekday && kindnessOn(day).length < kindnessPerDay;
+
+  // ── Worry time (Borkovec et al. 1983) ────────────────────────────────
+
+  /// Worries are parked when they come and dealt with in one short slot
+  /// a day; postponing worry reduces it (Borkovec et al. 1983; McGowan &
+  /// Behar 2013, RCT).
+  static const worryOutcomes = {
+    'acted': 'A next step',
+    'let_go': 'Let it go',
+    'keep': 'Keep for tomorrow',
+  };
+
+  /// Minutes after midnight of the daily worry slot, or null.
+  int? get worryTime {
+    final l = logsOf('worry_plan');
+    return l.isEmpty ? null : l.first.number('minute')?.toInt();
+  }
+
+  void setWorryTime(int? minuteOfDay) {
+    final s = _state;
+    if (s == null) return;
+    final rest = s.logs.where((l) => l.type != 'worry_plan').toList();
+    _update(s.copyWith(logs: [
+      ...rest,
+      if (minuteOfDay != null)
+        _entry('worry_plan', _now, data: {'minute': minuteOfDay}),
+    ]));
+  }
+
+  void parkWorry(String worry) {
+    if (worry.trim().isEmpty) return;
+    addLog('worry', text: worry.trim(), data: {'status': 'parked'});
+  }
+
+  /// Parked worries, oldest first (the order they are dealt with).
+  List<LogEntry> get parkedWorries =>
+      logsOf('worry').where((w) => w.str('status') == 'parked').toList().reversed.toList();
+
+  /// [outcome] from [worryOutcomes]. A next step becomes today's first
+  /// open priority, as after a setback.
+  void resolveWorry(String id, {required String outcome, String step = ''}) {
+    final w = logsOf('worry').where((l) => l.id == id).firstOrNull;
+    if (w == null || outcome == 'keep') return;
+    updateLog(w.copyWith(data: {
+      ...w.data,
+      'status': outcome,
+      'step': step.trim(),
+      'resolved_on': dateKey(_now),
+    }));
+    if (outcome != 'acted' || step.trim().isEmpty) return;
+    final today = dayOnly(_now);
+    final p = prioritiesFor(today);
+    final slot = p.indexWhere((x) => x.trim().isEmpty);
+    if (slot >= 0) setPriority(today, slot, step.trim());
+  }
+
+  /// The worry slot has come and something is parked.
+  bool worryTimeDue(DateTime now) {
+    final t = worryTime;
+    return t != null &&
+        parkedWorries.isNotEmpty &&
+        now.hour * 60 + now.minute >= t;
+  }
+
+  // ── Life chapters (narrative identity) ───────────────────────────────
+
+  /// Your life as chapters, each with a high point, a low point and what
+  /// it taught, then the chapter you're in and the next one's title.
+  /// Telling your story with growth and agency goes with well-being
+  /// (McAdams & McLean 2013; Adler 2012).
+  LogEntry? get lifeStory {
+    final l = logsOf('life_story');
+    return l.isEmpty ? null : l.first;
+  }
+
+  List<Map<String, String>> get lifeChapters => [
+        for (final c in (lifeStory?.data['chapters'] as List?) ?? const [])
+          {
+            for (final e in Map<String, dynamic>.from(c as Map).entries)
+              e.key: '${e.value ?? ''}',
+          },
+      ];
+
+  void saveLifeStory({
+    required List<Map<String, String>> chapters,
+    String now = '',
+    String next = '',
+  }) {
+    final kept = [
+      for (final c in chapters)
+        if ((c['title'] ?? '').trim().isNotEmpty)
+          {for (final e in c.entries) e.key: e.value.trim()},
+    ];
+    final data = {'chapters': kept, 'now': now.trim(), 'next': next.trim()};
+    final existing = lifeStory;
+    if (existing == null) {
+      addLog('life_story', data: data);
+    } else {
+      updateLog(existing.copyWith(data: data));
+    }
   }
 
   // ── Backup ───────────────────────────────────────────────────────────

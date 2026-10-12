@@ -389,6 +389,26 @@ void main() {
       system.addUpkeep('Dentist check-up and cleaning', 180,
           lastDone: DateTime.now().subtract(const Duration(days: 220)));
       system.addUpkeep('Blood tests', 180);
+      // Inner tools with long text: a thought check, a best future, kindness,
+      // parked worries with a slot already passed, and life chapters.
+      system.logThought(
+          situation: 'The quarterly review with the whole leadership team',
+          thought: 'Everyone in that room thinks I am not ready for the bigger role',
+          feeling: 'Anxious', before: 85, balanced: 'Two hard questions are not a verdict on me', after: 45);
+      system.logThought(situation: 'Call', thought: 'I will fail', before: 70, after: 50);
+      system.saveBestFuture(years: 3, areas: {
+        'work': 'I lead a product group that customers love and my team grows faster than I do.',
+        'people': 'Sunday dinners with the whole family, phones away, every week.',
+      }, step: 'Ask for the stretch project');
+      system.setKindnessDay(DateTime.now().weekday);
+      system.logKindness('Brought coffee for the whole support team and thanked each of them by name');
+      system.setWorryTime(0);
+      system.parkWorry('Whether the budget for next year will cover the second hire we promised the team');
+      system.parkWorry('Mum\'s appointment');
+      system.saveLifeStory(chapters: [
+        {'title': 'Leaving home for university in another country', 'years': '2012–2016', 'taught': 'I can start over'},
+        {'title': 'First team', 'years': '2017–2021'},
+      ], now: 'Learning to lead', next: 'Leading a product group');
       // A money check-in with large numbers.
       system.saveMoneyCheck(income: 12500000, spent: 9800000, savings: 32000000,
           decision: 'Move the gym membership to the annual plan and cancel two streaming services');
