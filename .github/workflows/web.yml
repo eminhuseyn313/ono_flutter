@@ -1,0 +1,52 @@
+# Builds the web app and publishes it to GitHub Pages:
+#   https://eminhuseyn313.github.io/ono_flutter/
+#
+# Off until it is switched on, so nothing is published by accident:
+#   1. Settings → Pages → Build and deployment → Source: GitHub Actions
+#   2. Settings → Secrets and variables → Actions → Variables →
+#      New repository variable: ONO_WEB = on
+# Then every push to main redeploys. "Run workflow" on the Actions tab
+# deploys once without the variable.
+name: Web
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    if: github.event_name == 'workflow_dispatch' || vars.ONO_WEB == 'on'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.47.5
+          cache: true
+      - run: flutter pub get
+      - run: flutter build web --release --base-href /${{ github.event.repository.name }}/
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

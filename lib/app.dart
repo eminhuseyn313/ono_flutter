@@ -118,7 +118,34 @@ class _OnoAppState extends State<OnoApp> {
         builder: (context, child) => GestureDetector(
           behavior: HitTestBehavior.translucent,
           onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-          child: child,
+          child: PhoneFrame(child: child ?? const SizedBox()),
+        ),
+      ),
+    );
+  }
+}
+
+/// ONO is laid out for a phone. On a wider window (the web app on a
+/// laptop) it keeps a phone-width column in the middle, so cards and
+/// sheets don't stretch across the screen.
+class PhoneFrame extends StatelessWidget {
+  static const maxWidth = 480.0;
+  final Widget child;
+  const PhoneFrame({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final media = MediaQuery.of(context);
+    if (media.size.width <= maxWidth + 40) return child;
+    return ColoredBox(
+      color: AppColors.background,
+      child: Center(
+        child: SizedBox(
+          width: maxWidth,
+          child: MediaQuery(
+            data: media.copyWith(size: Size(maxWidth, media.size.height)),
+            child: ClipRect(child: child),
+          ),
         ),
       ),
     );

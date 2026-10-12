@@ -272,6 +272,12 @@ flutter run -t lib/main_production.dart
 - Bundle ID `com.eminhuseynzade.ono`, iPhone only, team `XYY5Y3F4W5`.
 - The icon is rendered from the Day Dial motif; regenerate every size if it changes.
 
+### Web (GitHub Pages)
+- `.github/workflows/web.yml` builds `flutter build web --base-href /ono_flutter/` and deploys to https://eminhuseyn313.github.io/ono_flutter/. It is off until the repo variable `ONO_WEB` = `on` (plus Settings → Pages → Source: GitHub Actions); "Run workflow" deploys once.
+- The web app is `main.dart`: data in that browser's local storage (separate from the iPhone; move it with Export/Import), no reminders, Health, calendar or widget.
+- `PhoneFrame` (`lib/app.dart`) keeps a 480 px column on wide windows and sets `MediaQuery.size` to it (`test/phone_frame_test.dart`).
+- A Pages site is public even from a private repo, and the bundle contains the built-in profile (`emin_system.dart`).
+
 ## Not built (needs Xcode / native targets)
 The native parts can't be compiled here:
 - The widget's Swift code and the HealthKit/App Group signing are unverified until built on the Mac.
