@@ -62,6 +62,12 @@ class BriefInput {
   final int kindnessActs;
   final int thoughtsChecked;
 
+  /// Signature strengths, uses of them this week, and roles nobody fills
+  /// on their personal board.
+  final List<String> strengths;
+  final int strengthUses;
+  final List<String> boardGaps;
+
   /// Whether rest is planned (or running) within the next 8 weeks.
   final bool restPlanned;
 
@@ -150,6 +156,9 @@ class BriefInput {
     this.setbacks = 0,
     this.kindnessActs = 0,
     this.thoughtsChecked = 0,
+    this.strengths = const [],
+    this.strengthUses = 0,
+    this.boardGaps = const [],
     this.lowestLifeArea,
     this.learningApplied = const [],
     this.experiments = const [],
@@ -176,6 +185,9 @@ class BriefInput {
         'setbacks_handled': setbacks,
         'kindness_acts_this_week': kindnessActs,
         'thoughts_checked_this_week': thoughtsChecked,
+        if (strengths.isNotEmpty) 'signature_strengths': strengths,
+        if (strengths.isNotEmpty) 'strength_uses_this_week': strengthUses,
+        if (boardGaps.isNotEmpty) 'personal_board_gaps': boardGaps,
         'lowest_life_area': lowestLifeArea,
         'learning_applied': learningApplied,
         'experiments': experiments,
@@ -377,6 +389,10 @@ class DeviceBriefGenerator implements BriefGenerator {
         'No progress note went out this week. Friday: five lines to ${input.profile.manager.isEmpty ? 'one person you trust' : input.profile.manager} — reported progress moves goals faster than private tracking.',
       if (input.setbacks > 0)
         '${input.setbacks} setback${input.setbacks == 1 ? '' : 's'} met with a next step instead of a spiral. That is the skill.',
+      if (input.boardGaps.contains('sponsor'))
+        'Nobody on your board speaks for you where you are not. Who could become a sponsor? Ask them for one thing this month.',
+      if (input.strengths.isNotEmpty && input.strengthUses == 0)
+        'Use ${input.strengths.first.toLowerCase()} in a new way this week — once a day if you can.',
       if (input.thoughtsChecked > 0)
         'You put ${input.thoughtsChecked} hard thought${input.thoughtsChecked == 1 ? '' : 's'} to the test this week instead of believing ${input.thoughtsChecked == 1 ? 'it' : 'them'}.',
       if (input.kindnessActs >= 5)

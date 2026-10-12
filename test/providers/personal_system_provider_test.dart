@@ -2299,5 +2299,57 @@ void main() {
     expect(p.lifeChapters.length, 2);
     expect(p.journalText(), contains('Next chapter: Leading'));
   });
+
+  test('signature strengths: up to five known ones, uses counted per week',
+      () async {
+    final p = await _commissioned();
+    expect(p.strengthOfTheWeek, isNull);
+    p.setSignatureStrengths(['Curiosity', 'Nonsense', 'Hope', 'Zest', 'Love', 'Humour', 'Bravery']);
+    expect(p.signatureStrengths, ['Curiosity', 'Hope', 'Zest', 'Love', 'Humour']);
+    expect(p.signatureStrengths, contains(p.strengthOfTheWeek));
+    p.setSignatureStrengths(['Hope']);
+    expect(p.logsOf('strengths').length, 1);
+    p.logStrengthUse('Hope', ' ');
+    p.logStrengthUse('Hope', 'Wrote the team what could go right this quarter');
+    expect(p.strengthUsesInWeek(_today), 1);
+    WeeklyReport report() => WeeklyReport(
+          id: 'r',
+          weekStart: weekStartOf(_today),
+          nonNegotiableAverage: 7,
+          gymSessions: 0,
+          bestMoment: '',
+          hardestMoment: '',
+          workSituation: '',
+          createdAt: _today,
+        );
+    // Used this week: no nudge.
+    var brief = await p.submitReport(report());
+    expect(brief!.adjustments.join(' '), isNot(contains('in a new way')));
+    p.removeLog(p.logsOf('strength_use').single.id);
+    brief = await p.submitReport(report());
+    expect(brief!.adjustments.join(' '), contains('Use hope in a new way'));
+  });
+
+  test('personal board: roles on people, gaps only once someone is on it',
+      () async {
+    final p = await _commissioned();
+    final a = p.addPerson('Aysel', role: 'Former manager');
+    expect(p.boardGaps, isEmpty);
+    p.setBoardRoles(a, ['mentor', 'sponsor', 'bogus']);
+    final saved = p.people.firstWhere((x) => x.id == a.id);
+    expect(p.boardRolesOf(saved), ['mentor', 'sponsor']);
+    expect(p.board['mentor']!.single.text, 'Aysel');
+    expect(p.boardGaps, ['peer', 'challenger', 'supporter', 'connector']);
+  });
+
+  test('after-action review: change becomes a review card', () async {
+    final p = await _commissioned();
+    expect(p.logAar(event: ' '), isNull);
+    p.logAar(event: 'Board presentation', sustain: 'The one-page summary', improve: 'Rehearse the Q&A out loud');
+    expect(p.aars.single.str('improve'), 'Rehearse the Q&A out loud');
+    final card = p.allCards.firstWhere((c) => c.id.startsWith('aar:'));
+    expect(card.back, 'Rehearse the Q&A out loud');
+    expect(p.journalText(), contains('Change: Rehearse the Q&A out loud'));
+  });
 }
 

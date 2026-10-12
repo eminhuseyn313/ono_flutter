@@ -120,7 +120,7 @@ class PrivacyScreen extends StatelessWidget {
                   Icons.psychology_outlined,
                   'The weekly coach',
                   system.coachIsRemote
-                      ? 'On Sundays your report, your profile (with your key people) and a summary of the week go to the coach to write your brief: scores, goals, growth, your Big 3, the names of people you\'re overdue to contact, helping grow or in a pact with, patterns, movement minutes, hard days, how many thoughts you checked and kind acts you logged (counts only), and your savings rate (never amounts). Notes, letters, journal entries, thoughts, worries and your life story are never sent.'
+                      ? 'On Sundays your report, your profile (with your key people) and a summary of the week go to the coach to write your brief: scores, goals, growth, your Big 3, the names of people you\'re overdue to contact, helping grow or in a pact with, patterns, movement minutes, hard days, how many thoughts you checked and kind acts you logged (counts only), your signature strengths, the roles missing on your personal board, and your savings rate (never amounts). Notes, letters, journal entries, thoughts, worries and your life story are never sent.'
                       : 'Your Sunday brief is written on this phone. Nothing is sent.'),
               _point(
                   Icons.send_outlined,

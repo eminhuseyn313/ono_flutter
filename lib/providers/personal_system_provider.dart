@@ -853,6 +853,14 @@ class PersonalSystemProvider extends ChangeNotifier {
               '${g.str('reflection')}${(g.str('advice') ?? '').isEmpty ? '' : '\n\nTo someone starting: ${g.str('advice')}'}',
               source: 'goal',
             ),
+        for (final a in logsOf('aar').reversed)
+          if ((a.str('improve') ?? '').trim().isNotEmpty)
+            StudyCard(
+              'aar:${a.id}',
+              'Next time — ${a.text}: what will you do differently?',
+              a.str('improve')!.trim(),
+              source: 'aar',
+            ),
         for (final v in values)
           if (v.meaning.trim().isNotEmpty)
             StudyCard(
@@ -1659,6 +1667,9 @@ class PersonalSystemProvider extends ChangeNotifier {
         noteSent: noteSentInWeek(report.weekStart),
         setbacks: setbacksInWeek(report.weekStart),
         kindnessActs: kindnessInWeek(report.weekStart),
+        strengths: signatureStrengths,
+        strengthUses: strengthUsesInWeek(report.weekStart),
+        boardGaps: boardGaps,
         thoughtsChecked: thoughtsInWeek(report.weekStart),
         restPlanned: restPlannedSoon,
         experiments: [
@@ -4958,6 +4969,8 @@ class PersonalSystemProvider extends ChangeNotifier {
         'shutdown' => f('open').isEmpty ? '' : 'Evening, on my mind: ${f('open')}',
         'thought' => 'Checked a thought: ${l.text}${f('balanced').isEmpty ? '' : '\n  More balanced: ${f('balanced')}'}',
         'kindness' => 'Kindness: ${l.text}',
+        'strength_use' => 'Used ${f('strength')}: ${l.text}',
+        'aar' => 'Looked back at ${l.text}${f('sustain').isEmpty ? '' : '\n  Keep: ${f('sustain')}'}${f('improve').isEmpty ? '' : '\n  Change: ${f('improve')}'}',
         'best_future' => 'My best possible future in ${l.number('years')} years:${[for (final a in bestFutureAreas) if ((l.data['areas'] as Map?)?[a.$1] != null) '\n  ${a.$2}: ${(l.data['areas'] as Map)[a.$1]}'].join()}${l.text.isEmpty ? '' : '\n  This week: ${l.text}'}',
         'life_story' => 'My life in chapters:${[for (final c in lifeChapters) '\n  ${c['title']}${(c['years'] ?? '').isEmpty ? '' : ' (${c['years']})'}${(c['taught'] ?? '').isEmpty ? '' : ' — taught me: ${c['taught']}'}'].join()}${f('next').isEmpty ? '' : '\n  Next chapter: ${f('next')}'}',
         _ => '',
@@ -5211,6 +5224,147 @@ class PersonalSystemProvider extends ChangeNotifier {
       updateLog(existing.copyWith(data: data));
     }
   }
+
+  // ── Signature strengths (Seligman et al. 2005) ───────────────────────
+
+  /// The 24 character strengths of the VIA classification (Peterson &
+  /// Seligman 2004), each with a plain description.
+  static const characterStrengths = <String, String>{
+    'Creativity': 'New and useful ways of doing things',
+    'Curiosity': 'Interest in everything, asking why',
+    'Judgment': 'Thinking things through, weighing evidence',
+    'Love of learning': 'Mastering new skills and knowledge',
+    'Perspective': 'Giving wise counsel, seeing the big picture',
+    'Bravery': 'Not shrinking from threat or difficulty',
+    'Perseverance': 'Finishing what you start',
+    'Honesty': 'Speaking the truth, being genuine',
+    'Zest': 'Approaching life with energy',
+    'Love': 'Valuing close relationships',
+    'Kindness': 'Doing good for others',
+    'Social intelligence': 'Knowing what makes people tick',
+    'Teamwork': 'Doing your share for the group',
+    'Fairness': 'Treating everyone the same way',
+    'Leadership': 'Organising the group to get things done',
+    'Forgiveness': 'Giving people a second chance',
+    'Humility': 'Letting your work speak for itself',
+    'Prudence': 'Careful choices, no needless risks',
+    'Self-regulation': 'Managing what you feel and do',
+    'Appreciation of beauty': 'Noticing excellence and skill',
+    'Gratitude': 'Being aware of the good, saying thanks',
+    'Hope': 'Expecting the best and working for it',
+    'Humour': 'Bringing smiles to others',
+    'Spirituality': 'A sense of meaning and purpose',
+  };
+
+  static const maxSignatureStrengths = 5;
+
+  /// Your top strengths, in the order you picked them.
+  List<String> get signatureStrengths {
+    final l = logsOf('strengths');
+    return l.isEmpty
+        ? const []
+        : [for (final x in (l.first.data['top'] as List?) ?? const []) '$x'];
+  }
+
+  void setSignatureStrengths(List<String> top) {
+    final kept = [
+      for (final t in top)
+        if (characterStrengths.containsKey(t)) t
+    ].take(maxSignatureStrengths).toList();
+    final existing = logsOf('strengths');
+    if (existing.isEmpty) {
+      if (kept.isNotEmpty) addLog('strengths', data: {'top': kept});
+    } else {
+      updateLog(existing.first.copyWith(data: {'top': kept}));
+    }
+  }
+
+  /// Using a signature strength in a new way each day for a week raised
+  /// happiness and lowered depressive symptoms for six months (Seligman,
+  /// Steen, Park & Peterson 2005).
+  void logStrengthUse(String strength, String how) {
+    if (how.trim().isEmpty) return;
+    addLog('strength_use', text: how.trim(), data: {'strength': strength});
+  }
+
+  int strengthUsesInWeek(DateTime anyDay) {
+    final week = weekStartOf(anyDay);
+    return countBetween('strength_use', week, week.add(const Duration(days: 7)));
+  }
+
+  /// The strength to try in a new way this week, rotating weekly through
+  /// your top ones.
+  String? get strengthOfTheWeek {
+    final top = signatureStrengths;
+    if (top.isEmpty) return null;
+    return top[(programDay ~/ 7) % top.length];
+  }
+
+  // ── Your personal board (developmental network) ──────────────────────
+
+  /// The roles a personal board of advisors covers. A range of developers
+  /// beats one mentor (Higgins & Kram 2001; Cummings & Higgins 2006).
+  static const boardRoles = <String, String>{
+    'mentor': 'Has walked your road, gives advice',
+    'sponsor': 'Speaks for you where you are not',
+    'peer': 'On the same road, compares notes',
+    'challenger': 'Tells you the hard truth',
+    'supporter': 'Believes in you on bad days',
+    'connector': 'Opens doors to new people',
+  };
+
+  List<String> boardRolesOf(LogEntry person) =>
+      [for (final r in (person.data['board'] as List?) ?? const []) '$r'];
+
+  void setBoardRoles(LogEntry person, List<String> roles) {
+    final p = logsOf('person').where((x) => x.id == person.id);
+    if (p.isEmpty) return;
+    updateLog(p.first.copyWith(data: {
+      ...p.first.data,
+      'board': [for (final r in roles) if (boardRoles.containsKey(r)) r],
+    }));
+  }
+
+  /// role → the people who fill it.
+  Map<String, List<LogEntry>> get board => {
+        for (final r in boardRoles.keys)
+          r: [for (final p in people) if (boardRolesOf(p).contains(r)) p],
+      };
+
+  /// Roles nobody fills yet (empty until someone is on the board).
+  List<String> get boardGaps {
+    final b = board;
+    if (b.values.every((v) => v.isEmpty)) return const [];
+    return [for (final e in b.entries) if (e.value.isEmpty) e.key];
+  }
+
+  // ── After-action review (Ellis & Davidi 2005) ────────────────────────
+
+  /// After an event that mattered: what was meant to happen, what did,
+  /// why, what to keep and what to change. Reviewing successes as well as
+  /// failures improves the next performance (Ellis & Davidi 2005; Tannenbaum
+  /// & Cerasoli 2013, meta-analysis of debriefs). "Change" becomes a card.
+  LogEntry? logAar({
+    required String event,
+    String intended = '',
+    String happened = '',
+    String why = '',
+    String sustain = '',
+    String improve = '',
+    bool wentWell = true,
+  }) {
+    if (event.trim().isEmpty) return null;
+    return addLog('aar', text: event.trim(), data: {
+      'intended': intended.trim(),
+      'happened': happened.trim(),
+      'why': why.trim(),
+      'sustain': sustain.trim(),
+      'improve': improve.trim(),
+      'went_well': wentWell,
+    });
+  }
+
+  List<LogEntry> get aars => logsOf('aar');
 
   // ── Backup ───────────────────────────────────────────────────────────
 

@@ -101,6 +101,15 @@ Mind and meaning were the thinnest lanes; each item is a short, well-studied exe
 | 50 | Life chapters: high, low and lesson per chapter, the one you're in, the next one's title (McAdams & McLean 2013; Adler 2012) | S | ✅ |
 | 51 | Sync between the iPhone and the web app (three-way merge, Supabase) | M | ✅ (Emin: make the repo public, turn on Pages, email setting) |
 
+## P5 — Fifth discovery pass: strengths and the people who grow you (12 Oct 2026)
+
+| # | Item | Effort | Status |
+|---|---|---|---|
+| 52 | Signature strengths: pick five of the 24 VIA strengths, use one in a new way each week (Seligman et al. 2005) | S | ✅ |
+| 53 | Your personal board: mentor, sponsor, peer, challenger, supporter, connector — and the gaps (Higgins & Kram 2001) | S | ✅ |
+| 54 | After-action review: intended, happened, why, keep, change → a review card (Ellis & Davidi 2005; Tannenbaum & Cerasoli 2013) | S | ✅ |
+| 55 | What happens after day 540 / programme length for other people | M | ❓ ask Emin |
+
 ## P3 — The mass version
 
 | # | Item | Effort | Status |

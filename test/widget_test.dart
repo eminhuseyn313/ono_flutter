@@ -409,6 +409,13 @@ void main() {
         {'title': 'Leaving home for university in another country', 'years': '2012–2016', 'taught': 'I can start over'},
         {'title': 'First team', 'years': '2017–2021'},
       ], now: 'Learning to lead', next: 'Leading a product group');
+      // Strengths, a board with gaps, and an after-action review.
+      system.setSignatureStrengths(['Appreciation of beauty', 'Social intelligence', 'Love of learning', 'Perseverance', 'Hope']);
+      system.logStrengthUse('Hope', 'Told the team three ways the launch could go right, before the risks');
+      final boardPerson = system.addPerson('Aysel Rahimova-Guliyeva', role: 'Former manager', every: 60);
+      system.setBoardRoles(boardPerson, ['mentor', 'sponsor', 'challenger']);
+      system.logAar(event: 'The quarterly presentation to the whole leadership team',
+          sustain: 'The one-page summary', improve: 'Rehearse the Q&A out loud with someone who pushes back');
       // A money check-in with large numbers.
       system.saveMoneyCheck(income: 12500000, spent: 9800000, savings: 32000000,
           decision: 'Move the gym membership to the annual plan and cancel two streaming services');

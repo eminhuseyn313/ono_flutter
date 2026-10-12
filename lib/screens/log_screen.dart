@@ -21,7 +21,7 @@ class LogScreen extends StatefulWidget {
 
 const _filters = <String, Set<String>?>{
   'All': null,
-  'Growth': {'rep', 'feedback', 'growth_focus', 'coaching', 'affirmation', 'values_check', 'goal_value', 'progress_note', 'setback', 'quarterly_review', 'learning', 'experiment', 'rest', 'detach', 'gratitude', 'feedback_round', 'wheel'},
+  'Growth': {'rep', 'feedback', 'growth_focus', 'coaching', 'affirmation', 'values_check', 'goal_value', 'progress_note', 'setback', 'quarterly_review', 'learning', 'experiment', 'rest', 'detach', 'gratitude', 'feedback_round', 'wheel', 'aar', 'strength_use'},
   'Notes': {'feynman', 'scan', 'pennebaker', 'note', 'win', 'month_review', 'shutdown', 'stepback', 'thought'},
   'Protocols': {'sigh', 'excited', 'bluf', 'sixq', 'pause', 'still', 'ritual', 'read', 'anki'},
   'Body': {'weight', 'protein', 'gym', 'blood', 'checkin', 'sleep', 'vitals', 'energy', 'move'},
@@ -70,7 +70,7 @@ class _LogScreenState extends State<LogScreen> {
             // Letters stay sealed: they only show on /letters.
             .where((e) => e.type != 'letter')
             // People are a list, not events; contact with them is a touch.
-            .where((e) => !const {'person', 'values', 'growth_area', 'area_drills', 'goal', 'profile', 'daily_item', 'stop', 'role_model', 'partner', 'odyssey', 'energy_audit', 'best_self', 'conversation', 'money_check', 'upkeep', 'manual', 'us_checkin', 'day_shape', 'best_future', 'life_story', 'kindness_plan', 'worry', 'worry_plan'}
+            .where((e) => !const {'person', 'values', 'growth_area', 'area_drills', 'goal', 'profile', 'daily_item', 'stop', 'role_model', 'partner', 'odyssey', 'energy_audit', 'best_self', 'conversation', 'money_check', 'upkeep', 'manual', 'us_checkin', 'day_shape', 'strengths', 'best_future', 'life_story', 'kindness_plan', 'worry', 'worry_plan'}
                 .contains(e.type))
             .toList()
         : system.allLogs(_filters[_filter]);
@@ -295,6 +295,8 @@ class _EntryRow extends StatelessWidget {
     'help': (Icons.volunteer_activism_outlined, 'social', 'Helped someone grow'),
     'stepback': (Icons.zoom_out_map_rounded, 'mind', 'Stepped back'),
     'thought': (Icons.psychology_outlined, 'mind', 'Thought check'),
+    'aar': (Icons.flag_outlined, 'skill', 'After-action review'),
+    'strength_use': (Icons.bolt_outlined, 'mind', 'Strength used'),
     'kindness': (Icons.volunteer_activism_outlined, 'social', 'Kindness'),
     'partner_checkin': (Icons.handshake_outlined, 'social', 'Partner check-in'),
     'detach': (Icons.power_settings_new_rounded, 'mind', 'Switched off'),
@@ -354,6 +356,11 @@ class _EntryRow extends StatelessWidget {
         return '${e.number('minutes')} min${t == 'artifact' ? ' · artifact' : t == 'skill' ? ' · skill' : ''}';
       case 'partner_checkin':
         return 'With ${e.str('partner')}: you ${e.str('mine')}, they ${e.str('theirs')}';
+      case 'aar':
+        final next = e.str('improve') ?? '';
+        return '${e.text}${next.isEmpty ? '' : ' · next time: $next'}';
+      case 'strength_use':
+        return '${e.str('strength')}: ${e.text}';
       case 'thought':
         final b = e.number('before'), a = e.number('after');
         return '${e.text}${b == null || a == null ? '' : ' · $b → $a'}';

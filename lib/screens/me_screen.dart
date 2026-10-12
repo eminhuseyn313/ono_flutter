@@ -286,6 +286,16 @@ class MeScreen extends StatelessWidget {
               ),
               const Divider(indent: 66),
               LinkRow(
+                icon: Icons.bolt_outlined,
+                color: AppColors.skill,
+                title: 'Signature strengths',
+                subtitle: system.signatureStrengths.isEmpty
+                    ? 'Pick your top five, use one in a new way'
+                    : system.signatureStrengths.join(' · '),
+                onTap: () => context.push('/strengths'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
                 icon: Icons.auto_stories_outlined,
                 color: AppColors.mind,
                 title: 'Life chapters',
@@ -373,6 +383,16 @@ class MeScreen extends StatelessWidget {
                     ? 'Learn it, then apply it'
                     : 'Now: ${system.learningWith('active').map((l) => l.text).join(' · ')}',
                 onTap: () => context.push('/learning'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
+                icon: Icons.flag_outlined,
+                color: AppColors.skill,
+                title: 'After-action review',
+                subtitle: system.aars.isEmpty
+                    ? 'After something that mattered: keep one thing, change one'
+                    : 'Last: ${system.aars.first.text}',
+                onTap: () => context.push('/aar'),
               ),
               const Divider(indent: 66),
               LinkRow(
@@ -523,6 +543,18 @@ class MeScreen extends StatelessWidget {
                     ? 'People one step ahead, and what to ask them'
                     : system.roleModels.map((m) => m.text).join(' · '),
                 onTap: () => context.push('/models'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
+                icon: Icons.groups_outlined,
+                color: AppColors.social,
+                title: 'Your personal board',
+                subtitle: system.boardGaps.isNotEmpty
+                    ? 'Missing: ${system.boardGaps.join(', ')}'
+                    : system.board.values.every((v) => v.isEmpty)
+                        ? 'Mentor, sponsor, peer, challenger — who is yours?'
+                        : 'Every role has someone',
+                onTap: () => context.push('/board'),
               ),
               const Divider(indent: 66),
               LinkRow(

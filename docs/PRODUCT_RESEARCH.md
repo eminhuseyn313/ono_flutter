@@ -133,6 +133,15 @@ Mind and meaning had the fewest tools. Each item below is short, has good eviden
 
 All five are private: the coach gets only how many thoughts were checked and kind acts logged.
 
+### J. Fifth pass: strengths and the people who grow you (12 Oct 2026)
+| # | Feature | For Emin now | For anyone | Evidence | Status |
+|---|---|---|---|---|---|
+| J1 | **Signature strengths** (top five of 24, a new use each week) | Self-trust: build on what is already strong | Anyone | Seligman, Steen, Park & Peterson 2005 (effects for six months); Peterson & Seligman 2004 (VIA) | ✅ |
+| J2 | **Personal board** (roles across your network, gaps) | A sponsor for the Head of Product move | Career changers, founders, parents returning to work | Higgins & Kram 2001; Cummings & Higgins 2006 (developmental networks) | ✅ |
+| J3 | **After-action review** (successes too; "change" becomes a card) | Launches, presentations, hard 1:1s | Athletes, teams, parents after a hard evening | Ellis & Davidi 2005; Tannenbaum & Cerasoli 2013 (debriefs improve performance ~25%) | ✅ |
+
+Open question for Emin: what should happen after day 540, and should other people choose a shorter programme (90 days, 6 months)?
+
 ### E. Relationships
 | # | Feature | For Emin now | For anyone | Evidence | Effort |
 |---|---|---|---|---|---|

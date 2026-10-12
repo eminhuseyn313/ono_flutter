@@ -200,6 +200,11 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] Web → sign in with the same email → the same Today; tick an item on the web → within a minute (or on reopening the app) it is ticked on the iPhone
 - [ ] Log a note on each device at about the same time → both notes are on both devices
 
+## 2zt. New: signature strengths, personal board, after-action review
+- [ ] Me → Direction → **Signature strengths** → tick five (a sixth is refused) → pick one at the top, write a new way you used it → Save → "1 this week"; it shows in Log → Growth
+- [ ] Me → People → **Your personal board** → Mentor → + Add → tick a person → Me shows the missing roles
+- [ ] What do you need? → **Something big just happened** → fill the review with a "change" → Save → Review deck has a "Next time — …" card
+
 ## 2zr. New: thought check, best future, kindness day, worry time, life chapters
 - [ ] What do you need? → **A thought keeps getting to me** → write the thought, pick a feeling, rate it, the evidence, a balanced thought, rate it again → Save → the toast says how many points lighter; it shows in Log → Notes
 - [ ] **I can't stop worrying** → set a worry time → park two worries → at that time Today prompts **Worry time** → Deal with it → a next step lands in today's priorities; Let it go removes it
