@@ -53,7 +53,7 @@ class _ToolsScreenState extends State<ToolsScreen> {
           onChanged: (_) => setState(() {}),
           style: AppText.body(color: AppColors.white),
           decoration: const InputDecoration(
-            hintText: 'Search: stress, interview, sleep, partner…',
+            hintText: 'stress, interview, sleep…',
             prefixIcon: Icon(Icons.search_rounded),
           ),
         ),
