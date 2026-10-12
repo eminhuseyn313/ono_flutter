@@ -58,10 +58,11 @@ class _YearReviewScreenState extends State<YearReviewScreen> {
     final canClose = system.canCloseYear(_year);
     return OnoPage(
       showBack: true,
-      eyebrow: 'Year in review · 20 minutes',
+      eyebrow: canClose ? 'Year in review · 20 minutes' : 'Year in review',
       title: canClose ? 'Close $_year' : '$_year so far',
-      subtitle:
-          'Look at what the year added up to before you answer — memory keeps the last few weeks and the worst days. Then choose one word for the next.',
+      subtitle: canClose
+          ? 'Look at what the year added up to before you answer — memory keeps the last few weeks and the worst days. Then choose one word for the next.'
+          : 'What the year has added up to so far, from what you logged.',
       bottomBar: !canClose
           ? null
           : PrimaryButton('Save the review', icon: Icons.check_rounded,
@@ -83,8 +84,11 @@ class _YearReviewScreenState extends State<YearReviewScreen> {
         Row(
           children: [
             Expanded(
-                child: StatTile(pct == null ? '—' : '$pct%',
-                    'days held (${y.held} of ${y.counted})')),
+                child: StatTile(
+                    pct == null ? '—' : '$pct%',
+                    y.counted == 0
+                        ? 'days held'
+                        : 'days held (${y.held} of ${y.counted})')),
             Expanded(child: StatTile('${y.wins}', 'wins')),
             Expanded(child: StatTile('${y.goalsReached}', 'goals reached')),
           ],
@@ -93,7 +97,7 @@ class _YearReviewScreenState extends State<YearReviewScreen> {
         Row(
           children: [
             Expanded(child: StatTile('${y.reps}', 'practice reps')),
-            Expanded(child: StatTile('${y.focusHours}', 'hours of deep work')),
+            Expanded(child: StatTile('${y.focusHours}', 'deep-work hours')),
             Expanded(child: StatTile('${y.promisesKept}', 'promises kept')),
           ],
         ),
