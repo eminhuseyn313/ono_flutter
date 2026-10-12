@@ -130,6 +130,10 @@ class _UsScreenState extends State<UsScreen> {
       subtitle:
           'Sit together, phones away. Each of you answers in turn — start with appreciation. Small regular rituals keep a relationship close.',
       bottomBar: PrimaryButton('Save this week', icon: Icons.favorite_outline_rounded, onPressed: () {
+        if (_c.values.every((c) => c.text.trim().isEmpty)) {
+          toast(context, 'Answer at least one question together first.');
+          return;
+        }
         system.logUsCheckin(_with.text, {for (final e in _c.entries) e.key: e.value.text});
         FocusManager.instance.primaryFocus?.unfocus();
         toast(context, 'Saved. Same time next week?');

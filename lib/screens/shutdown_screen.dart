@@ -55,6 +55,21 @@ class _ShutdownScreenState extends State<ShutdownScreen> {
     super.dispose();
   }
 
+  /// A priority ticked now no longer carries over to tomorrow; unticked,
+  /// it goes back into the first free place.
+  void _carry(String text, {required bool done}) {
+    final t = text.trim();
+    setState(() {
+      if (done) {
+        for (final c in _next) {
+          if (c.text.trim() == t) c.clear();
+        }
+      } else if (!_next.any((c) => c.text.trim() == t)) {
+        _next.where((c) => c.text.trim().isEmpty).firstOrNull?.text = t;
+      }
+    });
+  }
+
   void _finish() {
     final system = context.read<PersonalSystemProvider>();
     system.completeShutdown(_today,
@@ -75,7 +90,11 @@ class _ShutdownScreenState extends State<ShutdownScreen> {
     final done = system.shutdownFor(_today);
     return OnoPage(
       showBack: true,
-      eyebrow: done == null ? '21:30 · three minutes' : 'Closed tonight',
+      eyebrow: done != null
+          ? 'Closed tonight'
+          : system.isBuiltInPerson
+              ? '21:30 · three minutes'
+              : 'Three minutes',
       title: 'Shutdown',
       subtitle:
           'Close the loops on paper, then stop thinking about work. Tomorrow starts already decided.',
@@ -99,7 +118,10 @@ class _ShutdownScreenState extends State<ShutdownScreen> {
                     CheckRow(
                       checked: system.priorityDone(_today, i),
                       title: today[i],
-                      onChanged: (_) => system.togglePriority(_today, i),
+                      onChanged: (_) {
+                        system.togglePriority(_today, i);
+                        _carry(today[i], done: system.priorityDone(_today, i));
+                      },
                     ),
               ],
             ),

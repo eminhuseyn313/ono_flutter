@@ -35,13 +35,14 @@ class _RestScreenState extends State<RestScreen> {
       firstDate: today,
       lastDate: today.add(const Duration(days: 365)),
     );
-    if (picked == null) return;
+    if (picked == null || !mounted) return;
     setState(() {
       if (from) {
         _from = picked;
         if (_to == null || _to!.isBefore(picked)) _to = picked;
       } else {
-        _to = picked;
+        // The end can't come before the start.
+        _to = _from != null && picked.isBefore(_from!) ? _from : picked;
       }
     });
   }
@@ -155,7 +156,10 @@ class _RestScreenState extends State<RestScreen> {
             toast(context, 'Pick a day first.');
             return;
           }
-          system.planRest(_kind, _from!, _to ?? _from!, note: _note.text);
+          if (system.planRest(_kind, _from!, _to ?? _from!, note: _note.text) == null) {
+            toast(context, 'That didn\'t save — check the dates.');
+            return;
+          }
           setState(() {
             _from = null;
             _to = null;

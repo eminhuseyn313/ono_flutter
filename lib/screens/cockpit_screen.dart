@@ -116,7 +116,12 @@ class _CockpitScreenState extends State<CockpitScreen> {
       _field(decided, 'What was decided or learned', lines: 3),
       _field(followUps, 'Your follow-ups — one per line', lines: 4),
     ]);
-    if (ok == true && context.mounted) {
+    if (ok != true || !context.mounted) return;
+    if (decided.text.trim().isEmpty && followUps.text.trim().isEmpty) {
+      toast(context, 'Nothing logged — write what was decided or a follow-up.');
+      return;
+    }
+    {
       context.read<PersonalSystemProvider>().addOneOnOne(
           withWhom: withC.text,
           decided: decided.text,
@@ -187,7 +192,11 @@ class _CockpitScreenState extends State<CockpitScreen> {
       _field(why, 'Why this one', lines: 2),
       _field(expected, 'What you expect to happen — be specific', lines: 2),
     ]);
-    if (ok == true && context.mounted && decision.text.trim().isNotEmpty) {
+    if (ok == true && context.mounted && decision.text.trim().isEmpty) {
+      toast(context, 'Nothing recorded — write the decision first.');
+      return;
+    }
+    if (ok == true && context.mounted) {
       context.read<PersonalSystemProvider>().addDecision(
           decision: decision.text,
           options: options.text,

@@ -639,6 +639,10 @@ class _GoalReflectionState extends State<_GoalReflection> {
         ),
         const SizedBox(height: 10),
         GhostButton('Save', icon: Icons.check_rounded, onPressed: () {
+          if (_worked.text.trim().isEmpty) {
+            toast(context, achieved ? 'Write what made it happen first.' : 'Write why you dropped it first.');
+            return;
+          }
           context
               .read<PersonalSystemProvider>()
               .reflectOnGoal(widget.goal.id, whatWorked: _worked.text, advice: _advice.text);

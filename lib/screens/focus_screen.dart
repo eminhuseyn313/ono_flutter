@@ -17,7 +17,7 @@ class FocusScreen extends StatefulWidget {
 }
 
 class _FocusScreenState extends State<FocusScreen> {
-  String _target = 'artifact';
+  String? _target;
   int _minutes = 90;
   String? _toRate;
 
@@ -30,7 +30,7 @@ class _FocusScreenState extends State<FocusScreen> {
   }
 
   void _log(PersonalSystemProvider system, {required bool timed}) {
-    setState(() => _toRate = system.logFocus(_minutes, _target)?.id);
+    setState(() => _toRate = system.logFocus(_minutes, _target!)?.id);
     toast(context,
         timed ? 'Block done — $_minutes min logged.' : '$_minutes min logged.');
   }
@@ -39,15 +39,21 @@ class _FocusScreenState extends State<FocusScreen> {
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
     final now = DateTime.now();
+    final builtIn = system.isBuiltInPerson;
     final artifact = artifactFor(system.programMonth);
     final week = system.focusMinutesInWeek(now);
-    final month = system.artifactMinutesThisMonth;
+    final from = system.monthStart(system.programMonth);
+    final month = builtIn
+        ? system.artifactMinutesThisMonth
+        : [
+            for (final f in system.logsOf('focus'))
+              if (!f.date.isBefore(from)) (f.number('minutes') ?? 0).toInt()
+          ].fold<int>(0, (a, b) => a + b);
+    _target ??= builtIn ? 'artifact' : 'skill';
     final free = system.freeBlocks(now);
-    final targets = {
-      'artifact': 'Artifact',
-      'skill': 'Skill',
-      'other': 'Other',
-    };
+    final targets = builtIn
+        ? const {'artifact': 'Artifact', 'skill': 'Skill', 'other': 'Other'}
+        : const {'skill': 'My growth area', 'goal': 'A goal', 'other': 'Other'};
     return OnoPage(
       showBack: true,
       eyebrow: 'Deep work',
@@ -60,7 +66,8 @@ class _FocusScreenState extends State<FocusScreen> {
           children: [
             Expanded(child: StatTile(_hours(week), 'this week', unit: 'h')),
             Expanded(
-                child: StatTile(_hours(month), 'on the artifact this month',
+                child: StatTile(_hours(month),
+                    builtIn ? 'on the artifact this month' : 'this month',
                     unit: 'h')),
           ],
         ),
@@ -121,7 +128,7 @@ class _FocusScreenState extends State<FocusScreen> {
               ),
           ],
         ),
-        if (_target == 'artifact')
+        if (_target == 'artifact' && builtIn)
           Padding(
             padding: const EdgeInsets.only(top: 8),
             child: Text('This month: $artifact', style: AppText.small()),

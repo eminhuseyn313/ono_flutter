@@ -70,6 +70,10 @@ class _DayScreenState extends State<DayScreen> {
       subtitle:
           'When you wake, work and sleep. Your dial shows it, and your reminders follow it.',
       bottomBar: PrimaryButton('Save', icon: Icons.check_rounded, onPressed: () {
+        if (_work && _start >= _end) {
+          toast(context, 'Work has to end after it starts. Night shifts: switch fixed hours off.');
+          return;
+        }
         system.saveDayShape(
             wake: _wake,
             workStart: _work ? _start : _wake,

@@ -20,6 +20,12 @@ class _PlansScreenState extends State<PlansScreen> {
   final Map<String, TextEditingController> _m = {};
   late PersonalSystemProvider _system;
 
+  // An item can arrive by sync while this screen is open.
+  TextEditingController _cue(String id) => _c.putIfAbsent(
+      id, () => TextEditingController(text: _system.cueFor(id)));
+  TextEditingController _min(String id) => _m.putIfAbsent(
+      id, () => TextEditingController(text: _system.minimumFor(id)));
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -77,14 +83,14 @@ class _PlansScreenState extends State<PlansScreen> {
                               TextButton(
                                 onPressed: () {
                                   system.setCue(n.id, '');
-                                  _c[n.id]!.text = system.cueFor(n.id);
+                                  _cue(n.id).text = system.cueFor(n.id);
                                 },
                                 child: const Text('Reset'),
                               ),
                           ],
                         ),
                         TextField(
-                          controller: _c[n.id],
+                          controller: _cue(n.id),
                           maxLines: null,
                           style: AppText.body(color: AppColors.greyLight),
                           textInputAction: TextInputAction.done,
@@ -99,7 +105,7 @@ class _PlansScreenState extends State<PlansScreen> {
                         ),
                         const SizedBox(height: 6),
                         TextField(
-                          controller: _m[n.id],
+                          controller: _min(n.id),
                           maxLines: null,
                           style: AppText.small(color: AppColors.greyLight),
                           textInputAction: TextInputAction.done,

@@ -22,10 +22,13 @@ class WeekScreen extends StatelessWidget {
     final (done, set) = system.weekOutcomeScore(now);
     return OnoPage(
       showBack: true,
-      eyebrow: 'Month ${system.programMonth} · ${artifactFor(system.programMonth)}',
+      eyebrow: system.isBuiltInPerson
+          ? 'Month ${system.programMonth} · ${artifactFor(system.programMonth)}'
+          : 'Month ${system.programMonth}',
       title: 'Big 3 this week',
-      subtitle:
-          'Outcomes you control, specific enough to tick. One should move the artifact; daily priorities serve these.',
+      subtitle: system.isBuiltInPerson
+          ? 'Outcomes you control, specific enough to tick. One should move the artifact; daily priorities serve these.'
+          : 'Outcomes you control, specific enough to tick. One should move a goal; daily priorities serve these.',
       children: [
         SectionHeader('Week of ${shortDate(week)}',
             action: set == 0 ? null : '$done/$set done'),

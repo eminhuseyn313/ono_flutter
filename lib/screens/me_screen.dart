@@ -431,7 +431,9 @@ class MeScreen extends StatelessWidget {
                 color: AppColors.skill,
                 title: 'Deep work',
                 subtitle:
-                    '${(system.focusMinutesInWeek(DateTime.now()) / 60).toStringAsFixed(1)} h this week · ${(system.artifactMinutesThisMonth / 60).toStringAsFixed(1)} h on the artifact this month',
+                    system.isBuiltInPerson
+                    ? '${(system.focusMinutesInWeek(DateTime.now()) / 60).toStringAsFixed(1)} h this week · ${(system.artifactMinutesThisMonth / 60).toStringAsFixed(1)} h on the artifact this month'
+                    : '${(system.focusMinutesInWeek(DateTime.now()) / 60).toStringAsFixed(1)} h this week · one block, one thing',
                 onTap: () => context.push('/focus'),
               ),
               const Divider(indent: 66),
@@ -1262,7 +1264,9 @@ class _AppleHealth extends StatelessWidget {
             color: AppColors.danger,
             title: 'Connect Apple Health',
             subtitle:
-                'Sleep fills the check-in and ticks "bed by 22:30"; HRV and resting heart rate; weigh-ins go to Health',
+                system.isBuiltInPerson
+                    ? 'Sleep fills the check-in and ticks "bed by 22:30"; HRV and resting heart rate; weigh-ins go to Health'
+                    : 'Sleep fills the check-in; HRV and resting heart rate; weigh-ins go to Health',
             onTap: () async {
               final err = await system.connectHealth();
               if (context.mounted) {
@@ -1327,7 +1331,7 @@ class _AppleHealth extends StatelessWidget {
             if (bed != null) ...[
               const SizedBox(height: 6),
               Text(
-                  'In bed ${bed.hour.toString().padLeft(2, '0')}:${bed.minute.toString().padLeft(2, '0')}${bed.hour < 22 || (bed.hour == 22 && bed.minute <= 45) ? ' — "bed by 22:30" ticked' : ''}',
+                  'In bed ${bed.hour.toString().padLeft(2, '0')}:${bed.minute.toString().padLeft(2, '0')}${system.isBuiltInPerson && (bed.hour < 22 || (bed.hour == 22 && bed.minute <= 45)) ? ' — "bed by 22:30" ticked' : ''}',
                   style: AppText.small().copyWith(fontSize: 12)),
             ],
             const SizedBox(height: 8),

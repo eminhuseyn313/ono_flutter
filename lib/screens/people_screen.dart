@@ -138,7 +138,24 @@ class _PeopleScreenState extends State<PeopleScreen> {
                   ],
                 ),
                 GhostButton('Remove ${p.text.split(' ').first}',
-                    icon: Icons.delete_outline_rounded, onPressed: () {
+                    icon: Icons.delete_outline_rounded, onPressed: () async {
+                  final sure = await showDialog<bool>(
+                    context: ctx,
+                    builder: (d) => AlertDialog(
+                      title: Text('Remove ${p.text}?'),
+                      content: const Text(
+                          'Their contact history and the help you logged go too.'),
+                      actions: [
+                        TextButton(
+                            onPressed: () => Navigator.pop(d, false),
+                            child: const Text('Keep')),
+                        TextButton(
+                            onPressed: () => Navigator.pop(d, true),
+                            child: const Text('Remove')),
+                      ],
+                    ),
+                  );
+                  if (sure != true || !ctx.mounted) return;
                   system.removePerson(p.id);
                   Navigator.of(ctx).pop();
                 }),

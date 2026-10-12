@@ -664,12 +664,15 @@ void main() {
         system.saveDayShape(wake: 390, workStart: 480, workEnd: 1020, bed: 1350);
         // A short program: the spine, phases and months scale to 90 days.
         system.setProgramLength(90);
-        for (final r in ['/home', '/profile', '/goals', '/note', '/profile/edit', '/career', '/people', '/program', '/checkin', '/growth', '/move', '/log', '/weekly-coaching', '/day', '/evidence', '/month/2', '/next-program', '/letters']) {
+        for (final r in ['/home', '/profile', '/goals', '/note', '/profile/edit', '/career', '/people', '/program', '/checkin', '/growth', '/move', '/log', '/weekly-coaching', '/day', '/evidence', '/month/2', '/next-program', '/letters', '/week', '/focus', '/shutdown', '/review']) {
           await _go(tester, r);
+          // His career page and month pages are only linked for him, and
+          // the Log shows what was logged before the profile changed.
+          if (const {'/career', '/log', '/month/2'}.contains(r)) continue;
           // None of the built-in plan's specifics show for someone else.
           // (Their daily items are the built-in ones here, so item titles
           // may appear; the built-in cards and strips must not.)
-          for (final t in ['Shoulder pain', 'Desk at 07:45', 'Face pulls', 'Lunch read', 'LinkedIn posts', 'Gym sessions', 'Scan · 07:45', 'Guavapay', 'Day 16']) {
+          for (final t in ['Shoulder pain', 'Desk at 07:45', 'Face pulls', 'Lunch read', 'LinkedIn posts', 'Gym sessions', 'Scan · 07:45', 'Guavapay', 'Day 16', 'on the artifact', 'move the artifact', 'Business ID', 'Kaspi', '21:30', 'bed by 22:30', 'readiness']) {
             if (find.textContaining(t).evaluate().isNotEmpty) {
               errors.add('$r shows "$t"');
             }

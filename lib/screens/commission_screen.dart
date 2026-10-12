@@ -348,8 +348,9 @@ class _CommissionScreenState extends State<CommissionScreen> {
                     final ok = await context
                         .read<PersonalSystemProvider>()
                         .requestReminderPermission();
+                    if (!mounted) return;
                     setState(() => _permissionAsked = true);
-                    if (!ok && mounted) {
+                    if (!ok) {
                       toast(context,
                           'Not granted here — enable later in Settings › ONO.');
                     }

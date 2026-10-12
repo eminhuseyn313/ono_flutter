@@ -69,7 +69,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
                 controller: front,
                 maxLines: null,
                 decoration: const InputDecoration(
-                    hintText: 'Question — e.g. "Kaspi QR acceptance?"')),
+                    hintText: 'Question — something you want to remember')),
             const SizedBox(height: 10),
             TextField(
                 controller: back,
@@ -82,7 +82,11 @@ class _ReviewScreenState extends State<ReviewScreen> {
         ),
       ),
     );
-    if (saved == true && mounted) {
+    if (saved == true &&
+        mounted &&
+        (front.text.trim().isEmpty || back.text.trim().isEmpty)) {
+      toast(context, 'A card needs a question and an answer.');
+    } else if (saved == true && mounted) {
       context
           .read<PersonalSystemProvider>()
           .addCustomCard(front.text, back.text);

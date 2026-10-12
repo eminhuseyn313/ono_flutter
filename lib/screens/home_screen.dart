@@ -381,7 +381,10 @@ class _DateSwitch extends StatelessWidget {
           ),
         if (yesterday)
           Expanded(
-            child: Text('Fill in what you missed — bed, protein, Feynman.',
+            child: Text(
+                context.read<PersonalSystemProvider>().isBuiltInPerson
+                    ? 'Fill in what you missed — bed, protein, Feynman.'
+                    : 'Fill in what you missed yesterday.',
                 style: AppText.small().copyWith(fontSize: 11.5)),
           ),
       ],
@@ -1239,7 +1242,7 @@ class _PromptsState extends State<_Prompts> {
       if (system.automaticityDue)
         _row(context, Icons.autorenew_rounded, AppColors.body,
             'Is it a habit yet?', 'Monthly check · 1 minute', '/habits'),
-      if (system.dayOfMonth >= 25 && system.readinessDueThisMonth)
+      if (system.isBuiltInPerson && system.dayOfMonth >= 25 && system.readinessDueThisMonth)
         _row(context, Icons.trending_up_rounded, AppColors.skill,
             '${activeProfile.targetRole} readiness', 'Rate this month against the bar',
             '/cockpit?tab=2'),
@@ -2042,6 +2045,10 @@ class _QuestionCardState extends State<_QuestionCard> {
             alignment: Alignment.centerRight,
             child: TextButton(
               onPressed: () {
+                if (_answer.text.trim().isEmpty) {
+                  toast(context, 'Write a line first.');
+                  return;
+                }
                 system.answerQuestion(_answer.text);
                 FocusManager.instance.primaryFocus?.unfocus();
                 toast(context, 'Saved to your notes.');
