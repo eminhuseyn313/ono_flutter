@@ -2457,5 +2457,20 @@ void main() {
     expect(p.isDone('ms_1_0'), isFalse); // milestones tick again
     expect(p.pausedDays, 0); // the old illness belongs to program 1
   });
+
+  test('every plan pack applies: areas, daily items with cues, a goal', () async {
+    for (final pack in planPacks) {
+      SharedPreferences.setMockInitialValues({});
+      final p = await _commissioned();
+      final r = p.applyPack(pack, replaceDaily: true, withGoal: true);
+      expect(p.dailyItems.length, greaterThanOrEqualTo(PersonalSystemProvider.minDailyItems), reason: pack.name);
+      for (final d in pack.daily) {
+        expect(p.dailyItems.any((x) => x.title == d.title), isTrue, reason: '${pack.name}: ${d.title}');
+      }
+      expect(p.activeGoals.any((g) => g.text == pack.goal!.title), isTrue, reason: pack.name);
+      expect(r, isNotNull);
+      expect(PlanPack.fromText(pack.toText())!.daily.length, pack.daily.length);
+    }
+  });
 }
 
