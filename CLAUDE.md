@@ -282,6 +282,7 @@ flutter run -t lib/main_production.dart
 - `flutter analyze` must report 0 issues.
 - `flutter test`:
   - `test/widget_test.dart` covers first run (welcome → commission), then commissions and opens every route, plus all content links, at 393×852 and 375×667. It fails on any runtime error, overflow or dead route.
+  - `test/flows_test.dart` taps through the newer tools as a person would (thought check, worry time, kindness, strengths, board, after-action review, best future, chapters, closing a program) and checks what was saved.
   - `test/providers/personal_system_provider_test.dart` covers timeline, scores, streaks, protein, mastery, gym, month stats, briefs, export/import and reminders.
 - Manual testing uses one-click apps at the repo root, `ONO Simulator.app` and `ONO on iPhone.app`.
   - Each is a script bundle that runs `open -a Terminal` on its `.command`.
