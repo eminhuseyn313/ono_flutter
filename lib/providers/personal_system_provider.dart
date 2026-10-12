@@ -1898,6 +1898,11 @@ class PersonalSystemProvider extends ChangeNotifier {
         sayDo: sayDo() == null ? null : '${sayDo()!.kept} of ${sayDo()!.kept + sayDo()!.missed}',
         promisesOverdue: promisesDue(_now.subtract(const Duration(days: 1))).length,
         thoughtsChecked: thoughtsInWeek(report.weekStart),
+        asksThisWeek: asksInWeek(report.weekStart),
+        askRecord: askRecord() == null
+            ? null
+            : '${askRecord()!.yes} of ${askRecord()!.asked} said yes; you expected ${askRecord()!.guess}%',
+        wordForTheYear: wordForTheYear,
         restPlanned: restPlannedSoon,
         experiments: [
           for (final e in [...experimentsWith('running'), ...experimentsWith('kept').take(2)])
@@ -5190,6 +5195,171 @@ class PersonalSystemProvider extends ChangeNotifier {
     return n;
   }
 
+  // ── Year in review ───────────────────────────────────────────────────
+
+  /// The questions for closing a calendar year, in order. The last, the
+  /// word for next year, is the log's text.
+  static const yearQuestions = [
+    ('proud', 'What are you proudest of this year?'),
+    ('hard', 'What was hardest — and how did you get through it?'),
+    ('learned', 'What did the year teach you?'),
+    ('thanks', 'Who do you want to thank, and for what?'),
+    ('letgo', 'What are you leaving behind?'),
+    ('hold', 'Next year: the one thing that must hold'),
+  ];
+
+  /// The calendar year to look back on: this one from 15 December, the
+  /// last one until 15 January — if ONO was used in it.
+  int? get yearToReview {
+    if (!hasStarted) return null;
+    final d = dayOnly(_now);
+    final year = d.month == 12 && d.day >= 15
+        ? d.year
+        : d.month == 1 && d.day <= 15
+            ? d.year - 1
+            : null;
+    if (year == null || journeyStart.year > year) return null;
+    return year;
+  }
+
+  LogEntry? yearReviewFor(int year) =>
+      logsOf('year_review').where((l) => l.number('year') == year).firstOrNull;
+
+  bool get yearReviewDue =>
+      yearToReview != null && yearReviewFor(yearToReview!) == null;
+
+  /// The word chosen for this year in last year's review.
+  String? get wordForTheYear {
+    final t = yearReviewFor(_now.year - 1)?.text ?? '';
+    return t.isEmpty ? null : t;
+  }
+
+  /// What [year] added up to, from the day ONO started (or 1 January) to
+  /// 31 December (or today).
+  ({
+    int held,
+    int counted,
+    int wins,
+    int goalsReached,
+    int reps,
+    int focusHours,
+    int kindActs,
+    int promisesKept,
+    List<String> lessons,
+    List<String> topWins,
+  }) yearSummary(int year) {
+    final first = DateTime(year), next = DateTime(year + 1);
+    bool inYear(DateTime d) => !d.isBefore(first) && d.isBefore(next);
+    bool closedIn(LogEntry l) {
+      final c = DateTime.tryParse(l.str('closed_on') ?? '');
+      return c != null && inYear(c);
+    }
+    final today = dayOnly(_now);
+    final from = journeyStart.isAfter(first) ? dayOnly(journeyStart) : first;
+    var held = 0, counted = 0;
+    for (var d = from; d.isBefore(next) && !d.isAfter(today); d = d.add(const Duration(days: 1))) {
+      if (isExcused(d)) continue;
+      if (d == today && !isHeld(d)) continue;
+      counted++;
+      if (isHeld(d)) held++;
+    }
+    final wins = [for (final w in logsOf('win')) if (inYear(w.date)) w];
+    final reached = goals.where((g) => g.str('status') == 'achieved' && closedIn(g)).length;
+    var minutes = 0;
+    for (final f in logsOf('focus')) {
+      if (inYear(f.date)) minutes += (f.number('minutes') ?? 0).toInt();
+    }
+    final lessons = [
+      for (final r in logsOf('month_review').reversed)
+        if (inYear(r.date) && (r.str('lesson') ?? '').trim().isNotEmpty) r.str('lesson')!.trim(),
+      for (final r in logsOf('quarterly_review').reversed)
+        if (inYear(r.date) && (r.str('lessons') ?? '').trim().isNotEmpty) r.str('lessons')!.trim(),
+    ];
+    return (
+      held: held,
+      counted: counted,
+      wins: wins.length,
+      goalsReached: reached,
+      reps: logsOf('rep').where((r) => inYear(r.date)).length,
+      focusHours: minutes ~/ 60,
+      kindActs: logsOf('kindness').where((k) => inYear(k.date)).length,
+      promisesKept: logsOf('promise').where((p) => p.str('status') == 'kept' && closedIn(p)).length,
+      lessons: lessons,
+      // Oldest first reads like the year it was.
+      topWins: [for (final w in wins.reversed) w.text],
+    );
+  }
+
+  /// Saves (or updates) the review of [year]: the answers to
+  /// [yearQuestions] and one word for next year.
+  void saveYearReview(int year, {required Map<String, String> answers, String word = ''}) {
+    final existing = yearReviewFor(year);
+    final data = {
+      'year': year,
+      for (final q in yearQuestions)
+        if ((answers[q.$1] ?? '').trim().isNotEmpty) q.$1: answers[q.$1]!.trim(),
+    };
+    if (existing == null) {
+      addLog('year_review', text: word.trim(), data: data);
+    } else {
+      updateLog(existing.copyWith(text: word.trim(), data: data));
+    }
+  }
+
+  // ── Ask for help ─────────────────────────────────────────────────────
+
+  /// How an ask ended.
+  static const askOutcomes = {'yes': 'Yes', 'partly': 'Partly', 'no': 'No'};
+
+  /// People guess that about half as many others will say yes as actually
+  /// do (Flynn & Lake 2008). Writing down the guess, then the answer,
+  /// corrects it with your own numbers.
+  void addAsk({required String what, String of = '', int guess = 50}) {
+    addLog('ask', text: what.trim(), data: {
+      'of': of.trim(),
+      'guess': guess.clamp(0, 100),
+      'status': 'asked',
+    });
+  }
+
+  List<LogEntry> get openAsks => [
+        for (final a in logsOf('ask'))
+          if (a.str('status') == 'asked') a
+      ];
+
+  /// Asks made two or more days ago with no answer noted.
+  List<LogEntry> get asksToClose {
+    final cutoff = dayOnly(_now).subtract(const Duration(days: 2));
+    return [for (final a in openAsks) if (!dayOnly(a.date).isAfter(cutoff)) a];
+  }
+
+  void closeAsk(String id, String outcome) {
+    final a = logsOf('ask').where((l) => l.id == id).firstOrNull;
+    if (a == null || !askOutcomes.containsKey(outcome)) return;
+    updateLog(a.copyWith(data: {...a.data, 'status': outcome, 'closed_on': dateKey(_now)}));
+  }
+
+  /// Answered asks in the last [days]: how many, how many got a yes (a
+  /// partial yes counts), and the average guess; null until three.
+  ({int asked, int yes, int guess})? askRecord({int days = 180}) {
+    final from = dayOnly(_now).subtract(Duration(days: days));
+    var asked = 0, yes = 0, guess = 0;
+    for (final a in logsOf('ask')) {
+      final st = a.str('status');
+      if (st == null || st == 'asked' || a.date.isBefore(from)) continue;
+      asked++;
+      if (st == 'yes' || st == 'partly') yes++;
+      guess += (a.number('guess') ?? 50).toInt();
+    }
+    if (asked < 3) return null;
+    return (asked: asked, yes: yes, guess: (guess / asked).round());
+  }
+
+  int asksInWeek(DateTime anyDay) {
+    final from = weekStartOf(anyDay);
+    return countBetween('ask', from, from.add(const Duration(days: 7)));
+  }
+
   // ── Journal export ───────────────────────────────────────────────────
 
   /// Everything you wrote to learn from — wins, lessons, reflections,
@@ -5220,6 +5390,8 @@ class PersonalSystemProvider extends ChangeNotifier {
         'thought' => 'Checked a thought: ${l.text}${f('balanced').isEmpty ? '' : '\n  More balanced: ${f('balanced')}'}',
         'kindness' => 'Kindness: ${l.text}',
         'strength_use' => 'Used ${f('strength')}: ${l.text}',
+        'year_review' => 'Looked back at ${l.number('year')}:${[for (final q in yearQuestions) if (f(q.$1).isNotEmpty) '\n  ${q.$2} ${f(q.$1)}'].join()}${l.text.isEmpty ? '' : '\n  Word for next year: ${l.text}'}',
+        'ask' => 'Asked ${f('of').isEmpty ? '' : '${f('of')} '}for help: ${l.text}${f('status') == 'asked' ? '' : ' — ${askOutcomes[f('status')] ?? f('status')}'}',
         'story' => 'Story: ${l.text}${f('result').isEmpty ? '' : '\n  Result: ${f('result')}'}',
         'program_cycle' => 'Closed program ${l.number('number')} (${l.number('held')} of ${l.number('counted')} days held)${l.text.isEmpty ? '' : '\n  What changed: ${l.text}'}${f('carry').isEmpty ? '' : '\n  Taking with me: ${f('carry')}'}',
         'aar' => 'Looked back at ${l.text}${f('sustain').isEmpty ? '' : '\n  Keep: ${f('sustain')}'}${f('improve').isEmpty ? '' : '\n  Change: ${f('improve')}'}',

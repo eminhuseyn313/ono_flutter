@@ -26,6 +26,7 @@ class NeedScreen extends StatelessWidget {
     (Icons.work_outline_rounded, 'I have an interview or review coming', 'Your best stories, in four parts, ready', '/stories'),
     (Icons.auto_awesome_outlined, 'I\'m doubting myself', 'Read what others saw in you at your best', '/best-self'),
     (Icons.explore_outlined, 'I don\'t know where I\'m going', 'Sketch three possible lives', '/odyssey'),
+    (Icons.pan_tool_alt_outlined, 'I need help but don\'t want to ask', 'Most people say yes more often than you\'d guess', '/asks'),
     (Icons.wb_sunny_outlined, 'I need some hope', 'Write your best possible future', '/best-future'),
   ];
 

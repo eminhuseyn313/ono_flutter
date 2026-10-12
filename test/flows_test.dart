@@ -262,5 +262,35 @@ void main() {
     await _pumpFor(tester, const Duration(seconds: 1));
     expect(find.text('Your best stories, ready'), findsOneWidget);
   });
+
+  testWidgets('ask for help: guess, ask, note the yes', (tester) async {
+    final system = await _start(tester);
+    await _go(tester, '/asks');
+    await _type(tester, 'What you\'ll ask for', 'Twenty minutes on my draft');
+    await _type(tester, 'Who', 'Aysel');
+    await _tap(tester, find.text('Add the ask'));
+    expect(system.openAsks.single.str('of'), 'Aysel');
+    await _tap(tester, find.text('Answer'));
+    await tester.tap(find.text('Yes'));
+    await _pumpFor(tester, const Duration(milliseconds: 600));
+    expect(system.openAsks, isEmpty);
+    expect(system.logsOf('ask').single.str('status'), 'yes');
+  });
+
+  testWidgets('year in review: answer, choose a word, save', (tester) async {
+    final system = await _start(tester);
+    system.addLog('win', text: 'Ran my first 10k');
+    await _go(tester, '/year');
+    expect(find.text('• Ran my first 10k'), findsOneWidget);
+    await _reach(tester, find.byType(TextField));
+    await tester.enterText(find.byType(TextField).first, 'Keeping the mornings');
+    await _type(tester, 'e.g. Steady, Brave, Home, Build', 'Steady');
+    await tester.tap(find.text('Save the review'));
+    await _pumpFor(tester, const Duration(seconds: 1));
+    final year = system.yearToReview ?? DateTime.now().year;
+    final r = system.yearReviewFor(year)!;
+    expect(r.text, 'Steady');
+    expect(r.str('proud'), 'Keeping the mornings');
+  });
 }
 

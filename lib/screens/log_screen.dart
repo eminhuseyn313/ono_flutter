@@ -25,7 +25,7 @@ const _filters = <String, Set<String>?>{
   'Notes': {'feynman', 'scan', 'pennebaker', 'note', 'win', 'month_review', 'shutdown', 'stepback', 'thought'},
   'Protocols': {'sigh', 'excited', 'bluf', 'sixq', 'pause', 'still', 'ritual', 'read', 'anki'},
   'Body': {'weight', 'protein', 'gym', 'blood', 'checkin', 'sleep', 'vitals', 'energy', 'move'},
-  'People': {'touch', 'help', 'partner_checkin', 'gratitude', 'feedback_round', 'kindness', 'promise'},
+  'People': {'touch', 'help', 'partner_checkin', 'gratitude', 'feedback_round', 'kindness', 'promise', 'ask'},
   'Career': {'linkedin', 'artifact', 'one_on_one', 'decision', 'readiness', 'focus', 'week_plan', 'touch'},
 };
 
@@ -70,7 +70,7 @@ class _LogScreenState extends State<LogScreen> {
             // Letters stay sealed: they only show on /letters.
             .where((e) => e.type != 'letter')
             // People are a list, not events; contact with them is a touch.
-            .where((e) => !const {'person', 'values', 'growth_area', 'area_drills', 'goal', 'profile', 'daily_item', 'stop', 'role_model', 'partner', 'odyssey', 'energy_audit', 'best_self', 'conversation', 'money_check', 'upkeep', 'manual', 'us_checkin', 'day_shape', 'strengths', 'best_future', 'life_story', 'kindness_plan', 'worry', 'worry_plan'}
+            .where((e) => !const {'person', 'values', 'growth_area', 'area_drills', 'goal', 'profile', 'daily_item', 'stop', 'role_model', 'partner', 'odyssey', 'energy_audit', 'best_self', 'conversation', 'money_check', 'upkeep', 'manual', 'us_checkin', 'day_shape', 'strengths', 'best_future', 'life_story', 'kindness_plan', 'worry', 'worry_plan', 'year_review'}
                 .contains(e.type))
             .toList()
         : system.allLogs(_filters[_filter]);
@@ -297,6 +297,7 @@ class _EntryRow extends StatelessWidget {
     'thought': (Icons.psychology_outlined, 'mind', 'Thought check'),
     'aar': (Icons.flag_outlined, 'skill', 'After-action review'),
     'promise': (Icons.handshake_outlined, 'social', 'Promise'),
+    'ask': (Icons.pan_tool_alt_outlined, 'social', 'Asked for help'),
     'story': (Icons.menu_book_outlined, 'skill', 'Story'),
     'program_cycle': (Icons.flag_circle_rounded, 'mind', 'Program closed'),
     'strength_use': (Icons.bolt_outlined, 'mind', 'Strength used'),
@@ -362,6 +363,9 @@ class _EntryRow extends StatelessWidget {
       case 'promise':
         final st = e.str('status') ?? 'open';
         return '${e.text}${(e.str('to') ?? '').isEmpty ? '' : ' · to ${e.str('to')}'} · ${st == 'open' ? 'by ${e.str('by')}' : st}';
+      case 'ask':
+        final st = e.str('status') ?? 'asked';
+        return '${e.text}${(e.str('of') ?? '').isEmpty ? '' : ' · ${e.str('of')}'} · ${st == 'asked' ? 'waiting' : st}';
       case 'program_cycle':
         return 'Program ${e.number('number')} · ${e.number('held')} of ${e.number('counted')} days held';
       case 'aar':

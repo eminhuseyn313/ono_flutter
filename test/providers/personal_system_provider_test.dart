@@ -2544,5 +2544,69 @@ void main() {
         containsAll(['/thought', '/worry']));
     expect(toolIndex.where((t) => t.matches('sleep')).isNotEmpty, isTrue);
   });
+
+  test('year in review: due mid-December to mid-January, sums the year',
+      () async {
+    final p = await _commissioned();
+    expect(p.yearToReview, isNull); // 2 Oct
+    p.clock = () => DateTime(2026, 12, 20, 9);
+    expect(p.yearToReview, 2026);
+    expect(p.yearReviewDue, isTrue);
+    p.clock = () => DateTime(2027, 1, 10, 9);
+    expect(p.yearToReview, 2026);
+    p.clock = () => DateTime(2027, 1, 16, 9);
+    expect(p.yearToReview, isNull);
+
+    p.clock = () => _today;
+    _hold(p, DateTime(2026, 9, 2));
+    _hold(p, DateTime(2026, 9, 3));
+    p.addLog('win', text: 'First win', date: DateTime(2026, 9, 5));
+    p.addLog('win', text: 'Second win', date: DateTime(2026, 9, 20));
+    p.addLog('focus', data: {'minutes': 90, 'target': 'skill'}, date: DateTime(2026, 9, 6));
+    p.addLog('focus', data: {'minutes': 60, 'target': 'skill'}, date: DateTime(2026, 9, 7));
+    p.saveMonthReview(1, carry: 'Keep the mornings', lesson: 'Start smaller');
+    final y = p.yearSummary(2026);
+    expect(y.held, 2);
+    expect(y.counted, greaterThanOrEqualTo(31)); // 1 Sep to 1 Oct (today open)
+    expect(y.wins, 2);
+    expect(y.topWins, ['First win', 'Second win']);
+    expect(y.focusHours, 2);
+    expect(y.lessons, ['Start smaller']);
+    expect(p.yearSummary(2025).counted, 0);
+
+    p.clock = () => DateTime(2026, 12, 20, 9);
+    p.saveYearReview(2026, answers: {'proud': 'The mornings', 'hard': ' '}, word: 'Steady');
+    expect(p.yearReviewDue, isFalse);
+    final r = p.yearReviewFor(2026)!;
+    expect(r.str('proud'), 'The mornings');
+    expect(r.data.containsKey('hard'), isFalse);
+    p.saveYearReview(2026, answers: {'proud': 'The mornings'}, word: 'Brave');
+    expect(p.logsOf('year_review').length, 1);
+    expect(p.journalText(), contains('Word for next year: Brave'));
+    p.clock = () => DateTime(2027, 3, 1, 9);
+    expect(p.wordForTheYear, 'Brave');
+  });
+
+  test('ask for help: guess, answer, a record after three', () async {
+    final p = await _commissioned();
+    p.addAsk(what: 'Review my draft', of: 'Aysel', guess: 30);
+    p.addAsk(what: 'Cover my shift', guess: 40);
+    p.addAsk(what: 'Lend the drill', guess: 50);
+    expect(p.openAsks.length, 3);
+    expect(p.asksToClose, isEmpty); // asked today
+    p.clock = () => _today.add(const Duration(days: 2));
+    expect(p.asksToClose.length, 3);
+    final ids = [for (final a in p.openAsks) a.id];
+    p.closeAsk(ids[0], 'yes');
+    p.closeAsk(ids[1], 'partly');
+    expect(p.askRecord(), isNull);
+    p.closeAsk(ids[2], 'no');
+    p.closeAsk(ids[2], 'maybe'); // not an outcome: ignored
+    final r = p.askRecord()!;
+    expect((r.asked, r.yes, r.guess), (3, 2, 40));
+    expect(p.openAsks, isEmpty);
+    expect(p.asksInWeek(_today), 3);
+    expect(p.journalText(), contains('Asked Aysel for help: Review my draft'));
+  });
 }
 

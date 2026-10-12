@@ -119,6 +119,14 @@ Mind and meaning were the thinnest lanes; each item is a short, well-studied exe
 | 58 | Twelve plan packs (exam season, new parent, back from burnout, career change, athlete's season added) | S | ✅ |
 | 59 | Tests: two devices syncing against an in-memory cloud; tap-through tests for the newer tools | M | ✅ |
 
+## P7 — Seventh pass: the year and asking (12 Oct 2026)
+
+| # | Item | Effort | Status |
+|---|---|---|---|
+| 60 | Every screen fits an iPhone SE with text at 130% (buttons ellipsize, welcome scrolls; tested) | S | ✅ |
+| 61 | Year in review: what the calendar year added up to, six questions, one word for the next (Today from 15 Dec to 15 Jan) | S | ✅ |
+| 62 | Ask for help: guess the chance of a yes, ask, note the answer; own yes rate vs guess (Flynn & Lake 2008) | S | ✅ |
+
 ## P3 — The mass version
 
 | # | Item | Effort | Status |

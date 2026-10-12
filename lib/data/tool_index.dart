@@ -130,6 +130,8 @@ const List<ToolEntry> toolIndex = [
       words: ['thanks', 'gratitude']),
   ToolEntry('Role models', 'What to learn from whom, and one question to ask', '/models', 'People',
       words: ['mentor', 'inspiration']),
+  ToolEntry('Ask for help', 'Guess the chance of a yes, ask, count the yeses', '/asks', 'People',
+      words: ['help', 'support', 'favour', 'favor', 'request']),
   ToolEntry('Report for your coach', 'This month or quarter, ready to copy', '/coach-report', 'People',
       words: ['coach', 'therapist', 'report']),
 
@@ -166,6 +168,8 @@ const List<ToolEntry> toolIndex = [
       words: ['monthly', 'review']),
   ToolEntry('Quarterly review', 'Life wheel, wins, lessons, next 90 days', '/quarter', 'Look back',
       words: ['quarter', 'life wheel', 'review']),
+  ToolEntry('Year in review', 'What the year added up to, and one word for the next', '/year', 'Look back',
+      words: ['annual', 'new year', 'yearly', 'resolution', 'december']),
   ToolEntry('Your data & privacy', 'Where your data lives, export, delete', '/privacy', 'Look back',
       words: ['export', 'delete', 'journal', 'backup']),
 ];

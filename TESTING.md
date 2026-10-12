@@ -200,6 +200,11 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] Web → sign in with the same email → the same Today; tick an item on the web → within a minute (or on reopening the app) it is ticked on the iPhone
 - [ ] Log a note on each device at about the same time → both notes are on both devices
 
+## 2zx. New: year in review and ask for help
+- [ ] Settings → Accessibility → Larger Text at the largest non-accessibility size → open Today, Me, a few tools: nothing is cut off with a stripe
+- [ ] Me → Direction → **Year in review** → the year's numbers and wins in order → answer a question, write a word → Save; Me shows "Your word for this year" from January; Today offers "Close <year>" from 15 Dec
+- [ ] Me → People → **Ask for help** → what, who, a guess → Add → two days later Today asks "Did they say yes?" → Answer → Yes; after three answers Me shows "N of M said yes · you expected X%"
+
 ## 2zw. New: find a tool
 - [ ] Me → **Find a tool** → type "interview" → Story bank shows; "anxiety" → thought check and worry time; tapping one opens it
 - [ ] As someone else (not the built-in profile), Career, Career cockpit and Gym don't appear

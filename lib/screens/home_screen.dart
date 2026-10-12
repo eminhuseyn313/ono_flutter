@@ -1175,6 +1175,14 @@ class _PromptsState extends State<_Prompts> {
         _row(context, Icons.forum_outlined, AppColors.social,
             'The conversation with ${c.str('with')}',
             'Have it today, or debrief it if it happened', '/conversations'),
+      if (system.yearReviewDue)
+        _row(context, Icons.celebration_outlined, AppColors.accent,
+            'Close ${system.yearToReview}',
+            'Twenty minutes: what the year added up to, and one word for the next', '/year'),
+      if (system.asksToClose.firstOrNull case final a?)
+        _row(context, Icons.pan_tool_alt_outlined, AppColors.social,
+            'Did ${(a.str('of') ?? '').isEmpty ? 'they' : a.str('of')} say yes?',
+            '${a.text} — note the answer', '/asks'),
       if (system.promisesDue(now).firstOrNull case final p?)
         _row(context, Icons.handshake_outlined, AppColors.social,
             'A promise is due${(p.str('to') ?? '').isEmpty ? '' : ' · ${p.str('to')}'}',

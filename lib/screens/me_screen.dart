@@ -380,6 +380,16 @@ class MeScreen extends StatelessWidget {
               ),
               const Divider(indent: 66),
               LinkRow(
+                icon: Icons.celebration_outlined,
+                color: AppColors.accent,
+                title: 'Year in review',
+                subtitle: system.wordForTheYear != null
+                    ? 'Your word for this year: ${system.wordForTheYear}'
+                    : 'What the year added up to, and one word for the next',
+                onTap: () => context.push('/year'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
                 icon: Icons.mail_outline_rounded,
                 color: AppColors.accent,
                 title: 'Letters to future you',
@@ -564,6 +574,18 @@ class MeScreen extends StatelessWidget {
                     ? 'People one step ahead, and what to ask them'
                     : system.roleModels.map((m) => m.text).join(' · '),
                 onTap: () => context.push('/models'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
+                icon: Icons.pan_tool_alt_outlined,
+                color: AppColors.social,
+                title: 'Ask for help',
+                subtitle: system.askRecord() != null
+                    ? '${system.askRecord()!.yes} of ${system.askRecord()!.asked} said yes · you expected ${system.askRecord()!.guess}%'
+                    : system.openAsks.isEmpty
+                        ? 'Guess the chance of a yes, then ask'
+                        : '${system.openAsks.length} waiting for an answer',
+                onTap: () => context.push('/asks'),
               ),
               const Divider(indent: 66),
               LinkRow(

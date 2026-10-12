@@ -148,6 +148,12 @@ Emin's answers (12 Oct 2026): at the end, a closing review and a new program tha
 | K1 | **Promises** (kept / renegotiated in time / missed; say–do record) | Stakeholder trust as a product leader | Parents, partners, team members | Behavioural integrity: Simons 2002; Palanski & Yammarino 2011 | ✅ |
 | K2 | **Story bank** (situation, task, action, result; tagged by skill; gaps) | The Head of Product case and interviews | Anyone facing an interview, review or promotion | Behavioural interviews reward prepared, concrete examples (Maurer, Solamon & Troxtel 1998; Maurer et al. 2001) | ✅ |
 
+### L. Seventh pass: the year and asking (12 Oct 2026)
+| # | Feature | For Emin now | For anyone | Evidence | Status |
+|---|---|---|---|---|---|
+| L1 | **Year in review** (the year's numbers first, then six questions and a word for the next) | Closing 2026 with real data, not memory | The ritual many people already do at New Year | Recall is biased to recent and negative events (peak–end, Kahneman et al. 1993); structured reflection beats unstructured (Di Stefano et al. 2016) | ✅ |
+| L2 | **Ask for help** (guess the chance of a yes, ask, note the answer) | Asking stakeholders and peers sooner | Anyone who'd rather struggle than ask | People underestimate compliance by about half (Flynn & Lake 2008; Bohns 2016) | ✅ |
+
 ### E. Relationships
 | # | Feature | For Emin now | For anyone | Evidence | Effort |
 |---|---|---|---|---|---|

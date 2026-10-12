@@ -76,6 +76,14 @@ class BriefInput {
   final String? sayDo;
   final int promisesOverdue;
 
+  /// Times they asked for help this week, and their record over six
+  /// months ("7 of 9 said yes; you expected 45%").
+  final int asksThisWeek;
+  final String? askRecord;
+
+  /// The one word chosen for this year in last year's review.
+  final String? wordForTheYear;
+
   /// Whether rest is planned (or running) within the next 8 weeks.
   final bool restPlanned;
 
@@ -170,6 +178,9 @@ class BriefInput {
     this.boardGaps = const [],
     this.sayDo,
     this.promisesOverdue = 0,
+    this.asksThisWeek = 0,
+    this.askRecord,
+    this.wordForTheYear,
     this.lowestLifeArea,
     this.learningApplied = const [],
     this.experiments = const [],
@@ -201,6 +212,9 @@ class BriefInput {
         if (boardGaps.isNotEmpty) 'personal_board_gaps': boardGaps,
         if (sayDo != null) 'promises_kept_90_days': sayDo,
         if (promisesOverdue > 0) 'promises_overdue': promisesOverdue,
+        'asks_for_help_this_week': asksThisWeek,
+        if (askRecord != null) 'asks_for_help_180_days': askRecord,
+        if (wordForTheYear != null) 'word_for_the_year': wordForTheYear,
         'lowest_life_area': lowestLifeArea,
         'learning_applied': learningApplied,
         'experiments': experiments,
@@ -404,6 +418,8 @@ class DeviceBriefGenerator implements BriefGenerator {
         '${input.setbacks} setback${input.setbacks == 1 ? '' : 's'} met with a next step instead of a spiral. That is the skill.',
       if (input.promisesOverdue > 0)
         '${input.promisesOverdue} promise${input.promisesOverdue == 1 ? ' is' : 's are'} past the date. Keep it or renegotiate today — a new date said early keeps trust; silence doesn\'t.',
+      if (input.askRecord != null && input.asksThisWeek == 0)
+        'You asked nobody for help this week. Your own record: ${input.askRecord}. Ask one person for one specific thing.',
       if (input.boardGaps.contains('sponsor'))
         'Nobody on your board speaks for you where you are not. Who could become a sponsor? Ask them for one thing this month.',
       if (input.strengths.isNotEmpty && input.strengthUses == 0)
