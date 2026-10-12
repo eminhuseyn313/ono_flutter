@@ -355,7 +355,7 @@ class _Plan extends StatelessWidget {
         if (system.growthHistory.length > 1) ...[
           const SectionHeader('Earlier months'),
           for (final h in system.growthHistory
-              .where((h) => h.number('month') != system.programMonth))
+              .where((h) => !system.atMonth(h, system.programMonth)))
             Padding(
               padding: const EdgeInsets.only(bottom: 6),
               child: Text(

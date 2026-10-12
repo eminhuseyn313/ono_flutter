@@ -37,7 +37,7 @@ class _ProgramScreenState extends State<ProgramScreen> {
     final now = DateTime.now();
     return OnoPage(
       eyebrow: system.hasStarted
-          ? 'Month ${system.programMonth} of $programMonths · ${system.phase.name}'
+          ? 'Month ${system.programMonth} of ${system.programMonths} · ${system.phase.name}'
           : 'Starts ${shortDate(system.programStart)}',
       title: 'Program',
       children: [
@@ -85,7 +85,7 @@ class _Journey extends StatelessWidget {
     final profile = activeProfile;
 
     final spine = [
-      for (var m = 1; m <= programMonths; m++)
+      for (var m = 1; m <= system.programMonths; m++)
         SpineMonth(
           month: m,
           milestonesDone: builtIn
@@ -117,11 +117,12 @@ class _Journey extends StatelessWidget {
         Spine(
           months: spine,
           currentMonth: month,
+          currentPhaseId: system.phase.id,
           steps: builtIn
               ? pathSteps
               : [
                   if (profile.currentRole.isNotEmpty) [profile.currentRole, '1'],
-                  if (profile.targetRole.isNotEmpty) [profile.targetRole, '13'],
+                  if (profile.targetRole.isNotEmpty) [profile.targetRole, '${(system.programMonths * 2 ~/ 3) + 1}'],
                 ],
           onMonthTap: (m) => builtIn ? context.push('/month/$m') : null,
         ),
@@ -137,7 +138,7 @@ class _Journey extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('PHASE · MONTHS ${phase.fromMonth}–${phase.toMonth}',
+              Text('PHASE · ${system.phaseSpanLabel(phase).toUpperCase()}',
                   style: AppText.eyebrow(color: AppColors.accent)),
               const SizedBox(height: 6),
               Text(phase.name, style: AppText.title()),

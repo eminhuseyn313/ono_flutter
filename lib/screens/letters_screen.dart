@@ -33,7 +33,7 @@ class _LettersScreenState extends State<LettersScreen> {
       ('In 90 days', today.add(const Duration(days: 90))),
       if (next != null && next.isAfter(today))
         ('Next phase · ${shortDate(next)}', next),
-      ('Day 540 · ${shortDate(system.programEnd)} ${system.programEnd.year}',
+      ('Day ${system.programDays} · ${shortDate(system.programEnd)} ${system.programEnd.year}',
           system.programEnd),
     ];
   }

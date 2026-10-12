@@ -89,7 +89,7 @@ class _RoundScreenState extends State<RoundScreen> {
     final answers = round == null ? const <({String from, String said})>[] : system.roundAnswers(round);
     final past = [
       for (final r in system.logsOf('feedback_round'))
-        if (r.number('quarter') != system.programQuarter) r
+        if (!system.atQuarter(r, system.programQuarter)) r
     ];
     return OnoPage(
       showBack: true,

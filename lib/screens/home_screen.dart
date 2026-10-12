@@ -1132,6 +1132,10 @@ class _PromptsState extends State<_Prompts> {
     final followUps = system.openFollowUps;
     // Ranked: direction first, then what is due, then the rest.
     final cards = <Widget>[
+      if (system.programComplete)
+        _row(context, Icons.flag_circle_rounded, AppColors.accent,
+            'Program ${system.cycle} is complete',
+            'Look back, then start the next — everything stays', '/next-program'),
       if (system.planBuildSuggested)
         _row(context, Icons.auto_awesome_outlined, AppColors.accent,
             'Build your plan in 5 minutes', 'Who you are becoming, one goal, a few daily actions', '/start'),

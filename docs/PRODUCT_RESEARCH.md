@@ -140,7 +140,7 @@ All five are private: the coach gets only how many thoughts were checked and kin
 | J2 | **Personal board** (roles across your network, gaps) | A sponsor for the Head of Product move | Career changers, founders, parents returning to work | Higgins & Kram 2001; Cummings & Higgins 2006 (developmental networks) | ✅ |
 | J3 | **After-action review** (successes too; "change" becomes a card) | Launches, presentations, hard 1:1s | Athletes, teams, parents after a hard evening | Ellis & Davidi 2005; Tannenbaum & Cerasoli 2013 (debriefs improve performance ~25%) | ✅ |
 
-Open question for Emin: what should happen after day 540, and should other people choose a shorter programme (90 days, 6 months)?
+Emin's answers (12 Oct 2026): at the end, a closing review and a new program that keeps all history; anyone can choose 90 days, 6, 12 or 18 months, with the four phases scaled. Built.
 
 ### E. Relationships
 | # | Feature | For Emin now | For anyone | Evidence | Effort |

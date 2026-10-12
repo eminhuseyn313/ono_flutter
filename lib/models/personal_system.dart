@@ -377,6 +377,13 @@ class PersonalSystemState {
   /// Emergency skips allowed per program month (hard days).
   final int skipsPerMonth;
 
+  /// Length of the program in days: 90, 180, 360 or 540 (30-day months,
+  /// 90-day quarters).
+  final int programDays;
+
+  /// Which program this is: 1 for the first, 2 after starting the next…
+  final int cycle;
+
   const PersonalSystemState({
     required this.programStart,
     this.commissioned = false,
@@ -394,6 +401,8 @@ class PersonalSystemState {
     this.cardSchedules = const {},
     this.customCards = const [],
     this.skipsPerMonth = 2,
+    this.programDays = 540,
+    this.cycle = 1,
   });
 
   PersonalSystemState copyWith({
@@ -413,6 +422,8 @@ class PersonalSystemState {
     Map<String, CardSchedule>? cardSchedules,
     List<StudyCard>? customCards,
     int? skipsPerMonth,
+    int? programDays,
+    int? cycle,
   }) =>
       PersonalSystemState(
         programStart: programStart ?? this.programStart,
@@ -431,6 +442,8 @@ class PersonalSystemState {
         cardSchedules: cardSchedules ?? this.cardSchedules,
         customCards: customCards ?? this.customCards,
         skipsPerMonth: skipsPerMonth ?? this.skipsPerMonth,
+        programDays: programDays ?? this.programDays,
+        cycle: cycle ?? this.cycle,
       );
 
   Map<String, dynamic> toJson() => {
@@ -452,6 +465,8 @@ class PersonalSystemState {
             cardSchedules.map((k, v) => MapEntry(k, v.toJson())),
         'custom_cards': customCards.map((c) => c.toJson()).toList(),
         'skips_per_month': skipsPerMonth,
+        'program_days': programDays,
+        'cycle': cycle,
       };
 
   factory PersonalSystemState.fromJson(Map<String, dynamic> json) {
@@ -491,6 +506,8 @@ class PersonalSystemState {
               k, CardSchedule.fromJson(Map<String, dynamic>.from(v as Map)))),
       customCards: list(json['custom_cards'], StudyCard.fromJson),
       skipsPerMonth: (json['skips_per_month'] as num?)?.toInt() ?? 2,
+      programDays: (json['program_days'] as num?)?.toInt() ?? 540,
+      cycle: (json['cycle'] as num?)?.toInt() ?? 1,
     );
   }
 }

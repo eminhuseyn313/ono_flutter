@@ -52,7 +52,7 @@ class MeScreen extends StatelessWidget {
                   Expanded(
                       child: StatTile(
                           system.hasStarted ? '${system.programDay}' : '0',
-                          'day of $programDays')),
+                          'day of ${system.programDays}')),
                   Expanded(child: StatTile('${system.streak}', 'streak')),
                   Expanded(
                       child: StatTile('${system.bestStreak}', 'best streak')),
@@ -62,7 +62,7 @@ class MeScreen extends StatelessWidget {
               const SizedBox(height: 16),
               ThinBar(
                   value:
-                      system.hasStarted ? system.programDay / programDays : 0),
+                      system.hasStarted ? (system.programDay / system.programDays).clamp(0.0, 1.0) : 0),
               const SizedBox(height: 6),
               Row(
                 children: [
@@ -363,7 +363,7 @@ class MeScreen extends StatelessWidget {
                 color: AppColors.accent,
                 title: 'Letters to future you',
                 subtitle: system.letters.isEmpty
-                    ? 'Seal one for the next phase or day 540'
+                    ? 'Seal one for the next phase or the last day'
                     : '${system.letters.where((l) => !system.letterIsOpen(l)).length} sealed · ${system.letters.where(system.letterIsOpen).length} opened',
                 onTap: () => context.push('/letters'),
               ),
@@ -737,6 +737,14 @@ class MeScreen extends StatelessWidget {
               ),
               const Divider(indent: 66),
               LinkRow(
+                icon: Icons.timelapse_rounded,
+                color: AppColors.accent,
+                title: 'Program length',
+                subtitle: '${system.programLengthLabel}${system.cycle > 1 ? ' · program ${system.cycle}' : ''}',
+                onTap: () => _lengthSheet(context, system),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
                 icon: Icons.flash_on_outlined,
                 color: AppColors.mind,
                 title: 'Emergency skips',
@@ -801,6 +809,55 @@ class MeScreen extends StatelessWidget {
                 : 'Data is stored on this device. Export a backup before deleting the app or changing phones.',
             style: AppText.small()),
       ],
+    );
+  }
+
+  void _lengthSheet(BuildContext context, PersonalSystemProvider system) {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Program length', style: AppText.title()),
+              const SizedBox(height: 4),
+              Text(
+                  'The four phases spread over it, and at the end you look back and start the next. You are on day ${system.programDay}; a length shorter than that ends this program today.',
+                  style: AppText.small()),
+              const SizedBox(height: 14),
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  for (final e in PersonalSystemProvider.programLengths.entries)
+                    ChoiceChip(
+                      label: Text(e.value),
+                      selected: system.programDays == e.key,
+                      onSelected: (_) {
+                        system.setProgramLength(e.key);
+                        Navigator.of(ctx).pop();
+                      },
+                    ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(ctx).pop();
+                  context.push('/next-program');
+                },
+                style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                child: Text(system.programComplete
+                    ? 'Close this program and start the next'
+                    : 'Close this program early'),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

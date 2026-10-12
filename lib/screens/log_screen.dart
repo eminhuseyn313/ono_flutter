@@ -21,7 +21,7 @@ class LogScreen extends StatefulWidget {
 
 const _filters = <String, Set<String>?>{
   'All': null,
-  'Growth': {'rep', 'feedback', 'growth_focus', 'coaching', 'affirmation', 'values_check', 'goal_value', 'progress_note', 'setback', 'quarterly_review', 'learning', 'experiment', 'rest', 'detach', 'gratitude', 'feedback_round', 'wheel', 'aar', 'strength_use'},
+  'Growth': {'rep', 'feedback', 'growth_focus', 'coaching', 'affirmation', 'values_check', 'goal_value', 'progress_note', 'setback', 'quarterly_review', 'learning', 'experiment', 'rest', 'detach', 'gratitude', 'feedback_round', 'wheel', 'aar', 'strength_use', 'program_cycle'},
   'Notes': {'feynman', 'scan', 'pennebaker', 'note', 'win', 'month_review', 'shutdown', 'stepback', 'thought'},
   'Protocols': {'sigh', 'excited', 'bluf', 'sixq', 'pause', 'still', 'ritual', 'read', 'anki'},
   'Body': {'weight', 'protein', 'gym', 'blood', 'checkin', 'sleep', 'vitals', 'energy', 'move'},
@@ -296,6 +296,7 @@ class _EntryRow extends StatelessWidget {
     'stepback': (Icons.zoom_out_map_rounded, 'mind', 'Stepped back'),
     'thought': (Icons.psychology_outlined, 'mind', 'Thought check'),
     'aar': (Icons.flag_outlined, 'skill', 'After-action review'),
+    'program_cycle': (Icons.flag_circle_rounded, 'mind', 'Program closed'),
     'strength_use': (Icons.bolt_outlined, 'mind', 'Strength used'),
     'kindness': (Icons.volunteer_activism_outlined, 'social', 'Kindness'),
     'partner_checkin': (Icons.handshake_outlined, 'social', 'Partner check-in'),
@@ -356,6 +357,8 @@ class _EntryRow extends StatelessWidget {
         return '${e.number('minutes')} min${t == 'artifact' ? ' · artifact' : t == 'skill' ? ' · skill' : ''}';
       case 'partner_checkin':
         return 'With ${e.str('partner')}: you ${e.str('mine')}, they ${e.str('theirs')}';
+      case 'program_cycle':
+        return 'Program ${e.number('number')} · ${e.number('held')} of ${e.number('counted')} days held';
       case 'aar':
         final next = e.str('improve') ?? '';
         return '${e.text}${next.isEmpty ? '' : ' · next time: $next'}';

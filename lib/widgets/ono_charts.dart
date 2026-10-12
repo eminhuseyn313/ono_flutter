@@ -195,15 +195,25 @@ class Spine extends StatelessWidget {
   /// Role steps along the top: [label, month].
   final List<List<String>> steps;
 
+  /// The phase the program is in now (phases scale with its length).
+  final String? currentPhaseId;
+
   const Spine({
     super.key,
     required this.months,
     required this.currentMonth,
     required this.onMonthTap,
     this.steps = pathSteps,
+    this.currentPhaseId,
   });
 
-  static const colW = 62.0;
+  static const _baseColW = 62.0;
+
+  /// Columns widen for a short program so the spine still fills the card.
+  double get colW => math.max(_baseColW, 330 / math.max(1, months.length));
+
+  bool _isCurrent(Phase p) =>
+      currentPhaseId == null ? p.contains(currentMonth) : p.id == currentPhaseId;
 
   @override
   Widget build(BuildContext context) {
@@ -228,20 +238,30 @@ class Spine extends StatelessWidget {
               children: [
                 for (final p in phases)
                   Container(
-                    width: colW * (p.toMonth - p.fromMonth + 1),
+                    width: colW *
+                        months.length *
+                        (p.toMonth - p.fromMonth + 1) /
+                        programMonths,
                     padding: const EdgeInsets.only(right: 6),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(p.name.toUpperCase(),
+                        Text(
+                            // Too narrow to read: the bar alone shows it.
+                            colW * months.length * (p.toMonth - p.fromMonth + 1) / programMonths < 56
+                                ? ''
+                                : p.name.toUpperCase(),
+                            maxLines: 1,
+                            softWrap: false,
+                            overflow: TextOverflow.fade,
                             style: AppText.eyebrow(
-                                color: p.contains(currentMonth)
+                                color: _isCurrent(p)
                                     ? AppColors.accent
                                     : AppColors.grey)),
                         const SizedBox(height: 6),
                         Container(
                           height: 2,
-                          color: p.contains(currentMonth)
+                          color: _isCurrent(p)
                               ? AppColors.accent
                               : AppColors.navyLight,
                         ),
@@ -254,7 +274,7 @@ class Spine extends StatelessWidget {
             // Role steps
             SizedBox(
               height: 18,
-              width: colW * programMonths,
+              width: colW * months.length,
               child: Stack(
                 children: [
                   for (final s in steps)

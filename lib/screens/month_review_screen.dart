@@ -56,7 +56,7 @@ class _MonthReviewScreenState extends State<MonthReviewScreen> {
     final levels = area == null ? const <String>[] : levelsOf(area);
     return OnoPage(
       showBack: true,
-      eyebrow: 'Month $m of $programMonths · 10 minutes',
+      eyebrow: 'Month $m of ${system.programMonths} · 10 minutes',
       title: 'Close the month',
       subtitle: 'Look at what happened, name one lesson, choose what comes with you.',
       bottomBar: PrimaryButton('Save the review', icon: Icons.check_rounded, onPressed: () {

@@ -36,6 +36,7 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
   final _obstacle = TextEditingController();
   final _plan = TextEditingController();
   int _months = 6;
+  int? _length;
   final List<DailyIdea> _picks = [];
   bool? _replace;
   bool _loaded = false;
@@ -128,6 +129,7 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
       deadline: DateTime(now.year, now.month + _months, now.day),
       daily: List.of(_picks),
       replaceDaily: _replace ?? newPerson,
+      programLength: _length,
     );
     // First run: a new person starts today with their own plan and no
     // built-in reminders (they switch on what they want under Me). The
@@ -332,6 +334,31 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
         Padding(
           padding: const EdgeInsets.only(top: 8),
           child: Text('Not sure yet? Leave it empty and add it later under Goals.',
+              style: AppText.small()),
+        ),
+        const SectionHeader('Your program'),
+        Builder(builder: (context) {
+          final lengths = PersonalSystemProvider.programLengths.keys.toList();
+          final current =
+              _length ?? context.read<PersonalSystemProvider>().programDays;
+          return Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              for (final d in lengths)
+                ChoiceChip(
+                  label: Text(PersonalSystemProvider.programLengths[d]!),
+                  selected: current == d,
+                  showCheckmark: false,
+                  onSelected: (_) => setState(() => _length = d),
+                ),
+            ],
+          );
+        }),
+        Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Text(
+              'Four phases — foundation, craft, signal, leverage — spread over it. At the end you look back and start the next.',
               style: AppText.small()),
         ),
       ];

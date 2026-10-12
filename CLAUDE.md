@@ -94,7 +94,7 @@ Bottom tabs: **Today** `/home` · **Program** `/program?tab=0..3` (Journey/Sched
 ```
 /splash /welcome /sign-up /sign-in /forgot-password /commission
 /manifesto /protocols /evidence /library /style /career /weekly-coaching /checkin /plans /review /habits /cockpit(?tab=0..2)
-/shutdown /focus /letters /week /people /growth /values /coach /case /growth/area(?id=|template=) /goals /goals/edit /goals/view?id= /note /setback /quarter /profile/edit /daily /learning /experiments /rest /stop /gratitude /models /360 /energy /start /privacy /packs /partner /coach-report /odyssey /crafting /best-self /move /conversations /money /upkeep /stepback /decide /month-review /manual /us /brag /need /day /thought /best-future /kindness /worry /chapters /strengths /board /aar
+/shutdown /focus /letters /week /people /growth /values /coach /case /growth/area(?id=|template=) /goals /goals/edit /goals/view?id= /note /setback /quarter /profile/edit /daily /learning /experiments /rest /stop /gratitude /models /360 /energy /start /privacy /packs /partner /coach-report /odyssey /crafting /best-self /move /conversations /money /upkeep /stepback /decide /month-review /manual /us /brag /need /day /thought /best-future /kindness /worry /chapters /strengths /board /aar /next-program
 /ritual-flow/:ritualId /gym /gym/:dayId (push|pull|legs) /month/:m (1–18)
 /tool/:id  sigh excited pause still bluf sixq read feynman scan pennebaker anki artifact(?month=) linkedin
 ```
@@ -105,6 +105,11 @@ Flow:
   - The built-in person (name unchanged): the builder then hands over to `/commission`, five steps: identity, start date, gym days and weight, reminders, hold to sign the manifesto.
 
 ## Behaviour worth knowing
+- **Program length and the next program** (Emin's decision, 12 Oct 2026):
+  - `PersonalSystemState.programDays` (90/180/360/540 = `programLengths`, default 540) and `cycle` (1, 2, …). The provider's `programDays`, `programMonths` (= days/30) and `programQuarters` (= days/90) replace the old constants; `emin_system.dart`'s `programDays`/`programMonths` are only the built-in default. Chosen in the plan builder's goal step (`buildPlan(programLength:)`) and under Me → Settings → Program length (`setProgramLength`).
+  - Phases keep their proportions: `phaseMonthAt(day)` maps a program day onto the 18-month phase scale; `phase`, `phaseOfMonth(m)`, `monthsOf(p)`, `phaseDays(p)`, `phaseSpanLabel(p)` ("Months 1–2" or "Days 1–10"), `nextPhaseStart`. The Spine widens columns for short programs and hides phase names too narrow to read (`currentPhaseId`).
+  - `programComplete` (past the last day) → Today's first prompt → `/next-program`: summary (`programSummary`: held/counted, goals reached, wins, reps, lessons), letters waiting, what changed, what comes with you, next length → `startNextProgram(days:, changed:, carry:)` writes a `program_cycle` log and restarts `programStart` today with `cycle + 1`. Everything logged stays; can also close early from the length sheet.
+  - Month- and quarter-keyed logs created in cycle 2+ carry `cycle` (stamped in `_entry`, kept by `updateLog`); always look them up with `atMonth(l, m)` / `atQuarter(l, q)`, never `number('month') == m`. Streaks run from `journeyStart` across programs; paused days before the current start are ignored.
 - **Today** is time-aware: morning, work, evening and Sunday modes, plus a Yesterday/Today switch (the 48-hour edit window). Its Day Dial shows the schedule as lane arcs.
   - Calm by design (choice overload drives people away): dial → fresh start → the mode card (one action now) → check-in → recovery → `_Prompts` (ranked: first goal, growth area, then what is due; only 2 visible, the rest behind "N more for today") → Daily 10 → three priorities.
   - "Your plan" (`_PlanToggle`, done key `today:plan_open`, remembered) collapses goals, growth, the week, meetings, the brief, inputs, body and coach note into one summary line.

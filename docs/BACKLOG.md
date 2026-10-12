@@ -108,7 +108,7 @@ Mind and meaning were the thinnest lanes; each item is a short, well-studied exe
 | 52 | Signature strengths: pick five of the 24 VIA strengths, use one in a new way each week (Seligman et al. 2005) | S | ✅ |
 | 53 | Your personal board: mentor, sponsor, peer, challenger, supporter, connector — and the gaps (Higgins & Kram 2001) | S | ✅ |
 | 54 | After-action review: intended, happened, why, keep, change → a review card (Ellis & Davidi 2005; Tannenbaum & Cerasoli 2013) | S | ✅ |
-| 55 | What happens after day 540 / programme length for other people | M | ❓ ask Emin |
+| 55 | Program length (90 days, 6, 12 or 18 months) and the next program after the last day, with a closing review (Emin: yes to both) | M | ✅ |
 
 ## P3 — The mass version
 

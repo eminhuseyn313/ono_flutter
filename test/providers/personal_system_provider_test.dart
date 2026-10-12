@@ -2351,5 +2351,81 @@ void main() {
     expect(card.back, 'Rehearse the Q&A out loud');
     expect(p.journalText(), contains('Change: Rehearse the Q&A out loud'));
   });
+
+  test('program length: phases, months and quarters scale; the end moves',
+      () async {
+    final p = await _commissioned();
+    expect(p.programDays, 540);
+    expect(p.programMonths, 18);
+    p.setProgramLength(77); // not offered
+    expect(p.programDays, 540);
+    p.setProgramLength(90);
+    expect(p.programMonths, 3);
+    expect(p.programQuarters, 1);
+    expect(p.programEnd, _start.add(const Duration(days: 89)));
+    // Day 32 of 90 is past the first third: Signal.
+    expect(p.phase.id, 'signal');
+    expect(p.phaseMonthAt(1), 1);
+    expect(p.phaseOfMonth(1).id, 'foundation');
+    expect(p.phaseOfMonth(3).id, 'leverage');
+    expect(p.monthsOf(p.phaseOfMonth(2)), [2]);
+    expect(p.programQuarter, 1);
+    expect(p.programComplete, isFalse);
+    p.clock = () => _start.add(const Duration(days: 90, hours: 9));
+    expect(p.programComplete, isTrue);
+    expect(p.programMonth, 3); // stays on the last month
+  });
+
+  test('next program: starts today, keeps everything, months start over',
+      () async {
+    final p = await _commissioned();
+    p.setProgramLength(90);
+    final area = p.allGrowthAreas.first;
+    p.setFocus(area.id, startRating: 2);
+    expect(p.focusArea(), isNotNull);
+    _hold(p, _today.subtract(const Duration(days: 1)));
+    p.addLog('win', text: 'Shipped it');
+    final later = _start.add(const Duration(days: 91, hours: 9));
+    p.clock = () => later;
+    _hold(p, later.subtract(const Duration(days: 1)));
+    final streakBefore = p.streak;
+    p.startNextProgram(days: 180, changed: 'I ask for help sooner', carry: 'The evening shutdown');
+    expect(p.cycle, 2);
+    expect(p.programDays, 180);
+    expect(p.programStart, dayOnly(later));
+    expect(p.programDay, 1);
+    expect(p.phase.id, 'foundation');
+    // Month 1 of the new program has no area yet; the old one is kept.
+    expect(p.focusArea(), isNull);
+    expect(p.logsOf('growth_focus').length, 1);
+    p.setFocus(area.id, startRating: 3);
+    expect(p.focusArea(), isNotNull);
+    expect(p.logsOf('growth_focus').length, 2);
+    expect(p.logsOf('growth_focus').first.number('cycle'), 2);
+    // Updating keeps the stamp.
+    p.setFocus(area.id, startRating: 4);
+    expect(p.logsOf('growth_focus').where((l) => p.cycleOf(l) == 2).length, 1);
+    final record = p.pastPrograms.single;
+    expect(record.number('number'), 1);
+    expect(record.str('start'), dateKey(_start));
+    expect(record.number('days'), 90);
+    expect(record.text, 'I ask for help sooner');
+    expect(p.logsOf('win').length, greaterThanOrEqualTo(1));
+    expect(p.streak, streakBefore); // streaks run across programs
+    expect(p.journeyStart, _start);
+    expect(p.journalText(), contains('Closed program 1'));
+  });
+
+  test('next program: a long illness before it does not shift the new days',
+      () async {
+    final p = await _commissioned();
+    for (var i = 0; i < 8; i++) {
+      p.setHardDay(_start.add(Duration(days: 3 + i)), 'sick');
+    }
+    expect(p.pausedDays, 8);
+    p.startNextProgram();
+    expect(p.programDay, 1);
+    expect(p.dateForProgramDay(10), dayOnly(_today).add(const Duration(days: 9)));
+  });
 }
 

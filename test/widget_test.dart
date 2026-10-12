@@ -654,7 +654,9 @@ void main() {
           keyPeople: const [KeyPerson('Tural', 'Coach', every: 7, primary: true)],
         ));
         system.saveDayShape(wake: 390, workStart: 480, workEnd: 1020, bed: 1350);
-        for (final r in ['/home', '/profile', '/goals', '/note', '/profile/edit', '/career', '/people', '/program', '/checkin', '/growth', '/move', '/log', '/weekly-coaching', '/day', '/evidence']) {
+        // A short program: the spine, phases and months scale to 90 days.
+        system.setProgramLength(90);
+        for (final r in ['/home', '/profile', '/goals', '/note', '/profile/edit', '/career', '/people', '/program', '/checkin', '/growth', '/move', '/log', '/weekly-coaching', '/day', '/evidence', '/month/2', '/next-program', '/letters']) {
           await _go(tester, r);
           // None of the built-in plan's specifics show for someone else.
           // (Their daily items are the built-in ones here, so item titles

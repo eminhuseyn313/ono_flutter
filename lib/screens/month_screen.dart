@@ -30,14 +30,14 @@ class _MonthScreenState extends State<MonthScreen> {
   @override
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
-    final m = widget.month.clamp(1, programMonths);
-    final phase = phaseFor(m);
+    final m = widget.month.clamp(1, system.programMonths);
+    final phase = system.phaseOfMonth(m);
     final started = system.hasStarted && m <= system.programMonth;
     final stats = system.statsForMonth(m);
     final prev = m > 1 ? system.statsForMonth(m - 1) : null;
     final review = system
         .logsOf('month_review')
-        .where((l) => l.number('month') == m)
+        .where((l) => system.atMonth(l, m))
         .firstOrNull;
     if (!_loaded && review != null) {
       _carry.text = review.text;
@@ -48,7 +48,7 @@ class _MonthScreenState extends State<MonthScreen> {
     final end = system.monthStart(m + 1).subtract(const Duration(days: 1));
     final artifacts = system
         .logsOf('artifact')
-        .where((a) => a.number('month') == m)
+        .where((a) => system.atMonth(a, m))
         .toList();
 
     return OnoPage(

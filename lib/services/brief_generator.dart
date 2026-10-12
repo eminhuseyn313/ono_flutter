@@ -6,6 +6,9 @@ class BriefInput {
   final WeeklyReport report;
   final DateTime forWeek;
   final int programMonth;
+
+  /// The current phase's name (phases scale with the program's length).
+  final String? phaseName;
   final int programWeek;
   final Map<String, double> itemRates; // Daily 10 id → completion rate
   final int evidenceAddedThisWeek;
@@ -126,6 +129,7 @@ class BriefInput {
     required this.report,
     required this.forWeek,
     required this.programMonth,
+    this.phaseName,
     required this.programWeek,
     required this.itemRates,
     required this.evidenceAddedThisWeek,
@@ -206,7 +210,7 @@ class BriefInput {
         'for_week': dateKey(forWeek),
         'program_month': programMonth,
         'program_week': programWeek,
-        'phase': phaseFor(programMonth).name,
+        'phase': phaseName ?? phaseFor(programMonth).name,
         if (builtInPlan) ...{
           'month_theme': monthThemes[programMonth],
           'artifact_of_month': artifactFor(programMonth),

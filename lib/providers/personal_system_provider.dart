@@ -220,7 +220,10 @@ class PersonalSystemProvider extends ChangeNotifier {
     final calendar = d.difference(programStart).inDays + 1;
     if (calendar < 1) return calendar;
     _reindex();
-    return calendar - _pausedList.where((p) => p.isBefore(d)).length;
+    return calendar -
+        _pausedList
+            .where((p) => !p.isBefore(programStart) && p.isBefore(d))
+            .length;
   }
 
   /// The first calendar date of program day [n], skipping paused days.
@@ -228,13 +231,14 @@ class PersonalSystemProvider extends ChangeNotifier {
     _reindex();
     var date = programStart.add(Duration(days: n - 1));
     for (final p in _pausedList) {
+      if (p.isBefore(programStart)) continue;
       if (!p.isAfter(date)) date = date.add(const Duration(days: 1));
     }
     return date;
   }
 
   /// Sick days in a row from which the program clock pauses for the whole
-  /// illness, so 540 days of practice stay 540 days of practice.
+  /// illness, so the program's days of practice stay days of practice.
   static const pauseAfterSickDays = 7;
 
   /// Calendar days the clock skipped for long illness.
@@ -254,7 +258,156 @@ class PersonalSystemProvider extends ChangeNotifier {
   int get programMonth =>
       hasStarted ? (((programDay - 1) ~/ 30) + 1).clamp(1, programMonths) : 1;
   int get programWeek => hasStarted ? ((programDay - 1) ~/ 7) + 1 : 1;
-  Phase get phase => phaseFor(programMonth);
+  Phase get phase => phaseFor(phaseMonthAt(hasStarted ? programDay : 1));
+
+  // ── Program length and cycles ────────────────────────────────────────
+
+  /// The lengths a program can have (days → label). Months are 30 days,
+  /// quarters 90, so every length has whole months and quarters.
+  static const programLengths = {
+    90: '90 days',
+    180: '6 months',
+    360: '12 months',
+    540: '18 months',
+  };
+
+  /// This program's length in days (540 unless the person chose another).
+  int get programDays => _state?.programDays ?? 540;
+  int get programMonths => programDays ~/ 30;
+  int get programQuarters => programDays ~/ 90;
+  String get programLengthLabel =>
+      programLengths[programDays] ?? '$programDays days';
+
+  /// Which program this is (1 = the first).
+  int get cycle => _state?.cycle ?? 1;
+
+  /// The four phases are laid out on 18 months; a shorter program keeps
+  /// their proportions. Program day [day] → its month on that 18-month
+  /// scale.
+  int phaseMonthAt(int day) =>
+      (((day.clamp(1, programDays) - 1) * 18) ~/ programDays) + 1;
+
+  /// The phase month [month] of this program starts in.
+  Phase phaseOfMonth(int month) => phaseFor(phaseMonthAt((month - 1) * 30 + 1));
+
+  /// This program's months that begin in [p] (may be empty for a short
+  /// program, where a phase can start mid-month).
+  List<int> monthsOf(Phase p) => [
+        for (var m = 1; m <= programMonths; m++)
+          if (phaseOfMonth(m).id == p.id) m
+      ];
+
+  /// The program days [p] covers, e.g. days 1–10 of a 90-day program.
+  ({int from, int to}) phaseDays(Phase p) => (
+        from: (p.fromMonth - 1) * programDays ~/ 18 + 1,
+        to: p.toMonth * programDays ~/ 18,
+      );
+
+  /// "Months 1–2" when the phase covers whole months, else "Days 1–10".
+  String phaseSpanLabel(Phase p) {
+    final d = phaseDays(p);
+    if ((d.from - 1) % 30 == 0 && d.to % 30 == 0) {
+      final a = (d.from - 1) ~/ 30 + 1, b = d.to ~/ 30;
+      return a == b ? 'Month $a' : 'Months $a–$b';
+    }
+    return 'Days ${d.from}–${d.to}';
+  }
+
+  /// Past the last day: time to look back and start the next program.
+  bool get programComplete => hasStarted && programDay > programDays;
+
+  /// Change the length of the running program (the start stays).
+  void setProgramLength(int days) {
+    final s = _state;
+    if (s == null || !programLengths.containsKey(days)) return;
+    _update(s.copyWith(programDays: days), reschedule: true);
+  }
+
+  /// The program a month- or quarter-keyed log belongs to.
+  int cycleOf(LogEntry l) => (l.number('cycle') ?? 1).toInt();
+
+  /// [l] is for month [m] of this program.
+  bool atMonth(LogEntry l, int m) =>
+      l.number('month') == m && cycleOf(l) == cycle;
+
+  /// [l] is for quarter [q] of this program.
+  bool atQuarter(LogEntry l, int q) =>
+      l.number('quarter') == q && cycleOf(l) == cycle;
+
+  /// Finished programs, newest first.
+  List<LogEntry> get pastPrograms => logsOf('program_cycle');
+
+  /// The first day of the first program; streaks run across programs.
+  DateTime get journeyStart {
+    var first = programStart;
+    for (final c in pastPrograms) {
+      final d = DateTime.tryParse(c.str('start') ?? '');
+      if (d != null && d.isBefore(first)) first = d;
+    }
+    return first;
+  }
+
+  /// What this program added up to, for the closing review.
+  ({int held, int counted, int goalsAchieved, int wins, int reps, int lessons})
+      programSummary() {
+    final end = dayOnly(_now);
+    var held = 0, counted = 0;
+    for (var d = programStart; d.isBefore(end); d = d.add(const Duration(days: 1))) {
+      if (isExcused(d)) continue;
+      counted++;
+      if (isHeld(d)) held++;
+    }
+    bool inProgram(LogEntry l) => !l.date.isBefore(programStart);
+    return (
+      held: held,
+      counted: counted,
+      goalsAchieved: goals
+          .where((g) =>
+              g.str('status') == 'achieved' &&
+              !(DateTime.tryParse(g.str('closed_on') ?? '') ?? g.date)
+                  .isBefore(programStart))
+          .length,
+      wins: logsOf('win').where(inProgram).length,
+      reps: logsOf('rep').where(inProgram).length,
+      lessons: logsOf('rep')
+          .where((r) => inProgram(r) && (r.str('lesson') ?? '').isNotEmpty)
+          .length,
+    );
+  }
+
+  /// Closes this program with a look back and starts the next from today,
+  /// keeping everything logged. [days] picks the next length.
+  void startNextProgram({
+    int? days,
+    String changed = '',
+    String carry = '',
+  }) {
+    final s = _state;
+    if (s == null) return;
+    final today = dayOnly(_now);
+    final sum = programSummary();
+    final record = _entry('program_cycle', today, text: changed.trim(), data: {
+      'number': cycle,
+      'start': dateKey(programStart),
+      'end': dateKey(today.subtract(const Duration(days: 1))),
+      'days': programDays,
+      'held': sum.held,
+      'counted': sum.counted,
+      'goals_achieved': sum.goalsAchieved,
+      'wins': sum.wins,
+      'reps': sum.reps,
+      'carry': carry.trim(),
+    });
+    final next = days != null && programLengths.containsKey(days) ? days : programDays;
+    _update(
+        s.copyWith(
+          programStart: today,
+          programDays: next,
+          cycle: cycle + 1,
+          logs: [...s.logs, record],
+        ),
+        reschedule: true);
+  }
 
   /// Day within the current month (1–30).
   int get dayOfMonth => hasStarted ? ((programDay - 1) % 30) + 1 : 0;
@@ -603,7 +756,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     var run = 0, best = 0;
     var prevMiss = false;
     DateTime? grace;
-    for (var d = programStart;
+    for (var d = journeyStart;
         !d.isAfter(today);
         d = d.add(const Duration(days: 1))) {
       final held = isHeld(d);
@@ -679,25 +832,29 @@ class PersonalSystemProvider extends ChangeNotifier {
     final d = dayOnly(day);
     final month = programMonth;
     if (dayOfMonth == 1 && month > 1) {
-      final phase = phaseFor(month);
-      final theme = monthThemes[month] ?? '';
-      if (phase.fromMonth == month) {
+      final phase = phaseOfMonth(month);
+      final theme = isBuiltInPerson ? monthThemes[month] ?? '' : '';
+      if (phaseOfMonth(month - 1).id != phase.id) {
         return FreshStart(
-          key: 'fresh:phase:${phase.id}',
-          eyebrow: 'Phase · months ${phase.fromMonth}–${phase.toMonth}',
+          key: 'fresh:phase:${phase.id}${cycle > 1 ? ':$cycle' : ''}',
+          eyebrow: 'Phase · ${phaseSpanLabel(phase).toLowerCase()}',
           title: '${phase.name} begins',
-          body: '${phase.promise}\n\nMonth $month: $theme',
-          cta: 'Open month $month',
-          route: '/month/$month',
+          body: isBuiltInPerson
+              ? '${phase.promise}\n\nMonth $month: $theme'
+              : generalPhasePromises[phase.id] ?? phase.promise,
+          cta: isBuiltInPerson ? 'Open month $month' : 'Choose this month\'s area',
+          route: isBuiltInPerson ? '/month/$month' : '/growth',
         );
       }
       return FreshStart(
-        key: 'fresh:month:$month',
+        key: 'fresh:month:$month${cycle > 1 ? ':$cycle' : ''}',
         eyebrow: 'Month $month begins',
-        title: theme,
-        body: 'Artifact of the month: ${artifactFor(month)}.',
-        cta: 'Open month $month',
-        route: '/month/$month',
+        title: isBuiltInPerson ? theme : 'A fresh month',
+        body: isBuiltInPerson
+            ? 'Artifact of the month: ${artifactFor(month)}.'
+            : 'A clean page. Pick the one area you\'ll grow this month.',
+        cta: isBuiltInPerson ? 'Open month $month' : 'Choose this month\'s area',
+        route: isBuiltInPerson ? '/month/$month' : '/growth',
       );
     }
     if (d.weekday == DateTime.monday) {
@@ -1081,7 +1238,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// Monthly self-rating against the target role, 1–5 per dimension.
   void saveReadiness(Map<String, int> ratings) {
     final existing = logsOf('readiness')
-        .where((l) => l.number('month') == programMonth)
+        .where((l) => atMonth(l, programMonth))
         .firstOrNull;
     final data = {'month': programMonth, 'ratings': ratings};
     if (existing != null) {
@@ -1116,7 +1273,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   }
 
   bool get readinessDueThisMonth =>
-      !logsOf('readiness').any((l) => l.number('month') == programMonth);
+      !logsOf('readiness').any((l) => atMonth(l, programMonth));
 
   // ── Automaticity ─────────────────────────────────────────────────────
 
@@ -1124,7 +1281,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// 1 (not at all) – 5 (completely).
   void saveAutomaticity(Map<String, int> ratings) {
     final existing = logsOf('automaticity')
-        .where((l) => l.number('month') == programMonth)
+        .where((l) => atMonth(l, programMonth))
         .firstOrNull;
     final data = {'month': programMonth, 'ratings': ratings};
     if (existing != null) {
@@ -1168,7 +1325,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   bool get automaticityDue =>
       hasStarted &&
       dayOfMonth >= 25 &&
-      !logsOf('automaticity').any((l) => l.number('month') == programMonth);
+      !logsOf('automaticity').any((l) => atMonth(l, programMonth));
 
   // ── Apple Health ─────────────────────────────────────────────────────
 
@@ -1302,7 +1459,13 @@ class PersonalSystemProvider extends ChangeNotifier {
         date: dayOnly(date),
         createdAt: _now,
         text: text,
-        data: data,
+        // Month- and quarter-keyed logs carry the program they belong to,
+        // so month 1 of the next program isn't month 1 of this one.
+        data: cycle > 1 &&
+                !data.containsKey('cycle') &&
+                (data.containsKey('month') || data.containsKey('quarter'))
+            ? {...data, 'cycle': cycle}
+            : data,
       );
 
   LogEntry? addLog(String type,
@@ -1319,6 +1482,12 @@ class PersonalSystemProvider extends ChangeNotifier {
   void updateLog(LogEntry entry) {
     final s = _state;
     if (s == null) return;
+    final old = s.logs.where((l) => l.id == entry.id).firstOrNull;
+    if (old != null &&
+        old.data.containsKey('cycle') &&
+        !entry.data.containsKey('cycle')) {
+      entry = entry.copyWith(data: {...entry.data, 'cycle': old.data['cycle']});
+    }
     _update(s.copyWith(
         logs: [for (final l in s.logs) l.id == entry.id ? entry : l]));
   }
@@ -1612,6 +1781,7 @@ class PersonalSystemProvider extends ChangeNotifier {
         itemCount: dailyCount,
         forWeek: forWeek,
         programMonth: programMonth,
+        phaseName: phase.name,
         programWeek: programWeek,
         itemRates: itemRates(
             weekDays(report.weekStart).where((d) => !d.isAfter(_now)).toList()),
@@ -2230,7 +2400,9 @@ class PersonalSystemProvider extends ChangeNotifier {
     DateTime? deadline,
     required List<DailyIdea> daily,
     bool replaceDaily = false,
+    int? programLength,
   }) {
+    if (programLength != null) setProgramLength(programLength);
     final n = name.trim();
     final current = activeProfile;
     saveProfile(n.isEmpty || n == current.name
@@ -2561,7 +2733,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// and buffer go to the coach.
   LogEntry? moneyCheckFor(int month) {
     for (final l in logsOf('money_check')) {
-      if (l.number('month') == month) return l;
+      if (atMonth(l, month)) return l;
     }
     return null;
   }
@@ -2829,7 +3001,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// One audit per program quarter; the latest is edited in place.
   LogEntry? get energyAudit {
     for (final l in logsOf('energy_audit')) {
-      if (l.number('quarter') == programQuarter) return l;
+      if (atQuarter(l, programQuarter)) return l;
     }
     return null;
   }
@@ -3546,7 +3718,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// feedback, London & Smither 1995).
   LogEntry? roundFor(int quarter) {
     for (final l in logsOf('feedback_round')) {
-      if (l.number('quarter') == quarter) return l;
+      if (atQuarter(l, quarter)) return l;
     }
     return null;
   }
@@ -3697,13 +3869,15 @@ class PersonalSystemProvider extends ChangeNotifier {
   // ── Quarterly review ─────────────────────────────────────────────────
 
   /// 90-day quarters of the program: 1 = days 1–90, … 6 = days 451–540.
-  int get programQuarter => hasStarted ? ((programDay - 1) ~/ 90) + 1 : 1;
+  int get programQuarter => hasStarted
+      ? (((programDay - 1) ~/ 90) + 1).clamp(1, programQuarters)
+      : 1;
 
   DateTime quarterStart(int q) => dateForProgramDay((q - 1) * 90 + 1);
 
   LogEntry? reviewFor(int quarter) {
     for (final l in logsOf('quarterly_review')) {
-      if (l.number('quarter') == quarter) return l;
+      if (atQuarter(l, quarter)) return l;
     }
     return null;
   }
@@ -3775,7 +3949,7 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   LogEntry? _focusLog(int month) {
     for (final l in logsOf('growth_focus')) {
-      if (l.number('month') == month) return l;
+      if (atMonth(l, month)) return l;
     }
     return null;
   }
@@ -3934,7 +4108,7 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   LogEntry? monthReviewFor(int month) {
     for (final l in logsOf('month_review')) {
-      if (l.number('month') == month) return l;
+      if (atMonth(l, month)) return l;
     }
     return null;
   }
@@ -4558,8 +4732,8 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   /// First day of the next phase, or null in the last one.
   DateTime? get nextPhaseStart {
-    final next = phase.toMonth + 1;
-    return next > programMonths ? null : monthStart(next);
+    final day = phase.toMonth * programDays ~/ 18 + 1;
+    return day > programDays ? null : dateForProgramDay(day);
   }
 
   /// Sealed until [openOn]; written to the person he is becoming
@@ -4970,6 +5144,7 @@ class PersonalSystemProvider extends ChangeNotifier {
         'thought' => 'Checked a thought: ${l.text}${f('balanced').isEmpty ? '' : '\n  More balanced: ${f('balanced')}'}',
         'kindness' => 'Kindness: ${l.text}',
         'strength_use' => 'Used ${f('strength')}: ${l.text}',
+        'program_cycle' => 'Closed program ${l.number('number')} (${l.number('held')} of ${l.number('counted')} days held)${l.text.isEmpty ? '' : '\n  What changed: ${l.text}'}${f('carry').isEmpty ? '' : '\n  Taking with me: ${f('carry')}'}',
         'aar' => 'Looked back at ${l.text}${f('sustain').isEmpty ? '' : '\n  Keep: ${f('sustain')}'}${f('improve').isEmpty ? '' : '\n  Change: ${f('improve')}'}',
         'best_future' => 'My best possible future in ${l.number('years')} years:${[for (final a in bestFutureAreas) if ((l.data['areas'] as Map?)?[a.$1] != null) '\n  ${a.$2}: ${(l.data['areas'] as Map)[a.$1]}'].join()}${l.text.isEmpty ? '' : '\n  This week: ${l.text}'}',
         'life_story' => 'My life in chapters:${[for (final c in lifeChapters) '\n  ${c['title']}${(c['years'] ?? '').isEmpty ? '' : ' (${c['years']})'}${(c['taught'] ?? '').isEmpty ? '' : ' — taught me: ${c['taught']}'}'].join()}${f('next').isEmpty ? '' : '\n  Next chapter: ${f('next')}'}',
