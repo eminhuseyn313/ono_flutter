@@ -199,6 +199,87 @@ void main() {
     await phone.syncNow();
     expect(phone.programDays, 180);
   });
+
+  test('a deletion pulled back from the cloud stays deleted', () async {
+    // The cloud hands objects back in its own key order (jsonb); unchanged
+    // items must still count as unchanged.
+    final phone = await commissioned('phone');
+    final web = await device('web');
+    final b = phone.addLog('note', text: 'b')!;
+    await phone.syncNow();
+    await web.syncNow();
+    expect(notes(web), ['b']);
+    phone.removeLog(b.id);
+    await phone.syncNow();
+    await web.syncNow();
+    await phone.syncNow();
+    expect(notes(web), isEmpty);
+    expect(notes(phone), isEmpty);
+  });
+
+  test('a second edit on one device is not undone by the other', () async {
+    final phone = await commissioned('phone');
+    final web = await device('web');
+    final n = phone.addLog('note', text: 'v1')!;
+    await phone.syncNow();
+    phone.updateLog(n.copyWith(text: 'v2'));
+    await phone.syncNow();
+    await web.syncNow();
+    phone.updateLog(phone.logsOf('note').single.copyWith(text: 'v3'));
+    await phone.syncNow();
+    await web.syncNow();
+    await phone.syncNow();
+    expect(notes(phone), ['v3']);
+    expect(notes(web), ['v3']);
+  });
+
+  test('idle syncs do not write to the cloud', () async {
+    final phone = await commissioned('phone');
+    await phone.syncNow();
+    final before = cloud.writes;
+    for (var i = 0; i < 5; i++) {
+      await phone.syncNow();
+    }
+    expect(cloud.writes, before);
+  });
+
+  test('signed out, syncing stops; nothing local is erased', () async {
+    final phone = await commissioned('phone');
+    phone.addLog('note', text: 'kept');
+    await phone.syncNow();
+    phone.signedOut();
+    // Without a session the cloud answers "no row" — like a delete.
+    final saved = cloud.rows.remove(user);
+    phone.addLog('note', text: 'offline edit');
+    await phone.syncNow();
+    expect(phone.isCommissioned, isTrue);
+    expect(notes(phone), ['kept', 'offline edit']);
+    cloud.rows[user] = saved!;
+    await phone.load(user); // signing in again picks up syncing
+    await phone.syncNow();
+    expect(notes(phone), ['kept', 'offline edit']);
+    expect([for (final l in PersonalSystemState.fromJson(cloud.rows[user]!.state).logs) if (l.type == 'note') l.text]..sort(),
+        ['kept', 'offline edit']);
+  });
+
+  test('a new device offline on its first open doesn\'t restart the program',
+      () async {
+    final phone = await commissioned('phone'); // started 1 Oct
+    phone.addLog('note', text: 'phone');
+    await phone.syncNow();
+    cloud.offline = true;
+    final web = await device('web');
+    await web.commission(
+        start: DateTime(2026, 10, 12), gymDays: const [2, 4], reminders: const {});
+    web.addLog('note', text: 'web');
+    cloud.offline = false;
+    await web.syncNow();
+    await phone.syncNow();
+    for (final p in [phone, web]) {
+      expect(p.programStart, DateTime(2026, 10, 1));
+      expect(notes(p), ['phone', 'web']);
+    }
+  });
 }
 
 String _encode(PersonalSystemState s) => jsonEncode(s.toJson());

@@ -87,6 +87,7 @@ class _OnoAppState extends State<OnoApp> {
   }
 
   Future<void> _onAuth() async {
+    if (_auth.status == AuthStatus.unauthenticated) _system.signedOut();
     if (_auth.status != AuthStatus.authenticated) return;
     await _system.load(_auth.userId);
     final route = _pendingRoute;

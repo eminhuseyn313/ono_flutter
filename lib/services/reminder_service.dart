@@ -169,6 +169,30 @@ class LocalReminderService implements ReminderService {
       return;
     }
     _pending = null;
+    // One sync at a time, newest request last: two overlapping syncs each
+    // list → cancel → schedule, and the older one's set could win (a
+    // reminder just switched off would keep firing).
+    _queued = reminders;
+    if (_running != null) return _running;
+    final run = () async {
+      while (_queued != null) {
+        final next = _queued!;
+        _queued = null;
+        await _apply(next);
+      }
+    }();
+    _running = run;
+    try {
+      await run;
+    } finally {
+      _running = null;
+    }
+  }
+
+  List<PlannedReminder>? _queued;
+  Future<void>? _running;
+
+  Future<void> _apply(List<PlannedReminder> reminders) async {
     for (final p in await _plugin.pendingNotificationRequests()) {
       if (p.id < onceIdBase) await _plugin.cancel(id: p.id);
     }
@@ -215,10 +239,12 @@ class LocalReminderService implements ReminderService {
 
   tz.TZDateTime _next(int weekday, int hour, int minute) {
     final now = tz.TZDateTime.now(tz.local);
-    var t = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
-    while (t.weekday != weekday || !t.isAfter(now)) {
-      t = t.add(const Duration(days: 1));
+    // Build each candidate from the date, so a daylight-saving change in
+    // between doesn't shift the time by an hour.
+    for (var k = 0;; k++) {
+      final t = tz.TZDateTime(
+          tz.local, now.year, now.month, now.day + k, hour, minute);
+      if (t.weekday == weekday && t.isAfter(now)) return t;
     }
-    return t;
   }
 }

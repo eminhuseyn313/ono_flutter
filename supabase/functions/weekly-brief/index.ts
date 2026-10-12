@@ -64,7 +64,20 @@ Deno.serve(async (req) => {
     if (!Deno.env.get("ANTHROPIC_API_KEY")) {
       return json({ error: "ANTHROPIC_API_KEY is not configured" }, 500);
     }
-    const input = await req.json();
+    // Only a signed-in person, never the bare public anon key: each call
+    // spends real money. Ask Supabase Auth who the bearer token belongs to.
+    const who = await fetch(`${Deno.env.get("SUPABASE_URL")}/auth/v1/user`, {
+      headers: {
+        Authorization: req.headers.get("Authorization") ?? "",
+        apikey: Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      },
+    });
+    if (!who.ok) return json({ error: "Sign in to get a brief." }, 401);
+
+    // A week's input is a few kilobytes; refuse anything far larger.
+    const raw = await req.text();
+    if (raw.length > 64_000) return json({ error: "Input too large." }, 413);
+    const input = JSON.parse(raw);
     const client = new Anthropic();
 
     const response = await client.beta.messages.create({

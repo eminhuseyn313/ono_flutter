@@ -2737,5 +2737,14 @@ void main() {
     expect(p.scoreFor(today.minusDays(1)), 7);
     expect(p.logsOf('daily_list').length, 2); // the old list, then today's
   });
+
+  test('a late riser\'s day shape times reminders without throwing', () async {
+    final p = await _commissioned();
+    p.saveProfile(builtInProfile.copyWith(name: 'Nigar Aliyeva', firstName: 'Nigar'));
+    p.saveDayShape(wake: 1380, workStart: 1380, workEnd: 1380, bed: 900);
+    final shut = p.activeReminderDefs.firstWhere((r) => r.id == 'g_shutdown');
+    expect((shut.hour, shut.minute), (13, 30)); // 15:00 − 90 min
+    expect(p.plannedReminders(), isNotEmpty);
+  });
 }
 

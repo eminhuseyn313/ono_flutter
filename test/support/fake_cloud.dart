@@ -22,7 +22,19 @@ class FakeCloud implements PersonalSystemCloud {
   }
 
   Map<String, dynamic> _copy(Map<String, dynamic> m) =>
-      Map<String, dynamic>.from(jsonDecode(jsonEncode(m)) as Map);
+      Map<String, dynamic>.from(_jsonb(jsonDecode(jsonEncode(m))) as Map);
+
+  /// Objects come back the way Postgres jsonb stores them: keys sorted by
+  /// length, then bytes — not in the order they were written.
+  static Object? _jsonb(Object? v) {
+    if (v is Map) {
+      final keys = [for (final k in v.keys) '$k']
+        ..sort((a, b) => a.length != b.length ? a.length - b.length : a.compareTo(b));
+      return {for (final k in keys) k: _jsonb(v[k])};
+    }
+    if (v is List) return [for (final x in v) _jsonb(x)];
+    return v;
+  }
 
   @override
   Future<CloudRow?> fetch(String userId) async {

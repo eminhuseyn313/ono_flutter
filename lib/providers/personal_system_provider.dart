@@ -65,7 +65,9 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   Future<void> load(String? userId) async {
     final id = userId ?? _fallbackUser;
-    if (_state != null && id == _userId) return;
+    final again = _signedOut;
+    _signedOut = false;
+    if (_state != null && id == _userId && !again) return;
     _userId = id;
     _loading = true;
     notifyListeners();
@@ -88,6 +90,18 @@ class PersonalSystemProvider extends ChangeNotifier {
     _syncReminders();
   }
 
+  /// Signed out: stop syncing (a sync without a session would read the
+  /// missing row as "deleted everywhere"). Signing in again reloads.
+  void signedOut() {
+    _syncTimer?.cancel();
+    _syncSoon?.cancel();
+    _syncTimer = null;
+    _syncSoon = null;
+    _signedOut = true;
+  }
+
+  bool _signedOut = false;
+
   void _update(PersonalSystemState next, {bool reschedule = false}) {
     _state = next;
     notifyListeners();
@@ -104,6 +118,7 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   /// Sync a few seconds after the last change (ticks come in bursts).
   void _scheduleSync() {
+    if (_signedOut) return;
     if (!_gateway.syncsToCloud) return;
     _syncSoon?.cancel();
     _syncSoon = Timer(const Duration(seconds: 3), syncNow);
@@ -117,7 +132,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// Merges this device's state with the cloud copy and takes in what
   /// other devices changed. Edits made while the request was out are kept.
   Future<void> syncNow({bool notify = true}) async {
-    if (!_gateway.syncsToCloud) return;
+    if (!_gateway.syncsToCloud || _signedOut) return;
     if (_syncing != null) {
       _syncAgain = true;
       return _syncing;
@@ -2013,7 +2028,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     final d = dayShape;
     if (d == null) return generalReminderDefs;
     ReminderDef at(ReminderDef r, int minute) => ReminderDef(
-        r.id, r.label, (minute ~/ 60) % 24, minute % 60,
+        r.id, r.label, (minute % 1440) ~/ 60, minute % 60,
         weekdays: r.weekdays, route: r.route, defaultOn: r.defaultOn);
     final midday = d.workStart < d.workEnd
         ? d.workStart + (d.workEnd - d.workStart) ~/ 2
@@ -2024,8 +2039,13 @@ class PersonalSystemProvider extends ChangeNotifier {
           'g_checkin' => at(r, d.wake + 30),
           'g_items' => at(r, midday),
           // Lights out after midnight counts as the same night.
-          'g_shutdown' => at(r,
-              ((d.bed < d.wake ? d.bed + 24 * 60 : d.bed) - 90).clamp(d.wake + 60, 23 * 60 + 30)),
+          // (A late riser's bounds can cross, so no clamp: at() wraps.)
+          'g_shutdown' => at(r, () {
+              final bed = d.bed < d.wake ? d.bed + 24 * 60 : d.bed;
+              final lo = d.wake + 60, hi = 23 * 60 + 30;
+              final t = bed - 90;
+              return lo > hi ? t : t.clamp(lo, hi);
+            }()),
           _ => r,
         }
     ];

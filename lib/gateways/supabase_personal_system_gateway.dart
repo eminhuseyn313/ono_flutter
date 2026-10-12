@@ -128,9 +128,14 @@ class SyncedPersonalSystemGateway implements PersonalSystemGateway {
 
       // A device without a program never overwrites one: whatever its
       // base says, an empty local copy is not a list of deletions.
+      // A device that has never synced (it may have built a plan while
+      // offline on its first open) keeps its logs and ticks, but the
+      // cloud's program — start date, length, settings — wins.
       final merged = !state.commissioned && remote['commissioned'] == true
           ? remote
-          : mergeStateJson(base, local, remote);
+          : base == null && remote['commissioned'] == true
+              ? mergeStateJson(null, remote, local)
+              : mergeStateJson(base, local, remote);
       var savedVersion = version;
       if (!jsonEquals(merged, remote)) {
         final ok = await _cloud.update(userId, merged, expectedVersion: version);
@@ -206,8 +211,17 @@ class SupabaseCloud implements PersonalSystemCloud {
   final SupabaseClient _client;
   SupabaseCloud(this._client);
 
+  /// Signed out (or someone else): row-level security would answer with
+  /// no row and no error, which looks exactly like "deleted everywhere".
+  void _signedInAs(String userId) {
+    if (_client.auth.currentUser?.id != userId) {
+      throw StateError('Not signed in as this user');
+    }
+  }
+
   @override
   Future<CloudRow?> fetch(String userId) async {
+    _signedInAs(userId);
     final row = await _client
         .from('personal_system')
         .select('state, version, generation')
@@ -220,6 +234,7 @@ class SupabaseCloud implements PersonalSystemCloud {
 
   @override
   Future<String?> insert(String userId, Map<String, dynamic> state) async {
+    _signedInAs(userId);
     try {
       final created = await _client
           .from('personal_system')
@@ -238,6 +253,7 @@ class SupabaseCloud implements PersonalSystemCloud {
   @override
   Future<bool> update(String userId, Map<String, dynamic> state,
       {required int expectedVersion}) async {
+    _signedInAs(userId);
     final updated = await _client
         .from('personal_system')
         .update({
@@ -252,6 +268,8 @@ class SupabaseCloud implements PersonalSystemCloud {
   }
 
   @override
-  Future<void> delete(String userId) =>
-      _client.from('personal_system').delete().eq('user_id', userId);
+  Future<void> delete(String userId) async {
+    _signedInAs(userId);
+    await _client.from('personal_system').delete().eq('user_id', userId);
+  }
 }

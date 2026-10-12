@@ -57,8 +57,19 @@ Map<String, dynamic> mergeStateJson(
 const _idLists = {'logs', 'evidence', 'reports', 'briefs', 'custom_cards'};
 const _keyedMaps = {'priorities', 'cues', 'reminders', 'card_schedules'};
 
-/// Whether two JSON values are equal.
-bool jsonEquals(Object? a, Object? b) => jsonEncode(a) == jsonEncode(b);
+/// Whether two JSON values are equal, whatever order their keys are in
+/// (Postgres jsonb hands objects back with its own key order).
+bool jsonEquals(Object? a, Object? b) =>
+    jsonEncode(_canonical(a)) == jsonEncode(_canonical(b));
+
+Object? _canonical(Object? v) {
+  if (v is Map) {
+    final keys = [for (final k in v.keys) '$k']..sort();
+    return {for (final k in keys) k: _canonical(v[k])};
+  }
+  if (v is List) return [for (final x in v) _canonical(x)];
+  return v;
+}
 
 /// One value changed on at most one side: take the changed one; both
 /// changed: local wins.
