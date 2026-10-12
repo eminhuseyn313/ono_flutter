@@ -17,7 +17,7 @@ import 'package:ono/services/reminder_service.dart';
 import 'support/fake_health.dart';
 
 /// Many people raise the text size on their phone. Every route must still
-/// fit an iPhone SE with text at 130%, with no overflow or error.
+/// fit an iPhone SE with text at 135% (iOS's largest standard size), with no overflow or error.
 Future<void> _pumpFor(WidgetTester tester, Duration total) async {
   const step = Duration(milliseconds: 100);
   for (var t = Duration.zero; t < total; t += step) {
@@ -31,11 +31,11 @@ void main() {
     GoogleFonts.config.allowRuntimeFetching = false;
   });
 
-  testWidgets('every route fits an iPhone SE with text at 130%',
+  testWidgets('every route fits an iPhone SE with text at 135%',
       (tester) async {
     tester.view.physicalSize = const Size(1125, 2001);
     tester.view.devicePixelRatio = 3;
-    tester.platformDispatcher.textScaleFactorTestValue = 1.3;
+    tester.platformDispatcher.textScaleFactorTestValue = 1.35;
     addTearDown(tester.view.reset);
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
 
@@ -75,6 +75,7 @@ void main() {
     system.addLog('win', text: 'Shipped the onboarding redesign after three long weeks');
     system.addPromise(what: 'Send the revised proposal with three options', to: 'A colleague');
     system.logThought(situation: 'Review', thought: 'They think I am not ready for this', before: 80, after: 50);
+    system.addLog('ask', date: DateTime.now().subtract(const Duration(days: 3)), text: 'Cover the Thursday stand-up while I am away', data: {'of': 'A colleague', 'guess': 40, 'status': 'asked'});
     system.addPerson('A friend with a rather long name', role: 'Friend', every: 14);
 
     for (final r in appRoutes) {

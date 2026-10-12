@@ -320,6 +320,8 @@ class DeviceBriefGenerator implements BriefGenerator {
             ? 'Solid week (${avg.toStringAsFixed(1)}/${input.itemCount}). Tighten ${title(weakest.first)} and ${title(weakest.last)}.'
             : 'Reset week (${avg.toStringAsFixed(1)}/${input.itemCount}). Fewer, firmer commitments.';
 
+    final word = input.wordForTheYear;
+
     final tasks = <String>[
       for (final id in weakest)
         _taskFor[id] ??
@@ -380,10 +382,10 @@ class DeviceBriefGenerator implements BriefGenerator {
             '4. Afterwards: log what held and what didn\'t; if it went well, it goes in the Evidence Archive.';
 
     final behind = input.goals.where((g) => g.contains('(behind)')).toList();
-    // Most important first; at most six things to change and one thing
-    // done well. A long list is a list nobody acts on. Health comes
-    // first, then what their own data says, then at most two set-up
-    // nudges (no goal, no rest planned, …), then the week.
+    // At most six things to change and one thing done well — a long list
+    // is a list nobody acts on. Health first, then what their own data
+    // says, then set-up nudges (no goal, no rest planned, …), the week and
+    // the rest.
     final health = <String>[
       if (ratio < 0.6)
         input.builtInPlan
@@ -399,6 +401,8 @@ class DeviceBriefGenerator implements BriefGenerator {
         '${(input.hardDays['pass'] ?? 0) + (input.hardDays['minimum'] ?? 0)} hard days this week. Look at what kept happening — if it will happen again, change the plan, not your opinion of yourself.',
     ];
     final personal = <String>[
+      if (input.patterns.isNotEmpty)
+        'From your own last 60 days: ${input.patterns.first}. A pattern, not proof — but worth protecting this week.',
       if (input.growthFocus != null && input.repsThisWeek < 2)
         'Growth — ${input.growthFocus}: ${input.repsThisWeek} rep${input.repsThisWeek == 1 ? '' : 's'} this week. Next week\'s drill: ${input.growthDrill}. Do it twice and write what you noticed.',
       if (input.growthFocus != null && input.feedbackThisMonth == 0)
@@ -421,8 +425,6 @@ class DeviceBriefGenerator implements BriefGenerator {
         'This week reflected ${input.valueGap} least. Name one moment next week where you\'ll choose it on purpose.',
       if (input.feedbackThemes != null)
         'What others told you: "${input.feedbackThemes}". Pick one moment next week to act on it where they can see it.',
-      if (input.patterns.isNotEmpty)
-        'From your own last 60 days: ${input.patterns.first}. A pattern, not proof — but worth protecting this week.',
     ];
     final setup = <String>[
       if (input.growthFocus == null)
@@ -431,12 +433,12 @@ class DeviceBriefGenerator implements BriefGenerator {
         'No goals set. Name the one outcome that would make the next six months a success — and the obstacle most likely to stop you.',
       if (!input.restPlanned)
         'No rest planned in the next eight weeks. Put one full rest day — or a lighter week — in the plan now, before the calendar decides for you.',
-      if (input.weekOutcomes.isEmpty)
-        'No Big 3 for the week. Sunday night: three outcomes that would make next week a win, ${input.builtInPlan ? 'one tied to the artifact' : 'one tied to your goal'}.',
       if (input.builtInPlan && input.evidenceAddedThisWeek < 5)
         'Evidence Archive: add ${5 - input.evidenceAddedThisWeek} more items tonight — the impostor feeds on forgetting.',
     ];
     final week = <String>[
+      if (input.weekOutcomes.isEmpty)
+        'No Big 3 for the week. Sunday night: three outcomes that would make next week a win, ${input.builtInPlan ? 'one tied to the artifact' : 'one tied to your goal'}.',
       if (input.builtInPlan && r.gymSessions < 2)
         'If a weekday slips, move the session to Saturday morning rather than skipping it.',
       if (input.goals.isNotEmpty && !input.noteSent)
@@ -472,9 +474,20 @@ class DeviceBriefGenerator implements BriefGenerator {
       if (strongest != null && (input.itemRates[strongest] ?? 0) >= 0.85)
         '${title(strongest)} is becoming automatic — keep it, stop thinking about it.',
     ];
+    // Each tier gets its share first, so the week is never crowded out;
+    // free places then go to the rest, in the same order.
     final adjustments = [
-      ...[...health, ...personal, ...setup.take(2), ...week, ...more]
-          .take(maxAdjustments),
+      ...[
+        ...health.take(2),
+        ...personal.take(2),
+        ...setup.take(1),
+        ...week.take(1),
+        ...personal.skip(2),
+        ...week.skip(1),
+        ...setup.skip(1).take(1),
+        ...health.skip(2),
+        ...more,
+      ].take(maxAdjustments),
       ...recognition.take(1),
     ];
 
@@ -483,7 +496,7 @@ class DeviceBriefGenerator implements BriefGenerator {
       weekStart: input.forWeek,
       createdAt: DateTime.now(),
       source: 'device',
-      headline: headline,
+      headline: word == null ? headline : '$headline Your word for the year: $word.',
       tasks: tasks.take(6).toList(),
       domainBrief: domainBrief,
       coaching: coaching,

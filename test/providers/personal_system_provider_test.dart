@@ -2574,8 +2574,14 @@ void main() {
     expect(y.lessons, ['Start smaller']);
     expect(p.yearSummary(2025).counted, 0);
 
+    // Too early: closing 2026 in October would hide December's prompt.
+    expect(p.yearOnScreen, 2026);
+    expect(p.canCloseYear(2026), isFalse);
+    expect(p.saveYearReview(2026, answers: {'proud': 'x'}), isFalse);
+    expect(p.logsOf('year_review'), isEmpty);
+
     p.clock = () => DateTime(2026, 12, 20, 9);
-    p.saveYearReview(2026, answers: {'proud': 'The mornings', 'hard': ' '}, word: 'Steady');
+    expect(p.saveYearReview(2026, answers: {'proud': 'The mornings', 'hard': ' '}, word: 'Steady'), isTrue);
     expect(p.yearReviewDue, isFalse);
     final r = p.yearReviewFor(2026)!;
     expect(r.str('proud'), 'The mornings');
@@ -2585,6 +2591,8 @@ void main() {
     expect(p.journalText(), contains('Word for next year: Brave'));
     p.clock = () => DateTime(2027, 3, 1, 9);
     expect(p.wordForTheYear, 'Brave');
+    expect(p.yearOnScreen, 2026); // out of season: last year
+    expect(p.canCloseYear(2026), isTrue);
   });
 
   test('ask for help: guess, answer, a record after three', () async {
@@ -2636,6 +2644,49 @@ void main() {
     expect(a.where((l) => praise.any(l.contains)).length, 1);
     // Health and the plan's collapse come first.
     expect(a.first, startsWith('Shrink'));
+  });
+
+  test('device brief: the week keeps a place when their own data says a lot',
+      () async {
+    final brief = await DeviceBriefGenerator().generate(BriefInput(
+      report: WeeklyReport(
+        id: 'r',
+        weekStart: weekStartOf(_today),
+        nonNegotiableAverage: 8,
+        gymSessions: 3,
+        bestMoment: '',
+        hardestMoment: 'The review',
+        workSituation: '',
+        createdAt: _today,
+      ),
+      forWeek: weekStartOf(_today),
+      programMonth: 2,
+      programWeek: 6,
+      phaseName: 'Foundation',
+      itemRates: const {},
+      evidenceAddedThisWeek: 5,
+      artifactsThisMonth: 1,
+      postsThisWeek: 2,
+      openUnlocks: const [],
+      gymDays: const [1, 3, 5],
+      builtInPlan: false,
+      growthFocus: 'Calm',
+      growthDrill: 'Pause before answering',
+      repsThisWeek: 0,
+      feedbackThisMonth: 0,
+      patterns: const ['Reading → focus 4.1 vs 3.2 without'],
+      valueGap: 'Courage',
+      promisesOverdue: 2,
+      goals: const ['Run 10k: 40% (behind)'],
+      peopleOverdue: const ['Aysel'],
+      deepWorkHours: 1,
+      wordForTheYear: 'Steady',
+    ));
+    final a = brief.adjustments;
+    expect(a.length, lessThanOrEqualTo(DeviceBriefGenerator.maxAdjustments + 1));
+    expect(a.first, startsWith('From your own last 60 days'));
+    expect(a.any((l) => l.startsWith('No Big 3') || l.startsWith('Deep work') || l.startsWith('Overdue')), isTrue);
+    expect(brief.headline, endsWith('Your word for the year: Steady.'));
   });
 }
 

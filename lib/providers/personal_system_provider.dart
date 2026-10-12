@@ -1901,7 +1901,7 @@ class PersonalSystemProvider extends ChangeNotifier {
         asksThisWeek: asksInWeek(report.weekStart),
         askRecord: askRecord() == null
             ? null
-            : '${askRecord()!.yes} of ${askRecord()!.asked} said yes; you expected ${askRecord()!.guess}%',
+            : '${askRecord()!.yes} of ${askRecord()!.asked} said yes or partly; you expected ${askRecord()!.guess}%',
         wordForTheYear: wordForTheYear,
         restPlanned: restPlannedSoon,
         experiments: [
@@ -5222,6 +5222,18 @@ class PersonalSystemProvider extends ChangeNotifier {
     return year;
   }
 
+  /// The year the review screen shows: the one to close in season,
+  /// otherwise last year if ONO was used in it, otherwise this year so far.
+  int get yearOnScreen {
+    if (yearToReview case final y?) return y;
+    final last = _now.year - 1;
+    return hasStarted && journeyStart.year <= last ? last : _now.year;
+  }
+
+  /// A year can be closed once it's ending: from 15 December, or any time
+  /// after it. Closing it earlier would hide December's prompt.
+  bool canCloseYear(int year) => year < _now.year || yearToReview == year;
+
   LogEntry? yearReviewFor(int year) =>
       logsOf('year_review').where((l) => l.number('year') == year).firstOrNull;
 
@@ -5292,7 +5304,8 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   /// Saves (or updates) the review of [year]: the answers to
   /// [yearQuestions] and one word for next year.
-  void saveYearReview(int year, {required Map<String, String> answers, String word = ''}) {
+  bool saveYearReview(int year, {required Map<String, String> answers, String word = ''}) {
+    if (!canCloseYear(year)) return false;
     final existing = yearReviewFor(year);
     final data = {
       'year': year,
@@ -5304,6 +5317,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     } else {
       updateLog(existing.copyWith(text: word.trim(), data: data));
     }
+    return true;
   }
 
   // ── Ask for help ─────────────────────────────────────────────────────

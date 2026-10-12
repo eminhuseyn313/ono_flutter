@@ -581,7 +581,7 @@ class MeScreen extends StatelessWidget {
                 color: AppColors.social,
                 title: 'Ask for help',
                 subtitle: system.askRecord() != null
-                    ? '${system.askRecord()!.yes} of ${system.askRecord()!.asked} said yes · you expected ${system.askRecord()!.guess}%'
+                    ? '${system.askRecord()!.yes} of ${system.askRecord()!.asked} said yes or partly · you expected ${system.askRecord()!.guess}%'
                     : system.openAsks.isEmpty
                         ? 'Guess the chance of a yes, then ask'
                         : '${system.openAsks.length} waiting for an answer',

@@ -417,6 +417,7 @@ void main() {
       system.logAar(event: 'The quarterly presentation to the whole leadership team',
           sustain: 'The one-page summary', improve: 'Rehearse the Q&A out loud with someone who pushes back');
       // An overdue promise and a story with long text.
+      system.addLog('ask', date: DateTime.now().subtract(const Duration(days: 3)), text: 'Cover the Thursday stand-up while I am at the clinic', data: {'of': 'A colleague', 'guess': 40, 'status': 'asked'});
       system.addAsk(what: 'Thirty minutes to rehearse the board presentation with honest questions', of: 'Aysel Rahimova-Guliyeva', guess: 35);
       system.saveYearReview(DateTime.now().year - 1, answers: {'proud': 'Showing up on the hard mornings'}, word: 'Steady');
       system.addPromise(what: 'Send the revised pricing proposal with the three options and the risks', to: 'Aysel Rahimova-Guliyeva', by: DateTime.now().subtract(const Duration(days: 2)));

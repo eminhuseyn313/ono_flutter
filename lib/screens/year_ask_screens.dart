@@ -33,9 +33,7 @@ class _YearReviewScreenState extends State<YearReviewScreen> {
     if (_loaded) return;
     _loaded = true;
     final system = context.read<PersonalSystemProvider>();
-    final now = DateTime.now();
-    // Outside the season, the year so far.
-    _year = system.yearToReview ?? now.year;
+    _year = system.yearOnScreen;
     final r = system.yearReviewFor(_year);
     for (final e in _answers.entries) {
       e.value.text = r?.str(e.key) ?? '';
@@ -57,24 +55,29 @@ class _YearReviewScreenState extends State<YearReviewScreen> {
     final system = context.watch<PersonalSystemProvider>();
     final y = system.yearSummary(_year);
     final pct = y.counted == 0 ? null : (y.held * 100 / y.counted).round();
+    final canClose = system.canCloseYear(_year);
     return OnoPage(
       showBack: true,
       eyebrow: 'Year in review · 20 minutes',
-      title: 'Close $_year',
+      title: canClose ? 'Close $_year' : '$_year so far',
       subtitle:
           'Look at what the year added up to before you answer — memory keeps the last few weeks and the worst days. Then choose one word for the next.',
-      bottomBar: PrimaryButton('Save the review', icon: Icons.check_rounded,
-          onPressed: () {
-        final answers = {for (final e in _answers.entries) e.key: e.value.text};
-        if (answers.values.every((a) => a.trim().isEmpty) &&
-            _word.text.trim().isEmpty) {
-          toast(context, 'Answer one question first.');
-          return;
-        }
-        system.saveYearReview(_year, answers: answers, word: _word.text);
-        toast(context, '$_year closed. It\'s in your journal.');
-        context.canPop() ? context.pop() : context.go('/home');
-      }),
+      bottomBar: !canClose
+          ? null
+          : PrimaryButton('Save the review', icon: Icons.check_rounded,
+              onPressed: () {
+              final answers = {
+                for (final e in _answers.entries) e.key: e.value.text
+              };
+              if (answers.values.every((a) => a.trim().isEmpty) &&
+                  _word.text.trim().isEmpty) {
+                toast(context, 'Answer one question first.');
+                return;
+              }
+              system.saveYearReview(_year, answers: answers, word: _word.text);
+              toast(context, '$_year closed. It\'s in your journal.');
+              context.canPop() ? context.pop() : context.go('/home');
+            }),
       children: [
         const SizedBox(height: 14),
         Row(
@@ -112,25 +115,32 @@ class _YearReviewScreenState extends State<YearReviewScreen> {
               child: Text('• $l', style: AppText.body(color: AppColors.white)),
             ),
         ],
-        for (final q in PersonalSystemProvider.yearQuestions) ...[
-          SectionHeader(q.$2),
+        if (!canClose) ...[
+          const SizedBox(height: 20),
+          Text(
+              'You can close $_year from 15 December. The questions will be here then.',
+              style: AppText.small()),
+        ] else ...[
+          for (final q in PersonalSystemProvider.yearQuestions) ...[
+            SectionHeader(q.$2),
+            TextField(
+              controller: _answers[q.$1],
+              minLines: 2,
+              maxLines: 6,
+              style: AppText.body(color: AppColors.white),
+            ),
+          ],
+          const SectionHeader('One word for next year'),
           TextField(
-            controller: _answers[q.$1],
-            minLines: 2,
-            maxLines: 6,
+            controller: _word,
             style: AppText.body(color: AppColors.white),
+            decoration: const InputDecoration(
+                hintText: 'e.g. Steady, Brave, Home, Build'),
           ),
+          const SizedBox(height: 8),
+          Text('It shows on Me through the year and reaches your weekly brief.',
+              style: AppText.small()),
         ],
-        const SectionHeader('One word for next year'),
-        TextField(
-          controller: _word,
-          style: AppText.body(color: AppColors.white),
-          decoration: const InputDecoration(
-              hintText: 'e.g. Steady, Brave, Home, Build'),
-        ),
-        const SizedBox(height: 8),
-        Text('It shows on Me through the year and reaches your weekly brief.',
-            style: AppText.small()),
         const SizedBox(height: 16),
       ],
     );
@@ -242,7 +252,7 @@ class _AsksScreenState extends State<AsksScreen> {
                 Expanded(
                     child: StatTile(
                         '${(record.yes * 100 / record.asked).round()}%',
-                        'said yes (${record.yes} of ${record.asked})',
+                        'said yes or partly (${record.yes} of ${record.asked})',
                         color: AppColors.accent)),
                 Expanded(child: StatTile('${record.guess}%', 'you expected')),
               ],

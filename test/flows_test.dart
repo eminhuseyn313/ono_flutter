@@ -280,6 +280,15 @@ void main() {
   testWidgets('year in review: answer, choose a word, save', (tester) async {
     final system = await _start(tester);
     system.addLog('win', text: 'Ran my first 10k');
+    // Out of season it shows the year so far, with nothing to save.
+    if (system.yearToReview == null) {
+      await _go(tester, '/year');
+      expect(find.text('${system.yearOnScreen} so far'), findsOneWidget);
+      expect(find.text('Save the review'), findsNothing);
+      final now = DateTime.now();
+      system.clock = () => DateTime(now.year, 12, 20, 9);
+      await _go(tester, '/profile');
+    }
     await _go(tester, '/year');
     expect(find.text('• Ran my first 10k'), findsOneWidget);
     await _reach(tester, find.byType(TextField));
@@ -287,8 +296,7 @@ void main() {
     await _type(tester, 'e.g. Steady, Brave, Home, Build', 'Steady');
     await tester.tap(find.text('Save the review'));
     await _pumpFor(tester, const Duration(seconds: 1));
-    final year = system.yearToReview ?? DateTime.now().year;
-    final r = system.yearReviewFor(year)!;
+    final r = system.yearReviewFor(system.yearToReview!)!;
     expect(r.text, 'Steady');
     expect(r.str('proud'), 'Keeping the mornings');
   });
