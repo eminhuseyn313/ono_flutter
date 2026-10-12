@@ -261,6 +261,7 @@ Flow:
 - **Patterns** (`patterns()` → `DayPattern`, Me → "What moves your day"): compares an outcome on days with vs without a habit over the last 60 closed days. Needs `minDays` (5) on each side and a minimum gap; shown as patterns, not proof. The top three go into the Sunday brief (`BriefInput.patterns`).
 - **Sunday report** → `submitReport` → `BriefGenerator`:
   - `DeviceBriefGenerator` is rule-based and uses real data only.
+  - Its adjustments are ranked and capped: health first, then what their own data says (patterns, values, strengths, goals behind, promises), at most two set-up nudges (no goal, area, rest, Big 3), then the week; at most `maxAdjustments` (6) plus one recognition.
   - `RemoteBriefGenerator` calls Claude via `supabase/functions/weekly-brief` and falls back to the device generator on any error.
 - **Reminders**: `plannedReminders()` builds weekly notifications from `activeReminderDefs` with today's content — `reminderDefs` (the built-in schedule) for the built-in person, `generalReminderDefs` (`lib/data/general_program.dart`: morning check-in 07:30, daily items 12:30, shutdown 21:00, Sunday report 18:00) for anyone else. `LocalReminderService` schedules them (flutter_local_notifications); tapping one opens its route. Web uses `NoopReminderService`.
 

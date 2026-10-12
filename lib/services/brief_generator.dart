@@ -274,6 +274,9 @@ abstract class BriefGenerator {
 /// Rule-based coach that runs on the device, from real data only. Used
 /// offline and as the fallback when the AI coach is unreachable.
 class DeviceBriefGenerator implements BriefGenerator {
+  /// Changes suggested per brief, most important first.
+  static const maxAdjustments = 6;
+
   static const _taskFor = {
     'manifesto': 'Manifesto before the phone, every morning — it is step 2 of the 06:05 ritual.',
     'scan': 'Domain scan at 07:45 at your desk, before email. 15 minutes, one insight saved.',
@@ -377,27 +380,15 @@ class DeviceBriefGenerator implements BriefGenerator {
             '4. Afterwards: log what held and what didn\'t; if it went well, it goes in the Evidence Archive.';
 
     final behind = input.goals.where((g) => g.contains('(behind)')).toList();
-    final adjustments = <String>[
-      if (input.growthFocus == null)
-        'No growth area this month. Pick one in the Growth plan — the gap you most want closed — and practise it on real work.',
-      if (input.growthFocus != null && input.repsThisWeek < 2)
-        'Growth — ${input.growthFocus}: ${input.repsThisWeek} rep${input.repsThisWeek == 1 ? '' : 's'} this week. Next week\'s drill: ${input.growthDrill}. Do it twice and write what you noticed.',
-      if (input.growthFocus != null && input.feedbackThisMonth == 0)
-        'No feedback on ${input.growthFocus} yet this month. Ask one person one specific question — practice without feedback doesn\'t improve.',
+    // Most important first; at most six things to change and one thing
+    // done well. A long list is a list nobody acts on. Health comes
+    // first, then what their own data says, then at most two set-up
+    // nudges (no goal, no rest planned, …), then the week.
+    final health = <String>[
       if (ratio < 0.6)
         input.builtInPlan
             ? 'Shrink to the core five next week: manifesto, scan, BLUF, protein, bed. Add the rest back when you hold 5/5.'
             : 'Shrink the list next week: keep the three items that matter most, use their minimum versions on hard days, and add the rest back once those hold.',
-      if (input.builtInPlan && r.gymSessions < 2)
-        'If a weekday slips, move the session to Saturday morning rather than skipping it.',
-      if (input.builtInPlan && input.evidenceAddedThisWeek < 5)
-        'Evidence Archive: add ${5 - input.evidenceAddedThisWeek} more items tonight — the impostor feeds on forgetting.',
-      if (r.hardestMoment.trim().isNotEmpty)
-        'Hardest moment noted. Ask: what would ${input.profile.archetype.isEmpty ? 'the person you\'re becoming' : input.profile.archetype} do differently? Write the answer as one rule.',
-      if (input.readinessGap != null)
-        '${input.profile.targetRole} gap: ${input.readinessGap}. Pick one thing this week that shows it, and log it as evidence.',
-      if (input.openFollowUps >= 3)
-        '${input.openFollowUps} open 1:1 follow-ups. Close or hand off the oldest before your next 1:1${input.profile.manager.isEmpty ? '' : ' with ${input.profile.manager}'}.',
       if (input.shoulderFlagDays >= 3)
         'Shoulders flagged on ${input.shoulderFlagDays} mornings. Keep the shoulder-sparing sessions and bring the check-in log to your rheumatologist.',
       if (input.avgSleep != null && input.avgSleep! < 7)
@@ -406,54 +397,85 @@ class DeviceBriefGenerator implements BriefGenerator {
         'You were sick ${input.hardDays['sick']} days. Come back with the minimum version of each item for two days before the full plan — and if it isn\'t getting better, see a doctor.'
       else if ((input.hardDays['pass'] ?? 0) + (input.hardDays['minimum'] ?? 0) >= 3)
         '${(input.hardDays['pass'] ?? 0) + (input.hardDays['minimum'] ?? 0)} hard days this week. Look at what kept happening — if it will happen again, change the plan, not your opinion of yourself.',
-      if (input.goals.isEmpty)
-        'No goals set. Name the one outcome that would make the next six months a success — and the obstacle most likely to stop you.',
+    ];
+    final personal = <String>[
+      if (input.growthFocus != null && input.repsThisWeek < 2)
+        'Growth — ${input.growthFocus}: ${input.repsThisWeek} rep${input.repsThisWeek == 1 ? '' : 's'} this week. Next week\'s drill: ${input.growthDrill}. Do it twice and write what you noticed.',
+      if (input.growthFocus != null && input.feedbackThisMonth == 0)
+        'No feedback on ${input.growthFocus} yet this month. Ask one person one specific question — practice without feedback doesn\'t improve.',
+      if (input.readinessGap != null)
+        '${input.profile.targetRole} gap: ${input.readinessGap}. Pick one thing this week that shows it, and log it as evidence.',
       if (behind.isNotEmpty)
         'Behind on ${behind.first.split(':').first}. Read your if-then plan again and make next week\'s Big 3 move it.',
-      if (!input.restPlanned)
-        'No rest planned in the next eight weeks. Put one full rest day — or a lighter week — in the plan now, before the calendar decides for you.',
-      if (input.goals.isNotEmpty && !input.noteSent)
-        'No progress note went out this week. Friday: five lines to ${input.profile.manager.isEmpty ? 'one person you trust' : input.profile.manager} — reported progress moves goals faster than private tracking.',
-      if (input.setbacks > 0)
-        '${input.setbacks} setback${input.setbacks == 1 ? '' : 's'} met with a next step instead of a spiral. That is the skill.',
       if (input.promisesOverdue > 0)
         '${input.promisesOverdue} promise${input.promisesOverdue == 1 ? ' is' : 's are'} past the date. Keep it or renegotiate today — a new date said early keeps trust; silence doesn\'t.',
-      if (input.askRecord != null && input.asksThisWeek == 0)
-        'You asked nobody for help this week. Your own record: ${input.askRecord}. Ask one person for one specific thing.',
-      if (input.boardGaps.contains('sponsor'))
-        'Nobody on your board speaks for you where you are not. Who could become a sponsor? Ask them for one thing this month.',
-      if (input.strengths.isNotEmpty && input.strengthUses == 0)
-        'Use ${input.strengths.first.toLowerCase()} in a new way this week — once a day if you can.',
-      if (input.thoughtsChecked > 0)
-        'You put ${input.thoughtsChecked} hard thought${input.thoughtsChecked == 1 ? '' : 's'} to the test this week instead of believing ${input.thoughtsChecked == 1 ? 'it' : 'them'}.',
-      if (input.kindnessActs >= 5)
-        '${input.kindnessActs} kind acts this week — they count for you too.',
-      if (input.valueGap != null)
-        'This week reflected ${input.valueGap} least. Name one moment next week where you\'ll choose it on purpose.',
       if (input.openCommitments.isNotEmpty)
         'You committed to: "${input.openCommitments.first}". Keep it, renegotiate it with yourself, or drop it on purpose — don\'t let it linger.',
+      if (r.hardestMoment.trim().isNotEmpty)
+        'Hardest moment noted. Ask: what would ${input.profile.archetype.isEmpty ? 'the person you\'re becoming' : input.profile.archetype} do differently? Write the answer as one rule.',
+      if (input.askRecord != null && input.asksThisWeek == 0)
+        'You asked nobody for help this week. Your own record: ${input.askRecord}. Ask one person for one specific thing.',
+      if (input.strengths.isNotEmpty && input.strengthUses == 0)
+        'Use ${input.strengths.first.toLowerCase()} in a new way this week — once a day if you can.',
+      if (input.valueGap != null)
+        'This week reflected ${input.valueGap} least. Name one moment next week where you\'ll choose it on purpose.',
+      if (input.feedbackThemes != null)
+        'What others told you: "${input.feedbackThemes}". Pick one moment next week to act on it where they can see it.',
+      if (input.patterns.isNotEmpty)
+        'From your own last 60 days: ${input.patterns.first}. A pattern, not proof — but worth protecting this week.',
+    ];
+    final setup = <String>[
+      if (input.growthFocus == null)
+        'No growth area this month. Pick one in the Growth plan — the gap you most want closed — and practise it on real work.',
+      if (input.goals.isEmpty)
+        'No goals set. Name the one outcome that would make the next six months a success — and the obstacle most likely to stop you.',
+      if (!input.restPlanned)
+        'No rest planned in the next eight weeks. Put one full rest day — or a lighter week — in the plan now, before the calendar decides for you.',
       if (input.weekOutcomes.isEmpty)
         'No Big 3 for the week. Sunday night: three outcomes that would make next week a win, ${input.builtInPlan ? 'one tied to the artifact' : 'one tied to your goal'}.',
+      if (input.builtInPlan && input.evidenceAddedThisWeek < 5)
+        'Evidence Archive: add ${5 - input.evidenceAddedThisWeek} more items tonight — the impostor feeds on forgetting.',
+    ];
+    final week = <String>[
+      if (input.builtInPlan && r.gymSessions < 2)
+        'If a weekday slips, move the session to Saturday morning rather than skipping it.',
+      if (input.goals.isNotEmpty && !input.noteSent)
+        'No progress note went out this week. Friday: five lines to ${input.profile.manager.isEmpty ? 'one person you trust' : input.profile.manager} — reported progress moves goals faster than private tracking.',
       if (input.weekOutcomes.any((o) => o.startsWith('[open]')))
         'Week outcomes: ${input.weekOutcomes.where((o) => o.startsWith('[done]')).length} of ${input.weekOutcomes.length} done. Carry the open one only if it still matters — otherwise drop it on purpose.',
       if (input.peopleOverdue.isNotEmpty)
         'Overdue to reach out: ${input.peopleOverdue.join(', ')}. One message each this week — a useful link or a question beats "catching up".',
       if (input.deepWorkHours < 3)
         'Deep work: ${input.deepWorkHours.toStringAsFixed(1)} h this week. Book two 90-minute blocks for ${input.builtInPlan ? 'the artifact' : 'what matters most'}${input.energyPeak == null ? '' : ' in your ${input.energyPeak}'} before Monday fills up.',
+      if (input.shutdowns < 4)
+        'Evening shutdown on ${input.shutdowns} of 7 nights. Three minutes ${input.builtInPlan ? 'at 21:30' : 'before bed'}: tomorrow\'s three on paper, head empty, then bed.',
+    ];
+    final more = <String>[
+      if (input.openFollowUps >= 3)
+        '${input.openFollowUps} open 1:1 follow-ups. Close or hand off the oldest before your next 1:1${input.profile.manager.isEmpty ? '' : ' with ${input.profile.manager}'}.',
+      if (input.boardGaps.contains('sponsor'))
+        'Nobody on your board speaks for you where you are not. Who could become a sponsor? Ask them for one thing this month.',
       if (input.moveMinutes != null && input.moveMinutes! < 150)
         'Moved ${input.moveMinutes} of 150 minutes this week. Add a 20-minute walk after lunch on three days — that alone closes most of the gap.',
       if (input.growingOthers.any((g) => g.contains('(0 helps')))
         'You\'re helping ${input.growingOthers.firstWhere((g) => g.contains('(0 helps')).split(':').first} grow, but haven\'t this month. One question or one piece of feedback this week is enough.',
       if (input.craftingMove != null)
         'Your crafting move: ${input.craftingMove}. Put it on next week\'s calendar once — small changes to the work are how it starts to fit you.',
-      if (input.feedbackThemes != null)
-        'What others told you: "${input.feedbackThemes}". Pick one moment next week to act on it where they can see it.',
-      if (input.shutdowns < 4)
-        'Evening shutdown on ${input.shutdowns} of 7 nights. Three minutes ${input.builtInPlan ? 'at 21:30' : 'before bed'}: tomorrow\'s three on paper, head empty, then bed.',
-      if (input.patterns.isNotEmpty)
-        'From your own last 60 days: ${input.patterns.first}. A pattern, not proof — but worth protecting this week.',
+    ];
+    final recognition = <String>[
+      if (input.setbacks > 0)
+        '${input.setbacks} setback${input.setbacks == 1 ? '' : 's'} met with a next step instead of a spiral. That is the skill.',
+      if (input.thoughtsChecked > 0)
+        'You put ${input.thoughtsChecked} hard thought${input.thoughtsChecked == 1 ? '' : 's'} to the test this week instead of believing ${input.thoughtsChecked == 1 ? 'it' : 'them'}.',
+      if (input.kindnessActs >= 5)
+        '${input.kindnessActs} kind acts this week — they count for you too.',
       if (strongest != null && (input.itemRates[strongest] ?? 0) >= 0.85)
         '${title(strongest)} is becoming automatic — keep it, stop thinking about it.',
+    ];
+    final adjustments = [
+      ...[...health, ...personal, ...setup.take(2), ...week, ...more]
+          .take(maxAdjustments),
+      ...recognition.take(1),
     ];
 
     return WeeklyBrief(

@@ -2608,5 +2608,34 @@ void main() {
     expect(p.asksInWeek(_today), 3);
     expect(p.journalText(), contains('Asked Aysel for help: Review my draft'));
   });
+
+  test('device brief: at most six changes and one recognition, set-up nudges capped',
+      () async {
+    final p = await _commissioned(briefs: DeviceBriefGenerator());
+    // Plenty to say: thoughts, kindness and a setback to recognise, and a
+    // fresh plan with no goal, area, rest or Big 3.
+    for (var i = 0; i < 5; i++) {
+      p.logKindness('Act $i');
+    }
+    p.logThought(situation: 's', thought: 't', before: 80, after: 40);
+    final brief = await p.submitReport(WeeklyReport(
+      id: 'r',
+      weekStart: weekStartOf(_today),
+      nonNegotiableAverage: 3,
+      gymSessions: 0,
+      bestMoment: '',
+      hardestMoment: 'The Monday meeting',
+      workSituation: '',
+      createdAt: _today,
+    ));
+    final a = brief!.adjustments;
+    expect(a.length, lessThanOrEqualTo(DeviceBriefGenerator.maxAdjustments + 1));
+    const setup = ['No growth area', 'No goals set', 'No rest planned', 'No Big 3', 'Evidence Archive'];
+    expect(a.where((l) => setup.any(l.startsWith)).length, lessThanOrEqualTo(2));
+    const praise = ['kind acts this week', 'to the test this week', 'met with a next step'];
+    expect(a.where((l) => praise.any(l.contains)).length, 1);
+    // Health and the plan's collapse come first.
+    expect(a.first, startsWith('Shrink'));
+  });
 }
 
