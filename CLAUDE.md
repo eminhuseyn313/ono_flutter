@@ -87,14 +87,14 @@ Shared widgets:
 
 ## Routes
 
-Me groups its links as Direction, Practice, People, Hard days, then Settings.
+Me starts with "Find a tool" (`/tools`: every tool in `toolIndex`, `lib/data/tool_index.dart`, searchable by title, purpose and keywords; built-in-only tools hidden for anyone else; general content, tested), then groups its links as Direction, Practice, People, Hard days, then Settings. A new tool gets a `ToolEntry` (its route must exist — tested).
 
 Bottom tabs: **Today** `/home` · **Program** `/program?tab=0..3` (Journey/Schedule/Body/Reference) · **Log** `/log?add=weight|protein|win|note|blood` · **Me** `/profile`.
 
 ```
 /splash /welcome /sign-up /sign-in /forgot-password /commission
 /manifesto /protocols /evidence /library /style /career /weekly-coaching /checkin /plans /review /habits /cockpit(?tab=0..2)
-/shutdown /focus /letters /week /people /growth /values /coach /case /growth/area(?id=|template=) /goals /goals/edit /goals/view?id= /note /setback /quarter /profile/edit /daily /learning /experiments /rest /stop /gratitude /models /360 /energy /start /privacy /packs /partner /coach-report /odyssey /crafting /best-self /move /conversations /money /upkeep /stepback /decide /month-review /manual /us /brag /need /day /thought /best-future /kindness /worry /chapters /strengths /board /aar /next-program /promises /stories
+/shutdown /focus /letters /week /people /growth /values /coach /case /growth/area(?id=|template=) /goals /goals/edit /goals/view?id= /note /setback /quarter /profile/edit /daily /learning /experiments /rest /stop /gratitude /models /360 /energy /start /privacy /packs /partner /coach-report /odyssey /crafting /best-self /move /conversations /money /upkeep /stepback /decide /month-review /manual /us /brag /need /day /thought /best-future /kindness /worry /chapters /strengths /board /aar /next-program /promises /stories /tools
 /ritual-flow/:ritualId /gym /gym/:dayId (push|pull|legs) /month/:m (1–18)
 /tool/:id  sigh excited pause still bluf sixq read feynman scan pennebaker anki artifact(?month=) linkedin
 ```

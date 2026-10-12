@@ -240,6 +240,17 @@ class MeScreen extends StatelessWidget {
             ],
           ),
         ),
+        const SizedBox(height: 16),
+        OnoCard(
+          padding: EdgeInsets.zero,
+          child: LinkRow(
+            icon: Icons.search_rounded,
+            color: AppColors.accent,
+            title: 'Find a tool',
+            subtitle: 'Search everything ONO can help with',
+            onTap: () => context.push('/tools'),
+          ),
+        ),
         const SectionHeader('Direction'),
         OnoCard(
           padding: EdgeInsets.zero,

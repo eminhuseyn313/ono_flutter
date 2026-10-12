@@ -249,5 +249,18 @@ void main() {
     await _reach(tester, find.text('Creativity'));
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('find a tool: search narrows the list and opens the tool',
+      (tester) async {
+    await _start(tester);
+    await _go(tester, '/tools');
+    await tester.enterText(find.byType(TextField).first, 'interview');
+    await _pumpFor(tester, const Duration(milliseconds: 400));
+    expect(find.text('Story bank'), findsOneWidget);
+    expect(find.text('Movement'), findsNothing);
+    await tester.tap(find.text('Story bank'));
+    await _pumpFor(tester, const Duration(seconds: 1));
+    expect(find.text('Your best stories, ready'), findsOneWidget);
+  });
 }
 

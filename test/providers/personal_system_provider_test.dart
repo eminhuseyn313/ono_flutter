@@ -6,6 +6,7 @@ import 'package:ono/data/daily_library.dart';
 import 'package:ono/data/growth_templates.dart';
 import 'package:ono/data/plan_packs.dart';
 import 'package:ono/data/life_wheel.dart';
+import 'package:ono/data/tool_index.dart';
 import 'package:ono/gateways/mock_auth_gateway.dart';
 import 'package:ono/gateways/mock_personal_system_gateway.dart';
 import 'package:ono/providers/auth_provider.dart';
@@ -2527,6 +2528,21 @@ void main() {
     expect(p.openPromises.single.str('by'), dateKey(_today.subtract(const Duration(days: 2))));
     expect(p.closePromise(late.id, 'missed'), isTrue);
     expect(p.openPromises, isEmpty);
+  });
+
+  test('tool index: every route exists, every group is known, search works',
+      () {
+    final routes = appRoutes.toSet();
+    for (final t in toolIndex) {
+      expect(routes.contains(t.route) || t.route.startsWith('/tool/'), isTrue,
+          reason: '${t.title} → ${t.route}');
+      expect(toolGroups, contains(t.group), reason: t.title);
+    }
+    expect(toolIndex.map((t) => t.route).toSet().length, toolIndex.length,
+        reason: 'one entry per tool');
+    expect(toolIndex.where((t) => t.matches('anxiety')).map((t) => t.route),
+        containsAll(['/thought', '/worry']));
+    expect(toolIndex.where((t) => t.matches('sleep')).isNotEmpty, isTrue);
   });
 }
 
