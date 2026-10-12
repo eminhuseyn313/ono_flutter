@@ -60,4 +60,24 @@ void main() {
         containsAll(['from the phone', 'from the web']));
     system.dispose();
   });
+
+  test('one sync at a time: a request while one is out runs after it',
+      () async {
+    final cloud = _CloudGateway();
+    final system = PersonalSystemProvider(gateway: cloud);
+    await system.load('u1');
+    final before = cloud.syncs;
+    cloud.release = Completer();
+    final first = system.syncNow();
+    final second = system.syncNow();
+    await Future<void>.delayed(Duration.zero);
+    expect(cloud.syncs, before + 1); // the second waits
+    cloud.release.complete();
+    await first;
+    await second;
+    await Future<void>.delayed(Duration.zero);
+    expect(cloud.syncs, before + 2); // and runs once the first is done
+    system.dispose();
+  });
 }
+

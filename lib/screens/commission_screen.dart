@@ -258,7 +258,7 @@ class _CommissionScreenState extends State<CommissionScreen> {
         }),
         const SizedBox(height: 16),
         Text(
-            'Program ends ${shortDate(_start.add(const Duration(days: programDays - 1)))} ${_start.add(const Duration(days: programDays - 1)).year}.',
+            'Program ends ${shortDate(_start.add(Duration(days: context.read<PersonalSystemProvider>().programDays - 1)))} ${_start.add(Duration(days: context.read<PersonalSystemProvider>().programDays - 1)).year}.',
             style: AppText.small()),
       ],
     );

@@ -2427,5 +2427,35 @@ void main() {
     expect(p.programDay, 1);
     expect(p.dateForProgramDay(10), dayOnly(_today).add(const Duration(days: 9)));
   });
+
+  test('review fixes: worry kept for tomorrow, last month after the end, milestones and pauses per program',
+      () async {
+    final p = await _commissioned();
+    p.setWorryTime(18 * 60);
+    p.parkWorry('The budget review');
+    final evening = DateTime(2026, 10, 2, 18, 30);
+    expect(p.worriesDue(evening).length, 1);
+    p.resolveWorry(p.parkedWorries.single.id, outcome: 'keep');
+    expect(p.parkedWorries.length, 1);
+    expect(p.worriesDue(evening), isEmpty); // kept for tomorrow
+    p.clock = () => DateTime(2026, 10, 2, 19);
+    p.parkWorry('Parked after the slot');
+    expect(p.worriesDue(DateTime(2026, 10, 2, 19, 5)), isEmpty);
+
+    p.clock = () => _today;
+    p.setProgramLength(90);
+    p.clock = () => _start.add(const Duration(days: 92, hours: 9));
+    expect(p.programComplete, isTrue);
+    expect(p.monthToReview, 3);
+
+    p.setDone('ms_1_0', true);
+    expect(p.isDone('ms_1_0'), isTrue);
+    for (var i = 0; i < 8; i++) {
+      p.setHardDay(_start.add(Duration(days: 3 + i)), 'sick');
+    }
+    p.startNextProgram();
+    expect(p.isDone('ms_1_0'), isFalse); // milestones tick again
+    expect(p.pausedDays, 0); // the old illness belongs to program 1
+  });
 }
 

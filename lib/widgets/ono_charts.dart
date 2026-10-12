@@ -86,15 +86,14 @@ class _DayDialPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 12
       ..strokeCap = StrokeCap.round;
-    canvas.drawArc(Rect.fromCircle(center: c, radius: outerR), _start,
-        _sweep, false, track);
+    canvas.drawArc(Rect.fromCircle(center: c, radius: outerR), _start, _sweep,
+        false, track);
 
     // Schedule blocks.
     for (var i = 0; i < schedule.length; i++) {
       final b = schedule[i];
-      final endMin = i + 1 < schedule.length
-          ? schedule[i + 1].minuteOfDay
-          : _dayEnd;
+      final endMin =
+          i + 1 < schedule.length ? schedule[i + 1].minuteOfDay : _dayEnd;
       if (b.minuteOfDay >= _dayEnd) continue;
       final a0 = _angleFor(b.minuteOfDay);
       final a1 = _angleFor(endMin);
@@ -136,9 +135,7 @@ class _DayDialPainter extends CustomPainter {
             (per - 0.08) * reveal,
             false,
             Paint()
-              ..color = t.done
-                  ? AppColors.lane(t.lane)
-                  : AppColors.cardLight
+              ..color = t.done ? AppColors.lane(t.lane) : AppColors.cardLight
               ..style = PaintingStyle.stroke
               ..strokeWidth = 6
               ..strokeCap = StrokeCap.round);
@@ -212,14 +209,14 @@ class Spine extends StatelessWidget {
   /// Columns widen for a short program so the spine still fills the card.
   double get colW => math.max(_baseColW, 330 / math.max(1, months.length));
 
-  bool _isCurrent(Phase p) =>
-      currentPhaseId == null ? p.contains(currentMonth) : p.id == currentPhaseId;
+  bool _isCurrent(Phase p) => currentPhaseId == null
+      ? p.contains(currentMonth)
+      : p.id == currentPhaseId;
 
   @override
   Widget build(BuildContext context) {
     final controller = ScrollController(
-        initialScrollOffset:
-            math.max(0, (currentMonth - 2) * colW).toDouble());
+        initialScrollOffset: math.max(0, (currentMonth - 2) * colW).toDouble());
     return Container(
       decoration: BoxDecoration(
         color: AppColors.navy,
@@ -248,7 +245,11 @@ class Spine extends StatelessWidget {
                       children: [
                         Text(
                             // Too narrow to read: the bar alone shows it.
-                            colW * months.length * (p.toMonth - p.fromMonth + 1) / programMonths < 56
+                            colW *
+                                        months.length *
+                                        (p.toMonth - p.fromMonth + 1) /
+                                        programMonths <
+                                    56
                                 ? ''
                                 : p.name.toUpperCase(),
                             maxLines: 1,
@@ -278,12 +279,13 @@ class Spine extends StatelessWidget {
               child: Stack(
                 children: [
                   for (final s in steps)
-                    Positioned(
-                      left: colW * (int.parse(s[1]) - 1),
-                      child: Text('▸ ${s[0]}',
-                          style: AppText.small(color: AppColors.greyLight)
-                              .copyWith(fontSize: 11)),
-                    ),
+                    if (int.parse(s[1]) <= months.length)
+                      Positioned(
+                        left: colW * (int.parse(s[1]) - 1),
+                        child: Text('▸ ${s[0]}',
+                            style: AppText.small(color: AppColors.greyLight)
+                                .copyWith(fontSize: 11)),
+                      ),
                 ],
               ),
             ),
@@ -314,8 +316,7 @@ class Spine extends StatelessWidget {
           color: isNow ? AppColors.navyLight : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-              color: isNow ? AppColors.accent : Colors.transparent,
-              width: 1.4),
+              color: isNow ? AppColors.accent : Colors.transparent, width: 1.4),
         ),
         child: Column(
           children: [
@@ -355,8 +356,7 @@ class Spine extends StatelessWidget {
                       height: 7,
                       decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          border: Border.all(
-                              color: AppColors.navyLight))),
+                          border: Border.all(color: AppColors.navyLight))),
               ],
             ),
             const SizedBox(height: 10),

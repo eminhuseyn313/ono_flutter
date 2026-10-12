@@ -32,6 +32,7 @@ class SyncedPersonalSystemGateway implements PersonalSystemGateway {
   String _key(String userId) => 'personal_system_$userId';
   String _baseKey(String userId) => 'personal_system_base_$userId';
   String _versionKey(String userId) => 'personal_system_version_$userId';
+  String _generationKey(String userId) => 'personal_system_generation_$userId';
 
   @override
   Future<PersonalSystemState> load(String userId) async {
@@ -75,12 +76,13 @@ class SyncedPersonalSystemGateway implements PersonalSystemGateway {
         ? null
         : Map<String, dynamic>.from(jsonDecode(rawBase) as Map);
     final baseVersion = prefs.getInt(_versionKey(userId));
+    final baseGeneration = prefs.getString(_generationKey(userId));
     final local = _json(state);
 
     for (var attempt = 0; attempt < 4; attempt++) {
       final row = await _client
           .from('personal_system')
-          .select('state, version')
+          .select('state, version, generation')
           .eq('user_id', userId)
           .maybeSingle();
 
@@ -92,24 +94,47 @@ class SyncedPersonalSystemGateway implements PersonalSystemGateway {
           return _local.load(userId);
         }
         if (!state.commissioned) return null;
+        final String generation;
         try {
-          await _client.from('personal_system').insert({
-            'user_id': userId,
-            'state': local,
-            'version': 1,
-          });
+          final created = await _client
+              .from('personal_system')
+              .insert({'user_id': userId, 'state': local, 'version': 1})
+              .select('generation')
+              .single();
+          generation = '${created['generation']}';
         } on PostgrestException {
           continue; // Another device created it first: merge with that.
         }
-        await _remember(prefs, userId, local, 1);
+        await _remember(prefs, userId, local, 1, generation);
         return null;
       }
 
       final remote = Map<String, dynamic>.from(row['state'] as Map);
       final version = (row['version'] as num).toInt();
-      if (version == baseVersion && jsonEquals(local, base)) return null;
+      final generation = '${row['generation']}';
+      if (base != null &&
+          baseGeneration != null &&
+          baseGeneration != generation) {
+        // Deleted everything on another device (and maybe started again):
+        // this device starts over and takes the new program, if any.
+        await _local.erase(userId);
+        await _forgetBase(prefs, userId);
+        final fresh = await _local.load(userId);
+        if (remote['commissioned'] != true) return fresh;
+        final next = PersonalSystemState.fromJson(remote);
+        await _local.save(userId, next);
+        await _remember(prefs, userId, remote, version, generation);
+        return next;
+      }
+      if (version == baseVersion &&
+          generation == baseGeneration &&
+          jsonEquals(local, base)) {
+        return null;
+      }
 
-      final merged = base == null && !state.commissioned
+      // A device without a program never overwrites one: whatever its
+      // base says, an empty local copy is not a list of deletions.
+      final merged = !state.commissioned && remote['commissioned'] == true
           ? remote
           : mergeStateJson(base, local, remote);
       var savedVersion = version;
@@ -127,7 +152,7 @@ class SyncedPersonalSystemGateway implements PersonalSystemGateway {
         if ((updated as List).isEmpty) continue; // Lost a race: merge again.
         savedVersion = version + 1;
       }
-      await _remember(prefs, userId, merged, savedVersion);
+      await _remember(prefs, userId, merged, savedVersion, generation);
       if (jsonEquals(merged, local)) return null;
       final next = PersonalSystemState.fromJson(merged);
       await _local.save(userId, next);
@@ -140,14 +165,16 @@ class SyncedPersonalSystemGateway implements PersonalSystemGateway {
       Map<String, dynamic>.from(jsonDecode(jsonEncode(state.toJson())) as Map);
 
   Future<void> _remember(SharedPreferences prefs, String userId,
-      Map<String, dynamic> state, int version) async {
+      Map<String, dynamic> state, int version, String generation) async {
     await prefs.setString(_baseKey(userId), jsonEncode(state));
     await prefs.setInt(_versionKey(userId), version);
+    await prefs.setString(_generationKey(userId), generation);
   }
 
   Future<void> _forgetBase(SharedPreferences prefs, String userId) async {
     await prefs.remove(_baseKey(userId));
     await prefs.remove(_versionKey(userId));
+    await prefs.remove(_generationKey(userId));
   }
 
   @override

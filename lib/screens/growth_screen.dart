@@ -361,7 +361,7 @@ class _Plan extends StatelessWidget {
               child: Text(
                   'Month ${h.number('month')} · ${system.areaById(h.str('area') ?? '').name} · '
                   '${h.number('start') ?? '–'} → ${h.number('end') ?? '–'} · '
-                  '${system.repsIn(h.str('area') ?? '', (h.number('month') ?? 0).toInt()).length} reps',
+                  '${system.logsOf('rep').where((r) => r.str('area') == h.str('area') && !r.date.isBefore(h.date) && r.date.isBefore(h.date.add(const Duration(days: 30)))).length} reps',
                   style: AppText.small(color: AppColors.greyLight)),
             ),
         ],

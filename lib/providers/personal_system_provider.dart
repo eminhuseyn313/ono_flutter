@@ -72,11 +72,10 @@ class PersonalSystemProvider extends ChangeNotifier {
     if (_gateway.syncsToCloud) {
       // A new device gets the program before Today decides whether to
       // show the plan builder; offline it carries on with its own copy.
+      // A sync that outlasts the wait still lands: syncNow merges it into
+      // whatever the state is by then, never drops it.
       try {
-        final synced = await _gateway
-            .sync(id, _state!)
-            .timeout(const Duration(seconds: 8));
-        if (synced != null) _state = synced;
+        await syncNow(notify: false).timeout(const Duration(seconds: 8));
       } catch (_) {}
       _syncTimer?.cancel();
       _syncTimer =
@@ -109,19 +108,44 @@ class PersonalSystemProvider extends ChangeNotifier {
     _syncSoon = Timer(const Duration(seconds: 3), syncNow);
   }
 
+  /// One sync at a time; a request while one is out runs once it ends,
+  /// with the state as it is then.
+  Future<void>? _syncing;
+  bool _syncAgain = false;
+
   /// Merges this device's state with the cloud copy and takes in what
   /// other devices changed. Edits made while the request was out are kept.
-  Future<void> syncNow() async {
+  Future<void> syncNow({bool notify = true}) async {
+    if (!_gateway.syncsToCloud) return;
+    if (_syncing != null) {
+      _syncAgain = true;
+      return _syncing;
+    }
+    final run = _syncOnce(notify: notify);
+    _syncing = run;
+    try {
+      await run;
+    } finally {
+      _syncing = null;
+      if (_syncAgain) {
+        _syncAgain = false;
+        unawaited(syncNow());
+      }
+    }
+  }
+
+  Future<void> _syncOnce({required bool notify}) async {
     final sent = _state;
-    if (sent == null || !_gateway.syncsToCloud) return;
+    final user = _userId;
+    if (sent == null) return;
     final PersonalSystemState? synced;
     try {
-      synced = await _gateway.sync(_userId, sent);
+      synced = await _gateway.sync(user, sent);
     } catch (_) {
       return; // Offline: the next change, resume or minute tries again.
     }
     final current = _state;
-    if (synced == null || current == null) return;
+    if (synced == null || current == null || user != _userId) return;
     final next = identical(current, sent)
         ? synced
         : PersonalSystemState.fromJson(mergeStateJson(
@@ -130,7 +154,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     _gateway.save(_userId, next);
     if (!identical(current, sent)) _scheduleSync();
     _applyProfile();
-    notifyListeners();
+    if (notify || !_loading) notifyListeners();
     _syncReminders();
   }
 
@@ -244,7 +268,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// Calendar days the clock skipped for long illness.
   int get pausedDays {
     _reindex();
-    return _pausedList.length;
+    return _pausedList.where((p) => !p.isBefore(programStart)).length;
   }
 
   bool isPaused(DateTime day) {
@@ -410,7 +434,11 @@ class PersonalSystemProvider extends ChangeNotifier {
   }
 
   /// Day within the current month (1–30).
-  int get dayOfMonth => hasStarted ? ((programDay - 1) % 30) + 1 : 0;
+  int get dayOfMonth => !hasStarted
+      ? 0
+      : programComplete
+          ? 30
+          : ((programDay - 1) % 30) + 1;
 
   DateTime monthStart(int month) => dateForProgramDay((month - 1) * 30 + 1);
 
@@ -1434,13 +1462,17 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   // ── One-off checklists ───────────────────────────────────────────────
 
-  bool isDone(String key) => _state?.done.contains(key) ?? false;
+  bool isDone(String key) => _state?.done.contains(_cycled(key)) ?? false;
+
+  /// Month milestones (`ms_…`) are ticked again in each new program.
+  String _cycled(String key) =>
+      cycle > 1 && key.startsWith('ms_') ? '$key@$cycle' : key;
 
   void setDone(String key, bool value) {
     final s = _state;
     if (s == null || isDone(key) == value) return;
     final next = Set<String>.from(s.done);
-    value ? next.add(key) : next.remove(key);
+    value ? next.add(_cycled(key)) : next.remove(_cycled(key));
     _update(s.copyWith(done: next));
   }
 
@@ -4101,6 +4133,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// during the first 5 days of a month.
   int? get monthToReview {
     if (!hasStarted) return null;
+    if (programComplete) return programMonths;
     if (dayOfMonth >= 27) return programMonth;
     if (dayOfMonth <= 5 && programMonth > 1) return programMonth - 1;
     return null;
@@ -5340,7 +5373,11 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// open priority, as after a setback.
   void resolveWorry(String id, {required String outcome, String step = ''}) {
     final w = logsOf('worry').where((l) => l.id == id).firstOrNull;
-    if (w == null || outcome == 'keep') return;
+    if (w == null) return;
+    if (outcome == 'keep') {
+      updateLog(w.copyWith(data: {...w.data, 'kept_on': dateKey(_now)}));
+      return;
+    }
     updateLog(w.copyWith(data: {
       ...w.data,
       'status': outcome,
@@ -5355,11 +5392,19 @@ class PersonalSystemProvider extends ChangeNotifier {
   }
 
   /// The worry slot has come and something is parked.
-  bool worryTimeDue(DateTime now) {
+  bool worryTimeDue(DateTime now) => worriesDue(now).isNotEmpty;
+
+  /// Parked worries to deal with now: the slot has come, they were parked
+  /// before it, and they weren't kept for tomorrow today.
+  List<LogEntry> worriesDue(DateTime now) {
     final t = worryTime;
-    return t != null &&
-        parkedWorries.isNotEmpty &&
-        now.hour * 60 + now.minute >= t;
+    if (t == null || now.hour * 60 + now.minute < t) return const [];
+    final slot = DateTime(now.year, now.month, now.day, t ~/ 60, t % 60);
+    final today = dateKey(now);
+    return [
+      for (final w in parkedWorries)
+        if (w.createdAt.isBefore(slot) && w.str('kept_on') != today) w
+    ];
   }
 
   // ── Life chapters (narrative identity) ───────────────────────────────

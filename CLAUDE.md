@@ -263,11 +263,12 @@ Flow:
 - `SyncedPersonalSystemGateway` (`lib/gateways/supabase_personal_system_gateway.dart`): saves on the device at once; `sync(userId, state)` merges with the cloud row three ways against the last copy this device agreed on (`personal_system_base_<uid>` + version in prefs) and writes only over the version it merged with (`version` column, retried on a lost race).
 - `mergeStateJson` (`lib/models/state_merge.dart`, `test/state_merge_test.dart`): logs, evidence, reports, briefs and custom cards merge by `id`; done keys and each day's checks as sets; priorities, cues, reminders and card schedules key by key; other fields as single values. A change on one side wins; on a clash this device wins; a deletion survives unless the other side edited the item.
 - The provider syncs on load (8 s timeout, so a new device gets the program before Today decides on the plan builder), 3 s after the last change, every 60 s and on resume (`AppLifecycleListener` in `app.dart`). Edits made while a sync is out are merged in (`syncNow`, `test/providers/sync_test.dart`). Any new state field needs a rule in `mergeStateJson` if a single value is wrong for it.
-- First sign-in on a device that ran the offline build adopts its data (`personal_system_mock-user-001`). A missing row after a sync means Delete everything ran elsewhere: the device starts over too.
+- First sign-in on a device that ran the offline build adopts its data (`personal_system_mock-user-001`). A missing row, or a row whose `generation` (uuid, new on every insert) differs from the one this device remembered, means Delete everything ran elsewhere: the device starts over (and takes a new program if one was built since).
+- Safety rules: a device whose state isn't commissioned never merges over a commissioned cloud copy — it takes it; `syncNow` is single-flight (a request while one is out sets `_syncAgain` and runs after it with the state as it is then); load waits up to 8 s, and a slower first sync is still merged in when it lands.
 - Sign-up returns "Check your email…" when the project requires confirmation. Google/Apple buttons hide unless `AuthGateway.offersSocialSignIn` (false for Supabase until client IDs exist).
 
 ## Supabase (project `kkgkbfxvovrtmnoezcha`)
-Live: `personal_system` (+ `version`) with owner-only RLS, legacy functions locked (`20261012121000`), `weekly-brief` deployed. The brief uses the device generator until the `ANTHROPIC_API_KEY` secret is set. To redo it from scratch:
+Live: `personal_system` (+ `version`, `generation`) with owner-only RLS, legacy functions locked (`20261012121000`), `weekly-brief` deployed. The brief uses the device generator until the `ANTHROPIC_API_KEY` secret is set. To redo it from scratch:
 ```bash
 supabase link --project-ref kkgkbfxvovrtmnoezcha
 supabase db push                                   # creates personal_system + RLS
