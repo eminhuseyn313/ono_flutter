@@ -51,6 +51,7 @@ Services: ReminderService (local notifications), BriefGenerator (weekly brief)
 - Program: the journey only — no Schedule/Body/Reference tabs, no month themes, unlocks or career milestones; `Spine.steps` from the profile's current and target role; phase text from `generalPhasePromises` (`lib/data/general_program.dart`); the month links to their growth area and goals.
 - Growth: `allGrowthAreas` = their own areas; the chooser offers `areaTemplates`, adopted on focus (`focusOn`); `suggestedArea` follows the lowest life area.
 - Me: no protocol mastery or readiness; Body shows `_MoveSummary`. Check-in: no shoulder pain/stiffness (his condition); Mornings shows mood instead.
+- Evidence Archive: `activeEvidenceSections` = `generalEvidenceSections` (general prompts) instead of his.
 - Review deck: no `seedCards`. Brief: `builtInPlan: false` drops gym, artifact, LinkedIn and unlock tasks and the month theme/artifact/book; no readiness gap. A new person's plan builder also removes the seeded evidence.
 - New features must work in both modes; `test/widget_test.dart` renders a second person and fails if built-in specifics (shoulder pain, the 07:45 desk card and scan tile, face pulls, lunch read, LinkedIn posts, gym sessions) appear.
 

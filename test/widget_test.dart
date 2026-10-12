@@ -625,12 +625,12 @@ void main() {
           keyPeople: const [KeyPerson('Tural', 'Coach', every: 7, primary: true)],
         ));
         system.saveDayShape(wake: 390, workStart: 480, workEnd: 1020, bed: 1350);
-        for (final r in ['/home', '/profile', '/goals', '/note', '/profile/edit', '/career', '/people', '/program', '/checkin', '/growth', '/move', '/log', '/weekly-coaching', '/day']) {
+        for (final r in ['/home', '/profile', '/goals', '/note', '/profile/edit', '/career', '/people', '/program', '/checkin', '/growth', '/move', '/log', '/weekly-coaching', '/day', '/evidence']) {
           await _go(tester, r);
           // None of the built-in plan's specifics show for someone else.
           // (Their daily items are the built-in ones here, so item titles
           // may appear; the built-in cards and strips must not.)
-          for (final t in ['Shoulder pain', 'Desk at 07:45', 'Face pulls', 'Lunch read', 'LinkedIn posts', 'Gym sessions', 'Scan · 07:45']) {
+          for (final t in ['Shoulder pain', 'Desk at 07:45', 'Face pulls', 'Lunch read', 'LinkedIn posts', 'Gym sessions', 'Scan · 07:45', 'Guavapay', 'Day 16']) {
             if (find.textContaining(t).evaluate().isNotEmpty) {
               errors.add('$r shows "$t"');
             }

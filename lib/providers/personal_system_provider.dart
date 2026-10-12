@@ -1674,6 +1674,10 @@ class PersonalSystemProvider extends ChangeNotifier {
     ];
   }
 
+  /// Evidence prompts: the built-in person's own, or general ones.
+  List<EvidencePrompt> get activeEvidenceSections =>
+      isBuiltInPerson ? evidenceSections : generalEvidenceSections;
+
   // ── Your day ─────────────────────────────────────────────────────────
 
   /// The shape of an ordinary day for anyone without the built-in schedule:

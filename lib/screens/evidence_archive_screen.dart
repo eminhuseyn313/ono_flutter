@@ -38,7 +38,10 @@ class EvidenceArchiveScreen extends StatelessWidget {
                   children: [
                     Text('$total items of proof', style: AppText.heading()),
                     const SizedBox(height: 2),
-                    Text('Target: 10+ per section · 30+ by Day 16',
+                    Text(
+                        system.isBuiltInPerson
+                            ? 'Target: 10+ per section · 30+ by Day 16'
+                            : 'Aim for ten in each section. Read them before hard moments.',
                         style: AppText.small()),
                   ],
                 ),
@@ -46,7 +49,7 @@ class EvidenceArchiveScreen extends StatelessWidget {
             ],
           ),
         ),
-        for (final section in evidenceSections)
+        for (final section in system.activeEvidenceSections)
           _Section(section: section),
       ],
     );

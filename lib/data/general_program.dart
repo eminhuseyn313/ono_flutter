@@ -1,4 +1,4 @@
-import 'emin_system.dart' show ReminderDef;
+import 'emin_system.dart' show EvidencePrompt, ReminderDef;
 
 /// What each phase of the 18-month program means for anyone. The built-in
 /// person's phase promises live in emin_system.dart.
@@ -56,4 +56,22 @@ const List<(String area, String question)> dailyQuestions = [
   ('meaning', 'If this week were a chapter, what would it be called?'),
   ('career', 'What one decision would make next week easier?'),
   ('relationships', 'Who have you been meaning to reach out to?'),
+];
+
+/// Evidence prompts for anyone (the built-in person's name their own past).
+const List<EvidencePrompt> generalEvidenceSections = [
+  EvidencePrompt('built', 'Things I built or made', [
+    'Something you made, shipped or organised that people used',
+    'A project you finished that others relied on',
+    'Something you started from nothing',
+  ]),
+  EvidencePrompt('solved', 'Problems I solved', [
+    'When were you the one who unblocked something?',
+    'A hard moment you handled well',
+    'Something you fixed that others had given up on',
+  ]),
+  EvidencePrompt('knowledge', 'What I know that others don\'t', [
+    'Experience or skills few people around you have',
+    'Something people come to you for',
+  ]),
 ];
