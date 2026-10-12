@@ -427,9 +427,15 @@ class PrimaryButton extends StatelessWidget {
                     Icon(icon, size: 19),
                     const SizedBox(width: 8),
                   ],
-                  Text(label,
-                      style: AppText.heading(color: AppColors.ink)
-                          .copyWith(fontSize: 16)),
+                  // Large text sizes: the label shrinks to fit, never
+                  // overflows the button.
+                  Flexible(
+                    child: Text(label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppText.heading(color: AppColors.ink)
+                            .copyWith(fontSize: 16)),
+                  ),
                 ],
               ),
       ),
@@ -465,9 +471,13 @@ class GhostButton extends StatelessWidget {
               Icon(icon, size: 17),
               const SizedBox(width: 8),
             ],
-            Text(label,
-                style: AppText.small(color: AppColors.white)
-                    .copyWith(fontWeight: FontWeight.w600, fontSize: 14)),
+            Flexible(
+              child: Text(label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppText.small(color: AppColors.white)
+                      .copyWith(fontWeight: FontWeight.w600, fontSize: 14)),
+            ),
           ],
         ),
       ),

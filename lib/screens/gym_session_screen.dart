@@ -291,7 +291,8 @@ class _GymSessionScreenState extends State<GymSessionScreen> {
       ),
       children: [
         const SizedBox(height: 12),
-        Row(
+        Wrap(
+          runSpacing: 8,
           children: [
             for (final g in gymPlan)
               Padding(

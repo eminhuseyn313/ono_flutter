@@ -286,6 +286,7 @@ flutter run -t lib/main_production.dart
 - `flutter test`:
   - `test/widget_test.dart` covers first run (welcome → commission), then commissions and opens every route, plus all content links, at 393×852 and 375×667. It fails on any runtime error, overflow or dead route.
   - `test/performance_test.dart` loads 500 days of history and fails if the streak, patterns, journal or merge get slow, or Today/Me/Log/Program/Growth/Review take too long to build. Per-day lookups go through `_logsByDay` (rebuilt only when the state changes); `patterns()` is cached per state and day.
+  - `test/large_text_test.dart` opens every route on an iPhone SE with text at 130% and fails on any overflow (buttons ellipsize their label; the welcome screen scrolls).
   - `test/flows_test.dart` taps through the newer tools as a person would (thought check, worry time, kindness, strengths, board, after-action review, best future, chapters, closing a program) and checks what was saved.
   - `test/providers/personal_system_provider_test.dart` covers timeline, scores, streaks, protein, mastery, gym, month stats, briefs, export/import and reminders.
 - Manual testing uses one-click apps at the repo root, `ONO Simulator.app` and `ONO on iPhone.app`.
