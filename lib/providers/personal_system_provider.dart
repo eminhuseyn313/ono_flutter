@@ -1558,11 +1558,27 @@ class PersonalSystemProvider extends ChangeNotifier {
     return _newestFirst(list);
   }
 
-  List<LogEntry> logsOn(DateTime date, [String? type]) => (_state?.logs ??
-          const <LogEntry>[])
-      .where((l) =>
-          dateKey(l.date) == dateKey(date) && (type == null || l.type == type))
-      .toList();
+  List<LogEntry> logsOn(DateTime date, [String? type]) {
+    final day = _logsByDay[dateKey(date)] ?? const <LogEntry>[];
+    return [
+      for (final l in day)
+        if (type == null || l.type == type) l
+    ];
+  }
+
+  /// Logs by the day they are for, in entry order — rebuilt only when the
+  /// state changes, because Today, patterns and the streak ask day by day.
+  PersonalSystemState? _byDayState;
+  Map<String, List<LogEntry>> _byDay = const {};
+  Map<String, List<LogEntry>> get _logsByDay {
+    if (identical(_byDayState, _state)) return _byDay;
+    _byDayState = _state;
+    final m = <String, List<LogEntry>>{};
+    for (final l in _state?.logs ?? const <LogEntry>[]) {
+      (m[dateKey(l.date)] ??= []).add(l);
+    }
+    return _byDay = m;
+  }
 
   /// All logs newest first, optionally filtered by type set.
   List<LogEntry> allLogs([Set<String>? types]) {
@@ -4805,7 +4821,24 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// Patterns in the last [days] closed days (today excluded, never before
   /// the program start). Each compares days with and without one habit and
   /// needs [minDays] on both sides; small differences are dropped.
+  PersonalSystemState? _patternsState;
+  String _patternsKey = '';
+  List<DayPattern> _patternsCache = const [];
+
+  /// Cached for the same state, day and arguments: Me and the experiments
+  /// screen ask on every build.
   List<DayPattern> patterns({int days = 60, int minDays = 5}) {
+    final key = '${dateKey(_now)}|$days|$minDays';
+    if (identical(_patternsState, _state) && _patternsKey == key) {
+      return _patternsCache;
+    }
+    final result = _computePatterns(days: days, minDays: minDays);
+    _patternsState = _state;
+    _patternsKey = key;
+    return _patternsCache = result;
+  }
+
+  List<DayPattern> _computePatterns({required int days, required int minDays}) {
     final today = dayOnly(_now);
     final from = [
       today.subtract(Duration(days: days)),
@@ -5630,24 +5663,32 @@ class PersonalSystemProvider extends ChangeNotifier {
       ];
 
   /// [outcome] from [promiseOutcomes]; renegotiating moves the date to
-  /// [newBy] and keeps the promise open.
-  void closePromise(String id, String outcome, {DateTime? newBy}) {
+  /// [newBy] and keeps the promise open — only before the date has passed
+  /// (after it, it was kept late or missed). Returns false when refused.
+  bool closePromise(String id, String outcome, {DateTime? newBy}) {
     final p = logsOf('promise').where((l) => l.id == id).firstOrNull;
-    if (p == null || !promiseOutcomes.containsKey(outcome)) return;
+    if (p == null || !promiseOutcomes.containsKey(outcome)) return false;
     if (outcome == 'renegotiated') {
+      if (promiseOverdue(p)) return false;
       updateLog(p.copyWith(data: {
         ...p.data,
         'by': dateKey(dayOnly(newBy ?? _now.add(const Duration(days: 7)))),
         'renegotiated': ((p.number('renegotiated') ?? 0) + 1).toInt(),
       }));
-      return;
+      return true;
     }
     updateLog(p.copyWith(data: {
       ...p.data,
       'status': outcome,
       'closed_on': dateKey(_now),
     }));
+    return true;
   }
+
+  /// Past its date and still open.
+  bool promiseOverdue(LogEntry p) =>
+      p.str('status') == 'open' &&
+      (p.str('by') ?? '9999').compareTo(dateKey(dayOnly(_now))) < 0;
 
   /// Kept of closed promises (kept + missed) in the last [days]; null
   /// until three are closed.

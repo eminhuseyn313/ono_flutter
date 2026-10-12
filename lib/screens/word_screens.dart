@@ -40,7 +40,7 @@ class _PromisesScreenState extends State<PromisesScreen> {
     _what.clear();
     _to.clear();
     FocusManager.instance.primaryFocus?.unfocus();
-    toast(context, 'Noted. ONO will remind you on the day.');
+    toast(context, 'Noted. It shows on Today on the day.');
   }
 
   Future<void> _close(PersonalSystemProvider system, LogEntry p) async {
@@ -58,21 +58,25 @@ class _PromisesScreenState extends State<PromisesScreen> {
                 Text('To ${p.str('to')}', style: AppText.small()),
               const SizedBox(height: 14),
               for (final o in PersonalSystemProvider.promiseOutcomes.entries)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: o.key == 'kept'
-                        ? FilledButton(
-                            onPressed: () => Navigator.pop(ctx, o.key),
-                            child: Text(o.value))
-                        : OutlinedButton(
-                            onPressed: () => Navigator.pop(ctx, o.key),
-                            child: Text(o.key == 'renegotiated'
-                                ? 'New date: one week later'
-                                : o.value)),
+                if (o.key != 'renegotiated' || !system.promiseOverdue(p))
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: o.key == 'kept'
+                          ? FilledButton(
+                              onPressed: () => Navigator.pop(ctx, o.key),
+                              child: Text(o.value))
+                          : OutlinedButton(
+                              onPressed: () => Navigator.pop(ctx, o.key),
+                              child: Text(o.key == 'renegotiated'
+                                  ? 'New date: one week later'
+                                  : o.value)),
+                    ),
                   ),
-                ),
+              if (system.promiseOverdue(p))
+                Text('The date has passed: it was kept late, or missed.',
+                    style: AppText.small()),
             ],
           ),
         ),
@@ -116,8 +120,8 @@ class _PromisesScreenState extends State<PromisesScreen> {
         TextField(
           controller: _to,
           style: AppText.body(color: AppColors.white),
-          decoration: const InputDecoration(
-              labelText: 'To whom', hintText: 'Optional'),
+          decoration:
+              const InputDecoration(labelText: 'To whom', hintText: 'Optional'),
         ),
         const SizedBox(height: 10),
         Wrap(
@@ -178,9 +182,11 @@ class _PromisesScreenState extends State<PromisesScreen> {
 class StoriesScreen extends StatelessWidget {
   const StoriesScreen({super.key});
 
-  Future<void> _edit(BuildContext context, {LogEntry? story, String title = '', String from = ''}) =>
+  Future<void> _edit(BuildContext context,
+          {LogEntry? story, String title = '', String from = ''}) =>
       Navigator.of(context).push(MaterialPageRoute(
-          builder: (_) => StoryEditScreen(story: story, title: title, from: from)));
+          builder: (_) =>
+              StoryEditScreen(story: story, title: title, from: from)));
 
   @override
   Widget build(BuildContext context) {
@@ -278,18 +284,24 @@ class StoryEditScreen extends StatefulWidget {
   final LogEntry? story;
   final String title;
   final String from;
-  const StoryEditScreen({super.key, this.story, this.title = '', this.from = ''});
+  const StoryEditScreen(
+      {super.key, this.story, this.title = '', this.from = ''});
 
   @override
   State<StoryEditScreen> createState() => _StoryEditScreenState();
 }
 
 class _StoryEditScreenState extends State<StoryEditScreen> {
-  late final _title = TextEditingController(text: widget.story?.text ?? widget.title);
-  late final _situation = TextEditingController(text: widget.story?.str('situation') ?? '');
-  late final _task = TextEditingController(text: widget.story?.str('task') ?? '');
-  late final _action = TextEditingController(text: widget.story?.str('action') ?? '');
-  late final _result = TextEditingController(text: widget.story?.str('result') ?? '');
+  late final _title =
+      TextEditingController(text: widget.story?.text ?? widget.title);
+  late final _situation =
+      TextEditingController(text: widget.story?.str('situation') ?? '');
+  late final _task =
+      TextEditingController(text: widget.story?.str('task') ?? '');
+  late final _action =
+      TextEditingController(text: widget.story?.str('action') ?? '');
+  late final _result =
+      TextEditingController(text: widget.story?.str('result') ?? '');
   late final Set<String> _skills = {
     for (final k in (widget.story?.data['skills'] as List?) ?? const []) '$k'
   };
@@ -320,7 +332,8 @@ class _StoryEditScreenState extends State<StoryEditScreen> {
       showBack: true,
       eyebrow: 'A story',
       title: widget.story == null ? 'Tell it in four parts' : 'Edit the story',
-      bottomBar: PrimaryButton('Save', icon: Icons.check_rounded, onPressed: () {
+      bottomBar:
+          PrimaryButton('Save', icon: Icons.check_rounded, onPressed: () {
         if (_title.text.trim().isEmpty) {
           toast(context, 'Give it a title.');
           return;
@@ -345,10 +358,12 @@ class _StoryEditScreenState extends State<StoryEditScreen> {
             controller: _title,
             style: AppText.body(color: AppColors.white),
             decoration: const InputDecoration(
-                labelText: 'Title', hintText: 'e.g. Turning around the late launch'),
+                labelText: 'Title',
+                hintText: 'e.g. Turning around the late launch'),
           ),
         ),
-        _field(_situation, 'Situation', 'Where and when — the context in two lines'),
+        _field(_situation, 'Situation',
+            'Where and when — the context in two lines'),
         _field(_task, 'Task', 'What you had to achieve, and why it was hard'),
         _field(_action, 'Action', 'What you did — "I", not "we"'),
         _field(_result, 'Result', 'What changed, ideally with a number'),

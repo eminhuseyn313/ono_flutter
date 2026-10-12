@@ -2518,5 +2518,15 @@ void main() {
     expect(p.storiesText(), contains('Result: Shipped in 8 days'));
     expect(p.storiesText(skill: 'Conflict'), isEmpty);
   });
+
+  test('an overdue promise can only be kept late or missed', () async {
+    final p = await _commissioned();
+    final late = p.addPromise(what: 'Send the deck', by: _today.subtract(const Duration(days: 2)))!;
+    expect(p.promiseOverdue(late), isTrue);
+    expect(p.closePromise(late.id, 'renegotiated'), isFalse);
+    expect(p.openPromises.single.str('by'), dateKey(_today.subtract(const Duration(days: 2))));
+    expect(p.closePromise(late.id, 'missed'), isTrue);
+    expect(p.openPromises, isEmpty);
+  });
 }
 

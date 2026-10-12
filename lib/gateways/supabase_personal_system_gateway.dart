@@ -25,10 +25,9 @@ class SyncedPersonalSystemGateway implements PersonalSystemGateway {
   /// one process); empty in the app.
   final String _device;
 
-  SyncedPersonalSystemGateway(this._cloud,
-      {PersonalSystemGateway? local, String device = ''})
+  SyncedPersonalSystemGateway(this._cloud, {String device = ''})
       : _device = device,
-        _local = local ?? MockPersonalSystemGateway(prefix: device);
+        _local = MockPersonalSystemGateway(prefix: device);
 
   /// Where the offline build (`main.dart`) kept its data. Adopted once by
   /// the first account that signs in on this device, so switching the
@@ -228,8 +227,11 @@ class SupabaseCloud implements PersonalSystemCloud {
           .select('generation')
           .single();
       return '${created['generation']}';
-    } on PostgrestException {
-      return null;
+    } on PostgrestException catch (e) {
+      // Only "the row already exists" means another device was first;
+      // anything else (RLS, a bad column) is a real error.
+      if (e.code == '23505') return null;
+      rethrow;
     }
   }
 
