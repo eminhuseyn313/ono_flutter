@@ -29,6 +29,9 @@ abstract class AuthGateway {
   /// Stream of auth state changes (sign-in, sign-out, token refresh, etc.).
   Stream<AuthChangeEvent> onAuthStateChange();
 
+  /// Whether Google and Apple sign-in are set up (else only email shows).
+  bool get offersSocialSignIn;
+
   /// The currently authenticated user, if any.
   User? get currentUser;
 

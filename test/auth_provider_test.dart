@@ -84,6 +84,9 @@ class MockAuthGateway implements AuthGateway {
   Stream<AuthChangeEvent> onAuthStateChange() => _authEvents.stream;
 
   @override
+  bool get offersSocialSignIn => true;
+
+  @override
   User? get currentUser => _currentUser;
 
   @override
@@ -378,6 +381,9 @@ class _ThrowingRecoverGateway implements AuthGateway {
 
   @override
   Stream<AuthChangeEvent> onAuthStateChange() => const Stream.empty();
+
+  @override
+  bool get offersSocialSignIn => true;
 
   @override
   User? get currentUser => null;

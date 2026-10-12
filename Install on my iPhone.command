@@ -26,7 +26,7 @@ echo "iPhone: $DEVICE"
 ask_capabilities_once
 
 say "Building a release version and installing it (5–10 minutes the first time)…"
-if ! flutter run --release -d "$DEVICE" -t lib/main.dart --no-resident; then
+if ! flutter run --release -d "$DEVICE" -t lib/main_production.dart --no-resident; then
   cat <<'EOF'
 
 The build was refused — almost always signing. Fix it once:
@@ -51,6 +51,9 @@ cat <<'EOF'
 If the phone says "Untrusted Developer" when you open it:
   Settings → General → VPN & Device Management → your Apple ID → Trust.
 You can unplug the phone now; the app keeps working on its own.
+Sign in with your email: the web app (https://eminhuseyn313.github.io/ono_flutter/)
+uses the same account, and the two stay in sync. What was already on the phone
+moves into the first account you sign in with.
 With a free Apple ID it runs for 7 days, then run this again (your data stays).
 EOF
 read -r -p "Press Enter to close…" _

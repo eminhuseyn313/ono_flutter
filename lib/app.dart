@@ -65,7 +65,14 @@ class _OnoAppState extends State<OnoApp> {
     _auth.init();
     widget.reminders.init(onOpen: _open);
     widget.shortcuts.init(onOpen: _open);
+    // Back on the phone or the browser tab: take in what the other
+    // device changed meanwhile.
+    _lifecycle = AppLifecycleListener(onResume: () {
+      if (_auth.status == AuthStatus.authenticated) _system.syncNow();
+    });
   }
+
+  late final AppLifecycleListener _lifecycle;
 
   /// A route from a notification or Home Screen shortcut. On a cold start
   /// sign-in isn't restored yet, so it waits for it.
@@ -92,6 +99,7 @@ class _OnoAppState extends State<OnoApp> {
 
   @override
   void dispose() {
+    _lifecycle.dispose();
     _auth.removeListener(_onAuth);
     _auth.dispose();
     _system.dispose();

@@ -134,8 +134,9 @@ class _SignInScreenState extends State<SignInScreen>
                         const SizedBox(height: 32),
                         Text(
                           'ONO',
-                          style: AppText.serif(size: 22, color: AppColors.accent)
-                              .copyWith(letterSpacing: 5),
+                          style:
+                              AppText.serif(size: 22, color: AppColors.accent)
+                                  .copyWith(letterSpacing: 5),
                         ),
                         const SizedBox(height: 16),
                         Text(
@@ -149,52 +150,57 @@ class _SignInScreenState extends State<SignInScreen>
                         ),
 
                         // -- Social sign-in buttons -----------------------
-                        const SizedBox(height: 28),
-                        if (!kIsWeb &&
-                            defaultTargetPlatform == TargetPlatform.iOS) ...[
-                          _SocialButton(
-                            label: 'Continue with Apple',
-                            icon: Icons.apple,
-                            onTap: isLoading ? null : _handleAppleSignIn,
-                          ),
-                          const SizedBox(height: 12),
-                        ],
-                        _SocialButton(
-                          label: 'Continue with Google',
-                          iconWidget: _googleIcon(),
-                          onTap: isLoading ? null : _handleGoogleSignIn,
-                        ),
-
-                        // -- Divider --------------------------------------
-                        const SizedBox(height: 24),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Container(
-                                height: 1,
-                                color: AppColors.divider.withValues(alpha: 0.5),
-                              ),
+                        if (auth.offersSocialSignIn) ...[
+                          const SizedBox(height: 28),
+                          if (!kIsWeb &&
+                              defaultTargetPlatform == TargetPlatform.iOS) ...[
+                            _SocialButton(
+                              label: 'Continue with Apple',
+                              icon: Icons.apple,
+                              onTap: isLoading ? null : _handleAppleSignIn,
                             ),
-                            const Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 16),
-                              child: Text(
-                                'or sign in with email',
-                                style: TextStyle(
-                                  color: AppColors.grey,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
+                            const SizedBox(height: 12),
+                          ],
+                          _SocialButton(
+                            label: 'Continue with Google',
+                            iconWidget: _googleIcon(),
+                            onTap: isLoading ? null : _handleGoogleSignIn,
+                          ),
+
+                          // -- Divider --------------------------------------
+                          const SizedBox(height: 24),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Container(
+                                  height: 1,
+                                  color:
+                                      AppColors.divider.withValues(alpha: 0.5),
                                 ),
                               ),
-                            ),
-                            Expanded(
-                              child: Container(
-                                height: 1,
-                                color: AppColors.divider.withValues(alpha: 0.5),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 16),
+                                child: Text(
+                                  'or sign in with email',
+                                  style: TextStyle(
+                                    color: AppColors.grey,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
+                              Expanded(
+                                child: Container(
+                                  height: 1,
+                                  color:
+                                      AppColors.divider.withValues(alpha: 0.5),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+                        ] else
+                          const SizedBox(height: 28),
 
                         // -- Email field ----------------------------------
                         _buildTextField(

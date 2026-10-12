@@ -29,6 +29,11 @@ class SupabaseAuthGateway implements AuthGateway {
   }) async {
     try {
       final response = await _auth.signUp(email: email, password: password);
+      if (response.session == null) {
+        // The project asks new accounts to confirm their email first.
+        return const AuthResult(
+            error: 'Check your email and tap the link to confirm, then sign in.');
+      }
       return AuthResult(user: response.user, session: response.session);
     } on AuthException catch (e) {
       return AuthResult(error: e.message);
@@ -114,6 +119,9 @@ class SupabaseAuthGateway implements AuthGateway {
   }
 
   // -- Auth state stream --------------------------------------------------
+
+  @override
+  bool get offersSocialSignIn => false; // Needs Google/Apple client IDs.
 
   @override
   Stream<AuthChangeEvent> onAuthStateChange() {

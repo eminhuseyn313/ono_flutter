@@ -71,6 +71,9 @@ class MockAuthGateway implements AuthGateway {
   Stream<AuthChangeEvent> onAuthStateChange() => _controller.stream;
 
   @override
+  bool get offersSocialSignIn => true;
+
+  @override
   User? get currentUser => _user;
 
   @override

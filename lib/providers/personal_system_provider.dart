@@ -12,6 +12,7 @@ import '../data/life_wheel.dart';
 import '../data/plan_packs.dart';
 import '../gateways/personal_system_gateway.dart';
 import '../models/personal_system.dart';
+import '../models/state_merge.dart';
 import '../services/brief_generator.dart';
 import '../services/calendar_service.dart';
 import '../services/health_service.dart';
@@ -68,6 +69,19 @@ class PersonalSystemProvider extends ChangeNotifier {
     _loading = true;
     notifyListeners();
     _state = await _gateway.load(id);
+    if (_gateway.syncsToCloud) {
+      // A new device gets the program before Today decides whether to
+      // show the plan builder; offline it carries on with its own copy.
+      try {
+        final synced = await _gateway
+            .sync(id, _state!)
+            .timeout(const Duration(seconds: 8));
+        if (synced != null) _state = synced;
+      } catch (_) {}
+      _syncTimer?.cancel();
+      _syncTimer =
+          Timer.periodic(const Duration(seconds: 60), (_) => syncNow());
+    }
     _applyProfile();
     _loading = false;
     notifyListeners();
@@ -80,6 +94,44 @@ class PersonalSystemProvider extends ChangeNotifier {
     _gateway.save(_userId, next);
     if (reschedule) _syncReminders();
     _scheduleWidgetPush();
+    _scheduleSync();
+  }
+
+  // ── Sync between devices ─────────────────────────────────────────────
+
+  Timer? _syncTimer;
+  Timer? _syncSoon;
+
+  /// Sync a few seconds after the last change (ticks come in bursts).
+  void _scheduleSync() {
+    if (!_gateway.syncsToCloud) return;
+    _syncSoon?.cancel();
+    _syncSoon = Timer(const Duration(seconds: 3), syncNow);
+  }
+
+  /// Merges this device's state with the cloud copy and takes in what
+  /// other devices changed. Edits made while the request was out are kept.
+  Future<void> syncNow() async {
+    final sent = _state;
+    if (sent == null || !_gateway.syncsToCloud) return;
+    final PersonalSystemState? synced;
+    try {
+      synced = await _gateway.sync(_userId, sent);
+    } catch (_) {
+      return; // Offline: the next change, resume or minute tries again.
+    }
+    final current = _state;
+    if (synced == null || current == null) return;
+    final next = identical(current, sent)
+        ? synced
+        : PersonalSystemState.fromJson(mergeStateJson(
+            sent.toJson(), current.toJson(), synced.toJson()));
+    _state = next;
+    _gateway.save(_userId, next);
+    if (!identical(current, sent)) _scheduleSync();
+    _applyProfile();
+    notifyListeners();
+    _syncReminders();
   }
 
   // ── Home Screen widget ───────────────────────────────────────────────
@@ -120,6 +172,8 @@ class PersonalSystemProvider extends ChangeNotifier {
   @override
   void dispose() {
     _widgetTimer?.cancel();
+    _syncTimer?.cancel();
+    _syncSoon?.cancel();
     super.dispose();
   }
 

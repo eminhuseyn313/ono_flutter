@@ -38,7 +38,7 @@ Services: ReminderService (local notifications), BriefGenerator (weekly brief)
   - reminders, export/import.
   It persists through `PersonalSystemGateway`:
   - `MockPersonalSystemGateway`: SharedPreferences, offline.
-  - `SyncedPersonalSystemGateway`: local-first plus the Supabase `personal_system` table.
+  - `SyncedPersonalSystemGateway`: local-first plus the Supabase `personal_system` table, merged between devices (see Sync).
 - **Auth**: `AuthProvider(gateway:)` with `MockAuthGateway` (persists the email) or `SupabaseAuthGateway`.
 - **Navigation**: GoRouter, `createRouter()` in `lib/router.dart`. `appRoutes` lists every concrete route and is used by the smoke test.
 - **Entry points**: both build `OnoApp` (`lib/app.dart`).
@@ -243,8 +243,15 @@ Flow:
   - `RemoteBriefGenerator` calls Claude via `supabase/functions/weekly-brief` and falls back to the device generator on any error.
 - **Reminders**: `plannedReminders()` builds weekly notifications from `activeReminderDefs` with today's content — `reminderDefs` (the built-in schedule) for the built-in person, `generalReminderDefs` (`lib/data/general_program.dart`: morning check-in 07:30, daily items 12:30, shutdown 21:00, Sunday report 18:00) for anyone else. `LocalReminderService` schedules them (flutter_local_notifications); tapping one opens its route. Web uses `NoopReminderService`.
 
+## Sync between devices
+- `SyncedPersonalSystemGateway` (`lib/gateways/supabase_personal_system_gateway.dart`): saves on the device at once; `sync(userId, state)` merges with the cloud row three ways against the last copy this device agreed on (`personal_system_base_<uid>` + version in prefs) and writes only over the version it merged with (`version` column, retried on a lost race).
+- `mergeStateJson` (`lib/models/state_merge.dart`, `test/state_merge_test.dart`): logs, evidence, reports, briefs and custom cards merge by `id`; done keys and each day's checks as sets; priorities, cues, reminders and card schedules key by key; other fields as single values. A change on one side wins; on a clash this device wins; a deletion survives unless the other side edited the item.
+- The provider syncs on load (8 s timeout, so a new device gets the program before Today decides on the plan builder), 3 s after the last change, every 60 s and on resume (`AppLifecycleListener` in `app.dart`). Edits made while a sync is out are merged in (`syncNow`, `test/providers/sync_test.dart`). Any new state field needs a rule in `mergeStateJson` if a single value is wrong for it.
+- First sign-in on a device that ran the offline build adopts its data (`personal_system_mock-user-001`). A missing row after a sync means Delete everything ran elsewhere: the device starts over too.
+- Sign-up returns "Check your email…" when the project requires confirmation. Google/Apple buttons hide unless `AuthGateway.offersSocialSignIn` (false for Supabase until client IDs exist).
+
 ## Supabase (project `kkgkbfxvovrtmnoezcha`)
-Not deployed from this repo automatically. To turn on sync and the Claude-written brief:
+Live: `personal_system` (+ `version`) with owner-only RLS, legacy functions locked (`20261012121000`), `weekly-brief` deployed. The brief uses the device generator until the `ANTHROPIC_API_KEY` secret is set. To redo it from scratch:
 ```bash
 supabase link --project-ref kkgkbfxvovrtmnoezcha
 supabase db push                                   # creates personal_system + RLS
@@ -273,10 +280,10 @@ flutter run -t lib/main_production.dart
 - The icon is rendered from the Day Dial motif; regenerate every size if it changes.
 
 ### Web (GitHub Pages)
-- `.github/workflows/web.yml` builds `flutter build web --base-href /ono_flutter/` and deploys to https://eminhuseyn313.github.io/ono_flutter/. It is off until the repo variable `ONO_WEB` = `on` (plus Settings → Pages → Source: GitHub Actions); "Run workflow" deploys once.
-- The web app is `main.dart`: data in that browser's local storage (separate from the iPhone; move it with Export/Import), no reminders, Health, calendar or widget.
+- `.github/workflows/web.yml` builds `flutter build web -t lib/main_production.dart --base-href /ono_flutter/` on every push to `main` and deploys to https://eminhuseyn313.github.io/ono_flutter/ (needs a public repo and Settings → Pages → Source: GitHub Actions).
+- The web app and the iPhone (`Install on my iPhone.command` builds `main_production.dart`) sign in to the same Supabase account and share one program (see Sync). No reminders, Health, calendar or widget on the web.
 - `PhoneFrame` (`lib/app.dart`) keeps a 480 px column on wide windows and sets `MediaQuery.size` to it (`test/phone_frame_test.dart`).
-- A Pages site is public even from a private repo, and the bundle contains the built-in profile (`emin_system.dart`).
+- The site and the repo are public: the bundle contains the built-in profile (`emin_system.dart`). Logged data is never in the bundle; it lives on the device and in his RLS-protected row.
 
 ## Not built (needs Xcode / native targets)
 The native parts can't be compiled here:
