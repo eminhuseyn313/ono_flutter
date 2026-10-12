@@ -11,7 +11,12 @@ import 'personal_system_gateway.dart';
 /// production builds. First load seeds the evidence archive with the
 /// "knowledge others don't have" items from the profile.
 class MockPersonalSystemGateway implements PersonalSystemGateway {
-  String _key(String userId) => 'personal_system_$userId';
+  /// Namespaces the stored state (empty in the app; tests use one per
+  /// simulated device).
+  final String prefix;
+  MockPersonalSystemGateway({this.prefix = ''});
+
+  String _key(String userId) => 'personal_system_$prefix$userId';
 
   /// Device-wide program start, readable by other gateways (e.g. the coach
   /// tip rotation) without depending on this one.

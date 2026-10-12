@@ -42,7 +42,7 @@ void main() async {
   final client = Supabase.instance.client;
   runApp(OnoApp(
     authGateway: SupabaseAuthGateway(client),
-    personalGateway: SyncedPersonalSystemGateway(client),
+    personalGateway: SyncedPersonalSystemGateway(SupabaseCloud(client)),
     reminders: kIsWeb ? NoopReminderService() : LocalReminderService(),
     health: createHealthService(),
     widgets: createWidgetSync(),

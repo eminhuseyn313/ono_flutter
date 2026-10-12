@@ -18,21 +18,28 @@ import 'personal_system_gateway.dart';
 /// Writes are conditional on the row's `version`, so two devices syncing at
 /// the same moment can't overwrite each other: the loser merges again.
 class SyncedPersonalSystemGateway implements PersonalSystemGateway {
-  final SupabaseClient _client;
+  final PersonalSystemCloud _cloud;
   final PersonalSystemGateway _local;
 
-  SyncedPersonalSystemGateway(this._client, {PersonalSystemGateway? local})
-      : _local = local ?? MockPersonalSystemGateway();
+  /// Namespaces this device's keys on the device (tests run two devices in
+  /// one process); empty in the app.
+  final String _device;
+
+  SyncedPersonalSystemGateway(this._cloud,
+      {PersonalSystemGateway? local, String device = ''})
+      : _device = device,
+        _local = local ?? MockPersonalSystemGateway(prefix: device);
 
   /// Where the offline build (`main.dart`) kept its data. Adopted once by
   /// the first account that signs in on this device, so switching the
   /// iPhone to the synced build keeps everything.
   static const offlineKey = 'personal_system_mock-user-001';
 
-  String _key(String userId) => 'personal_system_$userId';
-  String _baseKey(String userId) => 'personal_system_base_$userId';
-  String _versionKey(String userId) => 'personal_system_version_$userId';
-  String _generationKey(String userId) => 'personal_system_generation_$userId';
+  String _key(String userId) => 'personal_system_$_device$userId';
+  String _baseKey(String userId) => 'personal_system_base_$_device$userId';
+  String _versionKey(String userId) => 'personal_system_version_$_device$userId';
+  String _generationKey(String userId) =>
+      'personal_system_generation_$_device$userId';
 
   @override
   Future<PersonalSystemState> load(String userId) async {
@@ -80,11 +87,7 @@ class SyncedPersonalSystemGateway implements PersonalSystemGateway {
     final local = _json(state);
 
     for (var attempt = 0; attempt < 4; attempt++) {
-      final row = await _client
-          .from('personal_system')
-          .select('state, version, generation')
-          .eq('user_id', userId)
-          .maybeSingle();
+      final row = await _cloud.fetch(userId);
 
       if (row == null) {
         if (base != null) {
@@ -94,24 +97,16 @@ class SyncedPersonalSystemGateway implements PersonalSystemGateway {
           return _local.load(userId);
         }
         if (!state.commissioned) return null;
-        final String generation;
-        try {
-          final created = await _client
-              .from('personal_system')
-              .insert({'user_id': userId, 'state': local, 'version': 1})
-              .select('generation')
-              .single();
-          generation = '${created['generation']}';
-        } on PostgrestException {
-          continue; // Another device created it first: merge with that.
-        }
+        final generation = await _cloud.insert(userId, local);
+        // Another device created it first: merge with that.
+        if (generation == null) continue;
         await _remember(prefs, userId, local, 1, generation);
         return null;
       }
 
-      final remote = Map<String, dynamic>.from(row['state'] as Map);
-      final version = (row['version'] as num).toInt();
-      final generation = '${row['generation']}';
+      final remote = row.state;
+      final version = row.version;
+      final generation = row.generation;
       if (base != null &&
           baseGeneration != null &&
           baseGeneration != generation) {
@@ -139,17 +134,8 @@ class SyncedPersonalSystemGateway implements PersonalSystemGateway {
           : mergeStateJson(base, local, remote);
       var savedVersion = version;
       if (!jsonEquals(merged, remote)) {
-        final updated = await _client
-            .from('personal_system')
-            .update({
-              'state': merged,
-              'version': version + 1,
-              'updated_at': DateTime.now().toUtc().toIso8601String(),
-            })
-            .eq('user_id', userId)
-            .eq('version', version)
-            .select('version');
-        if ((updated as List).isEmpty) continue; // Lost a race: merge again.
+        final ok = await _cloud.update(userId, merged, expectedVersion: version);
+        if (!ok) continue; // Lost a race: merge again.
         savedVersion = version + 1;
       }
       await _remember(prefs, userId, merged, savedVersion, generation);
@@ -184,8 +170,86 @@ class SyncedPersonalSystemGateway implements PersonalSystemGateway {
   /// Other devices see the row gone on their next sync and start over too.
   @override
   Future<void> erase(String userId) async {
-    await _client.from('personal_system').delete().eq('user_id', userId);
+    await _cloud.delete(userId);
     await _local.erase(userId);
     await _forgetBase(await SharedPreferences.getInstance(), userId);
   }
+}
+
+/// The cloud copy: one row per user holding the whole state, a `version`
+/// bumped on every write and a `generation` new on every insert.
+class CloudRow {
+  final Map<String, dynamic> state;
+  final int version;
+  final String generation;
+  const CloudRow(this.state, this.version, this.generation);
+}
+
+/// Where the synced gateway keeps the cloud copy. [SupabaseCloud] in the
+/// app; an in-memory one in tests.
+abstract class PersonalSystemCloud {
+  Future<CloudRow?> fetch(String userId);
+
+  /// Creates the row at version 1; returns its generation, or null when a
+  /// row already exists.
+  Future<String?> insert(String userId, Map<String, dynamic> state);
+
+  /// Writes [state] only if the row is still at [expectedVersion], bumping
+  /// it; false when another device wrote first.
+  Future<bool> update(String userId, Map<String, dynamic> state,
+      {required int expectedVersion});
+
+  Future<void> delete(String userId);
+}
+
+/// The `personal_system` table (RLS: owner only).
+class SupabaseCloud implements PersonalSystemCloud {
+  final SupabaseClient _client;
+  SupabaseCloud(this._client);
+
+  @override
+  Future<CloudRow?> fetch(String userId) async {
+    final row = await _client
+        .from('personal_system')
+        .select('state, version, generation')
+        .eq('user_id', userId)
+        .maybeSingle();
+    if (row == null) return null;
+    return CloudRow(Map<String, dynamic>.from(row['state'] as Map),
+        (row['version'] as num).toInt(), '${row['generation']}');
+  }
+
+  @override
+  Future<String?> insert(String userId, Map<String, dynamic> state) async {
+    try {
+      final created = await _client
+          .from('personal_system')
+          .insert({'user_id': userId, 'state': state, 'version': 1})
+          .select('generation')
+          .single();
+      return '${created['generation']}';
+    } on PostgrestException {
+      return null;
+    }
+  }
+
+  @override
+  Future<bool> update(String userId, Map<String, dynamic> state,
+      {required int expectedVersion}) async {
+    final updated = await _client
+        .from('personal_system')
+        .update({
+          'state': state,
+          'version': expectedVersion + 1,
+          'updated_at': DateTime.now().toUtc().toIso8601String(),
+        })
+        .eq('user_id', userId)
+        .eq('version', expectedVersion)
+        .select('version');
+    return (updated as List).isNotEmpty;
+  }
+
+  @override
+  Future<void> delete(String userId) =>
+      _client.from('personal_system').delete().eq('user_id', userId);
 }

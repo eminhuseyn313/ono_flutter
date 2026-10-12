@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show IconData, Icons;
@@ -715,7 +716,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   NonNegotiable? addDailyItem(String title,
       {required String lane, required String when, String cue = ''}) {
     if (title.trim().isEmpty || dailyCount >= maxDailyItems) return null;
-    final id = 'd_${_now.microsecondsSinceEpoch}';
+    final id = 'd_${_uid()}';
     addLog('daily_item',
         text: title.trim(), data: {'id': id, 'lane': lane, 'when': when});
     if (cue.trim().isNotEmpty) setCue(id, cue.trim());
@@ -1120,7 +1121,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     final s = _state;
     if (s == null || front.trim().isEmpty || back.trim().isEmpty) return;
     final card = StudyCard(
-        'custom:${_now.microsecondsSinceEpoch}', front.trim(), back.trim(),
+        'custom:${_uid()}', front.trim(), back.trim(),
         source: 'custom');
     _update(s.copyWith(customCards: [...s.customCards, card]));
   }
@@ -1483,10 +1484,16 @@ class PersonalSystemProvider extends ChangeNotifier {
   // ── Logs ─────────────────────────────────────────────────────────────
 
   int _seq = 0;
+  static final _random = Random();
+
+  /// A new id: time, a counter and a random part, so two devices (or a web
+  /// clock with millisecond precision) never hand out the same one.
+  String _uid() =>
+      '${_now.microsecondsSinceEpoch}_${_seq++}_${_random.nextInt(0x7fffffff).toRadixString(36)}';
   LogEntry _entry(String type, DateTime date,
           {String text = '', Map<String, dynamic> data = const {}}) =>
       LogEntry(
-        id: '${type}_${_now.microsecondsSinceEpoch}_${_seq++}',
+        id: '${type}_${_uid()}',
         type: type,
         date: dayOnly(date),
         createdAt: _now,
@@ -1700,7 +1707,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     final s = _state;
     if (s == null || text.trim().isEmpty) return;
     final item = EvidenceItem(
-      id: 'ev_${_now.microsecondsSinceEpoch}',
+      id: 'ev_${_uid()}',
       section: section,
       text: text.trim(),
       createdAt: _now,
@@ -2494,7 +2501,8 @@ class PersonalSystemProvider extends ChangeNotifier {
     for (final d in ideas) {
       if (dailyCount >= maxDailyItems) break;
       if (dailyItems.any((x) => x.title.toLowerCase() == d.title.toLowerCase())) continue;
-      final id = 'd_${_now.microsecondsSinceEpoch}_${added++}';
+      final id = 'd_${_uid()}';
+      added++;
       addLog('daily_item',
           text: d.title, data: {'id': id, 'lane': d.lane, 'when': d.when});
       if (d.cue.trim().isNotEmpty) setCue(id, d.cue, reschedule: false);
@@ -4017,7 +4025,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// Creates or updates one of his own areas; returns it with its id.
   GrowthArea saveCustomArea(GrowthArea area) {
     final a = area.id.isEmpty || !area.id.startsWith('c_')
-        ? area.copyWith(id: 'c_${_now.microsecondsSinceEpoch}', custom: true)
+        ? area.copyWith(id: 'c_${_uid()}', custom: true)
         : area.copyWith(custom: true);
     final existing = _areaLog(a.id);
     if (existing == null) {
