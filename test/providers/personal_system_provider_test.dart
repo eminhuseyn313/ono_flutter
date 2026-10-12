@@ -2460,8 +2460,11 @@ void main() {
 
   test('every plan pack applies: areas, daily items with cues, a goal', () async {
     for (final pack in planPacks) {
-      SharedPreferences.setMockInitialValues({});
-      final p = await _commissioned();
+      // A fresh person per pack, so goals don't pile up past the limit.
+      final p = PersonalSystemProvider(gateway: MockPersonalSystemGateway())
+        ..clock = () => _today;
+      await p.load('pack-${pack.name}');
+      await p.commission(start: _start, gymDays: const [1, 3, 5], reminders: const {});
       final r = p.applyPack(pack, replaceDaily: true, withGoal: true);
       expect(p.dailyItems.length, greaterThanOrEqualTo(PersonalSystemProvider.minDailyItems), reason: pack.name);
       for (final d in pack.daily) {
