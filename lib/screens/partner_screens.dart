@@ -201,7 +201,7 @@ class _CoachReportScreenState extends State<CoachReportScreen> {
     final from = _period == 0
         ? system.monthStart(system.programMonth)
         : system.quarterStart(system.programQuarter);
-    final to = dayOnly(DateTime.now()).add(const Duration(days: 1));
+    final to = dayOnly(DateTime.now()).plusDays(1);
     final text = system.coachReportText(from, to, mornings: _mornings);
     return OnoPage(
       showBack: true,

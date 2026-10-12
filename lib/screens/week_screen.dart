@@ -17,7 +17,7 @@ class WeekScreen extends StatelessWidget {
     final system = context.watch<PersonalSystemProvider>();
     final now = DateTime.now();
     final week = weekStartOf(now);
-    final next = week.add(const Duration(days: 7));
+    final next = week.plusDays(7);
     final planNext = now.weekday >= DateTime.saturday;
     final (done, set) = system.weekOutcomeScore(now);
     return OnoPage(

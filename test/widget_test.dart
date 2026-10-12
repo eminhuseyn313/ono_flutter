@@ -209,7 +209,7 @@ void main() {
           tester.element(find.byType(Navigator).first),
           listen: false);
       await system.commission(
-        start: dayOnly(DateTime.now()).subtract(const Duration(days: 40)),
+        start: dayOnly(DateTime.now()).minusDays(40),
         gymDays: const [1, 3, 5],
         weightKg: 82,
         reminders: const {},
@@ -224,13 +224,13 @@ void main() {
       final today = dayOnly(DateTime.now());
       system.saveCheckin(today,
           energy: 2, mood: -1, sleep: 6, pain: 6, stiffness: 3);
-      system.saveCheckin(today.subtract(const Duration(days: 1)),
+      system.saveCheckin(today.minusDays(1),
           energy: 3, mood: 0, sleep: 7.5, pain: 4, stiffness: 3);
-      system.saveCheckin(today.subtract(const Duration(days: 2)),
+      system.saveCheckin(today.minusDays(2),
           energy: 4, mood: 1, sleep: 8, pain: 2, stiffness: 0);
       // Three weeks of caffeine cut-offs and sleep: Me shows a pattern.
       for (var i = 3; i <= 24; i++) {
-        final d = today.subtract(Duration(days: i));
+        final d = today.minusDays(i);
         if (i.isEven) system.setCheck(d, 'caffeine', true);
         system.saveCheckin(d,
             energy: 3,
@@ -252,7 +252,7 @@ void main() {
             'Draft the PR/FAQ for agent permissions and share it with Rustam',
             'Book the review'
           ]);
-      system.clock = () => DateTime.now().subtract(const Duration(days: 95));
+      system.clock = () => DateTime.now().minusDays(95);
       system.addDecision(
           decision: 'Ship KYC v2 without the video step',
           options: 'Ship now / wait for the vendor fix',
@@ -267,14 +267,14 @@ void main() {
           data: {'book': 'Continuous Discovery Habits', 'chapter': 'Ch. 3'});
       system.addCustomCard('Kaspi QR acceptance?', '95% of merchants');
       for (var i = 1; i <= 30; i++) {
-        system.setCheck(today.subtract(Duration(days: i)), 'bed', true);
+        system.setCheck(today.minusDays(i), 'bed', true);
       }
       system.saveAutomaticity({for (final n in nonNegotiables) n.id: 5});
       await system.connectHealth();
       await system.connectCalendar();
       // A letter that opened today and one sealed until day 540, plus a
       // deep-work block, so Today, /letters and /focus render them.
-      system.clock = () => DateTime.now().subtract(const Duration(days: 30));
+      system.clock = () => DateTime.now().minusDays(30);
       system.writeLetter('Remember why you started: the room at PASHA where '
           'you decided to stop waiting to be noticed.', today);
       system.clock = DateTime.now;
@@ -285,7 +285,7 @@ void main() {
           'Opportunity solution tree for entrepreneur integration reviewed by Ali and Rustam');
       system.setWeekOutcome(today, 1, 'KYC v2 scope signed off');
       system.toggleWeekOutcome(today, 1);
-      system.clock = () => DateTime.now().subtract(const Duration(days: 40));
+      system.clock = () => DateTime.now().minusDays(40);
       system.addPerson('Leyla Aliyeva-Huseynova',
           role: 'Head of Product, Kapital Bank — one role ahead', every: 30);
       system.clock = DateTime.now;
@@ -295,7 +295,7 @@ void main() {
       system.logTouch(system.people.firstWhere((x) => x.id == ali.id), quality: 3);
       // Last month's growth area only: this month /growth shows the chooser
       // and Today the "what are you growing" prompt.
-      system.clock = () => DateTime.now().subtract(const Duration(days: 35));
+      system.clock = () => DateTime.now().minusDays(35);
       system.setFocus('self_trust', startRating: 2);
       system.clock = DateTime.now;
       // One area of his own, so the chooser shows "Your own areas" and the
@@ -315,15 +315,15 @@ void main() {
           obstacle: 'I skip runs when work runs late',
           plan: 'If work runs late, then I run at 6:30 the next morning',
           identity: 'I am someone who trains in any week',
-          deadline: today.add(const Duration(days: 120)),
+          deadline: today.plusDays(120),
           unit: 'min',
           start: 125,
           target: 109)!;
-      system.logGoalValue(run.id, 121, date: today.subtract(const Duration(days: 10)));
+      system.logGoalValue(run.id, 121, date: today.minusDays(10));
       system.logGoalValue(run.id, 118);
       final roleGoal = system.saveGoal(
           title: 'Become ${activeProfile.targetRole}',
-          deadline: today.add(const Duration(days: 270)),
+          deadline: today.plusDays(270),
           milestones: ['Own one area end to end', 'Promotion conversation']);
       // The first Big 3 outcome serves the long-titled running goal.
       system.setWeekOutcomeGoal(today, 0, run.id);
@@ -361,10 +361,10 @@ void main() {
       // Energy ratings: mornings clearly ahead of afternoons.
       for (var i = 0; i < 3; i++) {
         system.addLog('energy',
-            date: DateTime.now().subtract(Duration(days: i + 1)),
+            date: DateTime.now().minusDays(i + 1),
             data: {'level': 5, 'hour': 10});
         system.addLog('energy',
-            date: DateTime.now().subtract(Duration(days: i + 1)),
+            date: DateTime.now().minusDays(i + 1),
             data: {'level': 2, 'hour': 15});
       }
       // Direction tools with long text, so their screens render filled.
@@ -387,7 +387,7 @@ void main() {
           nextHelp: 'Rehearse the first three minutes together on Thursday');
       // Health upkeep: one overdue, one never done.
       system.addUpkeep('Dentist check-up and cleaning', 180,
-          lastDone: DateTime.now().subtract(const Duration(days: 220)));
+          lastDone: DateTime.now().minusDays(220));
       system.addUpkeep('Blood tests', 180);
       // Inner tools with long text: a thought check, a best future, kindness,
       // parked worries with a slot already passed, and life chapters.
@@ -417,10 +417,10 @@ void main() {
       system.logAar(event: 'The quarterly presentation to the whole leadership team',
           sustain: 'The one-page summary', improve: 'Rehearse the Q&A out loud with someone who pushes back');
       // An overdue promise and a story with long text.
-      system.addLog('ask', date: DateTime.now().subtract(const Duration(days: 3)), text: 'Cover the Thursday stand-up while I am at the clinic', data: {'of': 'A colleague', 'guess': 40, 'status': 'asked'});
+      system.addLog('ask', date: DateTime.now().minusDays(3), text: 'Cover the Thursday stand-up while I am at the clinic', data: {'of': 'A colleague', 'guess': 40, 'status': 'asked'});
       system.addAsk(what: 'Thirty minutes to rehearse the board presentation with honest questions', of: 'Aysel Rahimova-Guliyeva', guess: 35);
       system.saveYearReview(DateTime.now().year - 1, answers: {'proud': 'Showing up on the hard mornings'}, word: 'Steady');
-      system.addPromise(what: 'Send the revised pricing proposal with the three options and the risks', to: 'Aysel Rahimova-Guliyeva', by: DateTime.now().subtract(const Duration(days: 2)));
+      system.addPromise(what: 'Send the revised pricing proposal with the three options and the risks', to: 'Aysel Rahimova-Guliyeva', by: DateTime.now().minusDays(2));
       system.saveStory(title: 'Turning around a launch that was two weeks late with a team that had lost faith',
           situation: 'Two weeks late', action: 'Cut scope with the team', result: 'Shipped in nine days',
           skills: ['Delivering under pressure', 'Leading people', 'A hard decision']);
@@ -440,7 +440,7 @@ void main() {
           weekday: DateTime.now().weekday);
       // Sick the day before yesterday: yesterday is the first day back.
       system.setHardDay(
-          dayOnly(DateTime.now()).subtract(const Duration(days: 2)), 'sick');
+          dayOnly(DateTime.now()).minusDays(2), 'sick');
       // One daily item of his own: 11 items, 8 hold the day.
       system.addDailyItem('Ten minutes of Spanish before dinner, with the app',
           lane: 'skill', when: 'evening', cue: 'When I sit down at home → app open');

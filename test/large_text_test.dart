@@ -67,7 +67,7 @@ void main() {
         tester.element(find.byType(Navigator).first),
         listen: false);
     await system.commission(
-      start: dayOnly(DateTime.now()).subtract(const Duration(days: 40)),
+      start: dayOnly(DateTime.now()).minusDays(40),
       gymDays: const [1, 3, 5],
       reminders: const {},
     );
@@ -75,7 +75,7 @@ void main() {
     system.addLog('win', text: 'Shipped the onboarding redesign after three long weeks');
     system.addPromise(what: 'Send the revised proposal with three options', to: 'A colleague');
     system.logThought(situation: 'Review', thought: 'They think I am not ready for this', before: 80, after: 50);
-    system.addLog('ask', date: DateTime.now().subtract(const Duration(days: 3)), text: 'Cover the Thursday stand-up while I am away', data: {'of': 'A colleague', 'guess': 40, 'status': 'asked'});
+    system.addLog('ask', date: DateTime.now().minusDays(3), text: 'Cover the Thursday stand-up while I am away', data: {'of': 'A colleague', 'guess': 40, 'status': 'asked'});
     system.addPerson('A friend with a rather long name', role: 'Friend', every: 14);
 
     for (final r in appRoutes) {

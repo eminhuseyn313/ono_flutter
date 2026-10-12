@@ -25,10 +25,10 @@ class MeScreen extends StatelessWidget {
     }
     final today = dayOnly(DateTime.now());
     final weeks =
-        ((today.difference(weekStartOf(system.programStart)).inDays) ~/ 7 + 1)
+        ((today.daysSince(weekStartOf(system.programStart))) ~/ 7 + 1)
             .clamp(1, 26);
     final heatFrom =
-        weekStartOf(today).subtract(Duration(days: (weeks - 1) * 7));
+        weekStartOf(today).minusDays((weeks - 1) * 7);
     final keyLifts = [
       'Dumbbell Shoulder Press',
       'Lat Pulldown',
@@ -752,8 +752,8 @@ class MeScreen extends StatelessWidget {
                   final picked = await showDatePicker(
                     context: context,
                     initialDate: system.programStart,
-                    firstDate: today.subtract(const Duration(days: 540)),
-                    lastDate: today.add(const Duration(days: 60)),
+                    firstDate: today.minusDays(540),
+                    lastDate: today.plusDays(60),
                   );
                   if (picked != null) system.setProgramStart(picked);
                 },

@@ -98,7 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final today = dayOnly(_now);
     final date =
-        _yesterday ? today.subtract(const Duration(days: 1)) : today;
+        _yesterday ? today.minusDays(1) : today;
     WidgetsBinding.instance
         .addPostFrameCallback((_) => _celebrate(system, date));
 
@@ -175,7 +175,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 12),
                 _RecoveryCard(
                     yesterdayScore: system.scoreFor(
-                        today.subtract(const Duration(days: 1))),
+                        today.minusDays(1)),
                     streak: system.streak),
               ],
               if (!_yesterday && system.isRestDay(today)) ...[
@@ -589,7 +589,7 @@ class _ModeCard extends StatelessWidget {
             route: '/shutdown',
           );
         }
-        final tomorrow = today.add(const Duration(days: 1));
+        final tomorrow = today.plusDays(1);
         return _action(
           context,
           eyebrow: '22:00 · Close the day',

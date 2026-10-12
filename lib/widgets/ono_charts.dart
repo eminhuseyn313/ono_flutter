@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../models/personal_system.dart';
 import '../data/emin_system.dart';
 import '../theme/app_theme.dart';
 
@@ -424,7 +425,7 @@ class HeatGrid extends StatelessWidget {
               children: [
                 for (var d = 0; d < 7; d++) ...[
                   Builder(builder: (_) {
-                    final day = from.add(Duration(days: w * 7 + d));
+                    final day = from.plusDays(w * 7 + d);
                     final future = day.isAfter(today);
                     return Container(
                       width: cell,

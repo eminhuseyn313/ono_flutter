@@ -111,7 +111,7 @@ class _CoachScreenState extends State<CoachScreen> {
             reality: _reality.text,
             options: [for (final o in _options) o.text],
             will: _will.text,
-            by: dayOnly(DateTime.now()).add(Duration(days: _days)),
+            by: dayOnly(DateTime.now()).plusDays(_days),
             commitment: _commitment,
           );
           HapticFeedback.mediumImpact();

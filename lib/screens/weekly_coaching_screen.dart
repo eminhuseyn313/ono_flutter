@@ -51,7 +51,7 @@ class _WeeklyCoachingScreenState extends State<WeeklyCoachingScreen> {
     final system = context.watch<PersonalSystemProvider>();
     final now = DateTime.now();
     final week = weekStartOf(now);
-    final nextWeek = week.add(const Duration(days: 7));
+    final nextWeek = week.plusDays(7);
     final report = system.reportForWeek(now);
     final nextBrief = system.briefForWeek(nextWeek);
     final thisBrief = system.briefForWeek(now);
@@ -285,7 +285,7 @@ class _WeekReview extends StatelessWidget {
     final system = context.watch<PersonalSystemProvider>();
     final o = system.weekOutcomes(week);
     final (done, set) = system.weekOutcomeScore(week);
-    final next = week.add(const Duration(days: 7));
+    final next = week.plusDays(7);
     return OnoCard(
       padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
       child: Column(

@@ -413,7 +413,7 @@ class _GoalEditScreenState extends State<GoalEditScreen> {
 
   DateTime? get _due => _months == null
       ? _deadline
-      : dayOnly(DateTime.now()).add(Duration(days: _months! * 30));
+      : dayOnly(DateTime.now()).plusDays(_months! * 30);
 
   void _save() {
     final system = context.read<PersonalSystemProvider>();

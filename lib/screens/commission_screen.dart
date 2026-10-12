@@ -37,7 +37,7 @@ class _CommissionScreenState extends State<CommissionScreen> {
     super.initState();
     final today = dayOnly(DateTime.now());
     final toMonday = (DateTime.monday - today.weekday) % 7;
-    _start = toMonday == 0 ? today : today.add(Duration(days: toMonday));
+    _start = toMonday == 0 ? today : today.plusDays(toMonday);
   }
 
   @override
@@ -210,9 +210,9 @@ class _CommissionScreenState extends State<CommissionScreen> {
       ('Today', today),
       (
         'Next Monday',
-        today.add(Duration(days: ((DateTime.monday - today.weekday) % 7) == 0
+        today.plusDays(((DateTime.monday - today.weekday) % 7) == 0
             ? 7
-            : (DateTime.monday - today.weekday) % 7))
+            : (DateTime.monday - today.weekday) % 7)
       ),
     ];
     return _page(
@@ -251,14 +251,14 @@ class _CommissionScreenState extends State<CommissionScreen> {
           final picked = await showDatePicker(
             context: context,
             initialDate: _start,
-            firstDate: today.subtract(const Duration(days: 365)),
-            lastDate: today.add(const Duration(days: 60)),
+            firstDate: today.minusDays(365),
+            lastDate: today.plusDays(60),
           );
           if (picked != null) setState(() => _start = dayOnly(picked));
         }),
         const SizedBox(height: 16),
         Text(
-            'Program ends ${shortDate(_start.add(Duration(days: context.read<PersonalSystemProvider>().programDays - 1)))} ${_start.add(Duration(days: context.read<PersonalSystemProvider>().programDays - 1)).year}.',
+            'Program ends ${shortDate(_start.plusDays(context.read<PersonalSystemProvider>().programDays - 1))} ${_start.plusDays(context.read<PersonalSystemProvider>().programDays - 1).year}.',
             style: AppText.small()),
       ],
     );

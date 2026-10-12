@@ -95,7 +95,7 @@ class _Journey extends StatelessWidget {
           scores: [
             for (var d = 0; d < 30; d++)
               () {
-                final day = system.monthStart(m).add(Duration(days: d));
+                final day = system.monthStart(m).plusDays(d);
                 if (day.isAfter(today) || day.isBefore(system.programStart)) {
                   return null;
                 }

@@ -235,7 +235,7 @@ class _LogScreenState extends State<LogScreen> {
   String _dayLabel(DateTime d) {
     final today = dayOnly(DateTime.now());
     if (dateKey(d) == dateKey(today)) return 'TODAY';
-    if (dateKey(d) == dateKey(today.subtract(const Duration(days: 1)))) {
+    if (dateKey(d) == dateKey(today.minusDays(1))) {
       return 'YESTERDAY';
     }
     return '${weekdayName(d.weekday).toUpperCase()} · ${shortDate(d).toUpperCase()}';

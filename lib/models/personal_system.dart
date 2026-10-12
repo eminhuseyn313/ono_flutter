@@ -6,9 +6,26 @@ String dateKey(DateTime d) =>
 
 DateTime dayOnly(DateTime d) => DateTime(d.year, d.month, d.day);
 
+/// Calendar-day arithmetic. `add(Duration(days: n))` and `.inDays` count
+/// 24-hour blocks, which go wrong across a daylight-saving change (a day
+/// of 23 or 25 hours): adding one "day" can land at 23:00 the same date.
+/// These keep the time of day and move the date.
+extension CalendarDays on DateTime {
+  DateTime plusDays(int n) => isUtc
+      ? DateTime.utc(year, month, day + n, hour, minute, second, millisecond, microsecond)
+      : DateTime(year, month, day + n, hour, minute, second, millisecond, microsecond);
+
+  DateTime minusDays(int n) => plusDays(-n);
+
+  /// Whole calendar days from [other]'s date to this date.
+  int daysSince(DateTime other) => DateTime.utc(year, month, day)
+      .difference(DateTime.utc(other.year, other.month, other.day))
+      .inDays;
+}
+
 DateTime weekStartOf(DateTime d) {
   final day = dayOnly(d);
-  return day.subtract(Duration(days: day.weekday - DateTime.monday));
+  return day.minusDays(day.weekday - DateTime.monday);
 }
 
 /// One thing that actually happened: a weigh-in, a gym session, a sigh
@@ -315,7 +332,7 @@ class CardSchedule {
           reps: 0,
           ease: (ease - 0.2).clamp(1.3, 3.0),
           interval: 1,
-          due: today.add(const Duration(days: 1)),
+          due: today.plusDays(1),
           firstSeen: firstSeen);
     }
     final nextReps = reps + 1;
@@ -332,7 +349,7 @@ class CardSchedule {
         reps: nextReps,
         ease: nextEase,
         interval: next,
-        due: today.add(Duration(days: next)),
+        due: today.plusDays(next),
         firstSeen: firstSeen);
   }
 

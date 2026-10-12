@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../models/personal_system.dart';
 import '../data/emin_system.dart';
 import '../data/growth_templates.dart';
 import '../providers/personal_system_provider.dart';
@@ -361,7 +362,7 @@ class _Plan extends StatelessWidget {
               child: Text(
                   'Month ${h.number('month')} · ${system.areaById(h.str('area') ?? '').name} · '
                   '${h.number('start') ?? '–'} → ${h.number('end') ?? '–'} · '
-                  '${system.logsOf('rep').where((r) => r.str('area') == h.str('area') && !r.date.isBefore(h.date) && r.date.isBefore(h.date.add(const Duration(days: 30)))).length} reps',
+                  '${system.logsOf('rep').where((r) => r.str('area') == h.str('area') && !r.date.isBefore(h.date) && r.date.isBefore(h.date.plusDays(30))).length} reps',
                   style: AppText.small(color: AppColors.greyLight)),
             ),
         ],

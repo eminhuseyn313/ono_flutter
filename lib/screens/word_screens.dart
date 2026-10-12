@@ -36,7 +36,7 @@ class _PromisesScreenState extends State<PromisesScreen> {
     system.addPromise(
         what: _what.text,
         to: _to.text,
-        by: DateTime.now().add(Duration(days: _inDays)));
+        by: DateTime.now().plusDays(_inDays));
     _what.clear();
     _to.clear();
     FocusManager.instance.primaryFocus?.unfocus();

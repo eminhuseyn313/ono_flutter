@@ -73,7 +73,7 @@ void _hold(PersonalSystemProvider p, DateTime day, [int n = 7]) {
   }
 }
 
-DateTime _daysAgo(int n) => dayOnly(_today).subtract(Duration(days: n));
+DateTime _daysAgo(int n) => dayOnly(_today).minusDays(n);
 
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
@@ -170,7 +170,7 @@ void main() {
     p.clock = () => DateTime(2026, 10, 5, 8);
     for (var i = 1; i <= 7; i++) {
       for (final n in nonNegotiables.where((n) => n.id != 'bed')) {
-        p.setCheck(DateTime(2026, 10, 5).subtract(Duration(days: i)), n.id,
+        p.setCheck(DateTime(2026, 10, 5).minusDays(i), n.id,
             true);
       }
     }
@@ -237,7 +237,7 @@ void main() {
     final p = await _commissioned(briefs: DeviceBriefGenerator());
     final week = weekStartOf(_today);
     for (var i = 0; i < 3; i++) {
-      p.saveCheckin(week.add(Duration(days: i)),
+      p.saveCheckin(week.plusDays(i),
           energy: 2, mood: 0, sleep: 6, pain: 6, stiffness: 3);
     }
     final brief = await p.submitReport(WeeklyReport(
@@ -342,7 +342,7 @@ void main() {
     expect(brief.coaching, contains('Business ID pricing'));
     expect(brief.tasks, isNotEmpty);
     expect(brief.tasks.length, lessThanOrEqualTo(6));
-    expect(p.briefForWeek(week.add(const Duration(days: 7)))?.id, brief.id);
+    expect(p.briefForWeek(week.plusDays(7))?.id, brief.id);
   });
 
   test('remote brief falls back to the device on error', () async {
@@ -431,7 +431,7 @@ void main() {
     p.gradeCard(first.id, 4);
     expect(p.dueCards(today).length, newCardsPerDay - 1,
         reason: 'one new card already introduced today');
-    expect(p.scheduleOf(first.id)!.due, today.add(const Duration(days: 1)));
+    expect(p.scheduleOf(first.id)!.due, today.plusDays(1));
 
     p.logProtocolUse('feynman',
         text: 'Opportunity solution trees map outcomes to opportunities.',
@@ -469,7 +469,7 @@ void main() {
         why: 'Drop-off at video is 38%',
         expected: 'Completion +15 pp');
     expect(p.dueDecisionReviews(_today), isEmpty);
-    final later = _today.add(const Duration(days: 90));
+    final later = _today.plusDays(90);
     expect(p.dueDecisionReviews(later).length, 1);
     p.reviewDecision(p.dueDecisionReviews(later).first.id,
         outcome: 'Completion +11 pp', verdict: 'mixed');
@@ -551,8 +551,8 @@ void main() {
   test('Apple Health: sync stores sleep, ticks bed by 22:45, writes weight',
       () async {
     final today = dayOnly(_today);
-    final yesterday = today.subtract(const Duration(days: 1));
-    final twoAgo = today.subtract(const Duration(days: 2));
+    final yesterday = today.minusDays(1);
+    final twoAgo = today.minusDays(2);
     final fake = FakeHealthService(nights: {
       // Last night: in bed 22:20 → ticks yesterday's "bed".
       today: NightSleep(
@@ -638,7 +638,7 @@ void main() {
     for (var i = 2; i <= 21; i++) {
       final d = _daysAgo(i);
       if (i.isEven) p.setCheck(d, 'bed', true);
-      p.saveCheckin(d.add(const Duration(days: 1)),
+      p.saveCheckin(d.plusDays(1),
           energy: i.isEven ? 4 : 2, mood: 0, sleep: 7, pain: 0, stiffness: 0);
     }
     final bed = p.patterns().firstWhere((x) => x.id == 'bed_energy');
@@ -658,7 +658,7 @@ void main() {
     for (var i = 2; i <= 21; i++) {
       final d = _daysAgo(i);
       if (i.isEven) p.setCheck(d, 'caffeine', true);
-      p.saveCheckin(d.add(const Duration(days: 1)),
+      p.saveCheckin(d.plusDays(1),
           energy: 3, mood: 0, sleep: i.isEven ? 7.5 : 6, pain: 0, stiffness: 0);
     }
     final brief = await p.submitReport(WeeklyReport(
@@ -727,7 +727,7 @@ void main() {
     expect(await p.connectCalendar(), isNull);
     expect(p.calendarConnected, isTrue);
     expect(p.meetingsFor(_today).length, 5);
-    expect(p.meetingsFor(_today.add(const Duration(days: 1))), isEmpty);
+    expect(p.meetingsFor(_today.plusDays(1)), isEmpty);
     // Focus block has nobody in it; the rest are real.
     expect(p.meetingHours(_today), 0.25 + 0.5 + 0.5 + 1);
     expect(p.lunchReadAtRisk(_today), isTrue);
@@ -782,7 +782,7 @@ void main() {
   test('shutdown: carries unfinished priorities, writes tomorrow, logs', () async {
     final p = await _commissioned();
     final today = dayOnly(_today);
-    final tomorrow = today.add(const Duration(days: 1));
+    final tomorrow = today.plusDays(1);
     p.setPriority(today, 0, 'Pricing memo to Ali');
     p.setPriority(today, 1, 'KYC v2 spec');
     p.togglePriority(today, 0);
@@ -808,19 +808,19 @@ void main() {
     p.logFocus(50, 'skill');
     expect(p.focusMinutesInWeek(_today), 140);
     expect(p.artifactMinutesThisMonth, 90);
-    expect(p.focusMinutesInWeek(_today.subtract(const Duration(days: 7))), 0);
+    expect(p.focusMinutesInWeek(_today.minusDays(7)), 0);
   });
 
   test('letters: sealed until their date, then waiting to be read', () async {
     final p = await _commissioned();
     final day = dayOnly(_today);
-    p.writeLetter('Remember why you started.', day.add(const Duration(days: 30)));
+    p.writeLetter('Remember why you started.', day.plusDays(30));
     p.writeLetter('Day 540.', p.programEnd);
     expect(p.letters.length, 2);
     expect(p.lettersToOpen, isEmpty);
-    expect(p.programEnd, _start.add(const Duration(days: programDays - 1)));
+    expect(p.programEnd, _start.plusDays(programDays - 1));
     expect(p.nextPhaseStart, p.monthStart(3), reason: 'Foundation is 1–2');
-    p.clock = () => _today.add(const Duration(days: 30));
+    p.clock = () => _today.plusDays(30);
     expect(p.lettersToOpen.map((l) => l.text), ['Remember why you started.']);
     p.markLetterRead(p.lettersToOpen.first.id);
     expect(p.lettersToOpen, isEmpty);
@@ -856,9 +856,9 @@ void main() {
         ['OST draft reviewed by Ali', 'KYC v2 scope signed off', '']);
     expect(p.weekOutcomeScore(_today), (1, 2));
     // Any day of the same week reads the same plan; next week is empty.
-    expect(p.weekOutcomeScore(weekStartOf(_today).add(const Duration(days: 6))),
+    expect(p.weekOutcomeScore(weekStartOf(_today).plusDays(6)),
         (1, 2));
-    expect(p.hasWeekPlan(_today.add(const Duration(days: 7))), isFalse);
+    expect(p.hasWeekPlan(_today.plusDays(7)), isFalse);
     p.setWeekOutcome(_today, 1, '');
     expect(p.weekOutcomeDone(_today, 1), isFalse);
     expect(p.logsOf('week_plan').length, 1, reason: 'one entry per week');
@@ -866,7 +866,7 @@ void main() {
 
   test('people: cadence, 1:1s count as contact, overdue order', () async {
     final p = await _commissioned();
-    p.clock = () => _today.subtract(const Duration(days: 20));
+    p.clock = () => _today.minusDays(20);
     final ali = p.addPerson('Ali', role: 'Manager', every: 7);
     final leyla = p.addPerson('Leyla Aliyeva', role: 'Head of Product', every: 30);
     p.clock = () => _today;
@@ -897,7 +897,7 @@ void main() {
     p.setWeekOutcome(_today, 0, 'OST draft');
     p.setWeekOutcome(_today, 1, 'Scope signed');
     p.toggleWeekOutcome(_today, 0);
-    p.clock = () => _today.subtract(const Duration(days: 10));
+    p.clock = () => _today.minusDays(10);
     p.addPerson('Rustam', every: 7);
     p.clock = () => _today;
     final brief = await p.submitReport(WeeklyReport(
@@ -1020,11 +1020,11 @@ void main() {
         reality: 'Ali assigns it piece by piece',
         options: ['Ask directly', 'Write a proposal', ''],
         will: 'Send Ali a one-page ownership proposal',
-        by: dayOnly(_today).add(const Duration(days: 3)),
+        by: dayOnly(_today).plusDays(3),
         commitment: 8);
     expect(c.data['options'], ['Ask directly', 'Write a proposal']);
     expect(p.commitmentsDue(_today), isEmpty);
-    final later = _today.add(const Duration(days: 3));
+    final later = _today.plusDays(3);
     expect(p.commitmentsDue(later).single.id, c.id);
     p.setCommitmentKept(c.id, true);
     expect(p.commitmentsDue(later), isEmpty);
@@ -1114,7 +1114,7 @@ void main() {
       obstacle: 'I skip runs when work runs late',
       plan: 'If work runs late, I run at 6:30 the next morning',
       identity: 'I am someone who trains in any week',
-      deadline: day.add(const Duration(days: 100)),
+      deadline: day.plusDays(100),
       unit: 'min',
       start: 270,
       target: 239,
@@ -1126,10 +1126,10 @@ void main() {
     expect(p.goalProgress(p.goalById(run.id)!), closeTo(0.5, 0.001),
         reason: 'lower is better: 270 → 239, halfway at 254.5');
     // 40 days into 100: 40% expected; 50% done is on track (within 10).
-    p.clock = () => _today.add(const Duration(days: 40));
+    p.clock = () => _today.plusDays(40);
     expect(p.goalExpected(p.goalById(run.id)!), closeTo(0.4, 0.001));
     expect(p.goalPace(p.goalById(run.id)!), 'on track');
-    p.clock = () => _today.add(const Duration(days: 80));
+    p.clock = () => _today.plusDays(80);
     expect(p.goalPace(p.goalById(run.id)!), 'behind');
     expect(p.goalsToMeasure.single.id, run.id, reason: '80 days without a number');
     p.clock = () => _today;
@@ -1184,7 +1184,7 @@ void main() {
     expect(p.noteDue(_today), isFalse, reason: 'nothing to report yet');
     expect(p.progressNoteText(_today, to: 'Ali'), contains('What moved this week'));
     p.saveGoal(title: 'Savings', unit: 'AZN', start: 0, target: 1000,
-        deadline: dayOnly(_today).add(const Duration(days: 100)));
+        deadline: dayOnly(_today).plusDays(100));
     p.setWeekOutcome(_today, 0, 'Ship the OST draft');
     p.toggleWeekOutcome(_today, 0);
     p.addLog('win', text: 'Pricing memo approved');
@@ -1200,7 +1200,7 @@ void main() {
     p.logProgressNote('Ali', text);
     expect(p.noteSentInWeek(_today), isTrue);
     expect(p.noteDue(_today), isFalse);
-    expect(p.noteDue(_today.subtract(const Duration(days: 3))), isFalse,
+    expect(p.noteDue(_today.minusDays(3)), isFalse,
         reason: 'only Friday to Sunday');
   });
 
@@ -1234,11 +1234,11 @@ void main() {
     expect(p.programQuarter, 1);
     expect(p.quarterReviewDue, isFalse);
     // Day 85: inside the last week of quarter 1.
-    p.clock = () => _start.add(const Duration(days: 84, hours: 12));
+    p.clock = () => _start.plusDays(84).add(const Duration(hours: 12));
     expect(p.quarterReviewDue, isTrue);
     expect(p.quarterToReview, 1);
     // Day 93: the first days of quarter 2 still close quarter 1.
-    p.clock = () => _start.add(const Duration(days: 92, hours: 12));
+    p.clock = () => _start.plusDays(92).add(const Duration(hours: 12));
     expect(p.programQuarter, 2);
     expect(p.quarterToReview, 1);
     expect(p.quarterReviewDue, isTrue);
@@ -1345,7 +1345,7 @@ void main() {
     // The brief names a new item it has no built-in advice for.
     for (final n in p.dailyItems.where((n) => n.id != spanish.id)) {
       for (var i = 0; i < 7; i++) {
-        p.setCheck(weekStartOf(_today).add(Duration(days: i)), n.id, true);
+        p.setCheck(weekStartOf(_today).plusDays(i), n.id, true);
       }
     }
     final brief = await p.submitReport(WeeklyReport(
@@ -1398,7 +1398,7 @@ void main() {
     expect(p.learningWith('done').single.str('principle'),
         startsWith('Talk to a customer'));
     expect(p.experimentsToReview, isEmpty, reason: 'give it a week');
-    p.clock = () => _today.add(const Duration(days: 7));
+    p.clock = () => _today.plusDays(7);
     expect(p.experimentsToReview.single.id, book.id);
     p.recordExperimentResult(book.id, 'Both changed the onboarding brief — keep');
     expect(p.experimentsToReview, isEmpty);
@@ -1446,10 +1446,10 @@ void main() {
     expect(p.experimentDay(e), 1);
     expect(p.startExperiment(change: ' ', measure: 'energy'), isNull);
     for (var i = 0; i < 7; i++) {
-      p.saveCheckin(dayOnly(_today).add(Duration(days: i)),
+      p.saveCheckin(dayOnly(_today).plusDays(i),
           energy: 4, mood: 0, sleep: 7, pain: 0, stiffness: 0);
     }
-    p.clock = () => _today.add(const Duration(days: 7));
+    p.clock = () => _today.plusDays(7);
     final c = p.experimentCompare(p.experimentById(e.id)!);
     expect(c.before, 2);
     expect(c.during, 4);
@@ -1475,9 +1475,9 @@ void main() {
     expect(p.streak, 6, reason: 'rest days are neither held nor missed');
     expect(p.isRecoveryDay, isFalse);
     // A lighter week still counts days.
-    final light = p.planRest('light', dayOnly(_today).add(const Duration(days: 7)),
-        dayOnly(_today).add(const Duration(days: 13)))!;
-    expect(p.isRestDay(dayOnly(_today).add(const Duration(days: 8))), isFalse);
+    final light = p.planRest('light', dayOnly(_today).plusDays(7),
+        dayOnly(_today).plusDays(13))!;
+    expect(p.isRestDay(dayOnly(_today).plusDays(8)), isFalse);
     expect(p.restPlannedSoon, isTrue);
     expect(p.planRest('day', dayOnly(_today), _daysAgo(1)), isNull,
         reason: 'end before start');
@@ -1495,7 +1495,7 @@ void main() {
     expect(p.stopHeldInWeek(s.id, _today), isTrue);
     p.setStopHeld(s.id, _today, false);
     expect(p.stopHeldInWeek(s.id, _today), isFalse);
-    expect(p.stopHeldInWeek(s.id, _today.add(const Duration(days: 7))), isNull);
+    expect(p.stopHeldInWeek(s.id, _today.plusDays(7)), isNull);
     p.retireStop(s.id);
     expect(p.stopList, isEmpty);
   });
@@ -1518,7 +1518,7 @@ void main() {
       () async {
     final p = await _commissioned();
     expect(p.roundDue, isFalse, reason: 'day 32 of the quarter');
-    p.clock = () => _start.add(const Duration(days: 50));
+    p.clock = () => _start.plusDays(50);
     expect(p.roundDue, isTrue);
     final r = p.startRound(['Ali', 'Leyla', 'Tural', 'Fourth']);
     expect((r.data['people'] as List).length, 3);
@@ -1685,9 +1685,9 @@ void main() {
     expect(p.setHardDay(_today, 'minimum'), isTrue, reason: 'switching kind gives it back');
     expect(p.passesLeft, 2);
     expect(p.setHardDay(_today, 'pass'), isTrue);
-    expect(p.setHardDay(_today.add(const Duration(days: 1)), 'pass'), isTrue);
-    expect(p.setHardDay(_today.add(const Duration(days: 2)), 'pass'), isFalse);
-    p.setHardDay(_today.add(const Duration(days: 1)), null);
+    expect(p.setHardDay(_today.plusDays(1), 'pass'), isTrue);
+    expect(p.setHardDay(_today.plusDays(2), 'pass'), isFalse);
+    p.setHardDay(_today.plusDays(1), null);
     p.setHardDay(_today, null);
     expect(p.hardDayOn(_today), isNull);
 
@@ -1706,7 +1706,7 @@ void main() {
     final p = await _commissioned(briefs: DeviceBriefGenerator());
     final week = weekStartOf(_today);
     p.setHardDay(week, 'sick');
-    p.setHardDay(week.add(const Duration(days: 1)), 'sick');
+    p.setHardDay(week.plusDays(1), 'sick');
     await p.submitReport(WeeklyReport(
         id: 'r',
         weekStart: week,
@@ -1746,7 +1746,7 @@ void main() {
     p.addLog('note', text: 'very private thought');
     p.addLog('win', text: 'Shipped the review');
     p.setHardDay(_today, 'minimum');
-    final text = p.coachReportText(p.monthStart(p.programMonth), _today.add(const Duration(days: 1)));
+    final text = p.coachReportText(p.monthStart(p.programMonth), _today.plusDays(1));
     expect(text, contains('DAILY PLAN'));
     expect(text, contains('1 minimum day'));
     expect(text, contains('Shipped the review'));
@@ -1768,7 +1768,7 @@ void main() {
     expect(p.pausedDays, 7);
     expect(p.programDay, 25);
     expect(p.programMonth, 1, reason: 'month 2 not reached yet');
-    expect(p.programEnd, end.add(const Duration(days: 7)));
+    expect(p.programEnd, end.plusDays(7));
     expect(p.isPaused(_daysAgo(3)), isTrue);
     expect(p.isPaused(_today), isFalse);
     // Month 2 now starts on program day 31 = 7 days later than before.
@@ -1833,7 +1833,7 @@ void main() {
           hardestMoment: '',
           workSituation: '',
           createdAt: _today),
-      forWeek: weekStartOf(_today).add(const Duration(days: 7)),
+      forWeek: weekStartOf(_today).plusDays(7),
       programMonth: 2,
       programWeek: 5,
       itemRates: const {'sigh': 0.5, 'bed': 0.9},
@@ -1911,7 +1911,7 @@ void main() {
           hardestMoment: '',
           workSituation: '',
           createdAt: _today),
-      forWeek: weekStartOf(_today).add(const Duration(days: 7)),
+      forWeek: weekStartOf(_today).plusDays(7),
       programMonth: 3,
       programWeek: 9,
       itemRates: const {'a': 0.2, 'b': 0.9},
@@ -1941,10 +1941,10 @@ void main() {
         wantMe: 'Reliable delivery',
         facts: 'Three dates missed in May',
         opening: 'I want to talk about the last three deadlines.',
-        by: _today.add(const Duration(days: 1)))!;
+        by: _today.plusDays(1))!;
     expect(p.plannedConversations.length, 1);
     expect(p.conversationsDue(_today), isEmpty);
-    expect(p.conversationsDue(_today.add(const Duration(days: 1))).single.id, c.id);
+    expect(p.conversationsDue(_today.plusDays(1)).single.id, c.id);
     p.saveConversation(id: c.id, withWhom: 'Sam', about: 'Deadlines', ask: 'Flag risks a week early');
     expect(p.conversations.length, 1);
     expect(p.conversationById(c.id)!.str('facts'), '');
@@ -1987,7 +1987,7 @@ void main() {
     final p = await _commissioned();
     expect(p.moneyCheckDue, isFalse);
     p.setDone('money:on', true);
-    p.clock = () => p.monthStart(2).add(const Duration(days: 26));
+    p.clock = () => p.monthStart(2).plusDays(26);
     expect(p.moneyCheckDue, isTrue);
     p.saveMoneyCheck(income: 4000, spent: 3000, savings: 7500, decision: 'Cancel two subscriptions');
     p.saveMoneyCheck(income: 4000, spent: 3200, savings: 8000);
@@ -2002,15 +2002,15 @@ void main() {
 
   test('health upkeep: next due from last done; overdue first', () async {
     final p = await _commissioned();
-    final dentist = p.addUpkeep('Dentist', 180, lastDone: _today.subtract(const Duration(days: 200)))!;
-    final eyes = p.addUpkeep('Eye test', 730, lastDone: _today.subtract(const Duration(days: 30)))!;
+    final dentist = p.addUpkeep('Dentist', 180, lastDone: _today.minusDays(200))!;
+    final eyes = p.addUpkeep('Eye test', 730, lastDone: _today.minusDays(30))!;
     p.addUpkeep('Blood tests', 180);
     expect(p.addUpkeep(' ', 30), isNull);
     expect(p.upkeepDue.map((u) => u.text), ['Blood tests', 'Dentist']);
     p.markUpkeepDone(dentist.id);
     expect(p.upkeepDue.map((u) => u.text), ['Blood tests']);
     expect(dateKey(p.upkeepNextDue(p.upkeep.firstWhere((u) => u.id == eyes.id))!),
-        dateKey(_today.subtract(const Duration(days: 30)).add(const Duration(days: 730))));
+        dateKey(_today.minusDays(30).plusDays(730)));
   });
 
   test('three good things: one win per line, the first with its why', () async {
@@ -2059,7 +2059,7 @@ void main() {
     expect(d.str('options'), 'Yes (0) · No (0)');
     expect(d.str('why'), contains('Growth +'));
     expect(d.str('expected'), startsWith('Premortem:'));
-    expect(p.dueDecisionReviews(_today.add(const Duration(days: 90))).length, 1);
+    expect(p.dueDecisionReviews(_today.plusDays(90)).length, 1);
     p.logStepBack(what: ' ');
     expect(p.logsOf('stepback'), isEmpty);
     p.logStepBack(what: 'Emin is facing a tough review', advice: 'Breathe', mattersInAYear: 1);
@@ -2073,7 +2073,7 @@ void main() {
     expect(p.monthToReview, 1);
     expect(p.monthReviewDue, isTrue);
     _hold(p, p.monthStart(1));
-    p.setHardDay(p.monthStart(1).add(const Duration(days: 1)), 'sick');
+    p.setHardDay(p.monthStart(1).plusDays(1), 'sick');
     final h = p.monthHeld(1);
     expect(h.counted, 29);
     expect(h.held, 1);
@@ -2081,7 +2081,7 @@ void main() {
     p.saveMonthReview(1, carry: 'Keep the morning walk', lesson: 'Smaller is steadier');
     expect(p.monthReviewDue, isFalse);
     expect(p.monthReviewFor(1)!.str('lesson'), 'Smaller is steadier');
-    p.clock = () => p.monthStart(2).add(const Duration(days: 10));
+    p.clock = () => p.monthStart(2).plusDays(10);
     expect(p.monthToReview, isNull);
     p.clock = () => _today;
   });
@@ -2113,7 +2113,7 @@ void main() {
 
     p.logUsCheckin('Aysel', {'appreciate': '', 'hard': ''});
     expect(p.usStreak, 0, reason: 'empty answers are not saved');
-    p.clock = () => _today.subtract(const Duration(days: 7));
+    p.clock = () => _today.minusDays(7);
     p.logUsCheckin('Aysel', {'appreciate': 'The dinner'});
     p.clock = () => _today;
     p.logUsCheckin('Aysel', {'plan': 'A walk on Saturday'});
@@ -2130,7 +2130,7 @@ void main() {
     p.answerQuestion('Listening to Sam, properly');
     expect(p.logsOn(_today, 'note').where((n) => n.str('question') == q.$2).single.text,
         'Listening to Sam, properly');
-    p.clock = () => _today.add(const Duration(days: 1));
+    p.clock = () => _today.plusDays(1);
     expect(p.questionOfTheDay, isNot(q));
     expect(p.questionAnswer, isNull);
     p.clock = () => _today;
@@ -2174,7 +2174,7 @@ void main() {
     expect(p.monthHeld(p.programMonth).counted, 2);
     final l = p.addLearning('Old book')!;
     p.applyLearning(l.id, principle: 'Old idea', experiment: 'x');
-    expect(p.bragText(since: _today.add(const Duration(days: 1))), isNot(contains('Old idea')));
+    expect(p.bragText(since: _today.plusDays(1)), isNot(contains('Old idea')));
     expect(p.bragText(), contains('Old idea'));
   });
 
@@ -2363,7 +2363,7 @@ void main() {
     p.setProgramLength(90);
     expect(p.programMonths, 3);
     expect(p.programQuarters, 1);
-    expect(p.programEnd, _start.add(const Duration(days: 89)));
+    expect(p.programEnd, _start.plusDays(89));
     // Day 32 of 90 is past the first third: Signal.
     expect(p.phase.id, 'signal');
     expect(p.phaseMonthAt(1), 1);
@@ -2372,7 +2372,7 @@ void main() {
     expect(p.monthsOf(p.phaseOfMonth(2)), [2]);
     expect(p.programQuarter, 1);
     expect(p.programComplete, isFalse);
-    p.clock = () => _start.add(const Duration(days: 90, hours: 9));
+    p.clock = () => _start.plusDays(90).add(const Duration(hours: 9));
     expect(p.programComplete, isTrue);
     expect(p.programMonth, 3); // stays on the last month
   });
@@ -2384,11 +2384,11 @@ void main() {
     final area = p.allGrowthAreas.first;
     p.setFocus(area.id, startRating: 2);
     expect(p.focusArea(), isNotNull);
-    _hold(p, _today.subtract(const Duration(days: 1)));
+    _hold(p, _today.minusDays(1));
     p.addLog('win', text: 'Shipped it');
-    final later = _start.add(const Duration(days: 91, hours: 9));
+    final later = _start.plusDays(91).add(const Duration(hours: 9));
     p.clock = () => later;
-    _hold(p, later.subtract(const Duration(days: 1)));
+    _hold(p, later.minusDays(1));
     final streakBefore = p.streak;
     p.startNextProgram(days: 180, changed: 'I ask for help sooner', carry: 'The evening shutdown');
     expect(p.cycle, 2);
@@ -2421,12 +2421,12 @@ void main() {
       () async {
     final p = await _commissioned();
     for (var i = 0; i < 8; i++) {
-      p.setHardDay(_start.add(Duration(days: 3 + i)), 'sick');
+      p.setHardDay(_start.plusDays(3 + i), 'sick');
     }
     expect(p.pausedDays, 8);
     p.startNextProgram();
     expect(p.programDay, 1);
-    expect(p.dateForProgramDay(10), dayOnly(_today).add(const Duration(days: 9)));
+    expect(p.dateForProgramDay(10), dayOnly(_today).plusDays(9));
   });
 
   test('review fixes: worry kept for tomorrow, last month after the end, milestones and pauses per program',
@@ -2445,14 +2445,14 @@ void main() {
 
     p.clock = () => _today;
     p.setProgramLength(90);
-    p.clock = () => _start.add(const Duration(days: 92, hours: 9));
+    p.clock = () => _start.plusDays(92).add(const Duration(hours: 9));
     expect(p.programComplete, isTrue);
     expect(p.monthToReview, 3);
 
     p.setDone('ms_1_0', true);
     expect(p.isDone('ms_1_0'), isTrue);
     for (var i = 0; i < 8; i++) {
-      p.setHardDay(_start.add(Duration(days: 3 + i)), 'sick');
+      p.setHardDay(_start.plusDays(3 + i), 'sick');
     }
     p.startNextProgram();
     expect(p.isDone('ms_1_0'), isFalse); // milestones tick again
@@ -2482,7 +2482,7 @@ void main() {
     final p = await _commissioned();
     expect(p.addPromise(what: ' '), isNull);
     final a = p.addPromise(what: 'Send the draft', to: 'Aysel', by: _today)!;
-    final b = p.addPromise(what: 'Call the bank', by: _today.add(const Duration(days: 3)))!;
+    final b = p.addPromise(what: 'Call the bank', by: _today.plusDays(3))!;
     expect(p.promisesDue(_today).map((x) => x.id), [a.id]);
     p.closePromise(a.id, 'renegotiated');
     expect(p.promisesDue(_today), isEmpty);
@@ -2522,10 +2522,10 @@ void main() {
 
   test('an overdue promise can only be kept late or missed', () async {
     final p = await _commissioned();
-    final late = p.addPromise(what: 'Send the deck', by: _today.subtract(const Duration(days: 2)))!;
+    final late = p.addPromise(what: 'Send the deck', by: _today.minusDays(2))!;
     expect(p.promiseOverdue(late), isTrue);
     expect(p.closePromise(late.id, 'renegotiated'), isFalse);
-    expect(p.openPromises.single.str('by'), dateKey(_today.subtract(const Duration(days: 2))));
+    expect(p.openPromises.single.str('by'), dateKey(_today.minusDays(2)));
     expect(p.closePromise(late.id, 'missed'), isTrue);
     expect(p.openPromises, isEmpty);
   });
@@ -2602,7 +2602,7 @@ void main() {
     p.addAsk(what: 'Lend the drill', guess: 50);
     expect(p.openAsks.length, 3);
     expect(p.asksToClose, isEmpty); // asked today
-    p.clock = () => _today.add(const Duration(days: 2));
+    p.clock = () => _today.plusDays(2);
     expect(p.asksToClose.length, 3);
     final ids = [for (final a in p.openAsks) a.id];
     p.closeAsk(ids[0], 'yes');
@@ -2687,6 +2687,32 @@ void main() {
     expect(a.first, startsWith('From your own last 60 days'));
     expect(a.any((l) => l.startsWith('No Big 3') || l.startsWith('Deep work') || l.startsWith('Overdue')), isTrue);
     expect(brief.headline, endsWith('Your word for the year: Steady.'));
+  });
+
+  test('protein never un-ticks a manual tick; lights out after midnight',
+      () async {
+    final p = await _commissioned();
+    p.setCheck(_today, 'protein', true);
+    p.addProtein(_today, 40);
+    expect(p.isChecked(_today, 'protein'), isTrue);
+
+    p.saveProfile(builtInProfile.copyWith(name: 'Nigar Aliyeva', firstName: 'Nigar'));
+    p.saveDayShape(wake: 420, workStart: 540, workEnd: 1080, bed: 30);
+    final s = p.personalSchedule;
+    final wind = s.firstWhere((b) => b.title == 'Wind down');
+    expect((wind.hour, wind.minute), (23, 30));
+    final shut = p.activeReminderDefs.firstWhere((r) => r.id == 'g_shutdown');
+    expect(shut.hour, 23); // 00:30 − 90 min, not the next morning
+  });
+
+  test('a re-entry day stays a minimum day after the next program starts',
+      () async {
+    final p = await _commissioned();
+    final sick = dayOnly(_today).minusDays(3), back = sick.plusDays(1);
+    p.setHardDay(sick, 'sick');
+    expect(p.isReentryDay(back), isTrue);
+    p.startNextProgram(days: 90);
+    expect(p.isReentryDay(back), isTrue);
   });
 }
 

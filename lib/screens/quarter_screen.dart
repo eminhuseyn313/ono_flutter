@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../models/personal_system.dart';
 import '../data/growth_templates.dart';
 import '../data/life_wheel.dart';
 import '../providers/personal_system_provider.dart';
@@ -66,7 +67,7 @@ class _QuarterScreenState extends State<QuarterScreen> {
   List<(IconData, String, String, String)> _deeper(PersonalSystemProvider system) {
     final odysseyAge = system.odyssey == null
         ? null
-        : DateTime.now().difference(system.odyssey!.date).inDays;
+        : DateTime.now().daysSince(system.odyssey!.date);
     return [
       if (system.roundFor(system.programQuarter) == null)
         (Icons.groups_2_outlined, 'Feedback round', 'One question to three people', '/360'),

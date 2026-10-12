@@ -29,8 +29,8 @@ class _LettersScreenState extends State<LettersScreen> {
     final today = dayOnly(DateTime.now());
     final next = system.nextPhaseStart;
     return [
-      ('In 30 days', today.add(const Duration(days: 30))),
-      ('In 90 days', today.add(const Duration(days: 90))),
+      ('In 30 days', today.plusDays(30)),
+      ('In 90 days', today.plusDays(90)),
       if (next != null && next.isAfter(today))
         ('Next phase · ${shortDate(next)}', next),
       ('Day ${system.programDays} · ${shortDate(system.programEnd)} ${system.programEnd.year}',

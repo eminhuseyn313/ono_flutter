@@ -242,7 +242,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// paused days before it. A paused day shares its number with the next.
   int programDayOf(DateTime date) {
     final d = dayOnly(date);
-    final calendar = d.difference(programStart).inDays + 1;
+    final calendar = d.daysSince(programStart) + 1;
     if (calendar < 1) return calendar;
     _reindex();
     return calendar -
@@ -254,10 +254,10 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// The first calendar date of program day [n], skipping paused days.
   DateTime dateForProgramDay(int n) {
     _reindex();
-    var date = programStart.add(Duration(days: n - 1));
+    var date = programStart.plusDays(n - 1);
     for (final p in _pausedList) {
       if (p.isBefore(programStart)) continue;
-      if (!p.isAfter(date)) date = date.add(const Duration(days: 1));
+      if (!p.isAfter(date)) date = date.plusDays(1);
     }
     return date;
   }
@@ -377,7 +377,7 @@ class PersonalSystemProvider extends ChangeNotifier {
       programSummary() {
     final end = dayOnly(_now);
     var held = 0, counted = 0;
-    for (var d = programStart; d.isBefore(end); d = d.add(const Duration(days: 1))) {
+    for (var d = programStart; d.isBefore(end); d = d.plusDays(1)) {
       if (isExcused(d)) continue;
       counted++;
       if (isHeld(d)) held++;
@@ -414,7 +414,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     final record = _entry('program_cycle', today, text: changed.trim(), data: {
       'number': cycle,
       'start': dateKey(programStart),
-      'end': dateKey(today.subtract(const Duration(days: 1))),
+      'end': dateKey(today.minusDays(1)),
       'days': programDays,
       'held': sum.held,
       'counted': sum.counted,
@@ -466,7 +466,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// Next gym day from [from] (inclusive).
   ({DateTime date, GymDay day}) nextGymDay(DateTime from) {
     for (var i = 0; i < 8; i++) {
-      final d = dayOnly(from).add(Duration(days: i));
+      final d = dayOnly(from).plusDays(i);
       final g = gymDayOn(d);
       if (g != null) return (date: d, day: g);
     }
@@ -652,10 +652,10 @@ class PersonalSystemProvider extends ChangeNotifier {
   bool isReentryDay(DateTime day) {
     final d = dayOnly(day);
     if (isExcused(d)) return false;
-    final prev = d.subtract(const Duration(days: 1));
-    if (prev.isBefore(programStart)) return false;
+    final prev = d.minusDays(1);
+    if (prev.isBefore(dayOnly(journeyStart))) return false;
     if (hardDayOn(prev) == 'sick') return true;
-    return isExcused(prev) && isExcused(prev.subtract(const Duration(days: 1)));
+    return isExcused(prev) && isExcused(prev.minusDays(1));
   }
 
   bool isMinimumDay(DateTime day) =>
@@ -664,7 +664,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// Sick days in a row up to [day].
   int sickDaysInRow(DateTime day) {
     var n = 0;
-    for (var d = dayOnly(day); hardDayOn(d) == 'sick'; d = d.subtract(const Duration(days: 1))) {
+    for (var d = dayOnly(day); hardDayOn(d) == 'sick'; d = d.minusDays(1)) {
       n++;
     }
     return n;
@@ -748,7 +748,7 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   List<DateTime> weekDays(DateTime anyDay) {
     final start = weekStartOf(anyDay);
-    return List.generate(7, (i) => start.add(Duration(days: i)));
+    return List.generate(7, (i) => start.plusDays(i));
   }
 
   /// Average Daily 10 over the days of that week that have passed and fall
@@ -787,7 +787,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     DateTime? grace;
     for (var d = journeyStart;
         !d.isAfter(today);
-        d = d.add(const Duration(days: 1))) {
+        d = d.plusDays(1)) {
       final held = isHeld(d);
       if (held) {
         run++;
@@ -798,7 +798,7 @@ class PersonalSystemProvider extends ChangeNotifier {
         // Today is still open — it can't break anything yet.
       } else if (!prevMiss &&
           run > 0 &&
-          (grace == null || d.difference(grace).inDays >= 7)) {
+          (grace == null || d.daysSince(grace) >= 7)) {
         grace = d;
         prevMiss = true;
       } else {
@@ -819,7 +819,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// Yesterday slipped and today isn't held yet: today decides the streak.
   bool get isRecoveryDay {
     final today = dayOnly(_now);
-    final yesterday = today.subtract(const Duration(days: 1));
+    final yesterday = today.minusDays(1);
     if (yesterday.isBefore(programStart)) return false;
     return !isHeld(yesterday) &&
         !isExcused(yesterday) &&
@@ -835,7 +835,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     var n = 0;
     for (var d = programStart;
         !d.isAfter(dayOnly(_now));
-        d = d.add(const Duration(days: 1))) {
+        d = d.plusDays(1)) {
       if (isHeld(d)) n++;
     }
     return n;
@@ -887,7 +887,7 @@ class PersonalSystemProvider extends ChangeNotifier {
       );
     }
     if (d.weekday == DateTime.monday) {
-      final lastWeek = weekDays(d.subtract(const Duration(days: 7)))
+      final lastWeek = weekDays(d.minusDays(7))
           .where((x) => !x.isBefore(programStart))
           .toList();
       if (lastWeek.length < 3) return null;
@@ -983,7 +983,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   int flagDaysInWeekEnding(DateTime date) {
     var n = 0;
     for (var i = 0; i < 7; i++) {
-      if (shoulderFlag(dayOnly(date).subtract(Duration(days: i)))) n++;
+      if (shoulderFlag(dayOnly(date).minusDays(i))) n++;
     }
     return n;
   }
@@ -992,7 +992,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   List<LogEntry> checkinsEnding(DateTime date, int days) {
     final out = <LogEntry>[];
     for (var i = days - 1; i >= 0; i--) {
-      final c = checkinFor(dayOnly(date).subtract(Duration(days: i)));
+      final c = checkinFor(dayOnly(date).minusDays(i));
       if (c != null) out.add(c);
     }
     return out;
@@ -1191,7 +1191,7 @@ class PersonalSystemProvider extends ChangeNotifier {
       'options': options.trim(),
       'why': why.trim(),
       'expected': expected.trim(),
-      'review_on': dateKey(dayOnly(_now).add(Duration(days: reviewInDays))),
+      'review_on': dateKey(dayOnly(_now).plusDays(reviewInDays)),
     });
   }
 
@@ -1339,7 +1339,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     if ((automaticityRatings[id] ?? 0) < 4) return false;
     final today = dayOnly(_now);
     final days = [
-      for (var i = 1; i <= 30; i++) today.subtract(Duration(days: i))
+      for (var i = 1; i <= 30; i++) today.minusDays(i)
     ].where((d) => !d.isBefore(programStart)).toList();
     if (days.length < 14) return false;
     return (itemRates(days)[id] ?? 0) >= 0.8;
@@ -1391,7 +1391,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     try {
       final today = dayOnly(_now);
       for (var i = 0; i < nights; i++) {
-        final morning = today.subtract(Duration(days: i));
+        final morning = today.minusDays(i);
         final night = await _health.sleepEndingOn(morning);
         if (night != null && night.asleepHours > 0) {
           _upsertDayLog('sleep', morning, {
@@ -1648,7 +1648,8 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   void addProtein(DateTime date, int grams) {
     addLog('protein', date: date, data: {'g': grams});
-    setCheck(date, 'protein', proteinFor(date) >= 150);
+    // Ticks itself at 150 g; never un-ticks one ticked by hand.
+    if (proteinFor(date) >= 150) setCheck(date, 'protein', true);
   }
 
   /// Most recent gym session for that day (A/B/C).
@@ -1746,7 +1747,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     final days = <DateTime>[];
     for (var d = from;
         d.isBefore(to) && !d.isAfter(today);
-        d = d.add(const Duration(days: 1))) {
+        d = d.plusDays(1)) {
       days.add(d);
     }
     final weights = weightSeries
@@ -1825,7 +1826,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     briefError = null;
     notifyListeners();
     try {
-      final forWeek = report.weekStart.add(const Duration(days: 7));
+      final forWeek = report.weekStart.plusDays(7);
       final weekCheckins = [
         for (final d in weekDays(report.weekStart))
           if (checkinFor(d) case final c?) c
@@ -1841,11 +1842,11 @@ class PersonalSystemProvider extends ChangeNotifier {
         itemRates: itemRates(
             weekDays(report.weekStart).where((d) => !d.isAfter(_now)).toList()),
         evidenceAddedThisWeek: evidenceAddedBetween(
-            report.weekStart, report.weekStart.add(const Duration(days: 7))),
+            report.weekStart, report.weekStart.plusDays(7)),
         artifactsThisMonth: countBetween(
             'artifact', monthStart(programMonth), monthStart(programMonth + 1)),
         postsThisWeek: countBetween('linkedin', report.weekStart,
-            report.weekStart.add(const Duration(days: 7))),
+            report.weekStart.plusDays(7)),
         gymDays: isBuiltInPerson ? gymDays : const [],
         builtInPlan: isBuiltInPerson,
         openUnlocks: !isBuiltInPerson
@@ -1896,7 +1897,7 @@ class PersonalSystemProvider extends ChangeNotifier {
         strengthUses: strengthUsesInWeek(report.weekStart),
         boardGaps: boardGaps,
         sayDo: sayDo() == null ? null : '${sayDo()!.kept} of ${sayDo()!.kept + sayDo()!.missed}',
-        promisesOverdue: promisesDue(_now.subtract(const Duration(days: 1))).length,
+        promisesOverdue: promisesDue(_now.minusDays(1)).length,
         thoughtsChecked: thoughtsInWeek(report.weekStart),
         asksThisWeek: asksInWeek(report.weekStart),
         askRecord: askRecord() == null
@@ -1920,11 +1921,11 @@ class PersonalSystemProvider extends ChangeNotifier {
         growthFocus: focusArea()?.name,
         growthDrill: focusArea() == null
             ? null
-            : drillFor(focusArea()!, report.weekStart.add(const Duration(days: 7))).title,
+            : drillFor(focusArea()!, report.weekStart.plusDays(7)).title,
         repsThisWeek: repsInWeek(report.weekStart),
         valueGap: valueGap(report.weekStart),
         openCommitments: [
-          for (final c in commitmentsDue(report.weekStart.add(const Duration(days: 6))))
+          for (final c in commitmentsDue(report.weekStart.plusDays(6)))
             c.str('will') ?? ''
         ],
         feedbackThisMonth: focusArea() == null
@@ -1967,7 +1968,9 @@ class PersonalSystemProvider extends ChangeNotifier {
         switch (r.id) {
           'g_checkin' => at(r, d.wake + 30),
           'g_items' => at(r, midday),
-          'g_shutdown' => at(r, (d.bed - 90).clamp(d.wake + 60, 23 * 60 + 30)),
+          // Lights out after midnight counts as the same night.
+          'g_shutdown' => at(r,
+              ((d.bed < d.wake ? d.bed + 24 * 60 : d.bed) - 90).clamp(d.wake + 60, 23 * 60 + 30)),
           _ => r,
         }
     ];
@@ -2012,6 +2015,8 @@ class PersonalSystemProvider extends ChangeNotifier {
     ScheduleBlock b(int minute, String title, String detail, String lane, IconData icon) =>
         ScheduleBlock((minute ~/ 60) % 24, minute % 60, title, detail, lane, icon);
     final hasWork = d.workStart < d.workEnd;
+    // Lights out after midnight belongs to the same night.
+    final bed = d.bed < d.wake ? d.bed + 24 * 60 : d.bed;
     return [
       b(d.wake, 'Morning', 'Your first items, before the day takes over', 'body',
           Icons.wb_twilight_rounded),
@@ -2022,9 +2027,9 @@ class PersonalSystemProvider extends ChangeNotifier {
       ] else
         b(d.wake + 120, 'Day', 'What matters most first', 'skill',
             Icons.center_focus_strong_rounded),
-      b(d.bed - 60, 'Wind down', 'Tomorrow\'s three, screens off', 'mind',
+      b(bed - 60, 'Wind down', 'Tomorrow\'s three, screens off', 'mind',
           Icons.nights_stay_outlined),
-      b(d.bed, 'Sleep', 'Lights out', 'body', Icons.bedtime_outlined),
+      b(bed, 'Sleep', 'Lights out', 'body', Icons.bedtime_outlined),
     ]..sort((a, c) => a.minuteOfDay.compareTo(c.minuteOfDay));
   }
 
@@ -2127,7 +2132,7 @@ class PersonalSystemProvider extends ChangeNotifier {
       case 'wake':
         return '500ml before coffee, before the phone.';
       case 'winddown':
-        return 'No screens. Tomorrow: ${outfitFor(_now.add(const Duration(days: 1))).occasion}.';
+        return 'No screens. Tomorrow: ${outfitFor(_now.plusDays(1)).occasion}.';
       case 'bed':
         return '${cueFor('bed')}. 7.5 hours protects tomorrow\'s mind.';
       case 'evidence_add':
@@ -2381,7 +2386,7 @@ class PersonalSystemProvider extends ChangeNotifier {
             data: i == 0 && why.trim().isNotEmpty ? {'why': why.trim()} : const {});
       }
     }
-    final next = dayOnly(day).add(const Duration(days: 1));
+    final next = dayOnly(day).plusDays(1);
     for (var i = 0; i < 3; i++) {
       setPriority(next, i, i < tomorrow.length ? tomorrow[i].trim() : '');
     }
@@ -2655,12 +2660,12 @@ class PersonalSystemProvider extends ChangeNotifier {
     bool inRange(LogEntry l) => !l.date.isBefore(from) && l.date.isBefore(to);
     final today = dayOnly(_now);
     final days = <DateTime>[
-      for (var d = from; d.isBefore(to) && !d.isAfter(today); d = d.add(const Duration(days: 1)))
+      for (var d = from; d.isBefore(to) && !d.isAfter(today); d = d.plusDays(1))
         if (!d.isBefore(programStart)) d
     ];
     final p = activeProfile;
     final b = StringBuffer()
-      ..writeln('${p.name} — progress ${dateKey(from)} to ${dateKey(to.subtract(const Duration(days: 1)))}')
+      ..writeln('${p.name} — progress ${dateKey(from)} to ${dateKey(to.minusDays(1))}')
       ..writeln('${p.currentRole} → ${p.targetRole}')
       ..writeln();
     if (activeGoals.isNotEmpty) {
@@ -2774,12 +2779,12 @@ class PersonalSystemProvider extends ChangeNotifier {
   DateTime? upkeepNextDue(LogEntry u) {
     final last = DateTime.tryParse(u.str('last') ?? '');
     if (last == null) return null;
-    return last.add(Duration(days: (u.number('every') ?? 365).toInt()));
+    return last.plusDays((u.number('every') ?? 365).toInt());
   }
 
   /// Due within 14 days, overdue first; never-done items count as due.
   List<LogEntry> get upkeepDue {
-    final horizon = dayOnly(_now).add(const Duration(days: 14));
+    final horizon = dayOnly(_now).plusDays(14);
     final due = [
       for (final u in upkeep)
         if (upkeepNextDue(u) == null || !upkeepNextDue(u)!.isAfter(horizon)) u
@@ -2968,7 +2973,7 @@ class PersonalSystemProvider extends ChangeNotifier {
               data: {'kind': kind, 'minutes': minutes, 'vigorous': vigorous});
 
   List<LogEntry> movesInWeek(DateTime anyDay) {
-    final from = weekStartOf(anyDay), to = from.add(const Duration(days: 7));
+    final from = weekStartOf(anyDay), to = from.plusDays(7);
     return [
       for (final l in logsOf('move'))
         if (!l.date.isBefore(from) && l.date.isBefore(to)) l
@@ -3319,7 +3324,7 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   /// Goals closed in the last 14 days with no reflection yet.
   List<LogEntry> get goalsToReflect {
-    final since = dateKey(dayOnly(_now).subtract(const Duration(days: 14)));
+    final since = dateKey(dayOnly(_now).minusDays(14));
     return [
       for (final g in goals)
         if ((g.str('status') ?? 'active') != 'active' &&
@@ -3400,9 +3405,9 @@ class PersonalSystemProvider extends ChangeNotifier {
     final end = goalDeadline(g);
     if (end == null) return null;
     final from = dayOnly(g.date);
-    final total = end.difference(from).inDays;
+    final total = end.daysSince(from);
     if (total <= 0) return 1;
-    return (dayOnly(_now).difference(from).inDays / total).clamp(0.0, 1.0);
+    return (dayOnly(_now).daysSince(from) / total).clamp(0.0, 1.0);
   }
 
   /// 'ahead', 'on track', 'behind', or null without a deadline. Within 10
@@ -3421,7 +3426,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   int daysSinceGoalUpdate(LogEntry g) {
     final v = goalValues(g.id);
     final last = v.isEmpty ? g.date : v.last.date;
-    return dayOnly(_now).difference(dayOnly(last)).inDays;
+    return dayOnly(_now).daysSince(dayOnly(last));
   }
 
   /// Active numeric goals not measured for 14+ days.
@@ -3448,7 +3453,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// Reported progress beats private monitoring (Harkin et al. 2016).
   String progressNoteText(DateTime anyDay, {String to = '', String ask = ''}) {
     final week = weekStartOf(anyDay);
-    final end = week.add(const Duration(days: 7));
+    final end = week.plusDays(7);
     final b = StringBuffer()
       ..writeln(to.trim().isEmpty ? 'My week' : 'Hi ${to.trim()} — my week:')
       ..writeln();
@@ -3511,7 +3516,7 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   bool noteSentInWeek(DateTime anyDay) {
     final week = weekStartOf(anyDay);
-    return countBetween('progress_note', week, week.add(const Duration(days: 7))) > 0;
+    return countBetween('progress_note', week, week.plusDays(7)) > 0;
   }
 
   /// Friday to Sunday, with something to report and no note sent yet.
@@ -3542,7 +3547,7 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   int setbacksInWeek(DateTime anyDay) {
     final week = weekStartOf(anyDay);
-    return countBetween('setback', week, week.add(const Duration(days: 7)));
+    return countBetween('setback', week, week.plusDays(7));
   }
 
   // ── Learning queue ───────────────────────────────────────────────────
@@ -3609,10 +3614,8 @@ class PersonalSystemProvider extends ChangeNotifier {
         for (final l in learningWith('done'))
           if ((l.str('experiment') ?? '').isNotEmpty &&
               (l.str('result') ?? '').isEmpty &&
-              dayOnly(_now)
-                      .difference(DateTime.tryParse(l.str('finished') ?? '') ??
-                          dayOnly(_now))
-                      .inDays >=
+              dayOnly(_now).daysSince(
+                      DateTime.tryParse(l.str('finished') ?? '') ?? dayOnly(_now)) >=
                   7)
             l
       ];
@@ -3666,7 +3669,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// Rest planned to start in the next 8 weeks (or running now).
   bool get restPlannedSoon {
     final today = dayOnly(_now);
-    final horizon = today.add(const Duration(days: 56));
+    final horizon = today.plusDays(56);
     return restPlans.any((r) {
       final from = DateTime.tryParse(r.str('from') ?? '');
       final to = DateTime.tryParse(r.str('to') ?? '');
@@ -3829,7 +3832,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// From day 45 of a quarter until this quarter's round exists.
   bool get roundDue {
     if (!hasStarted || roundFor(programQuarter) != null) return false;
-    return dayOnly(_now).difference(quarterStart(programQuarter)).inDays >= 45;
+    return dayOnly(_now).daysSince(quarterStart(programQuarter)) >= 45;
   }
 
   // ── Personal experiments ─────────────────────────────────────────────
@@ -3877,7 +3880,7 @@ class PersonalSystemProvider extends ChangeNotifier {
       DateTime.tryParse(e.str('start') ?? '') ?? dayOnly(e.date);
 
   int experimentDay(LogEntry e) =>
-      dayOnly(_now).difference(experimentStart(e)).inDays + 1;
+      dayOnly(_now).daysSince(experimentStart(e)) + 1;
 
   bool experimentEnded(LogEntry e) =>
       experimentDay(e) > (e.number('days') ?? 14).toInt();
@@ -3895,14 +3898,14 @@ class PersonalSystemProvider extends ChangeNotifier {
     final days = (e.number('days') ?? 14).toInt();
     final m = e.str('measure') ?? 'score';
     final today = dayOnly(_now);
-    final ranStop = start.add(Duration(days: days));
+    final ranStop = start.plusDays(days);
     List<double> collect(DateTime from, DateTime to) => [
-          for (var d = from; d.isBefore(to); d = d.add(const Duration(days: 1)))
+          for (var d = from; d.isBefore(to); d = d.plusDays(1))
             if (!d.isBefore(programStart) && !d.isAfter(today) && (m != 'score' || d.isBefore(today)))
               if (_measureOn(m, d) case final v?) v
         ];
-    final before = collect(start.subtract(Duration(days: days)), start);
-    final during = collect(start, ranStop.isAfter(today) ? today.add(const Duration(days: 1)) : ranStop);
+    final before = collect(start.minusDays(days), start);
+    final during = collect(start, ranStop.isAfter(today) ? today.plusDays(1) : ranStop);
     double? avg(List<double> v) =>
         v.isEmpty ? null : v.reduce((a, b) => a + b) / v.length;
     return (
@@ -3948,7 +3951,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// The quarter a review now would close: in the first 7 days of a
   /// quarter that's the previous one; otherwise the current one.
   int get quarterToReview {
-    final day = dayOnly(_now).difference(quarterStart(programQuarter)).inDays;
+    final day = dayOnly(_now).daysSince(quarterStart(programQuarter));
     return day < 7 && programQuarter > 1 ? programQuarter - 1 : programQuarter;
   }
 
@@ -3959,7 +3962,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     final q = quarterToReview;
     if (reviewFor(q) != null) return false;
     final end = quarterStart(q + 1);
-    final left = end.difference(dayOnly(_now)).inDays;
+    final left = end.daysSince(dayOnly(_now));
     return left <= 7 && left > -7;
   }
 
@@ -4186,7 +4189,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     final today = dayOnly(_now);
     var held = 0, counted = 0;
     final hard = <String, int>{};
-    for (var d = from; d.isBefore(to) && !d.isAfter(today); d = d.add(const Duration(days: 1))) {
+    for (var d = from; d.isBefore(to) && !d.isAfter(today); d = d.plusDays(1)) {
       final k = hardDayOn(d);
       if (k != null) hard[k] = (hard[k] ?? 0) + 1;
       if (isExcused(d)) continue;
@@ -4228,14 +4231,14 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   int repsInWeek(DateTime anyDay) {
     final from = weekStartOf(anyDay);
-    return countBetween('rep', from, from.add(const Duration(days: 7)));
+    return countBetween('rep', from, from.plusDays(7));
   }
 
   /// This week's drill: the first not yet practised this month, rotating
   /// by week so each week brings a different one.
   Drill drillFor(GrowthArea area, DateTime day) {
     final done = repsIn(area.id, programMonth).map((r) => r.str('drill')).toSet();
-    final week = dayOnly(day).difference(programStart).inDays ~/ 7;
+    final week = dayOnly(day).daysSince(programStart) ~/ 7;
     final drills = drillsOf(area);
     final n = drills.length;
     if (n == 0) {
@@ -4665,7 +4668,7 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   /// Days since the last contact (or since he was added, if never).
   int daysSinceContact(LogEntry person) =>
-      dayOnly(_now).difference(dayOnly(lastContact(person) ?? person.date)).inDays;
+      dayOnly(_now).daysSince(dayOnly(lastContact(person) ?? person.date));
 
   int cadenceOf(LogEntry person) => (person.number('every') ?? 30).toInt();
 
@@ -4715,7 +4718,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// Every rating of the last 60 days as (hour, level): energy pings and
   /// rated focus blocks.
   List<({int hour, int level})> get energySamples {
-    final from = dayOnly(_now).subtract(const Duration(days: 60));
+    final from = dayOnly(_now).minusDays(60);
     return [
       for (final l in logsOf('energy'))
         if (!l.date.isBefore(from) && l.number('hour') != null && l.number('level') != null)
@@ -4758,7 +4761,7 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   /// Morning check-in energy by weekday (1 = Monday), last 60 days.
   Map<int, double> get energyByWeekday {
-    final from = dayOnly(_now).subtract(const Duration(days: 60));
+    final from = dayOnly(_now).minusDays(60);
     final by = <int, List<num>>{};
     for (final l in logsOf('checkin')) {
       final e = l.number('energy');
@@ -4782,7 +4785,7 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   int focusMinutesInWeek(DateTime anyDay) {
     final start = weekStartOf(anyDay);
-    return focusMinutesBetween(start, start.add(const Duration(days: 7)));
+    return focusMinutesBetween(start, start.plusDays(7));
   }
 
   int get artifactMinutesThisMonth => focusMinutesBetween(
@@ -4846,14 +4849,14 @@ class PersonalSystemProvider extends ChangeNotifier {
   List<DayPattern> _computePatterns({required int days, required int minDays}) {
     final today = dayOnly(_now);
     final from = [
-      today.subtract(Duration(days: days)),
+      today.minusDays(days),
       programStart,
     ].reduce((a, b) => a.isAfter(b) ? a : b);
     final range = [
-      for (var d = from; d.isBefore(today); d = d.add(const Duration(days: 1)))
+      for (var d = from; d.isBefore(today); d = d.plusDays(1))
         d
     ];
-    DateTime next(DateTime d) => d.add(const Duration(days: 1));
+    DateTime next(DateTime d) => d.plusDays(1);
     double? energy(DateTime d) => checkinFor(d)?.number('energy')?.toDouble();
     double? sleep(DateTime d) =>
         sleepHoursFor(d) ?? checkinFor(d)?.number('sleep')?.toDouble();
@@ -5187,10 +5190,10 @@ class PersonalSystemProvider extends ChangeNotifier {
   int get usStreak {
     var n = 0;
     var w = weekStartOf(_now);
-    if (usCheckinFor(w) == null) w = w.subtract(const Duration(days: 7));
+    if (usCheckinFor(w) == null) w = w.minusDays(7);
     while (usCheckinFor(w) != null) {
       n++;
-      w = w.subtract(const Duration(days: 7));
+      w = w.minusDays(7);
     }
     return n;
   }
@@ -5269,7 +5272,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     final today = dayOnly(_now);
     final from = journeyStart.isAfter(first) ? dayOnly(journeyStart) : first;
     var held = 0, counted = 0;
-    for (var d = from; d.isBefore(next) && !d.isAfter(today); d = d.add(const Duration(days: 1))) {
+    for (var d = from; d.isBefore(next) && !d.isAfter(today); d = d.plusDays(1)) {
       if (isExcused(d)) continue;
       if (d == today && !isHeld(d)) continue;
       counted++;
@@ -5343,7 +5346,7 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   /// Asks made two or more days ago with no answer noted.
   List<LogEntry> get asksToClose {
-    final cutoff = dayOnly(_now).subtract(const Duration(days: 2));
+    final cutoff = dayOnly(_now).minusDays(2);
     return [for (final a in openAsks) if (!dayOnly(a.date).isAfter(cutoff)) a];
   }
 
@@ -5356,7 +5359,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// Answered asks in the last [days]: how many, how many got a yes (a
   /// partial yes counts), and the average guess; null until three.
   ({int asked, int yes, int guess})? askRecord({int days = 180}) {
-    final from = dayOnly(_now).subtract(Duration(days: days));
+    final from = dayOnly(_now).minusDays(days);
     var asked = 0, yes = 0, guess = 0;
     for (final a in logsOf('ask')) {
       final st = a.str('status');
@@ -5371,7 +5374,7 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   int asksInWeek(DateTime anyDay) {
     final from = weekStartOf(anyDay);
-    return countBetween('ask', from, from.add(const Duration(days: 7)));
+    return countBetween('ask', from, from.plusDays(7));
   }
 
   // ── Journal export ───────────────────────────────────────────────────
@@ -5468,7 +5471,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// How much a check took the edge off, on average (points of 0–100,
   /// from before to after) over the last 30 days; null under 2 checks.
   double? get thoughtRelief {
-    final from = dayOnly(_now).subtract(const Duration(days: 30));
+    final from = dayOnly(_now).minusDays(30);
     final drops = [
       for (final t in thoughts)
         if (!t.date.isBefore(from) &&
@@ -5482,7 +5485,7 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   int thoughtsInWeek(DateTime anyDay) {
     final week = weekStartOf(anyDay);
-    return countBetween('thought', week, week.add(const Duration(days: 7)));
+    return countBetween('thought', week, week.plusDays(7));
   }
 
   // ── Best possible future (King 2001) ─────────────────────────────────
@@ -5555,7 +5558,7 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   int kindnessInWeek(DateTime anyDay) {
     final week = weekStartOf(anyDay);
-    return countBetween('kindness', week, week.add(const Duration(days: 7)));
+    return countBetween('kindness', week, week.plusDays(7));
   }
 
   /// Today is the kindness day and the five aren't done yet.
@@ -5739,7 +5742,7 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   int strengthUsesInWeek(DateTime anyDay) {
     final week = weekStartOf(anyDay);
-    return countBetween('strength_use', week, week.add(const Duration(days: 7)));
+    return countBetween('strength_use', week, week.plusDays(7));
   }
 
   /// The strength to try in a new way this week, rotating weekly through
@@ -5858,7 +5861,7 @@ class PersonalSystemProvider extends ChangeNotifier {
       if (promiseOverdue(p)) return false;
       updateLog(p.copyWith(data: {
         ...p.data,
-        'by': dateKey(dayOnly(newBy ?? _now.add(const Duration(days: 7)))),
+        'by': dateKey(dayOnly(newBy ?? _now.plusDays(7))),
         'renegotiated': ((p.number('renegotiated') ?? 0) + 1).toInt(),
       }));
       return true;
@@ -5879,7 +5882,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// Kept of closed promises (kept + missed) in the last [days]; null
   /// until three are closed.
   ({int kept, int missed, double ratio})? sayDo({int days = 90}) {
-    final from = dateKey(dayOnly(_now).subtract(Duration(days: days)));
+    final from = dateKey(dayOnly(_now).minusDays(days));
     var kept = 0, missed = 0;
     for (final p in logsOf('promise')) {
       if ((p.str('closed_on') ?? '').compareTo(from) < 0) continue;
@@ -5954,7 +5957,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// into a story, newest first.
   List<LogEntry> get storyIdeas {
     final used = {for (final s in stories) s.str('from')};
-    final from = dayOnly(_now).subtract(const Duration(days: 180));
+    final from = dayOnly(_now).minusDays(180);
     return [
       for (final l in allLogs({'win', 'aar'}))
         if (!l.date.isBefore(from) && !used.contains(l.id)) l

@@ -62,6 +62,7 @@ Services: ReminderService (local notifications), BriefGenerator (weekly brief)
 - **No `\$` escaping in strings.** Use `'text $variable'`.
 - **No chart packages.** All charts are `CustomPaint` (`lib/widgets/ono_charts.dart`).
 - Dates: use `dateKey`, `dayOnly`, `weekStartOf` from `lib/models/personal_system.dart`. A program month is a 30-day block from `programStart`.
+- **Calendar days: `d.plusDays(n)`, `d.minusDays(n)`, `a.daysSince(b)`** (`CalendarDays` extension), never `add(Duration(days: n))` or `.difference().inDays` — those count 24-hour blocks and break across daylight saving. `test/dst_test.dart` checks it; run it with `TZ=Europe/Berlin` too.
 - Logs sort by the day they are for, then entry order (`logsOf` is newest first; `weightSeries` is oldest first).
 - Every new screen must fit iPhone SE (375×667) with the real fonts. The smoke test fails on overflow.
 - Every route a piece of content points to (`NonNegotiable.route`, `ReminderDef.route`, `Unlock.route`) must exist. The smoke test resolves each one.

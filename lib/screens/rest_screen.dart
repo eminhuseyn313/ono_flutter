@@ -33,7 +33,7 @@ class _RestScreenState extends State<RestScreen> {
       context: context,
       initialDate: (from ? _from : _to) ?? _from ?? today,
       firstDate: today,
-      lastDate: today.add(const Duration(days: 365)),
+      lastDate: today.plusDays(365),
     );
     if (picked == null || !mounted) return;
     setState(() {
@@ -62,7 +62,7 @@ class _RestScreenState extends State<RestScreen> {
       for (final r in system.restPlans)
         if (!(DateTime.tryParse(r.str('to') ?? '') ?? today).isBefore(today)) r
     ];
-    final nextSat = today.add(Duration(days: (DateTime.saturday - today.weekday) % 7));
+    final nextSat = today.plusDays((DateTime.saturday - today.weekday) % 7);
     return OnoPage(
       showBack: true,
       eyebrow: 'Body & mind · recovery',
@@ -115,7 +115,7 @@ class _RestScreenState extends State<RestScreen> {
                 onSelected: (_) => setState(() {
                   _kind = k.key;
                   if (k.key == 'light' && _from != null) {
-                    _to = _from!.add(const Duration(days: 6));
+                    _to = _from!.plusDays(6);
                   }
                 }),
               ),
@@ -130,7 +130,7 @@ class _RestScreenState extends State<RestScreen> {
               label: Text('This Saturday · ${shortDate(nextSat)}'),
               onPressed: () => setState(() {
                 _from = nextSat;
-                _to = _kind == 'light' ? nextSat.add(const Duration(days: 6)) : nextSat;
+                _to = _kind == 'light' ? nextSat.plusDays(6) : nextSat;
               }),
             ),
             ActionChip(

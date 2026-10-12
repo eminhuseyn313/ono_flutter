@@ -37,7 +37,7 @@ class _HabitsScreenState extends State<HabitsScreen> {
     final system = context.watch<PersonalSystemProvider>();
     final today = dayOnly(DateTime.now());
     final days = [
-      for (var i = 1; i <= 30; i++) today.subtract(Duration(days: i))
+      for (var i = 1; i <= 30; i++) today.minusDays(i)
     ].where((d) => !d.isBefore(system.programStart)).toList();
     final rates = system.itemRates(days);
     return OnoPage(

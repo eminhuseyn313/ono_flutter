@@ -968,7 +968,7 @@ class _AnkiTool extends StatelessWidget {
         .where((e) => e.str('kind') == 'new' && !e.date.isBefore(week))
         .fold<int>(0, (s, e) => s + (e.number('count')?.toInt() ?? 0));
     var reviewDays = 0;
-    for (var d = today;; d = d.subtract(const Duration(days: 1))) {
+    for (var d = today;; d = d.minusDays(1)) {
       final hit = system
           .logsOn(d, 'anki')
           .any((e) => e.str('kind') == 'review');

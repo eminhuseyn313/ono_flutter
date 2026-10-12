@@ -46,7 +46,7 @@ Future<PersonalSystemProvider> _start(WidgetTester tester,
       tester.element(find.byType(Navigator).first),
       listen: false);
   await system.commission(
-    start: dayOnly(DateTime.now()).subtract(const Duration(days: 10)),
+    start: dayOnly(DateTime.now()).minusDays(10),
     gymDays: const [1, 3, 5],
     reminders: const {},
   );

@@ -29,7 +29,7 @@ class _UpkeepScreenState extends State<UpkeepScreen> {
   String _due(PersonalSystemProvider system, LogEntry u) {
     final next = system.upkeepNextDue(u);
     if (next == null) return 'Not done yet';
-    final days = next.difference(dayOnly(DateTime.now())).inDays;
+    final days = next.daysSince(dayOnly(DateTime.now()));
     if (days < 0) return 'Overdue by ${-days} d';
     if (days == 0) return 'Due today';
     return days < 60 ? 'Due in $days d' : 'Next ${shortDate(next)}';

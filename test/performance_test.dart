@@ -25,14 +25,14 @@ import 'support/fake_health.dart';
 /// must stay quick with it.
 PersonalSystemState _history(DateTime today) {
   final rnd = Random(7);
-  final start = today.subtract(const Duration(days: 500));
+  final start = today.minusDays(500);
   final checks = <String, List<String>>{};
   final logs = <LogEntry>[];
   var n = 0;
   LogEntry log(String type, DateTime d, {String text = '', Map<String, dynamic> data = const {}}) =>
       LogEntry(id: '${type}_h${n++}', type: type, date: d, createdAt: d, text: text, data: data);
   for (var i = 0; i < 500; i++) {
-    final d = start.add(Duration(days: i));
+    final d = start.plusDays(i);
     checks[dateKey(d)] = [
       for (final item in nonNegotiables)
         if (rnd.nextDouble() < 0.72) item.id
@@ -82,7 +82,7 @@ void main() {
       'streak': ms(() => p.streak),
       'score today': ms(() => p.scoreFor(today)),
       'patterns': ms(() => p.patterns()),
-      'item rates': ms(() => p.itemRates([for (var i = 0; i < 60; i++) today.subtract(Duration(days: i))])),
+      'item rates': ms(() => p.itemRates([for (var i = 0; i < 60; i++) today.minusDays(i)])),
       'journal': ms(() => p.journalText()),
       'say-do': ms(() => p.sayDo()),
       'program summary': ms(() => p.programSummary()),

@@ -148,7 +148,7 @@ class _ConversationEditScreenState extends State<ConversationEditScreen> {
                 ask: _c['ask']!.text,
                 by: _byDays == null
                     ? (existing == null ? null : DateTime.tryParse(existing.str('by') ?? ''))
-                    : dayOnly(DateTime.now()).add(Duration(days: _byDays!)),
+                    : dayOnly(DateTime.now()).plusDays(_byDays!),
               );
               if (saved == null) {
                 toast(context, 'Name who it\'s with.');

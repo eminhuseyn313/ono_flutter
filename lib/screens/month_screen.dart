@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../models/personal_system.dart';
 import '../data/emin_system.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
@@ -45,7 +46,7 @@ class _MonthScreenState extends State<MonthScreen> {
     }
     final milestone = careerMilestones.where((c) => c.month == m).firstOrNull;
     final start = system.monthStart(m);
-    final end = system.monthStart(m + 1).subtract(const Duration(days: 1));
+    final end = system.monthStart(m + 1).minusDays(1);
     final artifacts = system
         .logsOf('artifact')
         .where((a) => system.atMonth(a, m))
