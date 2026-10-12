@@ -22,8 +22,8 @@
 | Mechanism | Effect | ONO today |
 |---|---|---|
 | Implementation intentions (if–then plans) | d = 0.65 across 94 tests (Gollwitzer & Sheeran 2006) | ✓ cues on Daily items, the GROW "will" |
-| Monitoring progress | d = 0.40 across 138 RCTs; stronger when **physically recorded** and **reported to someone** (Harkin et al. 2016) | ✓ recorded; ✗ never reported to another person |
-| Mental contrasting (WOOP) | g ≈ 0.28 at 4 weeks, rising to 0.38 at 3 months (Cross & Sheffield 2019) | ✗ |
+| Monitoring progress | d = 0.40 across 138 RCTs; stronger when **physically recorded** and **reported to someone** (Harkin et al. 2016) | ✓ recorded; ✓ reported — progress note, partner check-in, coach report |
+| Mental contrasting (WOOP) | g ≈ 0.28 at 4 weeks, rising to 0.38 at 3 months (Cross & Sheffield 2019) | ✓ goals: wish, outcome, obstacle, plan |
 | Coaching | g = 0.43–0.74, smaller in controlled designs (Theeboom et al. 2014) | ✓ self-coaching (GROW), weekly brief |
 | Deliberate practice with feedback | the core of expertise (Ericsson 1993) | ✓ growth plan: drills, reps, feedback |
 | Forgiving streaks | missing one day doesn't break habit formation (Lally 2010) | ✓ "never miss twice" |
@@ -38,6 +38,8 @@ ONO has **daily** practice (Daily 10), **weekly** outcomes (Big 3) and **monthly
 - a new user (an athlete or a CEO) has nowhere to state what they're working towards.
 
 ## 4. Recommended roadmap
+
+**Status (12 Oct 2026):** steps 1–6 are built, as are the "Suggested order" items in section 5 except F5 languages (paused by Emin). Coach mode and partners work offline (copy and paste); sharing through the cloud waits for the Supabase deploy.
 
 Each step is useful to Emin now and becomes part of the general product.
 

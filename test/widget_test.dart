@@ -325,6 +325,8 @@ void main() {
           title: 'Become ${activeProfile.targetRole}',
           deadline: today.add(const Duration(days: 270)),
           milestones: ['Own one area end to end', 'Promotion conversation']);
+      // The first Big 3 outcome serves the long-titled running goal.
+      system.setWeekOutcomeGoal(today, 0, run.id);
       // Learning in every state: next, now, applied with an open experiment.
       system.addLearning('Thinking in Bets — making better decisions when you don\'t have all the facts',
           by: 'Annie Duke');

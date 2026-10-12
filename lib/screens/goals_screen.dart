@@ -127,6 +127,16 @@ class GoalTile extends StatelessWidget {
           Text(
               '$detail${deadline == null ? '' : ' · by ${shortDate(deadline)} ${deadline.year}'}',
               style: AppText.small()),
+          if (compact && system.goalNextStep(goal) != null) ...[
+            const SizedBox(height: 4),
+            Text('Next: ${system.goalNextStep(goal)}',
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: AppText.small(color: AppColors.white)),
+          ],
+          if (compact && system.weekOutcomesFor(goal.id, DateTime.now()) > 0)
+            Text('${system.weekOutcomesFor(goal.id, DateTime.now())} of this week\'s three serve it',
+                style: AppText.small(color: AppColors.accent)),
         ],
       ),
     );

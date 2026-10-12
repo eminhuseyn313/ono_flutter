@@ -2196,4 +2196,23 @@ void main() {
     p.resetProfile();
     expect(p.activeReminderDefs, same(reminderDefs));
   });
+
+  test('Big 3 outcomes serve goals; a goal shows its next step', () async {
+    final p = await _commissioned();
+    final g = p.saveGoal(title: 'Promoted', plan: 'When I doubt, I ship one small thing')!;
+    expect(p.goalNextStep(g), 'When I doubt, I ship one small thing');
+    p.setWeekOutcome(_today, 0, 'Strategy draft reviewed');
+    p.setWeekOutcomeGoal(_today, 0, g.id);
+    p.setWeekOutcome(_today, 1, 'Run 3 times');
+    expect(p.weekOutcomeGoal(_today, 0), g.id, reason: 'tags survive editing other outcomes');
+    expect(p.weekOutcomesFor(g.id, _today), 1);
+    expect(p.goalNextStep(g), 'Strategy draft reviewed');
+    p.toggleWeekOutcome(_today, 0);
+    expect(p.weekOutcomeGoal(_today, 0), g.id, reason: 'tags survive ticking');
+    expect(p.goalNextStep(g), 'When I doubt, I ship one small thing');
+    final m = p.saveGoal(title: 'Book', milestones: ['Outline', 'Draft'])!;
+    expect(p.goalNextStep(m), 'Outline');
+    p.setWeekOutcomeGoal(_today, 0, null);
+    expect(p.weekOutcomesFor(g.id, _today), 0);
+  });
 }

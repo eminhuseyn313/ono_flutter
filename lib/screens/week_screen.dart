@@ -74,7 +74,7 @@ class _OutcomesState extends State<_Outcomes> {
       padding: const EdgeInsets.fromLTRB(12, 6, 16, 6),
       child: Column(
         children: [
-          for (var i = 0; i < 3; i++)
+          for (var i = 0; i < 3; i++) ...[
             Row(
               children: [
                 if (widget.tickable)
@@ -125,6 +125,29 @@ class _OutcomesState extends State<_Outcomes> {
                 ),
               ],
             ),
+            if (_c[i].text.trim().isNotEmpty && system.activeGoals.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(left: 40, bottom: 6),
+                child: Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  children: [
+                    for (final g in system.activeGoals)
+                      ChoiceChip(
+                        visualDensity: VisualDensity.compact,
+                        label: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 200),
+                          child: Text(g.text, overflow: TextOverflow.ellipsis),
+                        ),
+                        selected: system.weekOutcomeGoal(widget.week, i) == g.id,
+                        showCheckmark: false,
+                        onSelected: (on) =>
+                            system.setWeekOutcomeGoal(widget.week, i, on ? g.id : null),
+                      ),
+                  ],
+                ),
+              ),
+          ],
         ],
       ),
     );

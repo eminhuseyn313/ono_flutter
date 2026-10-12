@@ -1598,7 +1598,7 @@ class PersonalSystemProvider extends ChangeNotifier {
         weekOutcomes: [
           for (var i = 0; i < 3; i++)
             if (weekOutcomes(report.weekStart)[i].trim().isNotEmpty)
-              '${weekOutcomeDone(report.weekStart, i) ? '[done]' : '[open]'} ${weekOutcomes(report.weekStart)[i].trim()}'
+              '${weekOutcomeDone(report.weekStart, i) ? '[done]' : '[open]'} ${weekOutcomes(report.weekStart)[i].trim()}${weekOutcomeGoal(report.weekStart, i) == null ? '' : ' (for: ${goalById(weekOutcomeGoal(report.weekStart, i)!)!.text})'}'
         ],
         peopleOverdue: [for (final p in peopleDue.take(3)) p.text],
         goals: goalSummaries(),
@@ -4182,8 +4182,48 @@ class PersonalSystemProvider extends ChangeNotifier {
       weekOutcomes(anyDay).any((o) => o.trim().isNotEmpty);
 
   void _saveWeekPlan(DateTime anyDay, List<String> outcomes, List<int> done) =>
-      _upsertDayLog('week_plan', weekStartOf(anyDay),
-          {'outcomes': outcomes, 'done': done..sort()});
+      _upsertDayLog('week_plan', weekStartOf(anyDay), {
+        'outcomes': outcomes,
+        'done': done..sort(),
+        'goals': [for (var i = 0; i < 3; i++) weekOutcomeGoal(anyDay, i) ?? ''],
+      });
+
+  /// The goal a week outcome serves, if tagged.
+  String? weekOutcomeGoal(DateTime anyDay, int i) {
+    final raw = (_weekPlan(anyDay)?.data['goals'] as List?) ?? const [];
+    final id = i < raw.length ? '${raw[i]}' : '';
+    return id.isEmpty || goalById(id) == null ? null : id;
+  }
+
+  /// Tags outcome [i] with the goal it serves (null clears).
+  void setWeekOutcomeGoal(DateTime anyDay, int i, String? goalId) {
+    final goals = [for (var j = 0; j < 3; j++) weekOutcomeGoal(anyDay, j) ?? '']..[i] = goalId ?? '';
+    _upsertDayLog('week_plan', weekStartOf(anyDay), {
+      'outcomes': weekOutcomes(anyDay),
+      'done': [for (var j = 0; j < 3; j++) if (weekOutcomeDone(anyDay, j)) j],
+      'goals': goals,
+    });
+  }
+
+  /// This week's outcomes that serve [goalId].
+  int weekOutcomesFor(String goalId, DateTime anyDay) =>
+      [for (var i = 0; i < 3; i++) if (weekOutcomeGoal(anyDay, i) == goalId && weekOutcomes(anyDay)[i].trim().isNotEmpty) i].length;
+
+  /// The goal's next step: the first open milestone, else a Big 3 outcome
+  /// serving it this week, else its if-then plan.
+  String? goalNextStep(LogEntry goal) {
+    final m = milestonesOf(goal).where((m) => !m.done).firstOrNull;
+    if (m != null) return m.text;
+    final today = dayOnly(_now);
+    for (var i = 0; i < 3; i++) {
+      if (weekOutcomeGoal(today, i) == goal.id && !weekOutcomeDone(today, i)) {
+        final o = weekOutcomes(today)[i].trim();
+        if (o.isNotEmpty) return o;
+      }
+    }
+    final plan = (goal.str('plan') ?? '').trim();
+    return plan.isEmpty ? null : plan;
+  }
 
   void setWeekOutcome(DateTime anyDay, int i, String text) {
     final o = weekOutcomes(anyDay)..[i] = text;
