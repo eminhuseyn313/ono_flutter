@@ -142,6 +142,12 @@ All five are private: the coach gets only how many thoughts were checked and kin
 
 Emin's answers (12 Oct 2026): at the end, a closing review and a new program that keeps all history; anyone can choose 90 days, 6, 12 or 18 months, with the four phases scaled. Built.
 
+### K. Sixth pass: your word and your stories (12 Oct 2026)
+| # | Feature | For Emin now | For anyone | Evidence | Status |
+|---|---|---|---|---|---|
+| K1 | **Promises** (kept / renegotiated in time / missed; say–do record) | Stakeholder trust as a product leader | Parents, partners, team members | Behavioural integrity: Simons 2002; Palanski & Yammarino 2011 | ✅ |
+| K2 | **Story bank** (situation, task, action, result; tagged by skill; gaps) | The Head of Product case and interviews | Anyone facing an interview, review or promotion | Behavioural interviews reward prepared, concrete examples (Maurer, Solamon & Troxtel 1998; Maurer et al. 2001) | ✅ |
+
 ### E. Relationships
 | # | Feature | For Emin now | For anyone | Evidence | Effort |
 |---|---|---|---|---|---|

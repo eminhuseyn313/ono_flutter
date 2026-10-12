@@ -1175,6 +1175,10 @@ class _PromptsState extends State<_Prompts> {
         _row(context, Icons.forum_outlined, AppColors.social,
             'The conversation with ${c.str('with')}',
             'Have it today, or debrief it if it happened', '/conversations'),
+      if (system.promisesDue(now).firstOrNull case final p?)
+        _row(context, Icons.handshake_outlined, AppColors.social,
+            'A promise is due${(p.str('to') ?? '').isEmpty ? '' : ' · ${p.str('to')}'}',
+            '${p.text} — keep it, or say a new date now', '/promises'),
       if (system.worryTimeDue(now))
         _row(context, Icons.local_parking_rounded, AppColors.mind, 'Worry time',
             '${system.worriesDue(now).length} parked — a next step or let go', '/worry'),

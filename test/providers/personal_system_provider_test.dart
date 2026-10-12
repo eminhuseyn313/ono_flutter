@@ -2475,5 +2475,48 @@ void main() {
       expect(PlanPack.fromText(pack.toText())!.daily.length, pack.daily.length);
     }
   });
+
+  test('promises: due, renegotiated, kept or missed; say-do after three',
+      () async {
+    final p = await _commissioned();
+    expect(p.addPromise(what: ' '), isNull);
+    final a = p.addPromise(what: 'Send the draft', to: 'Aysel', by: _today)!;
+    final b = p.addPromise(what: 'Call the bank', by: _today.add(const Duration(days: 3)))!;
+    expect(p.promisesDue(_today).map((x) => x.id), [a.id]);
+    p.closePromise(a.id, 'renegotiated');
+    expect(p.promisesDue(_today), isEmpty);
+    expect(p.openPromises.length, 2);
+    p.closePromise(a.id, 'kept');
+    p.closePromise(b.id, 'missed');
+    expect(p.sayDo(), isNull); // under three closed
+    final c = p.addPromise(what: 'Pick up the kids at six')!;
+    p.closePromise(c.id, 'kept');
+    final r = p.sayDo()!;
+    expect((r.kept, r.missed), (2, 1));
+    expect(p.openPromises, isEmpty);
+  });
+
+  test('story bank: STAR stories, skill gaps, ideas from wins and reviews',
+      () async {
+    final p = await _commissioned();
+    final win = p.addLog('win', text: 'Shipped the onboarding redesign')!;
+    p.logAar(event: 'Board presentation', improve: 'Rehearse Q&A');
+    expect(p.storyIdeas.map((l) => l.text), containsAll(['Shipped the onboarding redesign', 'Board presentation']));
+    expect(p.saveStory(title: ' '), isNull);
+    final s = p.saveStory(
+        title: 'Turning around the late launch',
+        situation: 'Two weeks late',
+        action: 'Cut scope with the team',
+        result: 'Shipped in 9 days',
+        skills: ['Delivering under pressure', 'Nonsense'],
+        from: win.id)!;
+    expect(p.skillsOf(s), ['Delivering under pressure']);
+    expect(p.storyIdeas.map((l) => l.text), isNot(contains('Shipped the onboarding redesign')));
+    expect(p.storyGaps, isNot(contains('Delivering under pressure')));
+    p.saveStory(id: s.id, title: 'Turning around the late launch', result: 'Shipped in 8 days', skills: ['Ownership']);
+    expect(p.stories.length, 1);
+    expect(p.storiesText(), contains('Result: Shipped in 8 days'));
+    expect(p.storiesText(skill: 'Conflict'), isEmpty);
+  });
 }
 

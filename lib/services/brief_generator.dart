@@ -71,6 +71,11 @@ class BriefInput {
   final int strengthUses;
   final List<String> boardGaps;
 
+  /// Promises kept of those closed in 90 days ("9 of 10"), and open
+  /// promises past their date.
+  final String? sayDo;
+  final int promisesOverdue;
+
   /// Whether rest is planned (or running) within the next 8 weeks.
   final bool restPlanned;
 
@@ -163,6 +168,8 @@ class BriefInput {
     this.strengths = const [],
     this.strengthUses = 0,
     this.boardGaps = const [],
+    this.sayDo,
+    this.promisesOverdue = 0,
     this.lowestLifeArea,
     this.learningApplied = const [],
     this.experiments = const [],
@@ -192,6 +199,8 @@ class BriefInput {
         if (strengths.isNotEmpty) 'signature_strengths': strengths,
         if (strengths.isNotEmpty) 'strength_uses_this_week': strengthUses,
         if (boardGaps.isNotEmpty) 'personal_board_gaps': boardGaps,
+        if (sayDo != null) 'promises_kept_90_days': sayDo,
+        if (promisesOverdue > 0) 'promises_overdue': promisesOverdue,
         'lowest_life_area': lowestLifeArea,
         'learning_applied': learningApplied,
         'experiments': experiments,
@@ -393,6 +402,8 @@ class DeviceBriefGenerator implements BriefGenerator {
         'No progress note went out this week. Friday: five lines to ${input.profile.manager.isEmpty ? 'one person you trust' : input.profile.manager} — reported progress moves goals faster than private tracking.',
       if (input.setbacks > 0)
         '${input.setbacks} setback${input.setbacks == 1 ? '' : 's'} met with a next step instead of a spiral. That is the skill.',
+      if (input.promisesOverdue > 0)
+        '${input.promisesOverdue} promise${input.promisesOverdue == 1 ? ' is' : 's are'} past the date. Keep it or renegotiate today — a new date said early keeps trust; silence doesn\'t.',
       if (input.boardGaps.contains('sponsor'))
         'Nobody on your board speaks for you where you are not. Who could become a sponsor? Ask them for one thing this month.',
       if (input.strengths.isNotEmpty && input.strengthUses == 0)

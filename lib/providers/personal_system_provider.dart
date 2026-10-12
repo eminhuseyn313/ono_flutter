@@ -1879,6 +1879,8 @@ class PersonalSystemProvider extends ChangeNotifier {
         strengths: signatureStrengths,
         strengthUses: strengthUsesInWeek(report.weekStart),
         boardGaps: boardGaps,
+        sayDo: sayDo() == null ? null : '${sayDo()!.kept} of ${sayDo()!.kept + sayDo()!.missed}',
+        promisesOverdue: promisesDue(_now.subtract(const Duration(days: 1))).length,
         thoughtsChecked: thoughtsInWeek(report.weekStart),
         restPlanned: restPlannedSoon,
         experiments: [
@@ -5185,6 +5187,7 @@ class PersonalSystemProvider extends ChangeNotifier {
         'thought' => 'Checked a thought: ${l.text}${f('balanced').isEmpty ? '' : '\n  More balanced: ${f('balanced')}'}',
         'kindness' => 'Kindness: ${l.text}',
         'strength_use' => 'Used ${f('strength')}: ${l.text}',
+        'story' => 'Story: ${l.text}${f('result').isEmpty ? '' : '\n  Result: ${f('result')}'}',
         'program_cycle' => 'Closed program ${l.number('number')} (${l.number('held')} of ${l.number('counted')} days held)${l.text.isEmpty ? '' : '\n  What changed: ${l.text}'}${f('carry').isEmpty ? '' : '\n  Taking with me: ${f('carry')}'}',
         'aar' => 'Looked back at ${l.text}${f('sustain').isEmpty ? '' : '\n  Keep: ${f('sustain')}'}${f('improve').isEmpty ? '' : '\n  Change: ${f('improve')}'}',
         'best_future' => 'My best possible future in ${l.number('years')} years:${[for (final a in bestFutureAreas) if ((l.data['areas'] as Map?)?[a.$1] != null) '\n  ${a.$2}: ${(l.data['areas'] as Map)[a.$1]}'].join()}${l.text.isEmpty ? '' : '\n  This week: ${l.text}'}',
@@ -5593,6 +5596,161 @@ class PersonalSystemProvider extends ChangeNotifier {
   }
 
   List<LogEntry> get aars => logsOf('aar');
+
+  // ── Promises (say–do) ────────────────────────────────────────────────
+
+  /// What you said you'd do, for whom, by when. How well words and deeds
+  /// match is what people trust (behavioural integrity, Simons 2002);
+  /// renegotiating before the date keeps that trust, missing silently
+  /// doesn't.
+  static const promiseOutcomes = {
+    'kept': 'Kept',
+    'renegotiated': 'Renegotiated in time',
+    'missed': 'Missed',
+  };
+
+  LogEntry? addPromise({required String what, String to = '', DateTime? by}) {
+    if (what.trim().isEmpty) return null;
+    return addLog('promise', text: what.trim(), data: {
+      'to': to.trim(),
+      'by': dateKey(dayOnly(by ?? _now)),
+      'status': 'open',
+    });
+  }
+
+  List<LogEntry> get openPromises => [
+        for (final p in logsOf('promise').reversed)
+          if (p.str('status') == 'open') p
+      ]..sort((a, b) => (a.str('by') ?? '').compareTo(b.str('by') ?? ''));
+
+  /// Open promises due on or before [day].
+  List<LogEntry> promisesDue(DateTime day) => [
+        for (final p in openPromises)
+          if ((p.str('by') ?? '9999').compareTo(dateKey(dayOnly(day))) <= 0) p
+      ];
+
+  /// [outcome] from [promiseOutcomes]; renegotiating moves the date to
+  /// [newBy] and keeps the promise open.
+  void closePromise(String id, String outcome, {DateTime? newBy}) {
+    final p = logsOf('promise').where((l) => l.id == id).firstOrNull;
+    if (p == null || !promiseOutcomes.containsKey(outcome)) return;
+    if (outcome == 'renegotiated') {
+      updateLog(p.copyWith(data: {
+        ...p.data,
+        'by': dateKey(dayOnly(newBy ?? _now.add(const Duration(days: 7)))),
+        'renegotiated': ((p.number('renegotiated') ?? 0) + 1).toInt(),
+      }));
+      return;
+    }
+    updateLog(p.copyWith(data: {
+      ...p.data,
+      'status': outcome,
+      'closed_on': dateKey(_now),
+    }));
+  }
+
+  /// Kept of closed promises (kept + missed) in the last [days]; null
+  /// until three are closed.
+  ({int kept, int missed, double ratio})? sayDo({int days = 90}) {
+    final from = dateKey(dayOnly(_now).subtract(Duration(days: days)));
+    var kept = 0, missed = 0;
+    for (final p in logsOf('promise')) {
+      if ((p.str('closed_on') ?? '').compareTo(from) < 0) continue;
+      if (p.str('status') == 'kept') kept++;
+      if (p.str('status') == 'missed') missed++;
+    }
+    if (kept + missed < 3) return null;
+    return (kept: kept, missed: missed, ratio: kept / (kept + missed));
+  }
+
+  // ── Story bank (STAR) ────────────────────────────────────────────────
+
+  /// The skills interviewers, promotion panels and reviews ask about.
+  static const storySkills = [
+    'Leading people',
+    'Influence without authority',
+    'Conflict',
+    'A failure and what I learned',
+    'Delivering under pressure',
+    'Ownership',
+    'A hard decision',
+    'Learning fast',
+    'Customer focus',
+    'Creativity',
+  ];
+
+  /// Situation, task, action, result: stories ready for an interview, a
+  /// promotion case or a review. Prepared, concrete examples are what
+  /// behavioural interviews reward (Maurer et al. 2001).
+  LogEntry? saveStory({
+    String? id,
+    required String title,
+    String situation = '',
+    String task = '',
+    String action = '',
+    String result = '',
+    List<String> skills = const [],
+    String from = '',
+  }) {
+    if (title.trim().isEmpty) return null;
+    final data = {
+      'situation': situation.trim(),
+      'task': task.trim(),
+      'action': action.trim(),
+      'result': result.trim(),
+      'skills': [for (final k in skills) if (storySkills.contains(k)) k],
+      'from': from,
+    };
+    final existing = id == null
+        ? null
+        : logsOf('story').where((l) => l.id == id).firstOrNull;
+    if (existing != null) {
+      final next = existing.copyWith(text: title.trim(), data: data);
+      updateLog(next);
+      return next;
+    }
+    return addLog('story', text: title.trim(), data: data);
+  }
+
+  List<LogEntry> get stories => logsOf('story');
+
+  List<String> skillsOf(LogEntry story) =>
+      [for (final k in (story.data['skills'] as List?) ?? const []) '$k'];
+
+  /// Skills with no story yet.
+  List<String> get storyGaps => [
+        for (final k in storySkills)
+          if (!stories.any((s) => skillsOf(s).contains(k))) k
+      ];
+
+  /// Wins and after-action reviews from the last 180 days not yet turned
+  /// into a story, newest first.
+  List<LogEntry> get storyIdeas {
+    final used = {for (final s in stories) s.str('from')};
+    final from = dayOnly(_now).subtract(const Duration(days: 180));
+    return [
+      for (final l in allLogs({'win', 'aar'}))
+        if (!l.date.isBefore(from) && !used.contains(l.id)) l
+    ].take(5).toList();
+  }
+
+  /// Every story (or those for [skill]) as text to read before an
+  /// interview.
+  String storiesText({String? skill}) {
+    final b = StringBuffer();
+    for (final s in stories) {
+      if (skill != null && !skillsOf(s).contains(skill)) continue;
+      String f(String k) => (s.str(k) ?? '').trim();
+      b.writeln(s.text);
+      if (skillsOf(s).isNotEmpty) b.writeln('(${skillsOf(s).join(', ')})');
+      if (f('situation').isNotEmpty) b.writeln('Situation: ${f('situation')}');
+      if (f('task').isNotEmpty) b.writeln('Task: ${f('task')}');
+      if (f('action').isNotEmpty) b.writeln('Action: ${f('action')}');
+      if (f('result').isNotEmpty) b.writeln('Result: ${f('result')}');
+      b.writeln();
+    }
+    return b.toString().trim();
+  }
 
   // ── Backup ───────────────────────────────────────────────────────────
 

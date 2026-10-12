@@ -110,6 +110,15 @@ Mind and meaning were the thinnest lanes; each item is a short, well-studied exe
 | 54 | After-action review: intended, happened, why, keep, change → a review card (Ellis & Davidi 2005; Tannenbaum & Cerasoli 2013) | S | ✅ |
 | 55 | Program length (90 days, 6, 12 or 18 months) and the next program after the last day, with a closing review (Emin: yes to both) | M | ✅ |
 
+## P6 — Sixth discovery pass: your word and your stories (12 Oct 2026)
+
+| # | Item | Effort | Status |
+|---|---|---|---|
+| 56 | Promises: what you said you'd do, kept / renegotiated in time / missed, say–do record (Simons 2002) | S | ✅ |
+| 57 | Story bank: STAR stories by skill, from wins and reviews, copied before an interview or review (Maurer et al. 2001) | S | ✅ |
+| 58 | Twelve plan packs (exam season, new parent, back from burnout, career change, athlete's season added) | S | ✅ |
+| 59 | Tests: two devices syncing against an in-memory cloud; tap-through tests for the newer tools | M | ✅ |
+
 ## P3 — The mass version
 
 | # | Item | Effort | Status |

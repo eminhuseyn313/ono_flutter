@@ -200,6 +200,10 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] Web → sign in with the same email → the same Today; tick an item on the web → within a minute (or on reopening the app) it is ticked on the iPhone
 - [ ] Log a note on each device at about the same time → both notes are on both devices
 
+## 2zv. New: promises and story bank
+- [ ] Me → People → **Promises** → "Send the draft", to someone, Tomorrow → Add → tomorrow Today prompts "A promise is due" → Close → Kept; after three closed, Me shows "Kept N of M"
+- [ ] Me → Direction → **Story bank** → a recent win shows under "From your wins and reviews" → tap → fill the four parts, tick a skill → Save → it shows with its skills; **Copy all** pastes readable stories
+
 ## 2zu. New: program length and the next program
 - [ ] Plan builder → goal step → **Your program: 90 days** → finish → Program shows Month 1 of 3, the phase card says "Days 1–10"
 - [ ] Me → Settings → **Program length** → 12 months → Me shows "day of 360"; **Close this program early** → the closing review → write what changed → **Start the next …** → Today is day 1, Me shows "program 2", your goals, people and logs are still there, and your streak continues

@@ -21,11 +21,11 @@ class LogScreen extends StatefulWidget {
 
 const _filters = <String, Set<String>?>{
   'All': null,
-  'Growth': {'rep', 'feedback', 'growth_focus', 'coaching', 'affirmation', 'values_check', 'goal_value', 'progress_note', 'setback', 'quarterly_review', 'learning', 'experiment', 'rest', 'detach', 'gratitude', 'feedback_round', 'wheel', 'aar', 'strength_use', 'program_cycle'},
+  'Growth': {'rep', 'feedback', 'growth_focus', 'coaching', 'affirmation', 'values_check', 'goal_value', 'progress_note', 'setback', 'quarterly_review', 'learning', 'experiment', 'rest', 'detach', 'gratitude', 'feedback_round', 'wheel', 'aar', 'strength_use', 'program_cycle', 'story'},
   'Notes': {'feynman', 'scan', 'pennebaker', 'note', 'win', 'month_review', 'shutdown', 'stepback', 'thought'},
   'Protocols': {'sigh', 'excited', 'bluf', 'sixq', 'pause', 'still', 'ritual', 'read', 'anki'},
   'Body': {'weight', 'protein', 'gym', 'blood', 'checkin', 'sleep', 'vitals', 'energy', 'move'},
-  'People': {'touch', 'help', 'partner_checkin', 'gratitude', 'feedback_round', 'kindness'},
+  'People': {'touch', 'help', 'partner_checkin', 'gratitude', 'feedback_round', 'kindness', 'promise'},
   'Career': {'linkedin', 'artifact', 'one_on_one', 'decision', 'readiness', 'focus', 'week_plan', 'touch'},
 };
 
@@ -296,6 +296,8 @@ class _EntryRow extends StatelessWidget {
     'stepback': (Icons.zoom_out_map_rounded, 'mind', 'Stepped back'),
     'thought': (Icons.psychology_outlined, 'mind', 'Thought check'),
     'aar': (Icons.flag_outlined, 'skill', 'After-action review'),
+    'promise': (Icons.handshake_outlined, 'social', 'Promise'),
+    'story': (Icons.menu_book_outlined, 'skill', 'Story'),
     'program_cycle': (Icons.flag_circle_rounded, 'mind', 'Program closed'),
     'strength_use': (Icons.bolt_outlined, 'mind', 'Strength used'),
     'kindness': (Icons.volunteer_activism_outlined, 'social', 'Kindness'),
@@ -357,6 +359,9 @@ class _EntryRow extends StatelessWidget {
         return '${e.number('minutes')} min${t == 'artifact' ? ' · artifact' : t == 'skill' ? ' · skill' : ''}';
       case 'partner_checkin':
         return 'With ${e.str('partner')}: you ${e.str('mine')}, they ${e.str('theirs')}';
+      case 'promise':
+        final st = e.str('status') ?? 'open';
+        return '${e.text}${(e.str('to') ?? '').isEmpty ? '' : ' · to ${e.str('to')}'} · ${st == 'open' ? 'by ${e.str('by')}' : st}';
       case 'program_cycle':
         return 'Program ${e.number('number')} · ${e.number('held')} of ${e.number('counted')} days held';
       case 'aar':

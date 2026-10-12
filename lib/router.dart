@@ -50,6 +50,7 @@ import 'screens/upkeep_screen.dart';
 import 'screens/inner_tools_screens.dart';
 import 'screens/next_program_screen.dart';
 import 'screens/strengths_board_screens.dart';
+import 'screens/word_screens.dart';
 import 'screens/mind_tools_screens.dart';
 import 'screens/month_review_screen.dart';
 import 'screens/together_screens.dart';
@@ -155,6 +156,8 @@ const appRoutes = [
   '/board',
   '/aar',
   '/next-program',
+  '/promises',
+  '/stories',
   '/day',
   '/goals/edit',
   '/growth/area',
@@ -258,6 +261,8 @@ GoRouter createRouter(AuthProvider authProvider,
       _slide('/board', (_) => const BoardScreen()),
       _slide('/aar', (_) => const AarScreen()),
       _slide('/next-program', (_) => const NextProgramScreen()),
+      _slide('/promises', (_) => const PromisesScreen()),
+      _slide('/stories', (_) => const StoriesScreen()),
       _slide('/day', (_) => const DayScreen()),
       _slide(
           '/goals/edit',

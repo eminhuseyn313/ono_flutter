@@ -351,6 +351,16 @@ class MeScreen extends StatelessWidget {
               ),
               const Divider(indent: 66),
               LinkRow(
+                icon: Icons.menu_book_outlined,
+                color: AppColors.accent,
+                title: 'Story bank',
+                subtitle: system.stories.isEmpty
+                    ? 'Your best stories, ready for an interview or review'
+                    : '${system.stories.length} stories${system.storyGaps.isEmpty ? '' : ' · none yet for ${system.storyGaps.first.toLowerCase()}'}',
+                onTap: () => context.push('/stories'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
                 icon: Icons.workspace_premium_outlined,
                 color: AppColors.accent,
                 title: 'Brag document',
@@ -543,6 +553,18 @@ class MeScreen extends StatelessWidget {
                     ? 'People one step ahead, and what to ask them'
                     : system.roleModels.map((m) => m.text).join(' · '),
                 onTap: () => context.push('/models'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
+                icon: Icons.handshake_outlined,
+                color: AppColors.social,
+                title: 'Promises',
+                subtitle: system.sayDo() != null
+                    ? 'Kept ${system.sayDo()!.kept} of ${system.sayDo()!.kept + system.sayDo()!.missed} · ${system.openPromises.length} open'
+                    : system.openPromises.isEmpty
+                        ? 'What you said you\'d do, kept or renegotiated in time'
+                        : '${system.openPromises.length} open',
+                onTap: () => context.push('/promises'),
               ),
               const Divider(indent: 66),
               LinkRow(

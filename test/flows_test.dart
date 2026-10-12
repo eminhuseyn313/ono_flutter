@@ -26,8 +26,9 @@ Future<void> _pumpFor(WidgetTester tester, Duration total) async {
   }
 }
 
-Future<PersonalSystemProvider> _start(WidgetTester tester) async {
-  tester.view.physicalSize = const Size(1179, 2556);
+Future<PersonalSystemProvider> _start(WidgetTester tester,
+    {Size size = const Size(1179, 2556)}) async {
+  tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
   await tester.pumpWidget(OnoApp(
@@ -209,4 +210,44 @@ void main() {
     expect(system.pastPrograms.single.text, 'I ask for help sooner');
     expect(system.logsOf('win'), isNotEmpty);
   });
+
+  testWidgets('promises: add one, then keep it', (tester) async {
+    final system = await _start(tester);
+    await _go(tester, '/promises');
+    await _type(tester, 'What you promised', 'Send the draft');
+    await _type(tester, 'To whom', 'Aysel');
+    await _tap(tester, find.text('Add promise'));
+    expect(system.openPromises.single.str('to'), 'Aysel');
+    await _tap(tester, find.text('Close'));
+    await tester.tap(find.text('Kept'));
+    await _pumpFor(tester, const Duration(milliseconds: 600));
+    expect(system.openPromises, isEmpty);
+    expect(system.logsOf('promise').single.str('status'), 'kept');
+  });
+
+  testWidgets('story bank: turn a win into a STAR story', (tester) async {
+    final system = await _start(tester);
+    system.addLog('win', text: 'Shipped the onboarding redesign');
+    await _go(tester, '/stories');
+    await _tap(tester, find.text('Shipped the onboarding redesign'));
+    await _type(tester, 'Result', 'Sign-ups up 18% in a month');
+    await _tap(tester, find.text('Customer focus'));
+    await tester.tap(find.text('Save'));
+    await _pumpFor(tester, const Duration(seconds: 1));
+    final s = system.stories.single;
+    expect(s.text, 'Shipped the onboarding redesign');
+    expect(s.str('result'), 'Sign-ups up 18% in a month');
+    expect(system.skillsOf(s), ['Customer focus']);
+    expect(system.storyIdeas, isEmpty);
+  });
+
+  testWidgets('the story editor fits an iPhone SE', (tester) async {
+    await _start(tester, size: const Size(1125, 2001));
+    await _go(tester, '/stories');
+    await _tap(tester, find.text('New story'));
+    expect(find.text('Tell it in four parts'), findsOneWidget);
+    await _reach(tester, find.text('Creativity'));
+    expect(tester.takeException(), isNull);
+  });
 }
+
