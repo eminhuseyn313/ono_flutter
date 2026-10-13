@@ -324,4 +324,13 @@ void main() {
     expect(find.text('• Say the ask first'), findsOneWidget);
     expect(find.text('• Sam said: "Clearer than last month"'), findsOneWidget);
   });
+
+  testWidgets('Today keeps the plan\'s next step in view while folded',
+      (tester) async {
+    final system = await _start(tester);
+    system.setWeekOutcome(DateTime.now(), 0, 'Send the proposal');
+    await _go(tester, '/home');
+    await _reach(tester, find.byKey(const Key('plan-next')));
+    expect(find.text('Next: Send the proposal'), findsOneWidget);
+  });
 }

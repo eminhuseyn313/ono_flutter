@@ -898,6 +898,25 @@ class _PlanToggle extends StatelessWidget {
       if (set > 0) 'week $done/$set',
       if (meetings > 0) '$meetings meeting${meetings == 1 ? '' : 's'}',
     ].join(' · ');
+    // While folded, the one thing the plan asks next stays in view.
+    String? next;
+    if (!open) {
+      final outcomes = system.weekOutcomes(now);
+      for (final (i, o) in outcomes.indexed) {
+        if (o.trim().isNotEmpty && !system.weekOutcomeDone(now, i)) {
+          next = 'Next: $o';
+          break;
+        }
+      }
+      final area = system.focusArea();
+      if (next == null && area != null) {
+        final drill = system.drillFor(area, now);
+        final reps = system.drillRepsThisWeek(area, drill, now);
+        if (reps < PersonalSystemProvider.repsPerDrill) {
+          next = 'Drill: ${drill.title} · $reps of ${PersonalSystemProvider.repsPerDrill} this week';
+        }
+      }
+    }
     return Padding(
       padding: const EdgeInsets.only(top: 22),
       child: OnoCard(
@@ -919,6 +938,14 @@ class _PlanToggle extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: AppText.body(color: AppColors.white)),
+                  if (next != null) ...[
+                    const SizedBox(height: 2),
+                    Text(next,
+                        key: const Key('plan-next'),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppText.small(color: AppColors.accent)),
+                  ],
                 ],
               ),
             ),
