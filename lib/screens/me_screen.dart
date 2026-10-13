@@ -923,10 +923,12 @@ class MeScreen extends StatelessWidget {
 
   void _lengthSheet(BuildContext context, PersonalSystemProvider system) {
     showModalBottomSheet<void>(
+      isScrollControlled: true,
       useRootNavigator: true,
       context: context,
       builder: (ctx) => SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
+          child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -966,7 +968,7 @@ class MeScreen extends StatelessWidget {
               ),
             ],
           ),
-        ),
+        )),
       ),
     );
   }
@@ -974,10 +976,12 @@ class MeScreen extends StatelessWidget {
   Future<void> _skipsSheet(
           BuildContext context, PersonalSystemProvider system) =>
       showModalBottomSheet<void>(
+      isScrollControlled: true,
       useRootNavigator: true,
         context: context,
         backgroundColor: AppColors.card,
         builder: (ctx) => SafeArea(
+          child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
             child: Column(
@@ -1009,8 +1013,8 @@ class MeScreen extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-        ),
+          )),
+      ),
       );
 
   Future<void> _restore(

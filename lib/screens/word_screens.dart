@@ -46,9 +46,11 @@ class _PromisesScreenState extends State<PromisesScreen> {
 
   Future<void> _close(PersonalSystemProvider system, LogEntry p) async {
     final outcome = await showModalBottomSheet<String>(
+      isScrollControlled: true,
       context: context,
       builder: (ctx) => SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
+          child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -80,7 +82,7 @@ class _PromisesScreenState extends State<PromisesScreen> {
                     style: AppText.small()),
             ],
           ),
-        ),
+        )),
       ),
     );
     if (outcome == null) return;

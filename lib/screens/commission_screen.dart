@@ -92,6 +92,7 @@ class _CommissionScreenState extends State<CommissionScreen> {
               child: Row(
                 children: [
                   IconButton(
+                    tooltip: 'Back',
                     onPressed: _step == 0 ? null : _back,
                     icon: Icon(Icons.arrow_back_rounded,
                         color: _step == 0
@@ -415,7 +416,16 @@ class _HoldToSignState extends State<_HoldToSign>
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    // VoiceOver can't hold: a double-tap signs.
+    return Semantics(
+      button: true,
+      label: 'Hold to sign',
+      onTap: () {
+        if (_done) return;
+        _done = true;
+        widget.onSigned();
+      },
+      child: GestureDetector(
       onTapDown: (_) {
         HapticFeedback.lightImpact();
         _c.forward();
@@ -453,7 +463,7 @@ class _HoldToSignState extends State<_HoldToSign>
             ],
           ),
         ),
-      ),
+      ),),
     );
   }
 }

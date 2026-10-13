@@ -44,6 +44,7 @@ class _DayScreenState extends State<DayScreen> {
           children: [
             Expanded(child: Text(label, style: AppText.body(color: AppColors.white))),
             IconButton(
+              tooltip: '15 minutes earlier',
               icon: const Icon(Icons.remove_rounded),
               onPressed: () => onChanged((value - 15).clamp(0, 24 * 60 - 15)),
             ),
@@ -52,6 +53,7 @@ class _DayScreenState extends State<DayScreen> {
               child: Text(_hm(value), textAlign: TextAlign.center, style: AppText.number(size: 20)),
             ),
             IconButton(
+              tooltip: '15 minutes later',
               icon: const Icon(Icons.add_rounded),
               onPressed: () => onChanged((value + 15).clamp(0, 24 * 60 - 15)),
             ),

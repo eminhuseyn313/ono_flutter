@@ -267,6 +267,7 @@ class _WeekCheck extends StatelessWidget {
                       SizedBox(
                         width: 30,
                         child: IconButton(
+                          tooltip: '${v.name}: $i of 5',
                           padding: EdgeInsets.zero,
                           visualDensity: VisualDensity.compact,
                           onPressed: () => system.saveValuesCheck(

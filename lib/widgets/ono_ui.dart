@@ -88,13 +88,18 @@ class SectionHeader extends StatelessWidget {
         children: [
           Expanded(child: Text(title, style: AppText.serif(size: 24))),
           if (action != null)
-            GestureDetector(
-              onTap: onAction,
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 3),
-                child: Text(action!,
-                    style: AppText.small(color: AppColors.accent)
-                        .copyWith(fontWeight: FontWeight.w700)),
+            Semantics(
+              button: true,
+              child: GestureDetector(
+                onTap: onAction,
+                behavior: HitTestBehavior.opaque,
+                // A bigger target than the word: easier to hit.
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 12, 0, 3),
+                  child: Text(action!,
+                      style: AppText.small(color: AppColors.accent)
+                          .copyWith(fontWeight: FontWeight.w700)),
+                ),
               ),
             ),
         ],
@@ -167,7 +172,12 @@ class CheckRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final mark = lane == null ? AppColors.accent : AppColors.lane(lane!);
-    return InkWell(
+    final still = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    return Semantics(
+      // Screen readers hear the item and whether it is done.
+      checked: checked,
+      button: true,
+      child: InkWell(
       onTap: () {
         HapticFeedback.lightImpact();
         onChanged(!checked);
@@ -182,8 +192,8 @@ class CheckRow extends StatelessWidget {
           children: [
             TweenAnimationBuilder<double>(
               key: ValueKey(checked),
-              tween: Tween(begin: checked ? 0.6 : 1, end: 1),
-              duration: const Duration(milliseconds: 380),
+              tween: Tween(begin: checked && !still ? 0.6 : 1, end: 1),
+              duration: Duration(milliseconds: still ? 0 : 380),
               curve: Curves.elasticOut,
               builder: (_, scale, child) =>
                   Transform.scale(scale: scale, child: child),
@@ -226,6 +236,7 @@ class CheckRow extends StatelessWidget {
             if (onOpen != null)
               IconButton(
                 onPressed: onOpen,
+                tooltip: 'Open $title',
                 visualDensity: VisualDensity.compact,
                 icon: const Icon(Icons.arrow_forward_rounded,
                     size: 18, color: AppColors.grey),
@@ -233,6 +244,7 @@ class CheckRow extends StatelessWidget {
           ],
         ),
       ),
+    ),
     );
   }
 }
@@ -361,12 +373,21 @@ class TickSegments extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    final still = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    final done = colors == null
+        ? filled
+        : [for (var i = 0; i < total && i < colors!.length; i++) colors![i]]
+            .where((c) => c != AppColors.cardLight)
+            .length;
+    return Semantics(
+      label: '$done of $total',
+      excludeSemantics: true,
+      child: Row(
       children: [
         for (var i = 0; i < total; i++) ...[
           Expanded(
             child: AnimatedContainer(
-              duration: Duration(milliseconds: 200 + i * 30),
+              duration: Duration(milliseconds: still ? 0 : 200 + i * 30),
               height: height,
               decoration: BoxDecoration(
                 color: i < filled
@@ -379,6 +400,7 @@ class TickSegments extends StatelessWidget {
           if (i < total - 1) const SizedBox(width: 4),
         ],
       ],
+    ),
     );
   }
 }
@@ -614,6 +636,7 @@ class OnoBackButton extends StatelessWidget {
         onPressed: () => context.canPop()
             ? Navigator.of(context).maybePop()
             : context.go('/home'),
+        tooltip: icon == Icons.close_rounded ? 'Close' : 'Back',
         icon: Icon(icon, color: AppColors.white),
         style: IconButton.styleFrom(
           backgroundColor: AppColors.card,

@@ -190,9 +190,11 @@ class _AsksScreenState extends State<AsksScreen> {
 
   Future<void> _close(PersonalSystemProvider system, LogEntry a) async {
     final outcome = await showModalBottomSheet<String>(
+      isScrollControlled: true,
       context: context,
       builder: (ctx) => SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
+          child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -219,7 +221,7 @@ class _AsksScreenState extends State<AsksScreen> {
                 ),
             ],
           ),
-        ),
+        )),
       ),
     );
     if (outcome == null) return;

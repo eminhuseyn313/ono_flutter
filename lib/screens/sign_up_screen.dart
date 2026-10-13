@@ -276,6 +276,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                           icon: Icons.lock_outline_rounded,
                           autofillHints: const [AutofillHints.newPassword],
                           suffixIcon: IconButton(
+                            tooltip: 'Show or hide the password',
                             icon: Icon(
                               _obscurePassword
                                   ? Icons.visibility_off_outlined
@@ -333,6 +334,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                           icon: Icons.lock_outline_rounded,
                           autofillHints: const [AutofillHints.newPassword],
                           suffixIcon: IconButton(
+                            tooltip: 'Show or hide the password',
                             icon: Icon(
                               _obscureConfirm
                                   ? Icons.visibility_off_outlined

@@ -151,7 +151,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 _CountdownCard(days: system.daysUntilStart)
               else ...[
                 Center(
-                  child: GestureDetector(
+                  child: Semantics(
+                    label: '${system.scoreFor(date)} of ${system.itemIdsOn(date).length} daily items done${_yesterday ? ' yesterday' : ' today'}',
+                    child: GestureDetector(
                     onTap: () => context.go('/program?tab=1'),
                     child: DayDial(
                       now: _now,
@@ -175,6 +177,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               : _nextUp(system, date)),
                     ),
                   ),
+                ),
                 ),
                 const SizedBox(height: 8),
                 if (!_yesterday) ...[
@@ -848,9 +851,11 @@ class _FreshStartCard extends StatelessWidget {
                 child: Text(fs.eyebrow.toUpperCase(),
                     style: AppText.eyebrow(color: AppColors.accent)),
               ),
-              GestureDetector(
-                onTap: () => system.setDone(fs.key, true),
-                child: const Icon(Icons.close_rounded,
+              IconButton(
+                tooltip: 'Dismiss',
+                visualDensity: VisualDensity.compact,
+                onPressed: () => system.setDone(fs.key, true),
+                icon: const Icon(Icons.close_rounded,
                     size: 18, color: AppColors.grey),
               ),
             ],

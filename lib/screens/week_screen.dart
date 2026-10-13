@@ -129,6 +129,7 @@ class _OutcomesState extends State<_Outcomes> {
               children: [
                 if (widget.tickable)
                   IconButton(
+                    tooltip: 'Mark this outcome done',
                     visualDensity: VisualDensity.compact,
                     onPressed: _c[i].text.trim().isEmpty
                         ? null

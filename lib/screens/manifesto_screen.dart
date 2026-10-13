@@ -30,6 +30,7 @@ class ManifestoScreen extends StatelessWidget {
               child: Row(
                 children: [
                   IconButton(
+                    tooltip: 'Close',
                     onPressed: () =>
                         context.canPop() ? context.pop() : context.go('/home'),
                     icon: const Icon(Icons.close_rounded,

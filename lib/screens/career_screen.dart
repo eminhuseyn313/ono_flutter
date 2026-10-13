@@ -333,6 +333,7 @@ class _CertRow extends StatelessWidget {
             ),
           ),
           IconButton(
+            tooltip: 'Open',
             onPressed: () => openLink(cert.url),
             icon: const Icon(Icons.north_east_rounded,
                 size: 18, color: AppColors.grey),

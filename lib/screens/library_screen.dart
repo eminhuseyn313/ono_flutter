@@ -212,6 +212,7 @@ class _BookRow extends StatelessWidget {
             ),
           ),
           IconButton(
+            tooltip: 'Mark as read',
             onPressed: onToggle,
             visualDensity: VisualDensity.compact,
             icon: Icon(

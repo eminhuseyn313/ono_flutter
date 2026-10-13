@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -465,10 +466,22 @@ class _LogScreenState extends State<LogScreen> {
                     confirmDismiss: (_) => _confirmDelete(
                         e, (_EntryRow._meta[e.type]?.$3 ?? 'entry').toLowerCase()),
                     onDismissed: (_) => _deleted(system, e),
-                    child: InkWell(
-                      onTap: () => _tap(system, e),
-                      child: _EntryRow(
-                          entry: e, builtIn: system.isBuiltInPerson),
+                    // Swiping isn't possible for everyone: a screen reader
+                    // gets Delete as an action.
+                    child: Semantics(
+                      customSemanticsActions: {
+                        const CustomSemanticsAction(label: 'Delete'): () async {
+                          if (await _confirmDelete(e,
+                              (_EntryRow._meta[e.type]?.$3 ?? 'entry').toLowerCase())) {
+                            _deleted(system, e);
+                          }
+                        },
+                      },
+                      child: InkWell(
+                        onTap: () => _tap(system, e),
+                        child: _EntryRow(
+                            entry: e, builtIn: system.isBuiltInPerson),
+                      ),
                     ),
                   ),
               ],

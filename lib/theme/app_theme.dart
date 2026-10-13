@@ -39,7 +39,8 @@ class AppColors {
   static const Color navy = Color(0xFF18222F);
   static const Color navyLight = Color(0xFF223042);
   static const Color ink = Color(0xFF0B0C0E);
-  static const Color faint = Color(0xFF6E6A63);
+  // 5.2:1 on card, 4.6:1 on navy: readable when it carries words.
+  static const Color faint = Color(0xFF8E8980);
   static const Color danger = Color(0xFFE0605A);
 
   // ── Lane colors (one map, used everywhere) ──

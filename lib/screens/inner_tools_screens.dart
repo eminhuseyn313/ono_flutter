@@ -350,6 +350,7 @@ class _KindnessScreenState extends State<KindnessScreen> {
                     ),
                   ),
                   IconButton(
+                    tooltip: 'Add',
                     onPressed: () => _add(system),
                     icon: const Icon(Icons.add_circle_rounded,
                         color: AppColors.accent),

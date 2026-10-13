@@ -225,6 +225,7 @@ class _SignInScreenState extends State<SignInScreen>
                           icon: Icons.lock_outline_rounded,
                           autofillHints: const [AutofillHints.password],
                           suffixIcon: IconButton(
+                            tooltip: 'Show or hide the password',
                             icon: Icon(
                               _obscurePassword
                                   ? Icons.visibility_off_outlined

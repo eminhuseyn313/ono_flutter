@@ -82,6 +82,7 @@ class _UpkeepScreenState extends State<UpkeepScreen> {
                           child: const Text('Done'),
                         ),
                         IconButton(
+                          tooltip: 'Remove',
                           icon: const Icon(Icons.close_rounded, size: 18),
                           color: AppColors.faint,
                           onPressed: () => system.removeUpkeep(u.id),

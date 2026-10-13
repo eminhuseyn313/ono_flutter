@@ -37,7 +37,9 @@ class DayDial extends StatelessWidget {
       height: size,
       child: TweenAnimationBuilder<double>(
         tween: Tween(begin: 0, end: 1),
-        duration: const Duration(milliseconds: 900),
+        duration: Duration(
+            milliseconds:
+                (MediaQuery.maybeDisableAnimationsOf(context) ?? false) ? 0 : 900),
         curve: Curves.easeOutCubic,
         builder: (_, t, child) => CustomPaint(
           painter: _DayDialPainter(

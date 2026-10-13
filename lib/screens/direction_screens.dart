@@ -386,6 +386,7 @@ class _BestSelfScreenState extends State<BestSelfScreen> {
                     ),
                   ),
                   IconButton(
+                    tooltip: 'Remove',
                     icon: const Icon(Icons.close_rounded, size: 18),
                     color: AppColors.faint,
                     onPressed: () => system.removeBestSelfStory(i),

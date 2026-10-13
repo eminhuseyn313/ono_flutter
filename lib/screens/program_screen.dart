@@ -307,6 +307,7 @@ class _UnlockRow extends StatelessWidget {
             ),
             if (unlock.doneKey != null)
               IconButton(
+                tooltip: 'Mark done',
                 onPressed: () => system.toggleDone(unlock.doneKey!),
                 icon: Icon(
                     done ? Icons.check_circle_rounded : Icons.circle_outlined,

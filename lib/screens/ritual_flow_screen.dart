@@ -121,6 +121,7 @@ class _RitualFlowScreenState extends State<RitualFlowScreen> {
           child: Row(
             children: [
               IconButton(
+                tooltip: 'Close',
                 onPressed: () =>
                     context.canPop() ? context.pop() : context.go('/home'),
                 icon: const Icon(Icons.close_rounded, color: AppColors.grey),

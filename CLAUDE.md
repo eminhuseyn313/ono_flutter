@@ -66,6 +66,7 @@ Services: ReminderService (local notifications), BriefGenerator (weekly brief)
 - Logs sort by the day they are for, then entry order (`logsOf` is newest first; `weightSeries` is oldest first).
 - Every new screen must fit iPhone SE (375×667) with the real fonts. The smoke test fails on overflow.
 - Bottom sheets opened from the four tab screens (Today, Program, Log, Me — inside the `ShellRoute`) pass `useRootNavigator: true`, or the tab bar covers their bottom, and close with the sheet's own context (or `rootNavigator: true`), never the screen's. Don't dispose a sheet's local text controllers when its future completes — the closing animation still reads them; let them be collected, or give the sheet its own StatefulWidget (`_EditTextSheet`).
+- Accessibility: every `IconButton` has a `tooltip`; `CheckRow` exposes `checked`; `TickSegments` and Today's dial carry spoken labels; animations in shared widgets go to zero under Reduce Motion (`MediaQuery.maybeDisableAnimationsOf`); gestures with no tap equivalent get one for screen readers (hold to sign, Delete on Log rows); sheets with several buttons or fields are scroll-controlled and scroll.
 - Every route a piece of content points to (`NonNegotiable.route`, `ReminderDef.route`, `Unlock.route`) must exist. The smoke test resolves each one.
 
 ### Theme
@@ -74,7 +75,7 @@ Services: ReminderService (local notifications), BriefGenerator (weekly brief)
 ```dart
 AppColors.background 0xFF0B0C0E · card 0xFF14161A · cardLight 0xFF1B1E23 · divider 0xFF24272D
 AppColors.accent (= purple) 0xFFC8894A · accentPressed 0xFFA86D35 · ink 0xFF0B0C0E (text on accent)
-AppColors.navy 0xFF18222F · navyLight 0xFF223042 · white 0xFFF3EFE7 · grey 0xFFA39E95 · faint 0xFF6E6A63
+AppColors.navy 0xFF18222F · navyLight 0xFF223042 · white 0xFFF3EFE7 · grey 0xFFA39E95 · faint 0xFF8E8980
 AppColors.mind 0xFF8FA3C8 · body 0xFF86B49A · skill 0xFF6FAFB3 · social 0xFFC49AC0 · AppColors.lane('mind')
 ```
 
