@@ -2,6 +2,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_button.dart';
 
@@ -49,15 +51,18 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
 
     HapticFeedback.mediumImpact();
     setState(() => _loading = true);
-
-    // Simulate a brief delay; actual Supabase reset would go here
-    await Future.delayed(const Duration(seconds: 1));
-
-    if (mounted) {
-      setState(() {
-        _loading = false;
-        _sent = true;
-      });
+    final ok = await context.read<AuthProvider>().resetPassword(email);
+    if (!mounted) return;
+    setState(() {
+      _loading = false;
+      _sent = ok;
+    });
+    if (!ok) {
+      final error = context.read<AuthProvider>().errorMessage ?? '';
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(error.contains('rate')
+              ? 'Too many emails just now — wait a minute and try again.'
+              : 'Couldn\'t send the link. Check the address and your connection.')));
     }
   }
 
@@ -211,7 +216,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
               ),
               const SizedBox(height: 8),
               Text(
-                'If an account exists for ${_emailController.text.trim()}, a password reset link has been sent.',
+                'If an account exists for ${_emailController.text.trim()}, a reset link is on its way. Open it on this device (or any browser) to set a new password. Check spam if it isn\'t there in a minute.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: AppColors.grey.withValues(alpha: 0.8),

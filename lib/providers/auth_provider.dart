@@ -157,6 +157,21 @@ class AuthProvider extends ChangeNotifier {
 
   // -- Password reset -----------------------------------------------------
 
+  /// Signed in through a reset link: the router sends them to set a new
+  /// password before anything else.
+  bool _passwordRecovery = false;
+  bool get passwordRecovery => _passwordRecovery;
+
+  /// Sets the new password; returns an error message or null.
+  Future<String?> updatePassword(String password) async {
+    final error = await _gateway.updatePassword(password);
+    if (error == null) {
+      _passwordRecovery = false;
+      notifyListeners();
+    }
+    return error;
+  }
+
   Future<bool> resetPassword(String email) async {
     _setLoading();
     try {
@@ -194,6 +209,12 @@ class AuthProvider extends ChangeNotifier {
       case AuthChangeEvent.tokenRefreshed:
         _user = _gateway.currentUser;
         _status = AuthStatus.authenticated;
+        notifyListeners();
+        break;
+      case AuthChangeEvent.passwordRecovery:
+        _user = _gateway.currentUser;
+        _status = AuthStatus.authenticated;
+        _passwordRecovery = true;
         notifyListeners();
         break;
       case AuthChangeEvent.signedOut:

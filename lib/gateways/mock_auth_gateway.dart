@@ -80,6 +80,9 @@ class MockAuthGateway implements AuthGateway {
   Session? get currentSession => _session;
 
   @override
+  Future<String?> updatePassword(String password) async => null;
+
+  @override
   Future<void> resetPassword(String email) async {
     // No-op in mock mode
   }

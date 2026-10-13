@@ -38,8 +38,12 @@ abstract class AuthGateway {
   /// The current session, if any.
   Session? get currentSession;
 
-  /// Sends a password-reset email.
+  /// Sends a password-reset email (throws when it can't be sent).
   Future<void> resetPassword(String email);
+
+  /// Sets a new password for the signed-in user (after a reset link);
+  /// returns an error message, or null when it worked.
+  Future<String?> updatePassword(String password);
 
   /// Sign in with Apple.
   Future<AuthResult> signInWithApple();

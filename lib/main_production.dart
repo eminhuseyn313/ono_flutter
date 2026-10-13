@@ -41,7 +41,8 @@ void main() async {
 
   final client = Supabase.instance.client;
   runApp(OnoApp(
-    authGateway: SupabaseAuthGateway(client),
+    authGateway: SupabaseAuthGateway(client,
+        webAppUrl: 'https://eminhuseyn313.github.io/ono_flutter/'),
     personalGateway: SyncedPersonalSystemGateway(SupabaseCloud(client)),
     reminders: kIsWeb ? NoopReminderService() : LocalReminderService(),
     health: createHealthService(),

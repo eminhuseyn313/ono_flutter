@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'package:google_sign_in/google_sign_in.dart';
 // TODO: re-add sign_in_with_apple when a compatible version is available
@@ -9,7 +10,11 @@ import 'auth_gateway.dart';
 class SupabaseAuthGateway implements AuthGateway {
   final SupabaseClient _client;
 
-  SupabaseAuthGateway(this._client);
+  /// Where reset links land: the web app, which has a page to set the new
+  /// password (the phone app has no deep link yet).
+  final String? webAppUrl;
+
+  SupabaseAuthGateway(this._client, {this.webAppUrl});
 
   GoTrueClient get _auth => _client.auth;
 
@@ -150,7 +155,21 @@ class SupabaseAuthGateway implements AuthGateway {
 
   @override
   Future<void> resetPassword(String email) async {
-    await _auth.resetPasswordForEmail(email);
+    // On the web, back to this same site; elsewhere, to the web app.
+    final here = kIsWeb ? '${Uri.base.origin}${Uri.base.path}' : null;
+    await _auth.resetPasswordForEmail(email, redirectTo: here ?? webAppUrl);
+  }
+
+  @override
+  Future<String?> updatePassword(String password) async {
+    try {
+      await _auth.updateUser(UserAttributes(password: password));
+      return null;
+    } on AuthException catch (e) {
+      return e.message;
+    } catch (e) {
+      return 'Couldn\'t change the password: $e';
+    }
   }
 
   // -- Helpers ------------------------------------------------------------

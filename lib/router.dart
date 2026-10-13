@@ -14,6 +14,7 @@ import 'screens/evidence_archive_screen.dart';
 import 'screens/experiments_screen.dart';
 import 'screens/focus_screen.dart';
 import 'screens/forgot_password_screen.dart';
+import 'screens/new_password_screen.dart';
 import 'screens/gym_session_screen.dart';
 import 'screens/goals_screen.dart';
 import 'screens/growth_screen.dart';
@@ -182,6 +183,10 @@ GoRouter createRouter(AuthProvider authProvider,
       final status = authProvider.status;
       final location = state.matchedLocation;
 
+      // Arrived from a password-reset link: set the new password first.
+      if (authProvider.passwordRecovery) {
+        return location == '/new-password' ? null : '/new-password';
+      }
       if (status == AuthStatus.uninitialized) {
         return location == '/splash' ? null : '/splash';
       }
@@ -206,6 +211,7 @@ GoRouter createRouter(AuthProvider authProvider,
       _fade('/sign-up', (_) => const SignUpScreen()),
       _fade('/sign-in', (_) => const SignInScreen()),
       _fade('/forgot-password', (_) => const ForgotPasswordScreen()),
+      _fade('/new-password', (_) => const NewPasswordScreen()),
       _fade('/commission', (_) => const CommissionScreen()),
       _slide('/manifesto', (_) => const ManifestoScreen()),
       _slide('/protocols', (_) => const ProtocolsScreen()),

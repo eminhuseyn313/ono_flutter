@@ -29,6 +29,19 @@ void main() {
 
       provider.dispose();
     });
+
+    test('a reset link asks for a new password until one is set', () async {
+      final gateway = FakeAuthGateway(session: _fakeSession());
+      final provider = AuthProvider(gateway: gateway);
+      provider.listenToAuthChanges();
+      gateway._controller.add(AuthChangeEvent.passwordRecovery);
+      await Future<void>.delayed(Duration.zero);
+      expect(provider.passwordRecovery, isTrue);
+      expect(provider.status, AuthStatus.authenticated);
+      expect(await provider.updatePassword('a-new-one'), isNull);
+      expect(provider.passwordRecovery, isFalse);
+      provider.dispose();
+    });
   });
 }
 
@@ -63,6 +76,9 @@ class FakeAuthGateway implements AuthGateway {
 
   @override
   Future<void> signOut() async {}
+
+  @override
+  Future<String?> updatePassword(String password) async => null;
 
   @override
   Future<void> resetPassword(String email) async {}

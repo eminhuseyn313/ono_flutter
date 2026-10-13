@@ -78,6 +78,9 @@ class MockAuthGateway implements AuthGateway {
   }
 
   @override
+  Future<String?> updatePassword(String password) async => null;
+
+  @override
   Future<void> resetPassword(String email) async {}
 
   @override
@@ -375,6 +378,9 @@ class _ThrowingRecoverGateway implements AuthGateway {
 
   @override
   Future<void> signOut() async {}
+
+  @override
+  Future<String?> updatePassword(String password) async => null;
 
   @override
   Future<void> resetPassword(String email) async {}
