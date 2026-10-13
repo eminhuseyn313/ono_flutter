@@ -1187,8 +1187,18 @@ class _PromptsState extends State<_Prompts> {
     final system = context.watch<PersonalSystemProvider>();
     final reviews = system.dueDecisionReviews(now);
     final followUps = system.openFollowUps;
+    final first = system.firstWeekStep;
     // Ranked: direction first, then what is due, then the rest.
     final cards = <Widget>[
+      // The first week: one small step a day, ahead of everything else.
+      if (first != null)
+        _row(
+            context,
+            Icons.wb_sunny_outlined,
+            AppColors.accent,
+            'First week · ${first.title}',
+            '${first.why} (${system.firstWeekProgress} of ${PersonalSystemProvider.firstWeekSteps.length} done)',
+            first.route),
       if (system.programComplete)
         _row(
             context,

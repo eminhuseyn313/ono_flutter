@@ -200,7 +200,7 @@ class _Plan extends StatelessWidget {
             Expanded(
                 child: StatTile(
                     end == null ? '${start ?? '–'}' : '$start→$end',
-                    end == null ? 'start rating' : 'start → now')),
+                    end == null ? 'where you began, of 5' : 'began → now, of 5')),
           ],
         ),
         const SectionHeader('This week\'s drill'),

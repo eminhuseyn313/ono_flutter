@@ -5306,6 +5306,63 @@ class PersonalSystemProvider extends ChangeNotifier {
     return n;
   }
 
+  // ── Your first week ──────────────────────────────────────────────────
+
+  /// One small step a day for the first week of a first program, each
+  /// introducing one core practice — instead of every tool on day one.
+  /// Starting small and adding one thing at a time keeps people going
+  /// (Fogg 2019; choice overload: Iyengar & Lepper 2000).
+  static const firstWeekSteps = [
+    ('items', 'Tick one daily item', 'One tick starts the plan. Small is the point.', '/daily'),
+    ('checkin', 'Do the morning check-in', 'Thirty seconds that tell you what today can ask of you.', '/checkin'),
+    ('week', 'Set this week\'s three outcomes', 'Three things that would make the week a win.', '/week'),
+    ('shutdown', 'Close one evening with the shutdown', 'Tomorrow\'s three on paper, then let the day go.', '/shutdown'),
+    ('people', 'Add two people who matter', 'Who you want to stay close to, and how often.', '/people'),
+    ('rep', 'Practise once in your growth area', 'One real rep, then write what you noticed.', '/growth'),
+    ('review', 'Look back at your first week', 'Five answers; next week\'s brief comes back.', '/weekly-coaching'),
+  ];
+
+  static const firstWeekOffKey = 'firstweek:off';
+
+  /// Whether [step] is done, judged from what was actually logged.
+  bool firstWeekDone(String step) {
+    final s = _state;
+    if (s == null) return false;
+    final from = dateKey(programStart);
+    return switch (step) {
+      'items' => s.dailyChecks.entries
+          .any((e) => e.key.compareTo(from) >= 0 && e.value.isNotEmpty),
+      'checkin' => logsOf('checkin').isNotEmpty,
+      'week' => logsOf('week_plan').any((l) =>
+          ((l.data['outcomes'] as List?) ?? const []).any((o) => '$o'.trim().isNotEmpty)),
+      'shutdown' => logsOf('shutdown').isNotEmpty,
+      'people' => logsOf('person').length >= 2,
+      'rep' => logsOf('rep').isNotEmpty,
+      'review' => reports.isNotEmpty,
+      _ => false,
+    };
+  }
+
+  /// Steps done of the seven.
+  int get firstWeekProgress =>
+      firstWeekSteps.where((x) => firstWeekDone(x.$1)).length;
+
+  /// Today's step: the first one not done among those unlocked so far
+  /// (one more each day). Only in a first program's first two weeks.
+  ({int index, String id, String title, String why, String route})? get firstWeekStep {
+    if (!hasStarted || cycle > 1 || programDay > 14 || isDone(firstWeekOffKey)) {
+      return null;
+    }
+    final unlocked = programDay.clamp(1, firstWeekSteps.length);
+    for (var i = 0; i < unlocked; i++) {
+      final x = firstWeekSteps[i];
+      if (!firstWeekDone(x.$1)) {
+        return (index: i, id: x.$1, title: x.$2, why: x.$3, route: x.$4);
+      }
+    }
+    return null;
+  }
+
   // ── Year in review ───────────────────────────────────────────────────
 
   /// The questions for closing a calendar year, in order. The last, the

@@ -2836,5 +2836,23 @@ void main() {
       expect(f.body, isNot(contains('Your plan: .')));
     }
   });
+
+  test('first week: one step unlocks a day and completes from what was logged',
+      () async {
+    final p = await _commissioned(); // started 1 Sep
+    p.setProgramStart(dayOnly(_today)); // day 1
+    expect(p.programDay, 1);
+    var step = p.firstWeekStep!;
+    expect(step.id, 'items');
+    p.setCheck(_today, nonNegotiables.first.id, true);
+    expect(p.firstWeekStep, isNull, reason: 'only one step is open on day 1');
+    p.clock = () => _today.plusDays(2); // day 3
+    expect(p.firstWeekStep!.id, 'checkin');
+    p.saveCheckin(_today.plusDays(2), energy: 3, mood: 0, sleep: 7, pain: 0, stiffness: 0);
+    expect(p.firstWeekStep!.id, 'week');
+    expect(p.firstWeekProgress, 2);
+    p.clock = () => _today.plusDays(20); // after the first two weeks
+    expect(p.firstWeekStep, isNull);
+  });
 }
 
