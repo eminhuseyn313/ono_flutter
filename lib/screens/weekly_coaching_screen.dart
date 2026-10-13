@@ -30,7 +30,8 @@ class _WeeklyCoachingScreenState extends State<WeeklyCoachingScreen> {
     if (_initialised) return;
     _initialised = true;
     final r =
-        context.read<PersonalSystemProvider>().reportForWeek(DateTime.now());
+        context.read<PersonalSystemProvider>().reportForWeek(
+            context.read<PersonalSystemProvider>().reportWeekFor(DateTime.now()));
     if (r != null) {
       _best.text = r.bestMoment;
       _hardest.text = r.hardestMoment;
@@ -50,17 +51,19 @@ class _WeeklyCoachingScreenState extends State<WeeklyCoachingScreen> {
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
     final now = DateTime.now();
-    final week = weekStartOf(now);
+    // Usually this week; on Monday and Tuesday, last week if it wasn't
+    // reported (its brief is then for this week).
+    final week = system.reportWeekFor(now);
     final nextWeek = week.plusDays(7);
-    final report = system.reportForWeek(now);
+    final report = system.reportForWeek(week);
     final nextBrief = system.briefForWeek(nextWeek);
     final thisBrief = system.briefForWeek(now);
     final showForm = report == null || _editing;
-    final avg = system.weekAverage(now);
+    final avg = system.weekAverage(week);
     final builtIn = system.isBuiltInPerson;
     // Without the built-in training plan, the second number is movement and
     // the report records strength days.
-    final gym = builtIn ? system.gymSessionsInWeek(now) : system.strengthDaysInWeek(now);
+    final gym = builtIn ? system.gymSessionsInWeek(week) : system.strengthDaysInWeek(week);
 
     return OnoPage(
       showBack: true,
@@ -69,7 +72,8 @@ class _WeeklyCoachingScreenState extends State<WeeklyCoachingScreen> {
       subtitle:
           'Five things. The brief for next week comes straight back and is pinned to Today from Monday.',
       children: [
-        if (thisBrief != null) ...[
+        // (Closing last week late, its brief is this week's: shown below.)
+        if (thisBrief != null && nextWeek != weekStartOf(now)) ...[
           const SectionHeader('This week\'s brief'),
           _BriefView(brief: thisBrief),
         ],
@@ -88,7 +92,7 @@ class _WeeklyCoachingScreenState extends State<WeeklyCoachingScreen> {
                 child: OnoCard(
                   child: builtIn
                       ? StatTile('$gym', '2 · Gym sessions', unit: '/3')
-                      : StatTile('${system.moveMinutesInWeek(now)}', '2 · Minutes moved', unit: '/150'),
+                      : StatTile('${system.moveMinutesInWeek(week)}', '2 · Minutes moved', unit: '/150'),
                 ),
               ),
             ],

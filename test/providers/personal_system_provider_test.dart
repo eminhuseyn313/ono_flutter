@@ -929,14 +929,15 @@ void main() {
     expect(area.personal, isTrue);
     expect(p.focusRatings(), (2, null));
 
-    // The suggested drill moves on once it has been practised.
+    // The week's drill holds while it's practised; next week moves on.
     final first = p.drillFor(area, _today);
     p.logRep(area, first,
         did: 'Sighed before the pricing review',
         noticed: 'Voice steadier',
         lesson: 'The sigh works when I do it in the car, not in the room',
         next: 'Sigh in the car before every Ali meeting');
-    expect(p.drillFor(area, _today).title, isNot(first.title));
+    expect(p.drillFor(area, _today).title, first.title);
+    expect(p.drillFor(area, _today.plusDays(7)).title, isNot(first.title));
     expect(p.repsIn('composure', p.programMonth).single.str('lesson'),
         startsWith('The sigh works'));
     expect(p.repsInWeek(_today), 1);
@@ -2853,6 +2854,38 @@ void main() {
     expect(p.firstWeekProgress, 2);
     p.clock = () => _today.plusDays(20); // after the first two weeks
     expect(p.firstWeekStep, isNull);
+  });
+
+  test('a report made on Monday closes last week; the drill holds for the week',
+      () async {
+    final p = await _commissioned(); // started 1 Sep
+    final monday = DateTime(2026, 10, 5, 9);
+    p.clock = () => monday;
+    expect(p.reportWeekFor(monday), DateTime(2026, 9, 28));
+    expect(p.lastWeekReportDue, isTrue);
+    p.saveReport(WeeklyReport(
+        id: 'r1',
+        weekStart: DateTime(2026, 9, 28),
+        nonNegotiableAverage: 7,
+        gymSessions: 3,
+        bestMoment: '',
+        hardestMoment: '',
+        workSituation: '',
+        createdAt: monday));
+    expect(p.reportWeekFor(monday), DateTime(2026, 10, 5));
+    expect(p.lastWeekReportDue, isFalse);
+    // Wednesday: always this week.
+    final wednesday = DateTime(2026, 10, 7, 9);
+    expect(p.reportWeekFor(wednesday), DateTime(2026, 10, 5));
+
+    final area = p.allGrowthAreas.first;
+    p.setFocus(area.id, startRating: 2);
+    final drill = p.drillFor(area, wednesday);
+    p.clock = () => wednesday;
+    p.logRep(area, drill, did: 'Tried it', lesson: 'Start smaller');
+    expect(p.drillFor(area, wednesday).title, drill.title,
+        reason: 'one rep does not move the week\'s drill');
+    expect(p.drillRepsThisWeek(area, drill, wednesday), 1);
   });
 }
 

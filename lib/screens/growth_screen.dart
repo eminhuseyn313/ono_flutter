@@ -200,7 +200,9 @@ class _Plan extends StatelessWidget {
             Expanded(
                 child: StatTile(
                     end == null ? '${start ?? '–'}' : '$start→$end',
-                    end == null ? 'where you began, of 5' : 'began → now, of 5')),
+                    end == null
+                        ? 'where you began, of 5'
+                        : 'began → now, of 5')),
           ],
         ),
         const SectionHeader('This week\'s drill'),
@@ -216,6 +218,15 @@ class _Plan extends StatelessWidget {
               const SizedBox(height: 8),
               Text('You\'ll know it worked: ${drill.signal}',
                   style: AppText.small(color: AppColors.body)),
+              if (system.lastNextStep(area) case final next?) ...[
+                const SizedBox(height: 8),
+                Text('Last time you said: $next',
+                    style: AppText.small(color: AppColors.white)),
+              ],
+              const SizedBox(height: 8),
+              Text(
+                  '${system.drillRepsThisWeek(area, drill, DateTime.now())} of ${PersonalSystemProvider.repsPerDrill} reps this week',
+                  style: AppText.eyebrow(color: AppColors.accent)),
               const SizedBox(height: 12),
               PrimaryButton('I did it — reflect',
                   icon: Icons.edit_note_rounded,
@@ -294,11 +305,13 @@ class _Plan extends StatelessWidget {
                       color: practised.contains(d.title)
                           ? AppColors.accent
                           : AppColors.faint),
-                  title: Text(d.title, style: AppText.body(color: AppColors.white)),
+                  title: Text(d.title,
+                      style: AppText.body(color: AppColors.white)),
                   childrenPadding: const EdgeInsets.fromLTRB(0, 0, 8, 12),
                   expandedCrossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(d.how, style: AppText.small(color: AppColors.greyLight)),
+                    Text(d.how,
+                        style: AppText.small(color: AppColors.greyLight)),
                     const SizedBox(height: 4),
                     Text('Signal: ${d.signal}', style: AppText.small()),
                     TextButton(
@@ -331,7 +344,8 @@ class _Plan extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Rate yourself again against the bar. The gap is what you grew.',
+              Text(
+                  'Rate yourself again against the bar. The gap is what you grew.',
                   style: AppText.small()),
               const SizedBox(height: 8),
               _RatingRow(
@@ -339,9 +353,11 @@ class _Plan extends StatelessWidget {
                   levels: levelsOf(area),
                   onChanged: (v) {
                     system.rateFocusEnd(v);
-                    toast(context, start == null || v <= start
-                        ? 'Rated $v. Keep this area next month if it isn\'t moving yet.'
-                        : 'Up ${v - start} since the start of the month.');
+                    toast(
+                        context,
+                        start == null || v <= start
+                            ? 'Rated $v. Keep this area next month if it isn\'t moving yet.'
+                            : 'Up ${v - start} since the start of the month.');
                   }),
             ],
           ),
@@ -373,7 +389,11 @@ class _Plan extends StatelessWidget {
 
   void _addDrillSheet(BuildContext context, PersonalSystemProvider system) {
     final c = List.generate(3, (_) => TextEditingController());
-    const hints = ['Drill name', 'What exactly to do', 'How you\'ll know it worked'];
+    const hints = [
+      'Drill name',
+      'What exactly to do',
+      'How you\'ll know it worked'
+    ];
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -397,7 +417,8 @@ class _Plan extends StatelessWidget {
               ),
             ],
             const SizedBox(height: 12),
-            PrimaryButton('Add drill', icon: Icons.check_rounded, onPressed: () {
+            PrimaryButton('Add drill', icon: Icons.check_rounded,
+                onPressed: () {
               if (c[0].text.trim().isEmpty) {
                 toast(ctx, 'Name the drill first.');
                 return;
@@ -435,57 +456,67 @@ class _Plan extends StatelessWidget {
   void _repSheet(
       BuildContext context, PersonalSystemProvider system, Drill drill) {
     final c = List.generate(4, (_) => TextEditingController());
+    // The two that matter first; noticing and next time behind "more".
     const prompts = [
       ('What did you do?', 'The situation, briefly'),
+      ('The lesson', 'One sentence you\'d tell someone just starting'),
       ('What did you notice?', 'In them, in you — what actually happened'),
-      ('The lesson', 'One sentence you\'d tell a younger PO'),
       ('Next time I will…', 'One specific change'),
     ];
+    var more = false;
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: AppColors.card,
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.fromLTRB(
-            20, 20, 20, 20 + MediaQuery.of(ctx).viewInsets.bottom),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(drill.title, style: AppText.title()),
-              for (var i = 0; i < 4; i++) ...[
-                const SizedBox(height: 10),
-                Text(prompts[i].$1, style: AppText.small(color: AppColors.white)),
-                const SizedBox(height: 4),
-                TextField(
-                  controller: c[i],
-                  minLines: 1,
-                  maxLines: 3,
-                  style: AppText.body(color: AppColors.white),
-                  decoration: InputDecoration(hintText: prompts[i].$2),
+      builder: (ctx) => StatefulBuilder(
+          builder: (ctx, setSheet) => Padding(
+                padding: EdgeInsets.fromLTRB(
+                    20, 20, 20, 20 + MediaQuery.of(ctx).viewInsets.bottom),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(drill.title, style: AppText.title()),
+                      for (var i = 0; i < (more ? 4 : 2); i++) ...[
+                        const SizedBox(height: 10),
+                        Text(prompts[i].$1,
+                            style: AppText.small(color: AppColors.white)),
+                        const SizedBox(height: 4),
+                        TextField(
+                          controller: c[i],
+                          minLines: 1,
+                          maxLines: 3,
+                          style: AppText.body(color: AppColors.white),
+                          decoration: InputDecoration(hintText: prompts[i].$2),
+                        ),
+                      ],
+                      if (!more)
+                        TextButton(
+                          onPressed: () => setSheet(() => more = true),
+                          child:
+                              const Text('More: what you noticed, next time'),
+                        ),
+                      const SizedBox(height: 14),
+                      PrimaryButton('Save the rep', icon: Icons.check_rounded,
+                          onPressed: () {
+                        if (c[0].text.trim().isEmpty) {
+                          toast(ctx, 'Write what you did first.');
+                          return;
+                        }
+                        system.logRep(area, drill,
+                            did: c[0].text,
+                            lesson: c[1].text,
+                            noticed: c[2].text,
+                            next: c[3].text);
+                        Navigator.of(ctx).pop();
+                        HapticFeedback.mediumImpact();
+                        toast(context, 'Rep saved. That\'s how the bar moves.');
+                      }),
+                    ],
+                  ),
                 ),
-              ],
-              const SizedBox(height: 14),
-              PrimaryButton('Save the rep', icon: Icons.check_rounded,
-                  onPressed: () {
-                if (c[0].text.trim().isEmpty) {
-                  toast(ctx, 'Write what you did first.');
-                  return;
-                }
-                system.logRep(area, drill,
-                    did: c[0].text,
-                    noticed: c[1].text,
-                    lesson: c[2].text,
-                    next: c[3].text);
-                Navigator.of(ctx).pop();
-                HapticFeedback.mediumImpact();
-                toast(context, 'Rep saved. That\'s how the bar moves.');
-              }),
-            ],
-          ),
-        ),
-      ),
+              )),
     ).whenComplete(() {
       for (final x in c) {
         x.dispose();
@@ -521,8 +552,8 @@ class _Plan extends StatelessWidget {
                   minLines: 2,
                   maxLines: 4,
                   style: AppText.body(color: AppColors.white),
-                  decoration:
-                      const InputDecoration(hintText: 'What they said, in their words')),
+                  decoration: const InputDecoration(
+                      hintText: 'What they said, in their words')),
               const SizedBox(height: 8),
               TextField(
                   controller: action,

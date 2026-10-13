@@ -4337,15 +4337,67 @@ class PersonalSystemProvider extends ChangeNotifier {
             l
       ];
 
+  /// Reps of [drill] this week, toward [repsPerDrill].
+  int drillRepsThisWeek(GrowthArea area, Drill drill, DateTime day) {
+    final from = weekStartOf(day), to = from.plusDays(7);
+    return logsOf('rep')
+        .where((r) =>
+            r.str('area') == area.id &&
+            r.str('drill') == drill.title &&
+            !r.date.isBefore(from) &&
+            r.date.isBefore(to))
+        .length;
+  }
+
+  static const repsPerDrill = 2;
+
+  /// What the last rep in [area] said to do next time — where the next
+  /// rep starts.
+  String? lastNextStep(GrowthArea area) {
+    for (final r in logsOf('rep')) {
+      if (r.str('area') == area.id && (r.str('next') ?? '').trim().isNotEmpty) {
+        return r.str('next')!.trim();
+      }
+    }
+    return null;
+  }
+
+  // ── Which week the report closes ─────────────────────────────────────
+
+  /// The week the Sunday report covers: this one, except on Monday and
+  /// Tuesday while last week has no report — a busy Sunday shouldn't
+  /// skip a week.
+  DateTime reportWeekFor(DateTime now) {
+    final thisWeek = weekStartOf(now);
+    final lastWeek = thisWeek.minusDays(7);
+    if (now.weekday <= DateTime.tuesday &&
+        hasStarted &&
+        !programStart.isAfter(thisWeek.minusDays(1)) &&
+        reportForWeek(lastWeek) == null) {
+      return lastWeek;
+    }
+    return thisWeek;
+  }
+
+  /// Monday or Tuesday, and last week still has no report.
+  bool get lastWeekReportDue =>
+      reportWeekFor(_now) != weekStartOf(_now);
+
   int repsInWeek(DateTime anyDay) {
     final from = weekStartOf(anyDay);
     return countBetween('rep', from, from.plusDays(7));
   }
 
-  /// This week's drill: the first not yet practised this month, rotating
-  /// by week so each week brings a different one.
+  /// This week's drill: the first not practised earlier this month,
+  /// rotating by week so each week brings a different one. Reps this week
+  /// don't move it: a drill is practised more than once (deliberate
+  /// practice is repetition with feedback, Ericsson 1993).
   Drill drillFor(GrowthArea area, DateTime day) {
-    final done = repsIn(area.id, programMonth).map((r) => r.str('drill')).toSet();
+    final weekFrom = weekStartOf(day);
+    final done = {
+      for (final r in repsIn(area.id, programMonth))
+        if (r.date.isBefore(weekFrom)) r.str('drill')
+    };
     final week = dayOnly(day).daysSince(programStart) ~/ 7;
     final drills = drillsOf(area);
     final n = drills.length;

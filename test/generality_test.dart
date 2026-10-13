@@ -12,7 +12,7 @@ import 'package:ono/models/personal_system.dart';
 void main() {
   test('screens, logic and the coach never hard-code one person\'s life', () {
     final banned = RegExp(
-        r"\bAli\b|Rustam|Business ID|PASHA|Kapital|Bir Ecosystem|BirBank|Head of Product|Azerbaijan|Baku|\bEmin\b");
+        r"\bAli\b|Rustam|Business ID|PASHA|Kapital|Bir Ecosystem|BirBank|Head of Product|Azerbaijan|Baku|\bEmin\b|\bPOs?\b|product owner");
     final offenders = <String>[];
     final general = [
       for (final f in ['growth_templates', 'life_wheel', 'daily_library', 'plan_packs', 'general_program', 'tool_index'])

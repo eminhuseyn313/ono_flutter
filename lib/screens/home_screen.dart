@@ -1296,6 +1296,10 @@ class _PromptsState extends State<_Prompts> {
             'The conversation with ${c.str('with')}',
             'Have it today, or debrief it if it happened',
             '/conversations'),
+      if (system.lastWeekReportDue)
+        _row(context, Icons.assignment_outlined, AppColors.accent,
+            'Close last week',
+            'Five answers — then this week gets its brief', '/weekly-coaching'),
       if (system.yearReviewDue)
         _row(
             context,
