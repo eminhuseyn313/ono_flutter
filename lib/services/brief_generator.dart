@@ -106,6 +106,10 @@ class BriefInput {
   /// How many daily items there are (the Daily 10 may have 8 or 12).
   final int itemCount;
 
+  /// Wins logged this week (text stays on the device; only the count is
+  /// sent to the coach).
+  final List<String> wins;
+
   /// People on their list they were in touch with this week, of how many.
   final int peopleReached;
   final int peopleCount;
@@ -204,6 +208,7 @@ class BriefInput {
     this.itemTitles = const {},
     this.itemCount = 10,
     this.itemCues = const {},
+    this.wins = const [],
     this.peopleReached = 0,
     this.peopleCount = 0,
     this.daysCounted = 7,
@@ -265,6 +270,7 @@ class BriefInput {
         'daily_item_count': itemCount,
         if (itemCues.isNotEmpty) 'item_if_then_plans': itemCues,
         if (peopleCount > 0) 'people_in_touch_this_week': '$peopleReached of $peopleCount',
+        'wins_logged_this_week': wins.length,
         'days_in_program_this_week': daysCounted,
         'evidence_added_this_week': evidenceAddedThisWeek,
         'artifacts_this_month': artifactsThisMonth,
@@ -463,12 +469,15 @@ class DeviceBriefGenerator implements BriefGenerator {
       if (input.feedbackThemes != null)
         'What others told you: "${input.feedbackThemes}". Pick one moment next week to act on it where they can see it.',
     ];
+    // The first two weeks: health and the basics only. Nudges about things
+    // they haven't met yet (rest, notes, deep work…) wait.
+    final early = partial || input.programWeek <= 2;
     final setup = <String>[
       if (input.growthFocus == null)
         'No growth area this month. Pick one in the Growth plan — the gap you most want closed — and practise it on real work.',
       if (input.goals.isEmpty)
         'No goals set. Name the one outcome that would make the next six months a success — and the obstacle most likely to stop you.',
-      if (!input.restPlanned)
+      if (!input.restPlanned && !early)
         'No rest planned in the next eight weeks. Put one full rest day — or a lighter week — in the plan now, before the calendar decides for you.',
       if (input.builtInPlan && input.evidenceAddedThisWeek < 5)
         'Evidence Archive: add ${5 - input.evidenceAddedThisWeek} more items tonight — the impostor feeds on forgetting.',
@@ -478,15 +487,15 @@ class DeviceBriefGenerator implements BriefGenerator {
         'No Big 3 for the week. Sunday night: three outcomes that would make next week a win, ${input.builtInPlan ? 'one tied to the artifact' : 'one tied to your goal'}.',
       if (input.builtInPlan && r.gymSessions < 2)
         'If a weekday slips, move the session to Saturday morning rather than skipping it.',
-      if (input.goals.isNotEmpty && !input.noteSent)
+      if (input.goals.isNotEmpty && !input.noteSent && !early)
         'No progress note went out this week. Friday: five lines to ${input.profile.manager.isEmpty ? 'one person you trust' : input.profile.manager} — reported progress moves goals faster than private tracking.',
       if (input.weekOutcomes.any((o) => o.startsWith('[open]')))
         'Week outcomes: ${input.weekOutcomes.where((o) => o.startsWith('[done]')).length} of ${input.weekOutcomes.length} done. Carry the open one only if it still matters — otherwise drop it on purpose.',
       if (input.peopleOverdue.isNotEmpty)
         'Overdue to reach out: ${input.peopleOverdue.join(', ')}. One message each this week — ask about something they care about, not just "how are you".',
-      if (input.deepWorkHours < 3)
+      if (input.deepWorkHours < 3 && !early)
         'Deep work: ${input.deepWorkHours.toStringAsFixed(1)} h this week. Book two 90-minute blocks for ${input.builtInPlan ? 'the artifact' : 'what matters most'}${input.energyPeak == null ? '' : ' in your ${input.energyPeak}'} before Monday fills up.',
-      if (input.shutdowns < 4)
+      if (input.shutdowns < 4 && !early)
         'Evening shutdown on ${input.shutdowns} of 7 nights. Three minutes ${input.builtInPlan ? 'at 21:30' : 'before bed'}: tomorrow\'s three on paper, head empty, then bed.',
     ];
     final more = <String>[
@@ -502,6 +511,8 @@ class DeviceBriefGenerator implements BriefGenerator {
         'Your crafting move: ${input.craftingMove}. Put it on next week\'s calendar once — small changes to the work are how it starts to fit you.',
     ];
     final recognition = <String>[
+      if (early && input.wins.isNotEmpty)
+        'You logged ${input.wins.length} win${input.wins.length == 1 ? '' : 's'} — the first: "${_clip(input.wins.first, 100)}". Keep writing them down; on a hard day they are your evidence.',
       if (r.bestMoment.trim().isNotEmpty)
         'Best moment: "${_clip(r.bestMoment.trim(), 120)}". What made it possible? Set that up again next week.',
       if (input.setbacks > 0)
@@ -527,7 +538,7 @@ class DeviceBriefGenerator implements BriefGenerator {
         ...week.skip(1),
         ...setup.skip(1).take(1),
         ...health.skip(2),
-        ...more,
+        if (!early) ...more,
       ].take(maxAdjustments),
       ...recognition.take(1),
     ];

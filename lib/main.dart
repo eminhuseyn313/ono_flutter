@@ -26,7 +26,7 @@ void main() async {
   runApp(OnoApp(
     authGateway: MockAuthGateway(),
     personalGateway: MockPersonalSystemGateway(),
-    reminders: kIsWeb ? NoopReminderService() : LocalReminderService(),
+    reminders: kIsWeb ? NoopReminderService(supported: false) : LocalReminderService(),
     health: createHealthService(),
     widgets: createWidgetSync(),
     calendar: createCalendarService(),

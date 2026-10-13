@@ -81,4 +81,28 @@ void main() {
     expect(b.adjustments.join(' '),
         contains('You took "make it obvious" from Atomic Habits. Did the experiment hold?'));
   });
+
+  test('the first two weeks: basics and what they did, not every shortfall', () async {
+    final input = BriefInput(
+      report: WeeklyReport(
+          id: 'r', weekStart: DateTime(2026, 10, 5), nonNegotiableAverage: 4,
+          gymSessions: 0, bestMoment: '', hardestMoment: '', workSituation: '',
+          createdAt: DateTime(2026, 10, 11)),
+      forWeek: DateTime(2026, 10, 12), programMonth: 1, programWeek: 1,
+      itemRates: const {'d_walk': 0.8}, itemCount: 5,
+      evidenceAddedThisWeek: 0, artifactsThisMonth: 0, postsThisWeek: 0,
+      gymDays: const [], openUnlocks: const [], builtInPlan: false,
+      restPlanned: false, shutdowns: 1,
+      wins: const ['Called my sister'],
+    );
+    final b = await DeviceBriefGenerator().generate(input);
+    final all = b.adjustments.join(' ');
+    expect(all, isNot(contains('Deep work')));
+    expect(all, isNot(contains('No rest planned')));
+    expect(all, isNot(contains('Evening shutdown')));
+    expect(all, contains('the first: "Called my sister"'));
+    expect(input.toJson()['wins_logged_this_week'], 1);
+    expect(input.toJson().toString(), isNot(contains('Called my sister')),
+        reason: 'only the count leaves the device');
+  });
 }

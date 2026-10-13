@@ -310,6 +310,8 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
                     divisions: 9,
                     activeColor: _wheel[a.id] == null ? AppColors.faint : AppColors.accent,
                     onChanged: (v) => setState(() => _wheel[a.id] = v.round()),
+                    // An unrated slider sits at 5: tapping 5 must count too.
+                    onChangeEnd: (v) => setState(() => _wheel[a.id] = v.round()),
                   ),
                 ],
               ),

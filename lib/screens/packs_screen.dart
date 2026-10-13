@@ -66,7 +66,9 @@ class PacksScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                if (pack.daily.length >= PersonalSystemProvider.minDailyItems)
+                // Before the plan exists there's no list of their own to keep.
+                if (system.isCommissioned &&
+                    pack.daily.length >= PersonalSystemProvider.minDailyItems)
                   SwitchListTile(
                     contentPadding: EdgeInsets.zero,
                     value: replace,

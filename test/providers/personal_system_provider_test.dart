@@ -29,6 +29,9 @@ final _today = DateTime(2026, 10, 2, 12);
 final _start = DateTime(2026, 9, 1);
 
 class _RecordingReminders implements ReminderService {
+  @override
+  bool get supported => true;
+
   List<PlannedReminder> last = const [];
   @override
   Future<void> init({required void Function(String route) onOpen}) async {}
@@ -3049,5 +3052,42 @@ void main() {
     final c = p.experimentCompare(e);
     expect(c.nDuring, 3);
     expect(c.during, 4);
+  });
+
+  test('first weeks: no review of a two-day week; a pack goal keeps what you wrote',
+      () async {
+    final p = PersonalSystemProvider(gateway: MockPersonalSystemGateway())
+      ..clock = () => DateTime(2026, 10, 3, 9); // a Saturday
+    await p.load('test');
+    await p.commission(
+        start: DateTime(2026, 10, 3), gymDays: const [1, 3, 5], reminders: const {});
+    // Monday: the two-day week before isn't asked for.
+    p.clock = () => DateTime(2026, 10, 5, 9);
+    expect(p.programDaysInWeek(DateTime(2026, 9, 28)), 2);
+    expect(p.lastWeekReportDue, isFalse);
+    // The look-back step waits for a Sunday after a few days.
+    expect(p.firstWeekStep?.id, isNot('review'));
+    // A pack added the goal from step 1; the goal step's words still land.
+    final pack = planPacks.first;
+    p.applyPack(pack, replaceDaily: false, withGoal: true);
+    final title = p.activeGoals.single.text;
+    p.buildPlan(
+      name: activeProfile.name,
+      currentRole: 'Now',
+      targetRole: 'Next',
+      area: p.allGrowthAreas.first,
+      areaRating: 2,
+      goal: title,
+      goalWhy: 'So my team trusts me',
+      plan: 'If I avoid it, then I book it first thing',
+      milestone: 'First 1:1 with everyone',
+      deadline: DateTime(2027, 4, 5),
+      daily: const [],
+    );
+    final g = p.activeGoals.single;
+    expect(g.str('why'), 'So my team trusts me');
+    expect(g.str('plan'), 'If I avoid it, then I book it first thing');
+    expect(p.milestonesOf(g).map((m) => m.text), contains('First 1:1 with everyone'));
+    expect(g.str('deadline'), '2027-04-05');
   });
 }

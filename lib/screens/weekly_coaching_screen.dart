@@ -92,7 +92,10 @@ class _WeeklyCoachingScreenState extends State<WeeklyCoachingScreen> {
                 child: OnoCard(
                   child: builtIn
                       ? StatTile('$gym', '2 · Gym sessions', unit: '/3')
-                      : StatTile('${system.moveMinutesInWeek(week)}', '2 · Minutes moved', unit: '/150'),
+                      : system.logsOf('move').isEmpty
+                          // Movement isn't measured until they log it.
+                          ? StatTile('${system.countBetween('win', week, week.plusDays(7))}', '2 · Wins logged')
+                          : StatTile('${system.moveMinutesInWeek(week)}', '2 · Minutes moved', unit: '/150'),
                 ),
               ),
             ],
@@ -296,7 +299,7 @@ class _WeekReview extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(set == 0 ? 'BIG 3 · NOT SET THIS WEEK' : 'BIG 3 · $done OF $set DONE',
+          Text(set == 0 ? 'THE WEEK\'S THREE · NOT SET' : 'THE WEEK\'S THREE · $done OF $set DONE',
               style: AppText.eyebrow()),
           for (var i = 0; i < 3; i++)
             if (o[i].trim().isNotEmpty)
@@ -309,8 +312,8 @@ class _WeekReview extends StatelessWidget {
           TextButton(
             onPressed: () => context.push('/week'),
             child: Text(system.hasWeekPlan(next)
-                ? 'Next week\'s Big 3 are set — review'
-                : 'Plan next week\'s Big 3'),
+                ? 'Next week\'s three are set — review'
+                : 'Plan next week\'s three'),
           ),
         ],
       ),

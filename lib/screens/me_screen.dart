@@ -38,7 +38,9 @@ class MeScreen extends StatelessWidget {
     return OnoPage(
       eyebrow: activeProfile.archetype,
       title: activeProfile.name,
-      subtitle: '${activeProfile.roleLine}\n${activeProfile.organisation}',
+      subtitle: [activeProfile.roleLine, activeProfile.organisation]
+          .where((s) => s.trim().isNotEmpty)
+          .join('\n'),
       children: [
         const SizedBox(height: 20),
         // Me starts with what someone came for: finding the right tool.
@@ -768,7 +770,7 @@ class MeScreen extends StatelessWidget {
                 color: AppColors.accent,
                 title: 'Your profile',
                 subtitle:
-                    '${activeProfile.currentRole} → ${activeProfile.targetRole}${system.profileEdited ? ' · edited' : ''}',
+                    '${[activeProfile.currentRole, activeProfile.targetRole].where((s) => s.trim().isNotEmpty).join(' → ')}${system.profileEdited ? ' · edited' : ''}',
                 onTap: () => context.push('/profile/edit'),
               ),
               const Divider(indent: 66),
@@ -819,15 +821,17 @@ class MeScreen extends StatelessWidget {
                 ),
                 const Divider(indent: 66),
               ],
-              LinkRow(
-                icon: Icons.notifications_none_rounded,
-                color: AppColors.mind,
-                title: 'Reminders',
-                subtitle:
-                    '${system.activeReminderDefs.where((r) => system.reminderOn(r.id)).length} of ${system.activeReminderDefs.length} on',
-                onTap: () => _remindersSheet(context),
-              ),
-              const Divider(indent: 66),
+              if (system.remindersSupported) ...[
+                LinkRow(
+                  icon: Icons.notifications_none_rounded,
+                  color: AppColors.mind,
+                  title: 'Reminders',
+                  subtitle:
+                      '${system.activeReminderDefs.where((r) => system.reminderOn(r.id)).length} of ${system.activeReminderDefs.length} on',
+                  onTap: () => _remindersSheet(context),
+                ),
+                const Divider(indent: 66),
+              ],
               LinkRow(
                 icon: Icons.timelapse_rounded,
                 color: AppColors.accent,

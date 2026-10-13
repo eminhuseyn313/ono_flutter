@@ -30,6 +30,10 @@ class PlannedReminder {
 const int onceIdBase = 90000;
 
 abstract class ReminderService {
+  /// False where notifications can't be delivered (the web app), so the
+  /// app doesn't promise reminders it can't send.
+  bool get supported;
+
   Future<void> init({required void Function(String route) onOpen});
   Future<bool> requestPermission();
 
@@ -46,6 +50,11 @@ abstract class ReminderService {
 
 /// No-op implementation for web and tests.
 class NoopReminderService implements ReminderService {
+  NoopReminderService({this.supported = true});
+
+  @override
+  final bool supported;
+
   List<PlannedReminder> lastSynced = const [];
 
   @override
@@ -75,6 +84,9 @@ class NoopReminderService implements ReminderService {
 
 /// iOS / Android local notifications, repeating weekly at local time.
 class LocalReminderService implements ReminderService {
+  @override
+  bool get supported => true;
+
   final _plugin = FlutterLocalNotificationsPlugin();
   bool _ready = false;
   List<PlannedReminder>? _pending;

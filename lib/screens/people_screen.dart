@@ -310,10 +310,10 @@ class _PeopleScreenState extends State<PeopleScreen> {
         .toList();
     return OnoPage(
       showBack: true,
-      eyebrow: 'Social lane',
+      eyebrow: 'People',
       title: 'People',
       subtitle:
-          'Who you invest in, and how often. 1:1s count automatically; tap someone to log any other contact.',
+          'Who you want to stay close to, and how often. Tap someone when you\'ve been in touch.',
       children: [
         if (missing.isNotEmpty) ...[
           const SizedBox(height: 14),
@@ -337,7 +337,7 @@ class _PeopleScreenState extends State<PeopleScreen> {
           ),
         ] else
           const EmptyNote(
-              'Add the people who shape who you\'re becoming: a manager or coach, a mentor, peers one step ahead, family and friends you don\'t want to drift from.',
+              'Add the people you don\'t want to drift from: family and friends, a mentor, people one step ahead, the people you work with.',
               icon: Icons.group_outlined),
         const SectionHeader('Add someone'),
         TextField(

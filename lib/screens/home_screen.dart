@@ -61,9 +61,11 @@ class _HomeScreenState extends State<HomeScreen> {
     final m = _now.hour * 60 + _now.minute;
     // Sunday afternoon is for the report; once it's sent, the evening
     // (shutdown, ticking the three) is back.
+    final system = context.read<PersonalSystemProvider>();
     if (_now.weekday == DateTime.sunday &&
         m >= 16 * 60 &&
-        context.read<PersonalSystemProvider>().reportForWeek(_now) == null) {
+        system.weekWorthReviewing(_now) &&
+        system.reportForWeek(_now) == null) {
       return _Mode.sunday;
     }
     if (m < 10 * 60 + 30) return _Mode.morning;
@@ -218,6 +220,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               // Everything that isn't today's next action: one tap away.
               if (!_yesterday && system.hasStarted) ...[
+                // A new brief stays in view until it has been opened once.
+                if (brief != null &&
+                    !system.isDone(_planOpenKey) &&
+                    !system.isDone('brief:seen:${brief.id}')) ...[
+                  const SizedBox(height: 12),
+                  _BriefCard(brief: brief),
+                ],
                 _PlanToggle(now: _now),
                 if (system.isDone(_planOpenKey)) ...[
                   const _GoalsCard(),
@@ -913,7 +922,7 @@ class _PlanToggle extends StatelessWidget {
         final drill = system.drillFor(area, now);
         final reps = system.drillRepsThisWeek(area, drill, now);
         if (reps < PersonalSystemProvider.repsPerDrill) {
-          next = 'Drill: ${drill.title} · $reps of ${PersonalSystemProvider.repsPerDrill} this week';
+          next = 'Practice: ${drill.title} · $reps of ${PersonalSystemProvider.repsPerDrill} this week';
         }
       }
     }
@@ -1270,7 +1279,10 @@ class _PromptsState extends State<_Prompts> {
           system.dayShape == null &&
           system.programDay >= 2)
         _row(context, Icons.schedule_rounded, AppColors.mind, 'Shape your day',
-            'Wake, work, bed — your dial and reminders follow it', '/day'),
+            system.remindersSupported
+                ? 'Wake, work, bed — your dial and reminders follow it'
+                : 'Wake, work, bed — your day dial follows it',
+            '/day'),
       if (system.values.isEmpty &&
           system.programDay >= 7 &&
           system.programDay <= 30)
@@ -1551,7 +1563,7 @@ class _PromptsState extends State<_Prompts> {
           String body, String route) =>
       OnoCard(
         padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
-        onTap: () => context.push(route),
+        onTap: route.isEmpty ? null : () => context.push(route),
         child: Row(
           children: [
             IconTile(icon, color: color, size: 40),
@@ -1568,7 +1580,8 @@ class _PromptsState extends State<_Prompts> {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right_rounded, color: AppColors.grey),
+            if (route.isNotEmpty)
+              const Icon(Icons.chevron_right_rounded, color: AppColors.grey),
           ],
         ),
       );
@@ -1717,14 +1730,22 @@ class _BriefCard extends StatelessWidget {
             spacing: 4,
             children: [
               TextButton(
-                onPressed: () => context.push('/week'),
+                onPressed: () {
+                  context.read<PersonalSystemProvider>()
+                      .setDone('brief:seen:${brief.id}', true);
+                  context.push('/week');
+                },
                 style: TextButton.styleFrom(padding: EdgeInsets.zero),
                 child: Text(outSet == 0
                     ? 'Plan the week\'s three →'
                     : 'The week\'s three: $outDone of $outSet →'),
               ),
               TextButton(
-                onPressed: () => context.push('/weekly-coaching'),
+                onPressed: () {
+                  context.read<PersonalSystemProvider>()
+                      .setDone('brief:seen:${brief.id}', true);
+                  context.push('/weekly-coaching');
+                },
                 style: TextButton.styleFrom(padding: EdgeInsets.zero),
                 child: const Text('The full brief →'),
               ),

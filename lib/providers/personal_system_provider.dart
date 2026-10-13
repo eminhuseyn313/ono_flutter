@@ -25,6 +25,9 @@ import '../services/widget_sync.dart';
 class PersonalSystemProvider extends ChangeNotifier {
   final PersonalSystemGateway _gateway;
   final ReminderService? _reminders;
+
+  /// Whether this device can deliver reminders (not the web app).
+  bool get remindersSupported => _reminders?.supported ?? false;
   final BriefGenerator _briefs;
 
   PersonalSystemProvider({
@@ -1946,6 +1949,12 @@ class PersonalSystemProvider extends ChangeNotifier {
         report: report,
         itemTitles: {for (final n in dailyItems) n.id: n.title},
         itemCount: dailyCount,
+        wins: [
+          for (final w in logsOf('win').reversed)
+            if (!w.date.isBefore(report.weekStart) &&
+                w.date.isBefore(report.weekStart.plusDays(7)))
+              w.text
+        ],
         peopleCount: people.length,
         peopleReached: people
             .where((p) =>
@@ -2651,6 +2660,24 @@ class PersonalSystemProvider extends ChangeNotifier {
           deadline: deadline,
           milestones: [milestone],
           areas: [areaId]) != null;
+    } else if (title.isNotEmpty) {
+      // The goal is already there (a pack added it from step 1): keep what
+      // they wrote in this step instead of dropping it.
+      final g = activeGoals.firstWhere((g) => g.text.trim().toLowerCase() == title);
+      final fresh = dayOnly(g.createdAt) == dayOnly(_now);
+      final ms = milestonesOf(g);
+      updateLog(g.copyWith(data: {
+        ...g.data,
+        if (goalWhy.trim().isNotEmpty) 'why': goalWhy.trim(),
+        if (obstacle.trim().isNotEmpty) 'obstacle': obstacle.trim(),
+        if (plan.trim().isNotEmpty) 'plan': plan.trim(),
+        if (fresh && deadline != null) 'deadline': dateKey(deadline),
+        if (milestone.trim().isNotEmpty && !ms.any((m) => m.text == milestone.trim()))
+          'milestones': [
+            ...(g.data['milestones'] as List? ?? const []),
+            {'text': milestone.trim(), 'done': false},
+          ],
+      }));
     }
     _changingList(() {
       final own = keepOwnDaily ? customDailyItems.length : 0;
@@ -4500,12 +4527,26 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// The week the Sunday report covers: this one, except on Monday and
   /// Tuesday while last week has no report — a busy Sunday shouldn't
   /// skip a week.
+  /// Days of [anyDay]'s week since the journey began, up to today.
+  int programDaysInWeek(DateTime anyDay) {
+    if (!hasStarted) return 0;
+    final today = dayOnly(_now);
+    return [
+      for (final d in weekDays(weekStartOf(anyDay)))
+        if (!d.isBefore(journeyStart) && !d.isAfter(today)) d
+    ].length;
+  }
+
+  /// A week is worth reviewing once it held three days of the program —
+  /// someone who starts on a Saturday isn't asked to review two days.
+  bool weekWorthReviewing(DateTime anyDay) => programDaysInWeek(anyDay) >= 3;
+
   DateTime reportWeekFor(DateTime now) {
     final thisWeek = weekStartOf(now);
     final lastWeek = thisWeek.minusDays(7);
     if (now.weekday <= DateTime.tuesday &&
         hasStarted &&
-        !programStart.isAfter(thisWeek.minusDays(1)) &&
+        weekWorthReviewing(lastWeek) &&
         reportForWeek(lastWeek) == null) {
       return lastWeek;
     }
@@ -5716,7 +5757,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// Starting small and adding one thing at a time keeps people going
   /// (Fogg 2019; choice overload: Iyengar & Lepper 2000).
   static const firstWeekSteps = [
-    ('items', 'Tick one daily item', 'One tick starts the plan. Small is the point.', '/daily'),
+    ('items', 'Tick one daily item', 'Tick one in your list below. Small is the point.', ''),
     ('checkin', 'Do the morning check-in', 'Thirty seconds that tell you what today can ask of you.', '/checkin'),
     ('week', 'Set this week\'s three outcomes', 'Three things that would make the week a win.', '/week'),
     ('shutdown', 'Close one evening with the shutdown', 'Tomorrow\'s three on paper, then let the day go.', '/shutdown'),
@@ -5759,6 +5800,12 @@ class PersonalSystemProvider extends ChangeNotifier {
     final unlocked = programDay.clamp(1, firstWeekSteps.length);
     for (var i = 0; i < unlocked; i++) {
       final x = firstWeekSteps[i];
+      // The look back belongs to a real Sunday after a few days, not to a
+      // Wednesday that happens to be day 7.
+      if (x.$1 == 'review' &&
+          !(_now.weekday == DateTime.sunday && weekWorthReviewing(_now))) {
+        continue;
+      }
       if (!firstWeekDone(x.$1)) {
         return (index: i, id: x.$1, title: x.$2, why: x.$3, route: x.$4);
       }

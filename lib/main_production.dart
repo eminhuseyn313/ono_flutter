@@ -44,7 +44,7 @@ void main() async {
     authGateway: SupabaseAuthGateway(client,
         webAppUrl: 'https://eminhuseyn313.github.io/ono_flutter/'),
     personalGateway: SyncedPersonalSystemGateway(SupabaseCloud(client)),
-    reminders: kIsWeb ? NoopReminderService() : LocalReminderService(),
+    reminders: kIsWeb ? NoopReminderService(supported: false) : LocalReminderService(),
     health: createHealthService(),
     widgets: createWidgetSync(),
     calendar: createCalendarService(),

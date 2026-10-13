@@ -25,7 +25,7 @@ class WeekScreen extends StatelessWidget {
       eyebrow: system.isBuiltInPerson
           ? 'Month ${system.programMonth} · ${artifactFor(system.programMonth)}'
           : 'Month ${system.programMonth}',
-      title: 'Big 3 this week',
+      title: 'This week\'s three',
       subtitle: system.isBuiltInPerson
           ? 'Outcomes you control, specific enough to tick. One should move the artifact; daily priorities serve these.'
           : 'Outcomes you control, specific enough to tick. One should move a goal; daily priorities serve these.',

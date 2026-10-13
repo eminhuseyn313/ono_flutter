@@ -40,7 +40,10 @@ class _DailyScreenState extends State<DailyScreen> {
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
     final active = system.dailyItems;
-    final retired = nonNegotiables.where((n) => system.isRetired(n.id)).toList();
+    // The built-in list is only offered back to the built-in person.
+    final retired = system.isBuiltInPerson
+        ? nonNegotiables.where((n) => system.isRetired(n.id)).toList()
+        : const <NonNegotiable>[];
     return OnoPage(
       showBack: true,
       eyebrow: '${active.length} items · ${system.holdTarget} hold the day',
