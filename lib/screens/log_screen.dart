@@ -357,7 +357,7 @@ class _EntryRow extends StatelessWidget {
         return v == null ? e.text : '${e.text} · $v';
       case 'focus':
         final t = e.str('target');
-        return '${e.number('minutes')} min${t == 'artifact' ? ' · artifact' : t == 'skill' ? ' · skill' : ''}';
+        return '${e.number('minutes')} min${t == 'artifact' ? ' · artifact' : t == 'skill' ? ' · skill' : t == 'goal' ? ' · goal' : ''}';
       case 'partner_checkin':
         return 'With ${e.str('partner')}: you ${e.str('mine')}, they ${e.str('theirs')}';
       case 'promise':

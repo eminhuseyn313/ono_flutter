@@ -117,8 +117,10 @@ class _CockpitScreenState extends State<CockpitScreen> {
       _field(followUps, 'Your follow-ups — one per line', lines: 4),
     ]);
     if (ok != true || !context.mounted) return;
-    if (decided.text.trim().isEmpty && followUps.text.trim().isEmpty) {
-      toast(context, 'Nothing logged — write what was decided or a follow-up.');
+    if (withC.text.trim().isEmpty &&
+        decided.text.trim().isEmpty &&
+        followUps.text.trim().isEmpty) {
+      toast(context, 'Nothing logged — write who you met.');
       return;
     }
     {

@@ -175,18 +175,20 @@ class LocalReminderService implements ReminderService {
     _queued = reminders;
     if (_running != null) return _running;
     final run = () async {
-      while (_queued != null) {
-        final next = _queued!;
-        _queued = null;
-        await _apply(next);
+      try {
+        while (_queued != null) {
+          final next = _queued!;
+          _queued = null;
+          await _apply(next);
+        }
+      } finally {
+        // Cleared before returning, so a request arriving now starts a new
+        // run instead of joining this finished one.
+        _running = null;
       }
     }();
     _running = run;
-    try {
-      await run;
-    } finally {
-      _running = null;
-    }
+    await run;
   }
 
   List<PlannedReminder>? _queued;

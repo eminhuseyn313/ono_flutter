@@ -576,8 +576,10 @@ class PersonalSystemProvider extends ChangeNotifier {
   Set<String> itemIdsOn(DateTime date) {
     dailyItems;
     final s = _snapshots;
-    if (s.isEmpty) return _dailyIds;
     final k = dateKey(date);
+    // Today and later always use the list as it is now — merged from every
+    // device, whatever order their snapshots arrived in.
+    if (s.isEmpty || k.compareTo(dateKey(_now)) >= 0) return _dailyIds;
     Set<String>? found;
     for (final (d, ids) in s) {
       if (d.compareTo(k) > 0) break;
@@ -595,7 +597,9 @@ class PersonalSystemProvider extends ChangeNotifier {
     final after = {for (final n in dailyItems) n.id};
     if (before.length == after.length && before.containsAll(after)) return out;
     if (logsOf('daily_list').isEmpty) {
-      addLog('daily_list', date: dayOnly(journeyStart), data: {'ids': before.toList()});
+      final yesterday = dayOnly(_now).minusDays(1);
+      final first = journeyStart.isBefore(yesterday) ? dayOnly(journeyStart) : yesterday;
+      addLog('daily_list', date: first, data: {'ids': before.toList()});
     }
     _upsertDayLog('daily_list', dayOnly(_now), {'ids': after.toList()});
     return out;

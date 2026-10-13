@@ -1342,11 +1342,17 @@ class _RecoveryCard extends StatelessWidget {
         children: [
           Text('RECOVERY DAY', style: AppText.eyebrow(color: AppColors.warning)),
           const SizedBox(height: 6),
-          Text(
+          Builder(builder: (context) {
+            final system = context.read<PersonalSystemProvider>();
+            final now = DateTime.now();
+            final was = system.itemIdsOn(dayOnly(now).minusDays(1)).length;
+            final hold = system.targetFor(now);
+            return Text(
               streak > 0
-                  ? 'Yesterday slipped ($yesterdayScore/${context.read<PersonalSystemProvider>().dailyCount}). Hold ${context.read<PersonalSystemProvider>().holdTarget} today and your $streak-day streak carries on.'
-                  : 'Yesterday slipped ($yesterdayScore/${context.read<PersonalSystemProvider>().dailyCount}). Hold ${context.read<PersonalSystemProvider>().holdTarget} today to start again.',
-              style: AppText.heading().copyWith(fontSize: 15.5)),
+                  ? 'Yesterday slipped ($yesterdayScore/$was). Hold $hold today and your $streak-day streak carries on.'
+                  : 'Yesterday slipped ($yesterdayScore/$was). Hold $hold today to start again.',
+              style: AppText.heading().copyWith(fontSize: 15.5));
+          }),
           const SizedBox(height: 4),
           Text('One miss is noise. Two in a row is a pattern — never miss twice.',
               style: AppText.small()),

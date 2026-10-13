@@ -2746,5 +2746,23 @@ void main() {
     expect((shut.hour, shut.minute), (13, 30)); // 15:00 − 90 min
     expect(p.plannedReminders(), isNotEmpty);
   });
+
+  test('a list changed before a future start, or on two devices, scores today on the current list',
+      () async {
+    SharedPreferences.setMockInitialValues({});
+    final p = PersonalSystemProvider(gateway: MockPersonalSystemGateway())
+      ..clock = () => _today;
+    await p.load('future');
+    await p.commission(
+        start: dayOnly(_today).plusDays(5), gymDays: const [1, 3, 5], weightKg: 82, reminders: const {});
+    final mine = p.addDailyItem('Stretch', lane: 'body', when: 'morning')!;
+    p.clock = () => _today.plusDays(10);
+    expect(p.itemIdsOn(_today.plusDays(10)), contains(mine.id));
+    expect(p.targetFor(_today.plusDays(10)), 8); // 8 of 11
+    // A snapshot from another device that doesn't know the new item only
+    // speaks for its own past day, never for today.
+    p.addLog('daily_list', date: _today.plusDays(9), data: {'ids': [for (final n in nonNegotiables) n.id]});
+    expect(p.itemIdsOn(_today.plusDays(10)), contains(mine.id));
+  });
 }
 
