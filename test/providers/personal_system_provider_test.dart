@@ -3014,4 +3014,40 @@ void main() {
     expect(p.setGoalStatus(open.id, 'active'), isFalse);
     expect(p.activeGoals.length, 3);
   });
+
+  test('learning: answerable cards, newest first, retiring, honest experiments',
+      () async {
+    final p = await _commissioned();
+    final area = p.allGrowthAreas.first;
+    final drill = p.drillsOf(area).first;
+    // An old lesson and many unseen cards, then one written today.
+    p.clock = () => _today.minusDays(10);
+    for (var i = 0; i < 8; i++) {
+      p.addCustomCard('Old question $i', 'Old answer $i');
+    }
+    p.clock = () => _today;
+    p.logRep(area, drill, did: 'Opened the meeting with the decision', lesson: 'Lead with the ask');
+    final lesson = p.allCards.firstWhere((c) => c.source == 'lesson');
+    expect(lesson.front, contains('when you Opened the meeting with the decision'));
+    final due = p.dueCards(_today);
+    expect(due.map((c) => c.id), contains(lesson.id),
+        reason: 'today\'s lesson comes before the backlog of unseen cards');
+    // Retiring a generated card keeps the rep but drops the card.
+    p.retireCard(lesson.id);
+    expect(p.allCards.map((c) => c.id), isNot(contains(lesson.id)));
+    expect(p.logsOf('rep').length, 1);
+    // Sick days are left out of an experiment's comparison.
+    p.clock = () => _today.minusDays(4);
+    final e = p.startExperiment(change: 'No phone in bed', measure: 'energy', days: 7)!;
+    for (var i = 4; i >= 1; i--) {
+      final d = _today.minusDays(i);
+      p.clock = () => d;
+      p.saveCheckin(d, energy: i == 2 ? 1 : 4, mood: 0, sleep: 7, pain: 0, stiffness: 0);
+    }
+    p.clock = () => _today;
+    p.setHardDay(_today.minusDays(2), 'sick');
+    final c = p.experimentCompare(e);
+    expect(c.nDuring, 3);
+    expect(c.during, 4);
+  });
 }

@@ -1102,12 +1102,24 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// applied principle and value, and your own cards. Retrieval keeps what
   /// you learned (Roediger & Karpicke 2006).
   List<StudyCard> get allCards => [
+        for (final c in _allCardsUnfiltered)
+          if (!isDone('card:off:${c.id}')) c
+      ];
+
+  static String _clip(String s, int n) =>
+      s.length <= n ? s : '${s.substring(0, n - 1).trimRight()}…';
+
+  /// Stops a generated card from coming back; its source stays.
+  void retireCard(String id) => setDone('card:off:$id', true);
+
+  List<StudyCard> get _allCardsUnfiltered => [
         if (isBuiltInPerson) ...seedCards,
         for (final r in logsOf('rep').reversed)
           if ((r.str('lesson') ?? '').trim().isNotEmpty)
             StudyCard(
               'lesson:${r.id}',
-              'What did you learn from: ${r.str('drill') ?? 'a practice rep'}?',
+              'What did you learn from: ${r.str('drill') ?? 'a practice rep'}'
+                  '${r.text.trim().isEmpty ? '' : ' — when you ${_clip(r.text.trim(), 70)}'}?',
               r.str('lesson')!.trim(),
               source: 'lesson',
             ),
@@ -1148,7 +1160,7 @@ class PersonalSystemProvider extends ChangeNotifier {
             StudyCard(
               'feynman:${n.id}',
               'Explain from memory: ${n.str('book') ?? 'your reading'}'
-                  '${(n.str('chapter') ?? '').isEmpty ? '' : ' — ${n.str('chapter')}'}',
+                  '${(n.str('chapter') ?? '').isEmpty ? ' (your note of ${dateKey(n.date)})' : ' — ${n.str('chapter')}'}',
               n.text,
               source: 'feynman',
             ),
@@ -1173,6 +1185,17 @@ class PersonalSystemProvider extends ChangeNotifier {
       }
     }
     due.sort((a, b) => schedules[a.id]!.due.compareTo(schedules[b.id]!.due));
+    // What you wrote in the last two days comes first: the first retrieval
+    // soon after learning matters most.
+    final recentIds = {
+      for (final l in _state?.logs ?? const <LogEntry>[])
+        if (!dayOnly(l.date).isBefore(d.minusDays(2))) l.id
+    };
+    bool recent(StudyCard c) {
+      final i = c.id.indexOf(':');
+      return i > 0 && recentIds.contains(c.id.substring(i + 1));
+    }
+    fresh.sort((a, b) => (recent(b) ? 1 : 0) - (recent(a) ? 1 : 0));
     final introducedToday = schedules.values
         .where((s) => dateKey(s.firstSeen) == dateKey(d))
         .length;
@@ -2012,7 +2035,10 @@ class PersonalSystemProvider extends ChangeNotifier {
                 '${experimentCompare(e).before == null || experimentCompare(e).during == null ? '' : ': ${experimentCompare(e).before!.toStringAsFixed(1)} before → ${experimentCompare(e).during!.toStringAsFixed(1)} during'})'
         ],
         learningApplied: [
-          for (final l in learningWith('done').take(3))
+          for (final l in learningWith('done')
+              .where((l) => (l.str('finished') ?? '')
+                  .compareTo(dateKey(dayOnly(_now).minusDays(30))) >= 0)
+              .take(3))
             if ((l.str('principle') ?? '').isNotEmpty)
               '${l.text}: ${l.str('principle')}${(l.str('result') ?? '').isEmpty ? ' (experiment: ${l.str('experiment')})' : ' → ${l.str('result')}'}'
         ],
@@ -4110,7 +4136,13 @@ class PersonalSystemProvider extends ChangeNotifier {
     final ranStop = start.plusDays(days);
     List<double> collect(DateTime from, DateTime to) => [
           for (var d = from; d.isBefore(to); d = d.plusDays(1))
-            if (!d.isBefore(programStart) && !d.isAfter(today) && (m != 'score' || d.isBefore(today)))
+            // Sick, skipped, rest and paused days say nothing about the change.
+            if (!d.isBefore(journeyStart) &&
+                !d.isAfter(today) &&
+                (m != 'score' || d.isBefore(today)) &&
+                !isExcused(d) &&
+                !isRestDay(d) &&
+                !isPaused(d))
               if (_measureOn(m, d) case final v?) v
         ];
     final before = collect(start.minusDays(days), start);

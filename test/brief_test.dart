@@ -64,4 +64,21 @@ void main() {
     expect(all, contains('"Snapped at my brother"'));
     expect(all, contains('Best moment: "Finished the draft early"'));
   });
+
+  test('the device brief asks whether applied learning held', () async {
+    final input = BriefInput(
+      report: WeeklyReport(
+          id: 'r', weekStart: DateTime(2026, 10, 5), nonNegotiableAverage: 4,
+          gymSessions: 0, bestMoment: '', hardestMoment: '', workSituation: '',
+          createdAt: DateTime(2026, 10, 11)),
+      forWeek: DateTime(2026, 10, 12), programMonth: 1, programWeek: 2,
+      itemRates: const {'d_walk': 0.8}, itemCount: 5,
+      evidenceAddedThisWeek: 0, artifactsThisMonth: 0, postsThisWeek: 0,
+      gymDays: const [], openUnlocks: const [], builtInPlan: false,
+      learningApplied: const ['Atomic Habits: make it obvious (experiment: shoes by the door)'],
+    );
+    final b = await DeviceBriefGenerator().generate(input);
+    expect(b.adjustments.join(' '),
+        contains('You took "make it obvious" from Atomic Habits. Did the experiment hold?'));
+  });
 }

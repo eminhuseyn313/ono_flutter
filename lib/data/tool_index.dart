@@ -18,7 +18,18 @@ class ToolEntry {
     final q = query.trim().toLowerCase();
     if (q.isEmpty) return true;
     final hay = [title, what, group, ...words].join(' ').toLowerCase();
-    return q.split(RegExp(r'\s+')).every(hay.contains);
+    final hayWords = hay.split(RegExp(r'[^a-z0-9]+'));
+    // "anxious" finds "anxiety", "worried" finds "worry": a word matches
+    // when its stem (all but the last three letters, at least four) starts
+    // a word in the tool's text.
+    bool hit(String w) {
+      if (hay.contains(w)) return true;
+      if (w.length < 5) return false;
+      final stem = w.substring(0, (w.length - 3).clamp(4, w.length));
+      return hayWords.any((h) => h.startsWith(stem));
+    }
+
+    return q.split(RegExp(r'\s+')).every(hit);
   }
 }
 
@@ -88,6 +99,8 @@ const List<ToolEntry> toolIndex = [
   // Practice
   ToolEntry('Learning', 'Learn it, then apply it', '/learning', 'Practice',
       words: ['books', 'courses', 'reading', 'podcast']),
+  ToolEntry('Write from memory', 'Close the book and explain what you just read — the gaps show what to reread', '/tool/feynman', 'Practice',
+      words: ['feynman', 'recall', 'reading', 'notes', 'study', 'understand']),
   ToolEntry('Review deck', 'Spaced repetition of what you learned', '/review', 'Practice',
       words: ['flashcards', 'anki', 'memory', 'cards']),
   ToolEntry('After-action review', 'After something that mattered: keep one thing, change one', '/aar', 'Practice',

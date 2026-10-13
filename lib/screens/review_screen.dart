@@ -25,13 +25,33 @@ class _ReviewScreenState extends State<ReviewScreen> {
   int _reviewed = 0;
   bool _showBack = false;
   bool _started = false;
+  bool _logged = false;
+  late PersonalSystemProvider _system;
+
+  /// A partial session counts too: five cards on a busy day keep the habit.
+  void _log({bool later = false}) {
+    if (_logged || _reviewed == 0) return;
+    _logged = true;
+    final n = _reviewed, system = _system;
+    // Leaving the screen: notify after the tree is unlocked.
+    later
+        ? Future.microtask(() => system.finishReview(n))
+        : system.finishReview(n);
+  }
+
+  @override
+  void dispose() {
+    _log(later: true);
+    super.dispose();
+  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_started) return;
     _started = true;
-    _queue = context.read<PersonalSystemProvider>().dueCards(DateTime.now());
+    _system = context.read<PersonalSystemProvider>();
+    _queue = _system.dueCards(DateTime.now());
   }
 
   void _grade(int grade) {
@@ -46,7 +66,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
       _index++;
       _showBack = false;
     });
-    if (_index >= _queue.length) system.finishReview(_reviewed);
+    if (_index >= _queue.length) _log();
   }
 
   Future<void> _addCard() async {
@@ -157,6 +177,17 @@ class _ReviewScreenState extends State<ReviewScreen> {
             Expanded(child: StatTile('${stats.mature}', 'mature (21 d+)')),
           ],
         ),
+        if (!done && _index == 0 && _queue.length > 8) ...[
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton(
+              key: const Key('review-just-five'),
+              onPressed: () => setState(() => _queue = _queue.take(5).toList()),
+              child: const Text('Busy day? Just the 5 most overdue'),
+            ),
+          ),
+        ],
         const SizedBox(height: 14),
         if (done)
           OnoCard(
@@ -205,13 +236,23 @@ class _ReviewScreenState extends State<ReviewScreen> {
               ],
             ),
           ),
-          if (card.source == 'custom' && _showBack)
+          if (_showBack)
             TextButton(
               onPressed: () {
-                system.removeCustomCard(card.id);
-                setState(() => _queue.removeAt(_index));
+                if (card.source == 'custom') {
+                  system.removeCustomCard(card.id);
+                } else {
+                  system.retireCard(card.id);
+                }
+                setState(() => _queue.removeWhere((c) => c.id == card.id));
+                if (_index >= _queue.length) _log();
+                toast(context, card.source == 'custom'
+                    ? 'Card deleted.'
+                    : 'Retired. It won\'t come back; what you wrote stays in your log.');
               },
-              child: const Text('Delete this card'),
+              child: Text(card.source == 'custom'
+                  ? 'Delete this card'
+                  : 'Retire this card'),
             ),
         ],
       ],

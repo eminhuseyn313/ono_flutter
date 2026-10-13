@@ -455,6 +455,9 @@ class DeviceBriefGenerator implements BriefGenerator {
         'You asked nobody for help this week. Your own record: ${input.askRecord}. Ask one person for one specific thing.',
       if (input.strengths.isNotEmpty && input.strengthUses == 0)
         'Use ${input.strengths.first.toLowerCase()} in a new way this week — once a day if you can.',
+      if (input.learningApplied.where((l) => l.endsWith(')') && l.contains(' (experiment: ')).firstOrNull
+          case final l?)
+        'You took "${_clip(l.substring(l.indexOf(': ') + 2, l.lastIndexOf(' (experiment: ')), 100)}" from ${l.substring(0, l.indexOf(': '))}. Did the experiment hold? Note what happened in Learning — applied learning is the kind that stays.',
       if (input.valueGap != null)
         'This week reflected ${input.valueGap} least. Name one moment next week where you\'ll choose it on purpose.',
       if (input.feedbackThemes != null)

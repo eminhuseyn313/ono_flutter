@@ -793,10 +793,14 @@ class _FeynmanToolState extends State<_FeynmanTool> {
   @override
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
-    final book = currentBook(system.programMonth);
+    // What you're reading now: the active learning item, else the plan's
+    // book (built-in person), else just "your reading".
+    final active = system.learningWith('active').firstOrNull;
+    final bookTitle = active?.text ??
+        (system.isBuiltInPerson ? currentBook(system.programMonth).title : 'Your reading');
     final notes = system
         .logsOf('feynman')
-        .where((e) => e.str('book') == book.title)
+        .where((e) => e.str('book') == bookTitle)
         .toList();
     return OnoPage(
       showBack: true,
@@ -808,7 +812,7 @@ class _FeynmanToolState extends State<_FeynmanTool> {
         const SizedBox(height: 12),
         const _Mastery('feynman'),
         const SizedBox(height: 18),
-        Text(book.title.toUpperCase(), style: AppText.eyebrow()),
+        Text(bookTitle.toUpperCase(), style: AppText.eyebrow()),
         const SizedBox(height: 8),
         _field(_chapter, 'e.g. Ch. 3 — opportunity solution trees',
             label: 'Chapter'),
@@ -821,7 +825,7 @@ class _FeynmanToolState extends State<_FeynmanTool> {
           }
           system.logProtocolUse('feynman',
               text: _note.text.trim(),
-              data: {'book': book.title, 'chapter': _chapter.text.trim()});
+              data: {'book': bookTitle, 'chapter': _chapter.text.trim()});
           _doneAndBack(context, 'Feynman note saved — today\'s list updated.');
         }),
         _history(
@@ -829,7 +833,7 @@ class _FeynmanToolState extends State<_FeynmanTool> {
             notes,
             (e) =>
                 '${(e.str('chapter') ?? '').isEmpty ? '' : '${e.str('chapter')} — '}${e.text}',
-            title: 'Notes on this book'),
+            title: 'Notes on this'),
       ],
     );
   }

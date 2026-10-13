@@ -123,6 +123,51 @@ class _LearningScreenState extends State<LearningScreen> {
     ).whenComplete(c.dispose);
   }
 
+  /// Write what you just read without looking — retrieval is the learning,
+  /// and the note becomes a review card.
+  void _fromMemory(PersonalSystemProvider system, LogEntry l) {
+    final c = TextEditingController();
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.card,
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.fromLTRB(
+            20, 20, 20, 20 + MediaQuery.of(ctx).viewInsets.bottom),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('From memory', style: AppText.title()),
+            Text('${l.text} · close it first. Where you blank is what to reread.',
+                style: AppText.small()),
+            const SizedBox(height: 10),
+            TextField(
+              controller: c,
+              minLines: 3,
+              maxLines: 8,
+              autofocus: true,
+              style: AppText.body(color: AppColors.white),
+              decoration: const InputDecoration(
+                  hintText: 'Explain it in plain words, as if to a friend'),
+            ),
+            const SizedBox(height: 12),
+            PrimaryButton('Save the note', icon: Icons.check_rounded, onPressed: () {
+              if (c.text.trim().length < 20) {
+                toast(context, 'Write a few sentences first.');
+                return;
+              }
+              system.logProtocolUse('feynman',
+                  text: c.text.trim(), data: {'book': l.text, 'chapter': ''});
+              Navigator.of(ctx).pop();
+              toast(context, 'Saved. It comes back as a review card tomorrow.');
+            }),
+          ],
+        ),
+      ),
+    ).whenComplete(c.dispose);
+  }
+
   Widget _item(PersonalSystemProvider system, LogEntry l) {
     final status = l.str('status') ?? 'queue';
     final by = l.str('by') ?? '';
@@ -139,7 +184,28 @@ class _LearningScreenState extends State<LearningScreen> {
                 IconButton(
                   tooltip: 'Remove',
                   visualDensity: VisualDensity.compact,
-                  onPressed: () => system.removeLearning(l.id),
+                  onPressed: () async {
+                    if (status == 'done' || (l.str('notes') ?? '').isNotEmpty) {
+                      final sure = await showDialog<bool>(
+                        context: context,
+                        builder: (d) => AlertDialog(
+                          title: Text('Remove "${l.text}"?'),
+                          content: const Text(
+                              'What you took from it and its review card go too.'),
+                          actions: [
+                            TextButton(
+                                onPressed: () => Navigator.pop(d, false),
+                                child: const Text('Keep')),
+                            TextButton(
+                                onPressed: () => Navigator.pop(d, true),
+                                child: const Text('Remove')),
+                          ],
+                        ),
+                      );
+                      if (sure != true) return;
+                    }
+                    system.removeLearning(l.id);
+                  },
                   icon: const Icon(Icons.close_rounded, size: 16, color: AppColors.faint),
                 ),
               ],
@@ -159,9 +225,17 @@ class _LearningScreenState extends State<LearningScreen> {
                 'queue' => TextButton(
                     onPressed: () => system.startLearning(l.id),
                     child: const Text('Start')),
-                'active' => TextButton(
-                    onPressed: () => _apply(system, l),
-                    child: const Text('Finished — apply it')),
+                'active' => Wrap(
+                    children: [
+                      TextButton(
+                          key: Key('from-memory-${l.id}'),
+                          onPressed: () => _fromMemory(system, l),
+                          child: const Text('What I just read, from memory')),
+                      TextButton(
+                          onPressed: () => _apply(system, l),
+                          child: const Text('Finished — apply it')),
+                    ],
+                  ),
                 _ => TextButton(
                     onPressed: () => _result(system, l),
                     child: Text((l.str('result') ?? '').isEmpty
@@ -190,7 +264,7 @@ class _LearningScreenState extends State<LearningScreen> {
       subtitle:
           'Reading isn\'t learning until it changes what you do. Finish each one with a principle in your words and one real experiment.',
       children: [
-        if (!hasPlanBook) ...[
+        if (system.isBuiltInPerson && !hasPlanBook) ...[
           const SizedBox(height: 14),
           OnoCard(
             padding: EdgeInsets.zero,

@@ -667,7 +667,7 @@ void main() {
         system.saveDayShape(wake: 390, workStart: 480, workEnd: 1020, bed: 1350);
         // A short program: the spine, phases and months scale to 90 days.
         system.setProgramLength(90);
-        for (final r in ['/home', '/profile', '/goals', '/note', '/profile/edit', '/career', '/people', '/program', '/checkin', '/growth', '/move', '/log', '/weekly-coaching', '/day', '/evidence', '/month/2', '/next-program', '/letters', '/week', '/focus', '/shutdown', '/review']) {
+        for (final r in ['/home', '/profile', '/goals', '/note', '/profile/edit', '/career', '/people', '/program', '/checkin', '/growth', '/move', '/log', '/weekly-coaching', '/day', '/evidence', '/month/2', '/next-program', '/letters', '/week', '/focus', '/shutdown', '/review', '/learning', '/tool/feynman']) {
           await _go(tester, r);
           // His career page and month pages are only linked for him, and
           // the Log shows what was logged before the profile changed.
@@ -675,7 +675,7 @@ void main() {
           // None of the built-in plan's specifics show for someone else.
           // (Their daily items are the built-in ones here, so item titles
           // may appear; the built-in cards and strips must not.)
-          for (final t in ['Shoulder pain', 'Desk at 07:45', 'Face pulls', 'Lunch read', 'LinkedIn posts', 'Gym sessions', 'Scan · 07:45', 'Guavapay', 'Day 16', 'on the artifact', 'move the artifact', 'Business ID', 'Kaspi', '21:30', 'bed by 22:30', 'readiness', 'sleep, shoulders', 'navy merino']) {
+          for (final t in ['Shoulder pain', 'Desk at 07:45', 'Face pulls', 'Lunch read', 'LinkedIn posts', 'Gym sessions', 'Scan · 07:45', 'Guavapay', 'Day 16', 'on the artifact', 'move the artifact', 'Business ID', 'Kaspi', '21:30', 'bed by 22:30', 'readiness', 'sleep, shoulders', 'navy merino', 'this month\'s book', currentBook(system.programMonth).title]) {
             if (find.textContaining(t).evaluate().isNotEmpty) {
               errors.add('$r shows "$t"');
             }
