@@ -2004,13 +2004,15 @@ Future<void> showHardDaySheet(BuildContext context, DateTime date) {
         title: Text(title, style: AppText.heading()),
         subtitle: Text(body, style: AppText.small()),
         onTap: () {
-          Navigator.of(context).pop();
+          // The sheet sits above the tabs, on the root navigator.
+          Navigator.of(context, rootNavigator: true).pop();
           if (!system.setHardDay(date, kind)) {
             toast(context, 'No emergency skips left this month.');
           }
         },
       );
   return showModalBottomSheet<void>(
+      useRootNavigator: true,
     context: context,
     isScrollControlled: true,
     backgroundColor: AppColors.card,

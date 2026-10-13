@@ -3108,4 +3108,32 @@ void main() {
     p.clock = () => DateTime(2026, 10, 3, 4, 0);
     expect(p.logicalToday, DateTime(2026, 10, 3));
   });
+
+  test('log: edit keeps the day, undo restores; Me says something true lately',
+      () async {
+    final p = await _commissioned();
+    p.clock = () => _today.minusDays(3);
+    final w = p.addLog('win', text: 'Shipd the draft')!;
+    p.clock = () => _today;
+    p.editLogText(w.id, 'Shipped the draft');
+    final edited = p.logsOf('win').single;
+    expect(edited.text, 'Shipped the draft');
+    expect(dayOnly(edited.date), dayOnly(_today.minusDays(3)));
+    p.removeLog(w.id);
+    expect(p.logsOf('win'), isEmpty);
+    p.restoreLog(edited);
+    expect(p.logsOf('win').single.id, w.id);
+    // Ten days: held on seven, the first item every day.
+    for (var i = 1; i <= 10; i++) {
+      final d = dayOnly(_today).minusDays(i);
+      if (i <= 7) {
+        _hold(p, d);
+      } else {
+        p.setCheck(d, nonNegotiables.first.id, true);
+      }
+    }
+    expect(p.latelyLine, startsWith('Lately: held 7 of 30'));
+    expect(p.latelyLine, contains('slips most:'),
+        reason: 'over 30 days nothing is steady yet');
+  });
 }

@@ -34,15 +34,14 @@ const _filters = <String, Set<String>?>{
     'quarterly_review',
     'learning',
     'experiment',
-    'rest',
-    'detach',
     'gratitude',
     'feedback_round',
     'wheel',
     'aar',
     'strength_use',
     'program_cycle',
-    'story'
+    'story',
+    'automaticity'
   },
   'Notes': {
     'feynman',
@@ -75,7 +74,10 @@ const _filters = <String, Set<String>?>{
     'sleep',
     'vitals',
     'energy',
-    'move'
+    'move',
+    'rest',
+    'detach',
+    'hard_day'
   },
   'People': {
     'touch',
@@ -94,17 +96,128 @@ const _filters = <String, Set<String>?>{
     'decision',
     'readiness',
     'focus',
-    'week_plan',
-    'touch'
+    'week_plan'
   },
 };
 
-/// Filters that only make sense for the built-in plan's protocols.
-const _builtInOnlyFilters = {'Protocols'};
+/// Where tapping an entry goes: the screen that owns it.
+const _ownerRoute = {
+  'week_plan': '/week',
+  'promise': '/promises',
+  'checkin': '/checkin',
+  'rep': '/growth',
+  'feedback': '/growth',
+  'growth_focus': '/growth',
+  'move': '/move',
+  'goal_value': '/goals',
+  'learning': '/learning',
+  'experiment': '/experiments',
+  'rest': '/rest',
+  'detach': '/rest',
+  'ask': '/asks',
+  'story': '/stories',
+  'kindness': '/kindness',
+  'touch': '/people',
+  'help': '/people',
+  'one_on_one': '/cockpit',
+  'decision': '/cockpit?tab=1',
+  'readiness': '/cockpit?tab=2',
+  'shutdown': '/shutdown',
+  'quarterly_review': '/quarter',
+  'gratitude': '/gratitude',
+  'feedback_round': '/360',
+  'values_check': '/values',
+  'affirmation': '/values',
+  'coaching': '/coach',
+  'progress_note': '/note',
+  'strength_use': '/strengths',
+  'partner_checkin': '/partner',
+  'focus': '/focus',
+  'energy': '/energy',
+  'automaticity': '/habits',
+  'aar': '/aar',
+  'thought': '/thought',
+  'stepback': '/stepback',
+};
+
+/// Records other features rely on (the week's three, the month's area, a
+/// planned rest, a hard day, reviews): deleting one asks first.
+const _askBeforeDelete = {
+  'week_plan',
+  'growth_focus',
+  'rest',
+  'hard_day',
+  'quarterly_review',
+  'month_review',
+  'program_cycle',
+  'wheel',
+  'goal_value',
+};
 
 class _LogScreenState extends State<LogScreen> {
   String _filter = 'All';
   bool _opened = false;
+  String _query = '';
+  bool _all = false;
+
+  static const _recentDays = 30;
+
+  bool _matches(LogEntry e) {
+    final q = _query.trim().toLowerCase();
+    if (q.isEmpty) return true;
+    return [e.text, ...e.data.values.whereType<String>()]
+        .join(' ')
+        .toLowerCase()
+        .contains(q);
+  }
+
+  Future<void> _tap(PersonalSystemProvider system, LogEntry e) async {
+    if (e.type == 'win' || e.type == 'note') {
+      await showModalBottomSheet<void>(
+        context: context,
+        useRootNavigator: true,
+        isScrollControlled: true,
+        builder: (ctx) => _EditTextSheet(
+          title: e.type == 'win' ? 'Edit the win' : 'Edit the note',
+          initial: e.text,
+          onSave: (t) => system.editLogText(e.id, t),
+        ),
+      );
+      return;
+    }
+    final route = _ownerRoute[e.type];
+    if (route != null && mounted) context.push(route);
+  }
+
+  Future<bool> _confirmDelete(LogEntry e, String label) async {
+    if (!_askBeforeDelete.contains(e.type)) return true;
+    final sure = await showDialog<bool>(
+      context: context,
+      builder: (d) => AlertDialog(
+        title: Text('Delete this $label?'),
+        content: const Text(
+            'Other parts of ONO use it — the week, the month or your streak.'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(d, false), child: const Text('Keep')),
+          TextButton(
+              onPressed: () => Navigator.pop(d, true), child: const Text('Delete')),
+        ],
+      ),
+    );
+    return sure == true;
+  }
+
+  void _deleted(PersonalSystemProvider system, LogEntry e) {
+    system.removeLog(e.id);
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(
+        content: const Text('Deleted.'),
+        action: SnackBarAction(
+            label: 'Undo', onPressed: () => system.restoreLog(e)),
+      ));
+  }
 
   @override
   void didChangeDependencies() {
@@ -171,8 +284,15 @@ class _LogScreenState extends State<LogScreen> {
                 }.contains(e.type))
             .toList()
         : system.allLogs(_filters[_filter]);
+    final matching = entries.where(_matches).toList();
+    // The last month by default; searching looks through everything.
+    final cutoff = dayOnly(DateTime.now()).minusDays(_recentDays);
+    final shown = _all || _query.trim().isNotEmpty
+        ? matching
+        : [for (final e in matching) if (!e.date.isBefore(cutoff)) e];
+    final hidden = matching.length - shown.length;
     final byDay = <String, List<LogEntry>>{};
-    for (final e in entries) {
+    for (final e in shown) {
       byDay.putIfAbsent(dateKey(e.date), () => []).add(e);
     }
     return OnoPage(
@@ -291,11 +411,15 @@ class _LogScreenState extends State<LogScreen> {
             scrollDirection: Axis.horizontal,
             children: [
               for (final f in _filters.keys)
-                if (system.isBuiltInPerson || !_builtInOnlyFilters.contains(f))
+                // Breathing and pause tools are anyone's; the filter shows
+                // once there is something in it.
+                if (f != 'Protocols' ||
+                    system.isBuiltInPerson ||
+                    system.allLogs(_filters[f]).isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: ChoiceChip(
-                      label: Text(f),
+                      label: Text(f == 'Protocols' && !system.isBuiltInPerson ? 'Tools' : f),
                       selected: _filter == f,
                       showCheckmark: false,
                       selectedColor: AppColors.cardLight,
@@ -306,9 +430,19 @@ class _LogScreenState extends State<LogScreen> {
           ),
         ),
         const SizedBox(height: 8),
+        TextField(
+          key: const Key('log-search'),
+          onChanged: (v) => setState(() => _query = v),
+          style: AppText.body(color: AppColors.white),
+          decoration: const InputDecoration(
+              prefixIcon: Icon(Icons.search_rounded, size: 20),
+              hintText: 'Search what you logged'),
+        ),
         if (entries.isEmpty)
           const EmptyNote(
-              'Nothing here yet. Every tool you use — sigh, BLUF, Feynman, gym — lands in this log.'),
+              'Nothing here yet. Wins, notes and every tool you use land in this log.')
+        else if (shown.isEmpty)
+          const EmptyNote('Nothing matches.'),
         for (final day in byDay.keys) ...[
           Padding(
             padding: const EdgeInsets.fromLTRB(0, 18, 0, 8),
@@ -328,13 +462,27 @@ class _LogScreenState extends State<LogScreen> {
                       child: const Icon(Icons.delete_outline_rounded,
                           color: AppColors.danger),
                     ),
-                    onDismissed: (_) => system.removeLog(e.id),
-                    child: _EntryRow(entry: e),
+                    confirmDismiss: (_) => _confirmDelete(
+                        e, (_EntryRow._meta[e.type]?.$3 ?? 'entry').toLowerCase()),
+                    onDismissed: (_) => _deleted(system, e),
+                    child: InkWell(
+                      onTap: () => _tap(system, e),
+                      child: _EntryRow(
+                          entry: e, builtIn: system.isBuiltInPerson),
+                    ),
                   ),
               ],
             ),
           ),
         ],
+        if (hidden > 0)
+          Center(
+            child: TextButton(
+              key: const Key('log-earlier'),
+              onPressed: () => setState(() => _all = true),
+              child: Text('Show $hidden earlier'),
+            ),
+          ),
       ],
     );
   }
@@ -351,7 +499,8 @@ class _LogScreenState extends State<LogScreen> {
 
 class _EntryRow extends StatelessWidget {
   final LogEntry entry;
-  const _EntryRow({required this.entry});
+  final bool builtIn;
+  const _EntryRow({required this.entry, this.builtIn = true});
 
   static const _meta = {
     'weight': (Icons.monitor_weight_outlined, 'body', 'Weight'),
@@ -384,7 +533,7 @@ class _EntryRow extends StatelessWidget {
     'automaticity': (Icons.autorenew_rounded, 'mind', 'Habit check'),
     'focus': (Icons.center_focus_strong_rounded, 'skill', 'Deep work'),
     'shutdown': (Icons.nights_stay_outlined, 'mind', 'Shutdown'),
-    'week_plan': (Icons.flag_rounded, 'skill', 'Big 3'),
+    'week_plan': (Icons.flag_rounded, 'skill', 'The week\'s three'),
     'rep': (Icons.trending_up_rounded, 'skill', 'Practice rep'),
     'coaching': (Icons.psychology_alt_outlined, 'mind', 'Coached myself'),
     'goal_value': (Icons.straighten_rounded, 'skill', 'Goal measured'),
@@ -556,6 +705,10 @@ class _EntryRow extends StatelessWidget {
         return 'Month ${e.number('month')}';
       case 'checkin':
         final stiff = (e.number('stiffness') ?? 0).toInt();
+        if (!builtIn) {
+          final mood = (e.number('mood') ?? 0).toInt();
+          return 'Energy ${e.number('energy')}/5 · sleep ${e.number('sleep')} h · mood ${mood > 0 ? '+$mood' : '$mood'}';
+        }
         return 'Energy ${e.number('energy')}/5 · sleep ${e.number('sleep')} h · '
             'shoulders ${e.number('pain')}/10'
             '${stiff > 0 ? ' · stiff ${const [
@@ -610,7 +763,6 @@ class _EntryRow extends StatelessWidget {
 Future<void> _openAdd(BuildContext context, String kind) async {
   final system = context.read<PersonalSystemProvider>();
   final a = TextEditingController();
-  final b = TextEditingController();
   var test = bloodwork.first;
   var toEvidence = true;
   var section = 'built';
@@ -632,6 +784,7 @@ Future<void> _openAdd(BuildContext context, String kind) async {
   };
 
   await showModalBottomSheet<void>(
+      useRootNavigator: true,
     context: context,
     isScrollControlled: true,
     builder: (ctx) => StatefulBuilder(
@@ -653,7 +806,7 @@ Future<void> _openAdd(BuildContext context, String kind) async {
                 style: AppText.number(size: 22),
                 decoration: InputDecoration(
                     suffixText: 'kg',
-                    hintText: system.latestWeight?.toStringAsFixed(1) ?? '83'),
+                    hintText: system.latestWeight?.toStringAsFixed(1)),
               ),
             if (kind == 'protein') ...[
               TextField(
@@ -756,6 +909,55 @@ Future<void> _openAdd(BuildContext context, String kind) async {
       ),
     ),
   );
-  a.dispose();
-  b.dispose();
+  // Not disposed here: the sheet's closing animation still reads them, and
+  // nothing else listens to them, so they are simply collected.
+}
+
+/// Edits an entry's text; owns its controller, so closing the sheet
+/// never touches a disposed one.
+class _EditTextSheet extends StatefulWidget {
+  final String title;
+  final String initial;
+  final void Function(String) onSave;
+  const _EditTextSheet(
+      {required this.title, required this.initial, required this.onSave});
+
+  @override
+  State<_EditTextSheet> createState() => _EditTextSheetState();
+}
+
+class _EditTextSheetState extends State<_EditTextSheet> {
+  late final _c = TextEditingController(text: widget.initial);
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: EdgeInsets.fromLTRB(
+            20, 16, 20, MediaQuery.of(context).viewInsets.bottom + 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(widget.title, style: AppText.title()),
+            const SizedBox(height: 12),
+            TextField(
+              key: const Key('log-edit'),
+              controller: _c,
+              minLines: 2,
+              maxLines: 6,
+              style: AppText.body(color: AppColors.white),
+            ),
+            const SizedBox(height: 14),
+            PrimaryButton('Save', onPressed: () {
+              widget.onSave(_c.text);
+              Navigator.pop(context);
+            }),
+          ],
+        ),
+      );
 }

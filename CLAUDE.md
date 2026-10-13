@@ -65,6 +65,7 @@ Services: ReminderService (local notifications), BriefGenerator (weekly brief)
 - **Calendar days: `d.plusDays(n)`, `d.minusDays(n)`, `a.daysSince(b)`** (`CalendarDays` extension), never `add(Duration(days: n))` or `.difference().inDays` — those count 24-hour blocks and break across daylight saving. `test/dst_test.dart` checks it; run it with `TZ=Europe/Berlin` too.
 - Logs sort by the day they are for, then entry order (`logsOf` is newest first; `weightSeries` is oldest first).
 - Every new screen must fit iPhone SE (375×667) with the real fonts. The smoke test fails on overflow.
+- Bottom sheets opened from the four tab screens (Today, Program, Log, Me — inside the `ShellRoute`) pass `useRootNavigator: true`, or the tab bar covers their bottom, and close with the sheet's own context (or `rootNavigator: true`), never the screen's. Don't dispose a sheet's text controllers when its future completes — the closing animation still reads them; give the sheet its own StatefulWidget instead (`_EditTextSheet`).
 - Every route a piece of content points to (`NonNegotiable.route`, `ReminderDef.route`, `Unlock.route`) must exist. The smoke test resolves each one.
 
 ### Theme
@@ -91,6 +92,8 @@ Shared widgets:
 Me starts with "Find a tool" (`/tools`: every tool in `toolIndex`, `lib/data/tool_index.dart`, searchable by title, purpose and keywords (a word also matches by its stem, so "anxious" finds "anxiety"); built-in-only tools hidden for anyone else; general content, tested), then groups its links as Direction, Practice, People, Hard days, then Settings. A new tool gets a `ToolEntry` (its route must exist — tested).
 
 Bottom tabs: **Today** `/home` · **Program** `/program?tab=0..3` (Journey/Schedule/Body/Reference) · **Log** `/log?add=weight|protein|win|note|blood` · **Me** `/profile`.
+
+Log: the last 30 days by default ("Show N earlier"), a search over text and data; tapping a win or note edits its text in place (`editLogText`, day and time kept), tapping anything else opens the screen that owns it (`_ownerRoute`); swiping deletes with Undo (`restoreLog`) and asks first for records others rely on (`_askBeforeDelete`: the week's three, the month's area, rest, hard days, reviews). Filters: hard days, rest and switching off under Body, habit checks under Growth; Protocols shows as "Tools" for anyone who has used one. Me's top card adds `latelyLine` (held of counted days in the last 30, steadiest and most-slipped item).
 
 ```
 /splash /welcome /sign-up /sign-in /forgot-password /commission

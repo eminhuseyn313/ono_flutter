@@ -87,6 +87,10 @@ List<String> _captureErrors(WidgetTester tester) {
 
 Future<void> _go(WidgetTester tester, String route) async {
   final ctx = tester.element(find.byType(Navigator).first);
+  // Sheets open above the tabs (root navigator): close them first, as a
+  // person would before going somewhere else.
+  Navigator.of(ctx, rootNavigator: true).popUntil((r) => r is! PopupRoute);
+  await tester.pump(const Duration(milliseconds: 400));
   GoRouter.of(ctx).go(route);
   await _pumpFor(tester, const Duration(milliseconds: 1500));
 }

@@ -77,7 +77,9 @@ class MeScreen extends StatelessWidget {
                     Expanded(
                         child: StatTile('${system.bestStreak}', 'best streak')),
                   ],
-                  Expanded(child: StatTile('${system.daysHeld}', 'days held')),
+                  Expanded(
+                      child: StatTile('${system.daysHeld}',
+                          system.cycle > 1 ? 'held this program' : 'days held')),
                 ],
               ),
               const SizedBox(height: 16),
@@ -93,6 +95,15 @@ class MeScreen extends StatelessWidget {
                       style: AppText.small().copyWith(fontSize: 11.5)),
                 ],
               ),
+              if (system.latelyLine case final l?) ...[
+                const SizedBox(height: 6),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(l,
+                      key: const Key('me-lately'),
+                      style: AppText.small(color: AppColors.white)),
+                ),
+              ],
               const SizedBox(height: 4),
               SizedBox(
                 width: double.infinity,
@@ -912,6 +923,7 @@ class MeScreen extends StatelessWidget {
 
   void _lengthSheet(BuildContext context, PersonalSystemProvider system) {
     showModalBottomSheet<void>(
+      useRootNavigator: true,
       context: context,
       builder: (ctx) => SafeArea(
         child: Padding(
@@ -962,6 +974,7 @@ class MeScreen extends StatelessWidget {
   Future<void> _skipsSheet(
           BuildContext context, PersonalSystemProvider system) =>
       showModalBottomSheet<void>(
+      useRootNavigator: true,
         context: context,
         backgroundColor: AppColors.card,
         builder: (ctx) => SafeArea(
@@ -1033,6 +1046,7 @@ class MeScreen extends StatelessWidget {
   void _gymDaysSheet(BuildContext context, PersonalSystemProvider system) {
     var days = List<int>.from(system.gymDays);
     showModalBottomSheet<void>(
+      useRootNavigator: true,
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, set) => Padding(
@@ -1076,6 +1090,7 @@ class MeScreen extends StatelessWidget {
 
   void _remindersSheet(BuildContext context) {
     showModalBottomSheet<void>(
+      useRootNavigator: true,
       context: context,
       isScrollControlled: true,
       builder: (ctx) => Consumer<PersonalSystemProvider>(
@@ -1273,7 +1288,9 @@ class _CalendarLink extends StatelessWidget {
           title: on ? 'Calendar connected' : 'Connect your calendar',
           subtitle: on
               ? 'Today shows your meetings; a nudge 10 min before each. Tap to disconnect.'
-              : 'Today shows your meetings; 10 min before each: sigh, or six questions for ${activeProfile.keyPeopleNames}. Read-only, stays on the phone.',
+              : activeProfile.keyPeopleNames.isEmpty
+                  ? 'Today shows your meetings and a breathing nudge 10 min before each. Read-only, stays on the phone.'
+                  : 'Today shows your meetings; 10 min before each: sigh, or six questions for ${activeProfile.keyPeopleNames}. Read-only, stays on the phone.',
           onTap: () async {
             if (on) {
               await system.disconnectCalendar();

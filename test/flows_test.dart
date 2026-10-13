@@ -54,7 +54,10 @@ Future<PersonalSystemProvider> _start(WidgetTester tester,
 }
 
 Future<void> _go(WidgetTester tester, String route) async {
-  GoRouter.of(tester.element(find.byType(Navigator).first)).go(route);
+  final ctx = tester.element(find.byType(Navigator).first);
+  Navigator.of(ctx, rootNavigator: true).popUntil((r) => r is! PopupRoute);
+  await tester.pump(const Duration(milliseconds: 400));
+  GoRouter.of(ctx).go(route);
   await _pumpFor(tester, const Duration(milliseconds: 1200));
 }
 
@@ -386,5 +389,23 @@ void main() {
     system.setPriority(today, 0, 'Send the two emails');
     await tester.pump(const Duration(milliseconds: 300));
     await _reach(tester, find.text('Send the two emails'));
+  });
+
+  testWidgets('Log: fix a typo in a win, find it by searching', (tester) async {
+    final system = await _start(tester);
+    system.addLog('win', text: 'Ran 5 km withut stopping');
+    await _go(tester, '/log');
+    await _tap(tester, find.text('Ran 5 km withut stopping'));
+    await tester.enterText(find.byKey(const Key('log-edit')), 'Ran 5 km without stopping');
+    final save = find.descendant(
+        of: find.byType(BottomSheet), matching: find.text('Save'));
+    await tester.ensureVisible(save);
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.tap(save);
+    await _pumpFor(tester, const Duration(milliseconds: 600));
+    expect(system.logsOf('win').single.text, 'Ran 5 km without stopping');
+    await tester.enterText(find.byKey(const Key('log-search')), 'without');
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Ran 5 km without stopping'), findsOneWidget);
   });
 }

@@ -975,6 +975,32 @@ class PersonalSystemProvider extends ChangeNotifier {
     };
   }
 
+  /// One true line about the last 30 days, from what was ticked: days
+  /// held of those counted, the steadiest item and the one that slips
+  /// most. Null until 7 days count.
+  String? get latelyLine {
+    final today = dayOnly(_now);
+    final days = [
+      for (var i = 1; i <= 30; i++)
+        if (!today.minusDays(i).isBefore(journeyStart)) today.minusDays(i)
+    ];
+    final counted = [for (final d in days) if (!isExcused(d) && !isPaused(d)) d];
+    if (counted.length < 7) return null;
+    final held = counted.where(isHeld).length;
+    final rates = itemRates(counted).entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    String name(String id) =>
+        dailyItems.where((n) => n.id == id).firstOrNull?.title ?? id;
+    final top = rates.firstOrNull, low = rates.lastOrNull;
+    return [
+      'Lately: held $held of ${counted.length}',
+      if (top != null && top.value >= 0.6)
+        'steadiest: ${name(top.key)} (${(top.value * 100).round()}%)',
+      if (low != null && low.key != top?.key && low.value < 0.6)
+        'slips most: ${name(low.key)} (${(low.value * 100).round()}%)',
+    ].join(' · ');
+  }
+
   // ── Fresh starts ─────────────────────────────────────────────────────
 
   /// The temporal landmark that [day] is, if any: a new phase, a new month,
@@ -1687,6 +1713,20 @@ class PersonalSystemProvider extends ChangeNotifier {
     _update(s.copyWith(logs: s.logs.where((l) => l.id != id).toList()));
   }
 
+  /// Puts back an entry just removed (Undo); its id and date are kept.
+  void restoreLog(LogEntry entry) {
+    final s = _state;
+    if (s == null || s.logs.any((l) => l.id == entry.id)) return;
+    _update(s.copyWith(logs: [...s.logs, entry]));
+  }
+
+  /// Changes an entry's text, keeping its day, time and data.
+  void editLogText(String id, String text) {
+    final l = _state?.logs.where((x) => x.id == id).firstOrNull;
+    if (l == null || text.trim().isEmpty) return;
+    updateLog(l.copyWith(text: text.trim()));
+  }
+
   /// By the day a log is for, then by entry order — so a weigh-in
   /// backdated to yesterday never counts as the latest.
   static List<LogEntry> _newestFirst(List<LogEntry> list) {
@@ -2023,7 +2063,7 @@ class PersonalSystemProvider extends ChangeNotifier {
                 .where((u) => u.doneKey == null || !isDone(u.doneKey!))
                 .map((u) => u.title)
                 .toList(),
-        latestWeight: latestWeight,
+        latestWeight: isBuiltInPerson ? latestWeight : null,
         avgEnergy: averageOf(weekCheckins, 'energy'),
         avgSleep: averageOf(weekCheckins, 'sleep'),
         readinessGap: isBuiltInPerson ? readinessGap?.name : null,
