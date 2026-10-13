@@ -126,6 +126,8 @@ Mind and meaning were the thinnest lanes; each item is a short, well-studied exe
 | 60 | Every screen fits an iPhone SE with text at 130% (buttons ellipsize, welcome scrolls; tested) | S | ✅ |
 | 61 | Year in review: what the calendar year added up to, six questions, one word for the next (Today from 15 Dec to 15 Jan) | S | ✅ |
 | 62 | Ask for help: guess the chance of a yes, ask, note the answer; own yes rate vs guess (Flynn & Lake 2008) | S | ✅ |
+| 63 | Bug-hunt pass (screens, provider, sync, services): calendar days across daylight saving, the daily list's history, sync key order, sign-out safety, a new offline device, late risers, reminder races, the brief function's auth, his artifact and readiness hidden from others, saves that said "Saved" but weren't | M | ✅ |
+| 64 | Redeploy `weekly-brief` so the sign-in and size checks are live | S | ⏳ Emin (`supabase functions deploy weekly-brief`) |
 
 ## P3 — The mass version
 

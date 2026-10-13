@@ -200,6 +200,14 @@ On iPhone: Share → **Add to Home Screen** to open it like an app.
 - [ ] Web → sign in with the same email → the same Today; tick an item on the web → within a minute (or on reopening the app) it is ticked on the iPhone
 - [ ] Log a note on each device at about the same time → both notes are on both devices
 
+## 2zy. After the bug-hunt pass
+- [ ] iPhone and web signed in to the same account: delete a note on the iPhone → within a minute it's gone on the web, and stays gone after reopening both
+- [ ] Edit a note twice on the iPhone (wait a minute between) → the web shows the second edit
+- [ ] Sign out on the web, then sign back in → everything is still there
+- [ ] Me → Daily items → add one → yesterday's held days and the streak don't change
+- [ ] As someone else (Me → Your profile → another name): Big 3 and Deep work don't mention the artifact; no readiness prompt on Today
+- [ ] Shutdown: tick one of today's three → it disappears from tomorrow's three
+
 ## 2zx. New: year in review and ask for help
 - [ ] Settings → Accessibility → Larger Text at the largest non-accessibility size → open Today, Me, a few tools: nothing is cut off with a stripe
 - [ ] Me → Direction → **Year in review** → the year's numbers and wins in order → answer a question, write a word → Save; Me shows "Your word for this year" from January; Today offers "Close <year>" from 15 Dec
