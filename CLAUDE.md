@@ -308,7 +308,7 @@ flutter run -t lib/main_production.dart
 - The icon is rendered from the Day Dial motif; regenerate every size if it changes.
 
 ### Web (GitHub Pages)
-- `.github/workflows/web.yml` builds `flutter build web -t lib/main_production.dart --base-href /ono_flutter/` on every push to `main` and deploys to https://eminhuseyn313.github.io/ono_flutter/ (needs a public repo and Settings → Pages → Source: GitHub Actions).
+- `.github/workflows/web.yml` builds `flutter build web -t lib/main_production.dart --base-href /ono_flutter/` on every push to `main` and deploys to https://eminhuseyn313.github.io/ono_flutter/ (needs a public repo; the workflow's `configure-pages` step has `enablement: true` to switch Pages on, otherwise Settings → Pages → Source: GitHub Actions; until Pages is on the build passes and the deploy step fails with "Get Pages site failed").
 - The web app and the iPhone (`Install on my iPhone.command` builds `main_production.dart`) sign in to the same Supabase account and share one program (see Sync). No reminders, Health, calendar or widget on the web.
 - `PhoneFrame` (`lib/app.dart`) keeps a 480 px column on wide windows and sets `MediaQuery.size` to it (`test/phone_frame_test.dart`).
 - The site and the repo are public: the bundle contains the built-in profile (`emin_system.dart`). Logged data is never in the bundle; it lives on the device and in his RLS-protected row.
