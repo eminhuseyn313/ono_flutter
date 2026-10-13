@@ -92,16 +92,19 @@ class MeScreen extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 4),
-              Wrap(
-                alignment: WrapAlignment.spaceBetween,
-                spacing: 12,
-                children: [
-                  Text('Month ${system.programMonth} · ${system.phase.name}',
-                      style: AppText.small()),
-                  Text(
-                      'Ends ${shortDate(system.programEnd)}${system.programEnd.year != DateTime.now().year ? ' ${system.programEnd.year}' : ''}${system.pausedDays > 0 ? ' · paused ${system.pausedDays} d' : ''}',
-                      style: AppText.small()),
-                ],
+              SizedBox(
+                width: double.infinity,
+                child: Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  spacing: 12,
+                  children: [
+                    Text('Month ${system.programMonth} · ${system.phase.name}',
+                        style: AppText.small()),
+                    Text(
+                        'Ends ${shortDate(system.programEnd)}${system.programEnd.year != DateTime.now().year ? ' ${system.programEnd.year}' : ''}${system.pausedDays > 0 ? ' · paused ${system.pausedDays} d' : ''}',
+                        style: AppText.small()),
+                  ],
+                ),
               ),
             ],
           ),
@@ -188,24 +191,26 @@ class MeScreen extends StatelessWidget {
         ],
         const _AppleHealth(),
         const _CalendarLink(),
-        if (system.programDay >= 14) ...[
+        // Patterns and experiments need a couple of weeks of days first
+        // (an experiment already running always shows).
+        if (system.programDay >= 14 ||
+            system.logsOf('experiment').isNotEmpty) ...[
           const SectionHeader('What moves your day'),
           const _Patterns(),
           const SizedBox(height: 10),
-        ] else
-          const SizedBox(height: 16),
-        OnoCard(
-          padding: EdgeInsets.zero,
-          child: LinkRow(
-            icon: Icons.science_outlined,
-            color: AppColors.mind,
-            title: 'Experiments',
-            subtitle: system.experimentsWith('running').isEmpty
-                ? 'Test a change for 1–3 weeks, keep it or drop it'
-                : 'Running: ${system.experimentsWith('running').map((e) => e.text).join(' · ')}',
-            onTap: () => context.push('/experiments'),
+          OnoCard(
+            padding: EdgeInsets.zero,
+            child: LinkRow(
+              icon: Icons.science_outlined,
+              color: AppColors.mind,
+              title: 'Experiments',
+              subtitle: system.experimentsWith('running').isEmpty
+                  ? 'Test a change for 1–3 weeks, keep it or drop it'
+                  : 'Running: ${system.experimentsWith('running').map((e) => e.text).join(' · ')}',
+              onTap: () => context.push('/experiments'),
+            ),
           ),
-        ),
+        ],
         SectionHeader('Body',
             action: '${system.moveMinutesInWeek(DateTime.now())} min moved',
             onAction: () => context.push('/move')),
