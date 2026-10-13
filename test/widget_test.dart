@@ -672,7 +672,7 @@ void main() {
           // None of the built-in plan's specifics show for someone else.
           // (Their daily items are the built-in ones here, so item titles
           // may appear; the built-in cards and strips must not.)
-          for (final t in ['Shoulder pain', 'Desk at 07:45', 'Face pulls', 'Lunch read', 'LinkedIn posts', 'Gym sessions', 'Scan · 07:45', 'Guavapay', 'Day 16', 'on the artifact', 'move the artifact', 'Business ID', 'Kaspi', '21:30', 'bed by 22:30', 'readiness']) {
+          for (final t in ['Shoulder pain', 'Desk at 07:45', 'Face pulls', 'Lunch read', 'LinkedIn posts', 'Gym sessions', 'Scan · 07:45', 'Guavapay', 'Day 16', 'on the artifact', 'move the artifact', 'Business ID', 'Kaspi', '21:30', 'bed by 22:30', 'readiness', 'sleep, shoulders', 'navy merino']) {
             if (find.textContaining(t).evaluate().isNotEmpty) {
               errors.add('$r shows "$t"');
             }

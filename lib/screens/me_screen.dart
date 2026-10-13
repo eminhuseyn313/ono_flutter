@@ -51,8 +51,14 @@ class MeScreen extends StatelessWidget {
                 children: [
                   Expanded(
                       child: StatTile(
-                          system.hasStarted ? '${system.programDay}' : '0',
-                          'day of ${system.programDays}')),
+                          system.programComplete
+                              ? '${system.programDays}'
+                              : system.hasStarted
+                                  ? '${system.programDay}'
+                                  : '0',
+                          system.programComplete
+                              ? 'days · complete'
+                              : 'day of ${system.programDays}')),
                   Expanded(child: StatTile('${system.streak}', 'streak')),
                   Expanded(
                       child: StatTile('${system.bestStreak}', 'best streak')),
@@ -94,7 +100,7 @@ class MeScreen extends StatelessWidget {
                 from: heatFrom,
                 weeks: weeks < 8 ? 8 : weeks,
                 scoreFor: (d) =>
-                    d.isBefore(system.programStart) ? null : system.scoreFor(d),
+                    d.isBefore(system.programStart) ? null : system.scoreOutOf10(d),
               ),
               const SizedBox(height: 10),
               Row(
@@ -752,7 +758,11 @@ class MeScreen extends StatelessWidget {
                   final picked = await showDatePicker(
                     context: context,
                     initialDate: system.programStart,
-                    firstDate: today.minusDays(540),
+                    // A start further back than the picker's range (a long
+                    // program, paused days) must still be the initial date.
+                    firstDate: system.programStart.isBefore(today.minusDays(540))
+                        ? system.programStart
+                        : today.minusDays(540),
                     lastDate: today.plusDays(60),
                   );
                   if (picked != null) system.setProgramStart(picked);

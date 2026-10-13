@@ -387,7 +387,8 @@ class Spine extends StatelessWidget {
   }
 }
 
-/// Daily 10 score → heat colour. null = future.
+/// A day's score on a 0–10 scale (`scoreOutOf10`) → heat colour.
+/// null = future.
 Color heatColor(int? score, {bool onNavy = false}) {
   if (score == null) {
     return onNavy
@@ -597,7 +598,7 @@ class WeekBars extends StatelessWidget {
                   children: [
                     TweenAnimationBuilder<double>(
                       tween: Tween(
-                          begin: 0, end: ((scores[i] ?? 0) / 10).toDouble()),
+                          begin: 0, end: ((scores[i] ?? 0) / 10).clamp(0, 1).toDouble()),
                       duration: Duration(milliseconds: 400 + i * 60),
                       curve: Curves.easeOutCubic,
                       builder: (_, v, __) => Container(

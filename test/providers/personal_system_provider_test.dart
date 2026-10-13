@@ -2805,5 +2805,36 @@ void main() {
     expect([for (final n in p.dailyItems) n.title], containsAll(packItems));
     expect(p.dailyItems.any((n) => nonNegotiables.any((b) => b.id == n.id)), isFalse);
   });
+
+  test('scores on a 10 scale for the charts; the Monday card counts only days that counted',
+      () async {
+    final p = await _commissioned();
+    final day = dayOnly(_today).minusDays(1);
+    _hold(p, day, 7);
+    expect(p.scoreOutOf10(day), 7);
+    p.addDailyItem('Stretch', lane: 'body', when: 'morning');
+    p.addDailyItem('Walk', lane: 'body', when: 'day');
+    p.addDailyItem('Call home', lane: 'social', when: 'evening');
+    p.addDailyItem('Read', lane: 'skill', when: 'evening');
+    p.addDailyItem('Plan', lane: 'mind', when: 'morning');
+    final today = dayOnly(_today);
+    for (final n in p.dailyItems) {
+      p.setCheck(today, n.id, true);
+    }
+    expect(p.scoreOutOf10(today), 10); // 15 of 15
+    expect(p.scoreOutOf10(day), 7); // yesterday still 7 of 10
+
+    // Monday 5 Oct: last week (28 Sep–4 Oct) had three sick days.
+    p.clock = () => DateTime(2026, 10, 5, 8);
+    final monday = DateTime(2026, 10, 5);
+    for (var i = 1; i <= 3; i++) {
+      p.setHardDay(monday.minusDays(i), 'sick');
+    }
+    final f = p.freshStartFor(monday);
+    if (f != null && f.itemId != null) {
+      expect(f.body, contains('of 4 days'));
+      expect(f.body, isNot(contains('Your plan: .')));
+    }
+  });
 }
 

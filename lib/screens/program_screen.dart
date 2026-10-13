@@ -99,7 +99,7 @@ class _Journey extends StatelessWidget {
                 if (day.isAfter(today) || day.isBefore(system.programStart)) {
                   return null;
                 }
-                return system.scoreFor(day);
+                return system.scoreOutOf10(day);
               }()
           ],
         ),
@@ -498,7 +498,7 @@ class _WeekPlan extends StatelessWidget {
           child: WeekBars(
             scores: [
               for (final d in days)
-                d.isAfter(now) ? null : system.scoreFor(d)
+                d.isAfter(now) ? null : system.scoreOutOf10(d)
             ],
             todayIndex: now.weekday - 1,
           ),

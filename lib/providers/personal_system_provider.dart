@@ -812,6 +812,13 @@ class PersonalSystemProvider extends ChangeNotifier {
     return null;
   }
 
+  /// [date]'s score on a 0–10 scale, whatever the list's length — what
+  /// the heat colours and week bars draw.
+  int scoreOutOf10(DateTime date) {
+    final n = itemIdsOn(date).length;
+    return n == 0 ? 0 : (scoreFor(date) * 10 / n).round().clamp(0, 10);
+  }
+
   int scoreFor(DateTime date) {
     final ids = itemIdsOn(date);
     return _checks(date).where(ids.contains).length;
@@ -968,13 +975,17 @@ class PersonalSystemProvider extends ChangeNotifier {
       final rates = itemRates(lastWeek).entries.toList()
         ..sort((a, b) => a.value.compareTo(b.value));
       final weakest = dailyItem(rates.first.key)!;
-      final hits = (rates.first.value * lastWeek.length).round();
+      // Rates leave excused days out; count against the days that counted.
+      final counted = lastWeek.where((x) => !isExcused(x)).length;
+      if (counted == 0) return null;
+      final hits = (rates.first.value * counted).round();
+      final cue = cueFor(weakest.id).trim().replaceFirst(RegExp(r'\.$'), '');
       return FreshStart(
         key: 'fresh:week:${dateKey(d)}',
         eyebrow: 'New week · week $programWeek',
         title: 'One commitment: ${weakest.title.toLowerCase()}',
-        body: 'Last week: $hits of ${lastWeek.length} days.\n'
-            'Your plan: ${cueFor(weakest.id)}.\n\n'
+        body: 'Last week: $hits of $counted days.\n'
+            '${cue.isEmpty ? '' : 'Your plan: $cue.\n'}\n'
             'Close your eyes for 20 seconds and picture the moment the cue '
             'happens and you do it.',
         cta: 'Commit',

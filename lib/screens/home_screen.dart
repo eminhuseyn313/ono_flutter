@@ -59,7 +59,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   _Mode get _mode {
     final m = _now.hour * 60 + _now.minute;
-    if (_now.weekday == DateTime.sunday && m >= 16 * 60) return _Mode.sunday;
+    // Sunday afternoon is for the report; once it's sent, the evening
+    // (shutdown, ticking the three) is back.
+    if (_now.weekday == DateTime.sunday &&
+        m >= 16 * 60 &&
+        context.read<PersonalSystemProvider>().reportForWeek(_now) == null) {
+      return _Mode.sunday;
+    }
     if (m < 10 * 60 + 30) return _Mode.morning;
     if (m < 18 * 60) return _Mode.work;
     return _Mode.evening;
@@ -74,13 +80,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _celebrate(PersonalSystemProvider system, DateTime date) {
     final score = system.scoreFor(date);
+    final total = system.itemIdsOn(date).length;
+    final target = system.targetFor(date);
     if (_lastScore >= 0 && score > _lastScore) {
-      if (score == 10) {
+      if (score == total) {
         HapticFeedback.heavyImpact();
-        _showHeld(context, perfect: true);
-      } else if (score == 7) {
+        _showHeld(context, score: score, total: total, target: target);
+      } else if (score == target) {
         HapticFeedback.heavyImpact();
-        _showHeld(context, perfect: false);
+        _showHeld(context, score: score, total: total, target: target);
       }
     }
     _lastScore = score;
@@ -192,13 +200,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 10),
               ],
               _DailyTen(date: date),
-              SectionHeader(_mode == _Mode.evening && !_yesterday
+              SectionHeader(_now.hour >= 18 && !_yesterday
                   ? 'Did the three happen?'
                   : 'Three priorities'),
               _Priorities(
                 key: ValueKey(dateKey(date)),
                 date: date,
-                review: _mode == _Mode.evening || _yesterday,
+                review: _now.hour >= 18 || _yesterday,
               ),
               if (!_yesterday && system.hasStarted)
                 Center(
@@ -244,7 +252,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-void _showHeld(BuildContext context, {required bool perfect}) {
+void _showHeld(BuildContext context,
+    {required int score, required int total, required int target}) {
+  final perfect = score >= total;
   showGeneralDialog(
     context: context,
     barrierDismissible: true,
@@ -262,20 +272,20 @@ void _showHeld(BuildContext context, {required bool perfect}) {
             mainAxisSize: MainAxisSize.min,
             children: [
               ScoreRing(
-                progress: perfect ? 1 : 0.7,
+                progress: total == 0 ? 1 : (score / total).clamp(0, 1).toDouble(),
                 size: 140,
                 stroke: 12,
-                center: Text(perfect ? '10' : '7',
+                center: Text('$score',
                     style: AppText.serif(size: 54, color: AppColors.accent)),
               ),
               const SizedBox(height: 20),
-              Text(perfect ? 'Ten of ten.' : 'Day held.',
+              Text(perfect ? 'All $total.' : 'Day held.',
                   style: AppText.display()),
               const SizedBox(height: 6),
               Text(
                   perfect
                       ? 'Not performing. Building.'
-                      : 'Seven or more — the streak is safe.',
+                      : '$target of $total — the streak is safe.',
                   style: AppText.body()),
             ],
           ),
@@ -303,7 +313,9 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final day = system.hasStarted
-        ? 'Day ${system.programDay} · ${system.phase.name}'
+        ? system.programComplete
+            ? 'Program complete'
+            : 'Day ${system.programDay} · ${system.phase.name}'
         : 'Starts in ${system.daysUntilStart}d';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -462,6 +474,7 @@ class _CountdownCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final builtIn = context.read<PersonalSystemProvider>().isBuiltInPerson;
     return OnoCard(
       color: AppColors.navy,
       padding: const EdgeInsets.all(22),
@@ -474,15 +487,21 @@ class _CountdownCard extends StatelessWidget {
           Text('Use the runway.', style: AppText.title()),
           const SizedBox(height: 8),
           Text(
-              'Book the bloodwork, order the navy merino, fill the Evidence Archive, and read the manifesto each morning so Day 1 isn\'t the first time.',
+              builtIn
+                  ? 'Book the bloodwork, order the navy merino, fill the Evidence Archive, and read the manifesto each morning so Day 1 isn\'t the first time.'
+                  : 'Try your daily items once before they count, set your first goal, and write down what you\'ve already built, so Day 1 isn\'t the first time.',
               style: AppText.body()),
           const SizedBox(height: 16),
           Row(
             children: [
               Expanded(
-                child: GhostButton('Bloodwork',
-                    icon: Icons.bloodtype_outlined,
-                    onPressed: () => context.go('/program?tab=2')),
+                child: builtIn
+                    ? GhostButton('Bloodwork',
+                        icon: Icons.bloodtype_outlined,
+                        onPressed: () => context.go('/program?tab=2'))
+                    : GhostButton('Goals',
+                        icon: Icons.flag_circle_outlined,
+                        onPressed: () => context.push('/goals')),
               ),
               const SizedBox(width: 8),
               Expanded(
@@ -632,14 +651,18 @@ class _ModeCard extends StatelessWidget {
             .firstOrNull;
         return _action(context,
             eyebrow: 'Morning',
-            title: next == null ? 'Name today\'s three' : next.title,
+            title: next == null ? 'Set the week\'s three' : next.title,
             body: next == null
-                ? 'The three things that would make today a good day — below, then start the first.'
+                ? 'Three outcomes that would make this week a win; today\'s priorities below serve them.'
                 : system.cueFor(next.id).isEmpty
                     ? 'The first thing on your list this morning.'
                     : system.cueFor(next.id),
-            cta: 'Plan the week',
-            route: '/week');
+            cta: next == null
+                ? 'Plan the week'
+                : next.route == null
+                    ? 'See your daily items'
+                    : 'Start it',
+            route: next == null ? '/week' : next.route ?? '/daily');
       case _Mode.work:
         return OnoCard(
           padding: const EdgeInsets.all(18),
@@ -1251,7 +1274,7 @@ class _PromptsState extends State<_Prompts> {
       children: [
         for (final c in _all ? cards : cards.take(_visible))
           ...[const SizedBox(height: 12), c],
-        if (cards.length > _visible || (followUps.isNotEmpty && !_all))
+        if (cards.length > _visible || followUps.isNotEmpty)
           Align(
             alignment: Alignment.centerLeft,
             child: TextButton(
@@ -1379,6 +1402,11 @@ class _CheckinCard extends StatelessWidget {
     final c = system.checkinFor(today);
     if (c == null) {
       if (now.hour >= 14) return const SizedBox.shrink();
+      // Before 10:30 the morning card above already asks anyone but the
+      // built-in person to check in; don't ask twice.
+      if (!system.isBuiltInPerson && now.hour * 60 + now.minute < 10 * 60 + 30) {
+        return const SizedBox.shrink();
+      }
       return Padding(
         padding: const EdgeInsets.only(top: 12),
         child: OnoCard(
@@ -1394,7 +1422,10 @@ class _CheckinCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Morning check-in', style: AppText.heading()),
-                    Text('Energy, mood, sleep, shoulders · 15 s',
+                    Text(
+                        system.isBuiltInPerson
+                            ? 'Energy, mood, sleep, shoulders · 15 s'
+                            : 'Energy, mood, sleep · 15 s',
                         style: AppText.small()),
                   ],
                 ),
