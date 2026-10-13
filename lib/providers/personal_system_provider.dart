@@ -1920,6 +1920,13 @@ class PersonalSystemProvider extends ChangeNotifier {
         report: report,
         itemTitles: {for (final n in dailyItems) n.id: n.title},
         itemCount: dailyCount,
+        itemCues: {
+          for (final n in dailyItems)
+            if (cueFor(n.id).trim().isNotEmpty) n.id: cueFor(n.id)
+        },
+        daysCounted: weekDays(report.weekStart)
+            .where((d) => !d.isBefore(programStart) && !d.isAfter(_now))
+            .length,
         forWeek: forWeek,
         programMonth: programMonth,
         phaseName: phase.name,

@@ -255,10 +255,11 @@ class _BriefView extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 10),
-        _section('Domain brief', brief.domainBrief),
+        _section(system.isBuiltInPerson ? 'Domain brief' : 'This week\'s practice',
+            brief.domainBrief),
         _section('Coaching', brief.coaching),
         if (brief.adjustments.isNotEmpty)
-          _section('Plan adjustments',
+          _section('Worth changing',
               brief.adjustments.map((a) => '• $a').join('\n')),
       ],
     );

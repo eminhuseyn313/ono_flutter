@@ -106,6 +106,13 @@ class BriefInput {
   /// How many daily items there are (the Daily 10 may have 8 or 12).
   final int itemCount;
 
+  /// Daily item id → their own if-then plan for it, when they wrote one.
+  final Map<String, String> itemCues;
+
+  /// Days of the reported week that were inside the program (a first
+  /// week that started midweek has fewer than 7).
+  final int daysCounted;
+
   /// When their energy peaks, e.g. "morning (9:00–12:00)", from their own
   /// ratings.
   final String? energyPeak;
@@ -192,6 +199,8 @@ class BriefInput {
     this.restPlanned = true,
     this.itemTitles = const {},
     this.itemCount = 10,
+    this.itemCues = const {},
+    this.daysCounted = 7,
     this.energyPeak,
     this.feedbackThemes,
     this.hardDays = const {},
@@ -248,6 +257,8 @@ class BriefInput {
         'item_rates': itemRates,
         'item_titles': itemTitles,
         'daily_item_count': itemCount,
+        if (itemCues.isNotEmpty) 'item_if_then_plans': itemCues,
+        'days_in_program_this_week': daysCounted,
         'evidence_added_this_week': evidenceAddedThisWeek,
         'artifacts_this_month': artifactsThisMonth,
         'posts_this_week': postsThisWeek,
@@ -320,7 +331,10 @@ class DeviceBriefGenerator implements BriefGenerator {
     final ratio = input.itemCount == 0 ? 0.0 : avg / input.itemCount;
     final strongest = rates.isEmpty ? null : rates.last.key;
 
-    final headline = ratio >= 0.8
+    final partial = input.daysCounted < 5;
+    final headline = partial
+        ? 'Your first ${input.daysCounted == 1 ? 'day' : '${input.daysCounted} days'} (${avg.toStringAsFixed(1)}/${input.itemCount}). Too early for a verdict — next week is the first full one.'
+        : ratio >= 0.8
         ? 'Strong week (${avg.toStringAsFixed(1)}/${input.itemCount}). Hold the line and raise one bar.'
         : ratio >= 0.6
             ? 'Solid week (${avg.toStringAsFixed(1)}/${input.itemCount}). Tighten ${title(weakest.first)} and ${title(weakest.last)}.'
@@ -333,7 +347,9 @@ class DeviceBriefGenerator implements BriefGenerator {
       for (final o in input.proposedOutcomes) 'One of the week\'s three: $o',
       for (final id in weakest)
         _taskFor[id] ??
-            'Protect "${title(id)}": tie it to one fixed moment in your day, and make it smaller if it keeps slipping.',
+            ((input.itemCues[id] ?? '').trim().isEmpty
+                ? 'Protect "${title(id)}": tie it to one fixed moment in your day, and make it smaller if it keeps slipping.'
+                : 'Protect "${title(id)}". Your plan: "${_clip(input.itemCues[id]!.trim(), 120)}". If it slipped anyway, the moment is wrong — move it, or do the minimum version.'),
     ];
     if (input.builtInPlan && r.gymSessions < 3 && input.gymDays.length >= 3) {
       final names = [
@@ -395,7 +411,7 @@ class DeviceBriefGenerator implements BriefGenerator {
     // says, then set-up nudges (no goal, no rest planned, …), the week and
     // the rest.
     final health = <String>[
-      if (ratio < 0.6)
+      if (ratio < 0.6 && !partial && input.itemCount > 3)
         input.builtInPlan
             ? 'Shrink to the core five next week: manifesto, scan, BLUF, protein, bed. Add the rest back when you hold 5/5.'
             : 'Shrink the list next week: keep the three items that matter most, use their minimum versions on hard days, and add the rest back once those hold.',
@@ -424,7 +440,7 @@ class DeviceBriefGenerator implements BriefGenerator {
       if (input.openCommitments.isNotEmpty)
         'You committed to: "${input.openCommitments.first}". Keep it, renegotiate it with yourself, or drop it on purpose — don\'t let it linger.',
       if (r.hardestMoment.trim().isNotEmpty)
-        'Hardest moment noted. Ask: what would ${input.profile.archetype.isEmpty ? 'the person you\'re becoming' : input.profile.archetype} do differently? Write the answer as one rule.',
+        'Hardest moment: "${_clip(r.hardestMoment.trim(), 120)}". Ask: what would ${input.profile.archetype.isEmpty ? 'the person you\'re becoming' : input.profile.archetype} do differently? Write the answer as one rule.',
       if (input.askRecord != null && input.asksThisWeek == 0)
         'You asked nobody for help this week. Your own record: ${input.askRecord}. Ask one person for one specific thing.',
       if (input.strengths.isNotEmpty && input.strengthUses == 0)
@@ -473,6 +489,8 @@ class DeviceBriefGenerator implements BriefGenerator {
         'Your crafting move: ${input.craftingMove}. Put it on next week\'s calendar once — small changes to the work are how it starts to fit you.',
     ];
     final recognition = <String>[
+      if (r.bestMoment.trim().isNotEmpty)
+        'Best moment: "${_clip(r.bestMoment.trim(), 120)}". What made it possible? Set that up again next week.',
       if (input.setbacks > 0)
         '${input.setbacks} setback${input.setbacks == 1 ? '' : 's'} met with a next step instead of a spiral. That is the skill.',
       if (input.thoughtsChecked > 0)

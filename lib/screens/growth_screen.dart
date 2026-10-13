@@ -196,7 +196,7 @@ class _Plan extends StatelessWidget {
         Row(
           children: [
             Expanded(child: StatTile('${reps.length}', 'reps this month')),
-            Expanded(child: StatTile('${feedback.length}', 'feedback asked')),
+            Expanded(child: StatTile('${feedback.length}', 'feedback heard')),
             Expanded(
                 child: StatTile(
                     end == null ? '${start ?? '–'}' : '$start→$end',
@@ -275,6 +275,15 @@ class _Plan extends StatelessWidget {
               Text('Then just listen. Say thank you, not "but".',
                   style: AppText.small()),
               const SizedBox(height: 10),
+              GhostButton('Copy the ask',
+                  icon: Icons.copy_rounded,
+                  onPressed: () {
+                Clipboard.setData(ClipboardData(
+                    text:
+                        'Quick question, I\'m working on ${area.name.toLowerCase()}: ${area.ask} One honest sentence is plenty.'));
+                toast(context, 'Copied. Send it to one person who sees you do it.');
+              }),
+              const SizedBox(height: 8),
               GhostButton('Log what they said',
                   icon: Icons.record_voice_over_outlined,
                   onPressed: () => _feedbackSheet(context, system)),
