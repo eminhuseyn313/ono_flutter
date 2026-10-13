@@ -3090,4 +3090,22 @@ void main() {
     expect(p.milestonesOf(g).map((m) => m.text), contains('First 1:1 with everyone'));
     expect(g.str('deadline'), '2027-04-05');
   });
+
+  test('a lapse brings a welcome, not a warning; after midnight is still last night',
+      () async {
+    final p = await _commissioned();
+    final today = dayOnly(_today);
+    // Two days with nothing ticked, after a held one.
+    _hold(p, today.minusDays(3));
+    expect(p.isReentryDay(today), isTrue);
+    expect(p.isMinimumDay(today), isTrue);
+    expect(p.isRecoveryDay, isFalse, reason: 'the welcome card replaces the warning');
+    // One quiet day is not a lapse.
+    _hold(p, today.minusDays(1));
+    expect(p.isReentryDay(today), isFalse);
+    p.clock = () => DateTime(2026, 10, 3, 0, 30);
+    expect(p.logicalToday, DateTime(2026, 10, 2));
+    p.clock = () => DateTime(2026, 10, 3, 4, 0);
+    expect(p.logicalToday, DateTime(2026, 10, 3));
+  });
 }

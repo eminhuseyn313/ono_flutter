@@ -32,7 +32,7 @@ class _ShutdownScreenState extends State<ShutdownScreen> {
     if (_ready) return;
     _ready = true;
     final system = context.read<PersonalSystemProvider>();
-    _today = dayOnly(DateTime.now());
+    _today = system.logicalToday;
     final tomorrow = system.prioritiesFor(_today.plusDays(1));
     // Tomorrow's own priorities first, then what's unfinished today.
     final seed = [

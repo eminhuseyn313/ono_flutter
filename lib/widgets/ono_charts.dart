@@ -44,8 +44,16 @@ class DayDial extends StatelessWidget {
               now: now, ticks: ticks, reveal: t, schedule: schedule),
           child: child,
         ),
+        // The centre scales down rather than overflow (small dial, large text).
         child: Center(
-          child: SizedBox(width: size * 0.56, child: center),
+          child: SizedBox(
+            width: size * 0.56,
+            height: size * 0.62,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: SizedBox(width: size * 0.56, child: center),
+            ),
+          ),
         ),
       ),
     );

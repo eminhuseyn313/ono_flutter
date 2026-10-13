@@ -69,6 +69,17 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// The provider's time (the test clock in tests).
   DateTime get now => _now;
 
+  /// Hours after midnight that still belong to the night before.
+  static const dayEndsAt = 4;
+
+  /// The day someone is living: before 04:00 it is still last night, so a
+  /// shutdown at 00:30 closes the day just ended.
+  DateTime get logicalToday {
+    final n = _now;
+    final d = dayOnly(n);
+    return n.hour < dayEndsAt ? d.minusDays(1) : d;
+  }
+
   Future<void> load(String? userId) async {
     final id = userId ?? _fallbackUser;
     final again = _signedOut;
@@ -735,7 +746,30 @@ class PersonalSystemProvider extends ChangeNotifier {
     final prev = d.minusDays(1);
     if (prev.isBefore(dayOnly(journeyStart))) return false;
     if (hardDayOn(prev) == 'sick') return true;
-    return isExcused(prev) && isExcused(prev.minusDays(1));
+    if (isExcused(prev) && isExcused(prev.minusDays(1))) return true;
+    // Back after two or more days with nothing ticked: start small, not
+    // with a warning.
+    final before = prev.minusDays(1);
+    if (before.isBefore(dayOnly(journeyStart))) return false;
+    // Only someone who had started and then stopped is coming back.
+    final first = firstTickDay;
+    if (first == null || !first.isBefore(before)) return false;
+    bool blank(DateTime x) => !isExcused(x) && !isPaused(x) && scoreFor(x) == 0;
+    return blank(prev) && blank(before);
+  }
+
+  PersonalSystemState? _firstTickState;
+  DateTime? _firstTick;
+
+  /// The first day anything was ticked, or null (cached per state).
+  DateTime? get firstTickDay {
+    if (identical(_firstTickState, _state)) return _firstTick;
+    _firstTickState = _state;
+    String? min;
+    for (final e in (_state?.dailyChecks ?? const <String, List<String>>{}).entries) {
+      if (e.value.isNotEmpty && (min == null || e.key.compareTo(min) < 0)) min = e.key;
+    }
+    return _firstTick = min == null ? null : DateTime.tryParse(min);
   }
 
   bool isMinimumDay(DateTime day) =>
@@ -911,7 +945,9 @@ class PersonalSystemProvider extends ChangeNotifier {
     return !isHeld(yesterday) &&
         !isExcused(yesterday) &&
         !isHeld(today) &&
-        !isExcused(today);
+        !isExcused(today) &&
+        // After a real lapse Today says "Welcome back" instead.
+        !isReentryDay(today);
   }
 
   /// Days held in the current program month.

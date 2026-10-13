@@ -68,6 +68,8 @@ class _HomeScreenState extends State<HomeScreen> {
         system.reportForWeek(_now) == null) {
       return _Mode.sunday;
     }
+    // After midnight it is still the evening before, not morning.
+    if (_now.hour < PersonalSystemProvider.dayEndsAt) return _Mode.evening;
     if (m < 10 * 60 + 30) return _Mode.morning;
     if (m < 18 * 60) return _Mode.work;
     return _Mode.evening;
@@ -153,6 +155,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     onTap: () => context.go('/program?tab=1'),
                     child: DayDial(
                       now: _now,
+                      // A smaller dial on short phones keeps the daily list
+                      // closer to the top.
+                      size: MediaQuery.sizeOf(context).height < 700 ? 220 : 280,
                       schedule: system.isBuiltInPerson
                           ? dailySchedule
                           : system.personalSchedule,
@@ -163,7 +168,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       center: _DialCenter(
                           now: _now,
                           score: system.scoreFor(date),
-                          total: system.dailyCount,
+                          total: system.itemIdsOn(date).length,
                           target: system.targetFor(date),
                           label: system.isBuiltInPerson
                               ? null
@@ -186,7 +191,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 12),
                 _RecoveryCard(
                     yesterdayScore: system.scoreFor(today.minusDays(1)),
-                    streak: system.streak),
+                    streak: system.streak,
+                    onFillYesterday: () => setState(() {
+                          _yesterday = true;
+                          _lastScore = -1;
+                        })),
               ],
               if (!_yesterday && system.isRestDay(today)) ...[
                 const SizedBox(height: 12),
@@ -552,7 +561,10 @@ class _ModeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
-    final today = dayOnly(now);
+    // After midnight the evening card belongs to the day just ended.
+    final today = mode == _Mode.evening && now.hour < PersonalSystemProvider.dayEndsAt
+        ? system.logicalToday
+        : dayOnly(now);
     if (!system.isBuiltInPerson) return _general(context, system, today);
     switch (mode) {
       case _Mode.morning:
@@ -677,6 +689,31 @@ class _ModeCard extends StatelessWidget {
         final next = system.dailyItems
             .where((n) => n.when == 'morning' && !system.isChecked(today, n.id))
             .firstOrNull;
+        if (next == null) {
+          // What last night's shutdown decided comes back in the morning.
+          final first = system.prioritiesFor(today)
+              .where((p) => p.trim().isNotEmpty)
+              .firstOrNull;
+          final open = (system.shutdownFor(today.minusDays(1))?.str('open') ?? '').trim();
+          if (first != null) {
+            return _action(context,
+                eyebrow: 'Last night you decided',
+                title: first,
+                body: open.isEmpty
+                    ? 'Do it before the day decides for you.'
+                    : 'Also on your mind last night: ${open.length > 90 ? '${open.substring(0, 89)}…' : open}',
+                cta: 'Start a focus block',
+                route: '/focus');
+          }
+          if (system.weekOutcomeScore(today).$2 > 0) {
+            return _action(context,
+                eyebrow: 'Morning',
+                title: 'What must be true by tonight?',
+                body: 'Write today\'s three below — each one moving the week\'s three.',
+                cta: 'See the week',
+                route: '/week');
+          }
+        }
         return _action(context,
             eyebrow: 'Morning',
             title: next == null ? 'Set the week\'s three' : next.title,
@@ -1225,6 +1262,63 @@ class _PromptsState extends State<_Prompts> {
     final followUps = system.openFollowUps;
     final first = system.firstWeekStep;
     // Ranked: direction first, then what is due, then the rest.
+    final setup = <Widget>[
+      if (system.planBuildSuggested &&
+          !_snoozed(system, 'plan'))
+        _setupRow(
+            context,
+            system,
+            'plan',
+            Icons.auto_awesome_outlined,
+            AppColors.accent,
+            'Build your plan in 5 minutes',
+            'Who you are becoming, one goal, a few daily actions',
+            '/start'),
+      if (system.activeGoals.isEmpty && !system.planBuildSuggested &&
+          !_snoozed(system, 'goal'))
+        _setupRow(
+            context,
+            system,
+            'goal',
+            Icons.flag_circle_outlined,
+            AppColors.accent,
+            'Set your first goal',
+            'The outcome everything else here serves',
+            '/goals'),
+      if (system.focusArea() == null &&
+          !_snoozed(system, 'area'))
+        _setupRow(
+            context,
+            system,
+            'area',
+            Icons.trending_up_rounded,
+            AppColors.accent,
+            'What are you growing this month?',
+            'Suggested: ${system.suggestedArea.name}',
+            '/growth'),
+      if (!system.isBuiltInPerson &&
+          system.dayShape == null &&
+          system.programDay >= 2 &&
+          !_snoozed(system, 'day'))
+        _setupRow(context, system, 'day', Icons.schedule_rounded, AppColors.mind, 'Shape your day',
+            system.remindersSupported
+                ? 'Wake, work, bed — your dial and reminders follow it'
+                : 'Wake, work, bed — your day dial follows it',
+            '/day'),
+      if (system.values.isEmpty &&
+          system.programDay >= 7 &&
+          system.programDay <= 30 &&
+          !_snoozed(system, 'values'))
+        _setupRow(
+            context,
+            system,
+            'values',
+            Icons.diamond_outlined,
+            AppColors.mind,
+            'What do you stand for?',
+            'Name three to five values — decisions and your brief use them',
+            '/values'),
+    ];
     final cards = <Widget>[
       // The first week: one small step a day, ahead of everything else.
       if (first != null)
@@ -1243,30 +1337,47 @@ class _PromptsState extends State<_Prompts> {
             'Program ${system.cycle} is complete',
             'Look back, then start the next — everything stays',
             '/next-program'),
-      if (system.planBuildSuggested)
+      // Dated things first: they only matter today.
+      for (final b in system.birthdaysSoon(now).take(1))
         _row(
             context,
-            Icons.auto_awesome_outlined,
-            AppColors.accent,
-            'Build your plan in 5 minutes',
-            'Who you are becoming, one goal, a few daily actions',
-            '/start'),
-      if (system.activeGoals.isEmpty && !system.planBuildSuggested)
+            Icons.cake_outlined,
+            AppColors.social,
+            system.birthdayOf(b) == (now.month, now.day)
+                ? 'It\'s ${b.text}\'s birthday today'
+                : '${b.text}\'s birthday is tomorrow',
+            system.askAboutOf(b).isEmpty
+                ? 'A message in your own words beats a reminder app\'s'
+                : 'Ask about ${system.askAboutOf(b)}',
+            '/people?id=${b.id}'),
+      if (system.conversationsDue(now).firstOrNull case final c?)
         _row(
             context,
-            Icons.flag_circle_outlined,
-            AppColors.accent,
-            'Set your first goal',
-            'The outcome everything else here serves',
-            '/goals'),
-      if (system.focusArea() == null)
+            Icons.forum_outlined,
+            AppColors.social,
+            'The conversation with ${c.str('with')}',
+            'Have it today, or debrief it if it happened',
+            '/conversations'),
+      if (system.promisesDue(now).firstOrNull case final p?)
         _row(
             context,
-            Icons.trending_up_rounded,
-            AppColors.accent,
-            'What are you growing this month?',
-            'Suggested: ${system.suggestedArea.name}',
-            '/growth'),
+            Icons.handshake_outlined,
+            AppColors.social,
+            '${system.promiseOverdue(p) ? 'A promise is past its date' : 'A promise is due today'}${(p.str('to') ?? '').isEmpty ? '' : ' · ${p.str('to')}'}',
+            system.promiseOverdue(p)
+                ? '${p.text} — kept late, or missed? Say it, then make it right'
+                : '${p.text} — keep it, or say a new date now',
+            '/promises'),
+      if (system.worryTimeDue(now))
+        _row(
+            context,
+            Icons.local_parking_rounded,
+            AppColors.mind,
+            'Worry time',
+            '${system.worriesDue(now).length} parked — a next step or let go',
+            '/worry'),
+      // Then at most one set-up step a day; each can wait a week.
+      ...setup.take(1),
       if (reviews.isNotEmpty)
         _row(
             context,
@@ -1275,24 +1386,6 @@ class _PromptsState extends State<_Prompts> {
             'Decision review due',
             '"${reviews.first.text}" — was the call right?',
             '/cockpit?tab=1'),
-      if (!system.isBuiltInPerson &&
-          system.dayShape == null &&
-          system.programDay >= 2)
-        _row(context, Icons.schedule_rounded, AppColors.mind, 'Shape your day',
-            system.remindersSupported
-                ? 'Wake, work, bed — your dial and reminders follow it'
-                : 'Wake, work, bed — your day dial follows it',
-            '/day'),
-      if (system.values.isEmpty &&
-          system.programDay >= 7 &&
-          system.programDay <= 30)
-        _row(
-            context,
-            Icons.diamond_outlined,
-            AppColors.mind,
-            'What do you stand for?',
-            'Name three to five values — decisions and your brief use them',
-            '/values'),
       if (system.monthReviewDue)
         _row(
             context,
@@ -1327,14 +1420,6 @@ class _PromptsState extends State<_Prompts> {
                 : 'Look back at "${g.text}"',
             'Two minutes: what made the difference',
             '/goals/view?id=${g.id}'),
-      if (system.conversationsDue(now).firstOrNull case final c?)
-        _row(
-            context,
-            Icons.forum_outlined,
-            AppColors.social,
-            'The conversation with ${c.str('with')}',
-            'Have it today, or debrief it if it happened',
-            '/conversations'),
       if (system.lastWeekReportDue)
         _row(context, Icons.assignment_outlined, AppColors.accent,
             'Close last week',
@@ -1355,24 +1440,6 @@ class _PromptsState extends State<_Prompts> {
             'Did ${(a.str('of') ?? '').isEmpty ? 'they' : a.str('of')} say yes?',
             '${a.text} — note the answer',
             '/asks'),
-      if (system.promisesDue(now).firstOrNull case final p?)
-        _row(
-            context,
-            Icons.handshake_outlined,
-            AppColors.social,
-            '${system.promiseOverdue(p) ? 'A promise is past its date' : 'A promise is due today'}${(p.str('to') ?? '').isEmpty ? '' : ' · ${p.str('to')}'}',
-            system.promiseOverdue(p)
-                ? '${p.text} — kept late, or missed? Say it, then make it right'
-                : '${p.text} — keep it, or say a new date now',
-            '/promises'),
-      if (system.worryTimeDue(now))
-        _row(
-            context,
-            Icons.local_parking_rounded,
-            AppColors.mind,
-            'Worry time',
-            '${system.worriesDue(now).length} parked — a next step or let go',
-            '/worry'),
       if (system.kindnessDue(now))
         _row(
             context,
@@ -1470,18 +1537,6 @@ class _PromptsState extends State<_Prompts> {
             'A letter is ready to open',
             'Written to you in month ${system.lettersToOpen.first.number('month') ?? '–'}. Read it today.',
             '/letters'),
-      for (final b in system.birthdaysSoon(now).take(1))
-        _row(
-            context,
-            Icons.cake_outlined,
-            AppColors.social,
-            system.birthdayOf(b) == (now.month, now.day)
-                ? 'It\'s ${b.text}\'s birthday today'
-                : '${b.text}\'s birthday is tomorrow',
-            system.askAboutOf(b).isEmpty
-                ? 'A message in your own words beats a reminder app\'s'
-                : 'Ask about ${system.askAboutOf(b)}',
-            '/people?id=${b.id}'),
       if (system.peopleDue.firstOrNull case final p?)
         _row(
             context,
@@ -1559,6 +1614,32 @@ class _PromptsState extends State<_Prompts> {
     );
   }
 
+  static String _snoozeKey(String id, DateTime now) =>
+      'snooze:$id:${dateKey(weekStartOf(now))}';
+
+  bool _snoozed(PersonalSystemProvider system, String id) =>
+      system.isDone(_snoozeKey(id, widget.now));
+
+  /// A set-up step with "Not now": it comes back next week.
+  Widget _setupRow(BuildContext context, PersonalSystemProvider system,
+          String id, IconData icon, Color color, String title, String body,
+          String route) =>
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          _row(context, icon, color, title, body, route),
+          TextButton(
+            key: Key('snooze-$id'),
+            onPressed: () => system.setDone(_snoozeKey(id, widget.now), true),
+            style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                minimumSize: const Size(0, 32),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+            child: Text('Not now', style: AppText.small()),
+          ),
+        ],
+      );
+
   Widget _row(BuildContext context, IconData icon, Color color, String title,
           String body, String route) =>
       OnoCard(
@@ -1591,7 +1672,11 @@ class _PromptsState extends State<_Prompts> {
 class _RecoveryCard extends StatelessWidget {
   final int yesterdayScore;
   final int streak;
-  const _RecoveryCard({required this.yesterdayScore, required this.streak});
+  final VoidCallback onFillYesterday;
+  const _RecoveryCard(
+      {required this.yesterdayScore,
+      required this.streak,
+      required this.onFillYesterday});
 
   @override
   Widget build(BuildContext context) {
@@ -1619,10 +1704,21 @@ class _RecoveryCard extends StatelessWidget {
           Text(
               'One miss is noise. Two in a row is a pattern — never miss twice.',
               style: AppText.small()),
-          TextButton(
-            onPressed: () => context.push('/setback'),
-            style: TextButton.styleFrom(padding: EdgeInsets.zero),
-            child: const Text('Reset in 3 minutes'),
+          Wrap(
+            spacing: 12,
+            children: [
+              TextButton(
+                key: const Key('fill-yesterday'),
+                onPressed: onFillYesterday,
+                style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                child: const Text('Did it but forgot to tick?'),
+              ),
+              TextButton(
+                onPressed: () => context.push('/setback'),
+                style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                child: const Text('Reset in 3 minutes'),
+              ),
+            ],
           ),
         ],
       ),
@@ -1672,6 +1768,50 @@ class _CheckinCard extends StatelessWidget {
                 ),
               ),
               const Icon(Icons.chevron_right_rounded, color: AppColors.grey),
+            ],
+          ),
+        ),
+      );
+    }
+    // A low morning changes what today asks: scaling the plan down keeps
+    // the habit through bad days.
+    final energy = c.number('energy')?.toInt();
+    final sleep = c.number('sleep')?.toDouble();
+    final low = (energy != null && energy <= 2) || (sleep != null && sleep > 0 && sleep < 6);
+    final lowKey = 'lowday:${dateKey(today)}';
+    if (low &&
+        system.hardDayOn(today) == null &&
+        !system.isExcused(today) &&
+        !system.isDone(lowKey)) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 12),
+        child: OnoCard(
+          key: const Key('low-morning'),
+          padding: const EdgeInsets.fromLTRB(16, 14, 8, 6),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('A low morning', style: AppText.heading()),
+              const SizedBox(height: 4),
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: Text(
+                    '${energy != null && energy <= 2 ? 'Energy $energy/5' : 'Under 6 hours of sleep'}. Make today a minimum day? ${system.minimumTarget} of ${system.dailyCount} counts, smallest versions are fine.',
+                    style: AppText.small()),
+              ),
+              Wrap(
+                spacing: 12,
+                children: [
+                  TextButton(
+                    onPressed: () => system.setHardDay(today, 'minimum'),
+                    child: const Text('Make it a minimum day'),
+                  ),
+                  TextButton(
+                    onPressed: () => system.setDone(lowKey, true),
+                    child: const Text('Full plan today'),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
@@ -1791,10 +1931,10 @@ class _DailyTen extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
               excused
-                  ? '$score of ${system.dailyCount} · nothing is expected today'
+                  ? '$score of ${system.itemIdsOn(date).length} · nothing is expected today'
                   : score >= target
-                      ? '$score of ${system.dailyCount} — today counts'
-                      : '$score of ${system.dailyCount} done${minimum ? ' · a minimum day: $target counts' : ''}',
+                      ? '$score of ${system.itemIdsOn(date).length} — today counts'
+                      : '$score of ${system.itemIdsOn(date).length} done${minimum ? ' · a minimum day: $target counts' : ''}',
               style: AppText.small()),
           for (final g in nonNegotiableGroups)
             if (system.dailyItems
@@ -1840,7 +1980,9 @@ class _DailyTen extends StatelessWidget {
               child: TextButton(
                 onPressed: () => showHardDaySheet(context, date),
                 style: TextButton.styleFrom(padding: EdgeInsets.zero),
-                child: const Text('Hard day? Choose how today counts'),
+                child: Text(dayOnly(date) == dayOnly(DateTime.now())
+                    ? 'Hard day? Choose how today counts'
+                    : 'Was it a hard day? Choose how it counts'),
               ),
             ),
         ],
@@ -1886,7 +2028,7 @@ Future<void> showHardDaySheet(BuildContext context, DateTime date) {
                 style: AppText.small()),
             const SizedBox(height: 10),
             option('minimum', Icons.compress_rounded, 'Minimum day',
-                'Swamped or low. Do the smallest version of each item; ${system.minimumTarget} of ${system.dailyCount} holds the day.'),
+                'Swamped or low. Do the smallest version of each item; ${system.minimumTarget} of ${system.itemIdsOn(date).length} holds the day.'),
             option('sick', Icons.healing_outlined, 'Sick day',
                 'Rest is the plan. Nothing is expected; your streak waits for you.'),
             option('pass', Icons.flash_on_outlined, 'Emergency skip',
@@ -1911,7 +2053,7 @@ class _HardDayCard extends StatelessWidget {
     final (title, body) = switch (kind) {
       'minimum' => (
           'Minimum day',
-          'The smallest version of each item counts. ${system.minimumTarget} of ${system.dailyCount} holds the day — showing up is the point.'
+          'The smallest version of each item counts. ${system.targetFor(date)} of ${system.itemIdsOn(date).length} holds the day — showing up is the point.'
         ),
       'sick' => (
           'Sick day — rest is the plan',
@@ -1927,7 +2069,7 @@ class _HardDayCard extends StatelessWidget {
         ),
       _ => (
           'Welcome back',
-          'First day back counts on the minimum: ${system.minimumTarget} of ${system.dailyCount}, smallest versions are fine. Full plan from tomorrow.'
+          'First day back counts on the minimum: ${system.targetFor(date)} of ${system.itemIdsOn(date).length}, smallest versions are fine. Full plan from tomorrow.'
         ),
     };
     return OnoCard(
@@ -1966,6 +2108,7 @@ class _Priorities extends StatefulWidget {
 
 class _PrioritiesState extends State<_Priorities> {
   late final List<TextEditingController> _c;
+  final _focus = List.generate(3, (_) => FocusNode());
 
   @override
   void initState() {
@@ -1979,6 +2122,9 @@ class _PrioritiesState extends State<_Priorities> {
     for (final c in _c) {
       c.dispose();
     }
+    for (final f in _focus) {
+      f.dispose();
+    }
     super.dispose();
   }
 
@@ -1986,6 +2132,11 @@ class _PrioritiesState extends State<_Priorities> {
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
     final p = system.prioritiesFor(widget.date);
+    // A priority set elsewhere (a setback's next step, a worry acted on,
+    // another device) shows here — unless they are typing in that field.
+    for (var i = 0; i < 3; i++) {
+      if (!_focus[i].hasFocus && _c[i].text != p[i]) _c[i].text = p[i];
+    }
     final anySet = p.any((x) => x.isNotEmpty);
     if (widget.review && anySet) {
       return OnoCard(
@@ -2021,6 +2172,7 @@ class _PrioritiesState extends State<_Priorities> {
                 Expanded(
                   child: TextField(
                     controller: _c[i],
+                    focusNode: _focus[i],
                     style: AppText.body(color: AppColors.white),
                     textInputAction: TextInputAction.next,
                     onChanged: (v) => system.setPriority(widget.date, i, v),

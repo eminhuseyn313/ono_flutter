@@ -373,4 +373,18 @@ void main() {
     expect(system.goalNextStep(system.goalById(g.id)!), 'Write 300 words on Saturday',
         reason: 'the step you name comes before the open milestone');
   });
+
+  testWidgets('a low morning offers a minimum day; a set priority shows on Today',
+      (tester) async {
+    final system = await _start(tester);
+    final today = dayOnly(DateTime.now());
+    system.saveCheckin(today, energy: 2, mood: 0, sleep: 7, pain: 0, stiffness: 0);
+    await _go(tester, '/home');
+    await _tap(tester, find.text('Make it a minimum day'));
+    expect(system.hardDayOn(today), 'minimum');
+    // Something else fills today's first priority while Today is open.
+    system.setPriority(today, 0, 'Send the two emails');
+    await tester.pump(const Duration(milliseconds: 300));
+    await _reach(tester, find.text('Send the two emails'));
+  });
 }
