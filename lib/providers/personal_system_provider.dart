@@ -519,6 +519,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     final current = List<String>.from(s.dailyChecks[key] ?? const []);
     value ? current.add(id) : current.remove(id);
     _update(s.copyWith(dailyChecks: {...s.dailyChecks, key: current}));
+    if (key == dateKey(_now)) _resyncIfHeldChanged();
   }
 
   void toggleCheck(DateTime date, String id) =>
@@ -1122,6 +1123,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     } else {
       addLog('checkin', date: date, data: data);
     }
+    if (dateKey(date) == dateKey(_now)) _syncReminders();
   }
 
   /// Shoulders need sparing today: pain ≥ 5/10 or morning stiffness of
@@ -2012,6 +2014,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// Save the Sunday report and generate next week's brief from it.
   Future<WeeklyBrief?> submitReport(WeeklyReport report) async {
     saveReport(report);
+    _syncReminders();
     _generating = true;
     briefError = null;
     notifyListeners();
@@ -2327,10 +2330,36 @@ class PersonalSystemProvider extends ChangeNotifier {
           title: title,
           body: body,
           route: def.route,
+          skipToday: wd == _now.weekday && reminderDoneToday(def.id),
         ));
       }
     }
     return out;
+  }
+
+  /// Whether what reminder [id] asks for is already done today.
+  bool reminderDoneToday(String id) {
+    final today = dayOnly(_now);
+    return switch (id) {
+      'g_checkin' => checkinFor(today) != null,
+      'g_items' => isHeld(today),
+      'g_shutdown' => shutdownFor(today) != null,
+      'g_sunday' || 'report' => reportForWeek(today) != null,
+      'ritual' => logsOn(today, 'ritual').isNotEmpty,
+      'gym' => gymDone(today),
+      _ => false,
+    };
+  }
+
+  /// Re-plans reminders when today becomes held (or stops being): only
+  /// that change matters to them, so most ticks schedule nothing.
+  bool _lastHeldToday = false;
+  void _resyncIfHeldChanged() {
+    if (_reminders == null || !isCommissioned) return;
+    final held = isHeld(dayOnly(_now));
+    if (held == _lastHeldToday) return;
+    _lastHeldToday = held;
+    _syncReminders();
   }
 
   String _reminderBody(String id) {
@@ -2614,6 +2643,8 @@ class PersonalSystemProvider extends ChangeNotifier {
       'set': p.where((x) => x.trim().isNotEmpty).length,
       'at': _now.toIso8601String(),
     });
+    // Tonight's "close the day" reminder has nothing left to ask.
+    if (dateKey(day) == dateKey(_now)) _syncReminders();
   }
 
   int shutdownsInWeek(DateTime anyDay) =>

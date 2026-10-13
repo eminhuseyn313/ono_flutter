@@ -14,6 +14,10 @@ class PlannedReminder {
   final String body;
   final String route;
 
+  /// Already done today: the weekly repeat starts from next week's day,
+  /// so a calm app doesn't nag about what's finished.
+  final bool skipToday;
+
   const PlannedReminder({
     required this.id,
     required this.weekday,
@@ -22,6 +26,7 @@ class PlannedReminder {
     required this.title,
     required this.body,
     required this.route,
+    this.skipToday = false,
   });
 }
 
@@ -215,7 +220,7 @@ class LocalReminderService implements ReminderService {
         id: r.id,
         title: r.title,
         body: r.body,
-        scheduledDate: _next(r.weekday, r.hour, r.minute),
+        scheduledDate: _next(r.weekday, r.hour, r.minute, skipToday: r.skipToday),
         notificationDetails: _details,
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
@@ -251,11 +256,11 @@ class LocalReminderService implements ReminderService {
     await _plugin.cancel(id: id);
   }
 
-  tz.TZDateTime _next(int weekday, int hour, int minute) {
+  tz.TZDateTime _next(int weekday, int hour, int minute, {bool skipToday = false}) {
     final now = tz.TZDateTime.now(tz.local);
     // Build each candidate from the date, so a daylight-saving change in
     // between doesn't shift the time by an hour.
-    for (var k = 0;; k++) {
+    for (var k = skipToday ? 1 : 0;; k++) {
       final t = tz.TZDateTime(
           tz.local, now.year, now.month, now.day + k, hour, minute);
       if (t.weekday == weekday && t.isAfter(now)) return t;

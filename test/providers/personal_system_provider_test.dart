@@ -3136,4 +3136,26 @@ void main() {
     expect(p.latelyLine, contains('slips most:'),
         reason: 'over 30 days nothing is steady yet');
   });
+
+  test('a reminder for something already done today waits for next week',
+      () async {
+    final rec = _RecordingReminders();
+    final p = PersonalSystemProvider(
+        gateway: MockPersonalSystemGateway(), reminders: rec)
+      ..clock = () => _today;
+    await p.load('test');
+    await p.commission(
+        start: _start, gymDays: const [1, 3, 5], reminders: const {'ritual': true});
+    PlannedReminder today(List<PlannedReminder> l) => l.firstWhere(
+        (r) => r.weekday == _today.weekday && r.title.startsWith('Morning ritual'));
+    expect(today(p.plannedReminders()).skipToday, isFalse);
+    p.addLog('ritual', data: {'seconds': 300});
+    expect(today(p.plannedReminders()).skipToday, isTrue);
+    expect(p.plannedReminders().where((r) => r.skipToday).length, 1,
+        reason: 'only today\'s occurrence moves');
+    // Checking in re-plans at once.
+    rec.last = const [];
+    p.saveCheckin(dayOnly(_today), energy: 4, mood: 1, sleep: 7, pain: 0, stiffness: 0);
+    expect(rec.last, isNotEmpty);
+  });
 }
