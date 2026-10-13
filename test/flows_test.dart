@@ -333,4 +333,24 @@ void main() {
     await _reach(tester, find.byKey(const Key('plan-next')));
     expect(find.text('Next: Send the proposal'), findsOneWidget);
   });
+
+  testWidgets('a person opens from the link: log yesterday, change the rhythm',
+      (tester) async {
+    final system = await _start(tester);
+    final mum = system.addPerson('Mum', every: 7);
+    system.updatePerson(mum, askAbout: 'the garden');
+    await _go(tester, '/people?id=${mum.id}');
+    expect(find.text('Ask about: the garden'), findsOneWidget);
+    await _tap(tester, find.text('Yesterday'));
+    await _tap(tester, find.text('In touch yesterday'));
+    expect(system.lastContact(system.personById(mum.id)!),
+        dayOnly(DateTime.now()).minusDays(1));
+    expect(system.askAboutOf(system.personById(mum.id)!), '');
+    await _tap(tester, find.text('Mum'));
+    await _tap(tester, find.byKey(const Key('person-details')));
+    await _tap(tester, find.descendant(
+        of: find.byType(BottomSheet), matching: find.text('Every 2 weeks')));
+    await _tap(tester, find.text('Save details'));
+    expect(system.cadenceOf(system.personById(mum.id)!), 14);
+  });
 }

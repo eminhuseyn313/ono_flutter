@@ -6,6 +6,7 @@ import '../models/personal_system.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
+import 'people_screen.dart';
 
 /// Hard conversations: prepare the one you've been avoiding, then debrief.
 class ConversationsScreen extends StatelessWidget {
@@ -159,7 +160,7 @@ class _ConversationEditScreenState extends State<ConversationEditScreen> {
               Navigator.of(context).maybePop();
             }),
       children: [
-        for (final f in _fields)
+        for (final f in _fields) ...[
           Padding(
             padding: const EdgeInsets.only(top: 12),
             child: TextField(
@@ -171,6 +172,8 @@ class _ConversationEditScreenState extends State<ConversationEditScreen> {
               decoration: InputDecoration(labelText: f.$2, hintText: f.$3),
             ),
           ),
+          if (f.$1 == 'with' && !done) PeoplePicker(controller: _c['with']!),
+        ],
         if (!done) ...[
           const SectionHeader('When'),
           Wrap(

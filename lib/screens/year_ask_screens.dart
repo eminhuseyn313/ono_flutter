@@ -6,6 +6,7 @@ import '../models/personal_system.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
+import 'people_screen.dart';
 
 // ── Year in review ─────────────────────────────────────────────────────
 
@@ -226,7 +227,9 @@ class _AsksScreenState extends State<AsksScreen> {
     if (mounted) {
       toast(
           context,
-          outcome == 'no'
+          outcome == 'none'
+              ? 'Noted. No answer isn\'t a no — it stays out of your record. Ask once more, or ask someone else.'
+              : outcome == 'no'
               ? 'Noted. A no is about the ask, not about you — ask someone else.'
               : 'Noted. Thank them — and remember this next time.');
     }
@@ -278,6 +281,7 @@ class _AsksScreenState extends State<AsksScreen> {
           decoration:
               const InputDecoration(labelText: 'Who', hintText: 'Optional'),
         ),
+        PeoplePicker(controller: _of),
         const SizedBox(height: 12),
         Text('How likely are they to say yes? ${_guess.round()}%',
             style: AppText.small(color: AppColors.white)),

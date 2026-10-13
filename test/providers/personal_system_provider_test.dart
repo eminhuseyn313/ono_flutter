@@ -2913,5 +2913,57 @@ void main() {
     expect(p.weekOutcomeGoal(week, 0), goal.id);
     expect(p.proposedOutcomes(week).map((x) => x.text), isNot(contains('Draft the pricing page')));
   });
-}
 
+  test('people: help and other contact count, editing keeps history, birthdays',
+      () async {
+    final p = await _commissioned();
+    p.clock = () => _today.minusDays(40);
+    final mum = p.addPerson('Mum', role: 'mother', every: 7);
+    final sam = p.addPerson('Sam Lee', every: 30);
+    final sam2 = p.addPerson('Sam Ortiz', every: 30);
+    p.clock = () => _today;
+    expect(p.peopleDue.length, 3);
+    // Helping someone is contact.
+    p.logHelp(mum, 'Set up her new phone');
+    expect(p.lastContact(mum), dayOnly(_today));
+    // A shared first name doesn't count for either Sam; a full name does.
+    final g = p.writeGratitude('Sam', 'Thank you for 2019')!;
+    p.deliverGratitude(g.id);
+    expect(p.lastContact(sam), isNull);
+    final g2 = p.writeGratitude('Sam Ortiz', 'Thank you')!;
+    p.deliverGratitude(g2.id);
+    expect(p.lastContact(sam2), dayOnly(_today));
+    // The rhythm can change without losing history; due people come first.
+    p.updatePerson(sam, every: 90, askAbout: 'the new flat', birthday: '03-14');
+    final edited = p.personById(sam.id)!;
+    expect(p.cadenceOf(edited), 90);
+    expect(p.peopleDue, isEmpty);
+    expect(p.helpsFor(mum).length, 1);
+    expect(p.askAboutOf(edited), 'the new flat');
+    p.logTouch(edited, date: _today.minusDays(1));
+    expect(p.askAboutOf(p.personById(sam.id)!), '', reason: 'asked now');
+    expect(p.lastContact(edited), dayOnly(_today.minusDays(1)));
+    // Birthdays: the day before and the day itself.
+    expect(p.birthdayOf(p.personById(sam.id)!), (3, 14));
+    p.clock = () => DateTime(2027, 3, 13, 9);
+    expect(p.birthdaysSoon(DateTime(2027, 3, 13)).map((x) => x.text), ['Sam Lee']);
+    expect(p.birthdaysSoon(DateTime(2027, 3, 15)), isEmpty);
+    // Between you: what is open with them.
+    p.clock = () => _today;
+    p.addPromise(what: 'Send the photos', to: 'Mum', by: _today.plusDays(2));
+    p.addAsk(what: 'Look after the cat', of: 'Mum');
+    expect(p.betweenYou(p.personById(mum.id)!).map((x) => x.$1),
+        ['You promised', 'You asked for', 'Last help']);
+  });
+
+  test('an ask with no answer stays out of the record', () async {
+    final p = await _commissioned();
+    for (final o in ['yes', 'no', 'yes', 'none']) {
+      p.addAsk(what: 'ask $o', guess: 40);
+      p.closeAsk(p.openAsks.first.id, o);
+    }
+    final r = p.askRecord()!;
+    expect((r.asked, r.yes), (3, 2));
+    expect(p.openAsks, isEmpty);
+  });
+}

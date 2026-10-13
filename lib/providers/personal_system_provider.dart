@@ -1920,6 +1920,11 @@ class PersonalSystemProvider extends ChangeNotifier {
         report: report,
         itemTitles: {for (final n in dailyItems) n.id: n.title},
         itemCount: dailyCount,
+        peopleCount: people.length,
+        peopleReached: people
+            .where((p) =>
+                !(lastContact(p)?.isBefore(report.weekStart) ?? true))
+            .length,
         itemCues: {
           for (final n in dailyItems)
             if (cueFor(n.id).trim().isNotEmpty) n.id: cueFor(n.id)
@@ -4806,6 +4811,100 @@ class PersonalSystemProvider extends ChangeNotifier {
       addLog('person',
           text: name.trim(), data: {'role': role.trim(), 'every': every})!;
 
+  /// Edit who they are and how often you want contact; the history stays.
+  /// [askAbout] is what to ask next time ("how the exam went"), cleared
+  /// when a touch is logged; [birthday] is 'MM-dd' or ''.
+  void updatePerson(LogEntry person,
+      {String? name, String? role, int? every, String? askAbout, String? birthday}) {
+    final p = logsOf('person').where((x) => x.id == person.id).firstOrNull;
+    if (p == null) return;
+    updateLog(p.copyWith(
+      text: name == null || name.trim().isEmpty ? p.text : name.trim(),
+      data: {
+        ...p.data,
+        if (role != null) 'role': role.trim(),
+        if (every != null) 'every': every,
+        if (askAbout != null) 'ask_about': askAbout.trim(),
+        if (birthday != null) 'birthday': birthday.trim(),
+      },
+    ));
+  }
+
+  LogEntry? personById(String id) =>
+      logsOf('person').where((p) => p.id == id).firstOrNull;
+
+  /// What to ask them about next time, or ''.
+  String askAboutOf(LogEntry person) => person.str('ask_about') ?? '';
+
+  /// Their birthday as (month, day), or null.
+  (int, int)? birthdayOf(LogEntry person) {
+    final b = (person.str('birthday') ?? '').split('-');
+    if (b.length != 2) return null;
+    final m = int.tryParse(b[0]), d = int.tryParse(b[1]);
+    if (m == null || d == null || m < 1 || m > 12 || d < 1 || d > 31) return null;
+    return (m, d);
+  }
+
+  /// People whose birthday is [day] or the day after.
+  List<LogEntry> birthdaysSoon(DateTime day) {
+    final today = dayOnly(day), tomorrow = today.plusDays(1);
+    bool on(DateTime d, (int, int) b) => d.month == b.$1 && d.day == b.$2;
+    return [
+      for (final p in people)
+        if (birthdayOf(p) case final b?)
+          if (on(today, b) || on(tomorrow, b)) p
+    ];
+  }
+
+  /// Whether [text] (a "to", "of" or "with" field) names [person]: their
+  /// full name, or their first name when no one else on the list shares it.
+  bool names(LogEntry person, String? text) {
+    if (text == null || text.trim().isEmpty) return false;
+    RegExp word(String w) =>
+        RegExp('\\b${RegExp.escape(w)}\\b', caseSensitive: false);
+    if (word(person.text.trim()).hasMatch(text)) return true;
+    final first = person.text.trim().split(' ').first;
+    final shared = people
+        .where((p) =>
+            p.id != person.id &&
+            p.text.trim().split(' ').first.toLowerCase() == first.toLowerCase())
+        .isNotEmpty;
+    return !shared && word(first).hasMatch(text);
+  }
+
+  /// What is open or recent between you and [person], for a look before
+  /// you call: open promises to them, open asks, hard conversations, help.
+  /// Each line is (what kind, the text, a date to show or null).
+  List<(String, String, DateTime?)> betweenYou(LogEntry person) => [
+        for (final p in openPromises)
+          if (names(person, p.str('to')))
+            (
+              promiseOverdue(p) ? 'Promise, past its date' : 'You promised',
+              p.text,
+              DateTime.tryParse(p.str('by') ?? '')
+            ),
+        for (final a in openAsks)
+          if (names(person, a.str('of'))) ('You asked for', a.text, a.date),
+        if (conversations.where((c) => names(person, c.str('with'))).firstOrNull
+            case final c?)
+          c.str('status') == 'planned'
+              ? ('Conversation to have', c.text, null)
+              : (
+                  'Last hard conversation',
+                  '${c.text}${(c.str('learned') ?? '').isEmpty ? '' : ' — you learned: ${c.str('learned')}'}',
+                  null
+                ),
+        if (helpsFor(person).firstOrNull case final h?)
+          ('Last help', h.text, h.date),
+      ];
+
+  /// Due people first (most overdue first), then the rest as added.
+  List<LogEntry> get peopleByDue {
+    final due = peopleDue;
+    final ids = {for (final p in due) p.id};
+    return [...due, for (final p in people) if (!ids.contains(p.id)) p];
+  }
+
   void removePerson(String id) {
     final s = _state;
     if (s == null) return;
@@ -4819,12 +4918,18 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   /// Contact with someone; [quality] 1 = distracted, 2 = okay, 3 = fully
   /// present. Presence, not just frequency, is what keeps people close.
-  void logTouch(LogEntry person, {String note = '', int? quality}) =>
-      addLog('touch', text: note.trim(), data: {
-        'person': person.id,
-        'name': person.text,
-        if (quality != null) 'quality': quality,
-      });
+  void logTouch(LogEntry person, {String note = '', int? quality, DateTime? date}) {
+    addLog('touch', text: note.trim(), date: date, data: {
+      'person': person.id,
+      'name': person.text,
+      if (quality != null) 'quality': quality,
+    });
+    // The question was for this contact; it's asked now.
+    final p = personById(person.id);
+    if (p != null && askAboutOf(p).isNotEmpty) {
+      updateLog(p.copyWith(data: {...p.data, 'ask_about': ''}));
+    }
+  }
 
   /// A ritual with this person ("Friday dinner, phones away"), or ''.
   String ritualOf(LogEntry person) => person.str('ritual') ?? '';
@@ -4885,17 +4990,67 @@ class PersonalSystemProvider extends ChangeNotifier {
     return q.isEmpty ? null : q.reduce((a, b) => a + b) / q.length;
   }
 
-  /// Last contact: a logged touch, or a 1:1 with them (name as a word).
-  DateTime? lastContact(LogEntry person) {
-    final first = person.text.split(' ').first;
-    final re = RegExp('\\b${RegExp.escape(first)}\\b', caseSensitive: false);
-    DateTime? last;
-    for (final l in _state?.logs ?? const <LogEntry>[]) {
-      final hit = (l.type == 'touch' && l.str('person') == person.id) ||
-          (l.type == 'one_on_one' && re.hasMatch(l.str('with') ?? ''));
-      if (hit && (last == null || l.date.isAfter(last))) last = l.date;
+  /// Last contact: a touch or help logged for them, or a 1:1, a check-in
+  /// for two, a finished hard conversation or a delivered gratitude letter
+  /// naming them (full name, or first name when no one else shares it).
+  DateTime? lastContact(LogEntry person) => _contacts[person.id];
+
+  PersonalSystemState? _contactsState;
+  Map<String, DateTime> _contactsIndex = const {};
+
+  /// One pass over the logs per state: Today and the brief ask per person.
+  Map<String, DateTime> get _contacts {
+    if (identical(_contactsState, _state)) return _contactsIndex;
+    _contactsState = _state;
+    final m = <String, DateTime>{};
+    void hit(String? id, DateTime d) {
+      if (id == null) return;
+      final x = m[id];
+      if (x == null || d.isAfter(x)) m[id] = dayOnly(d);
     }
-    return last;
+
+    final ps = people;
+    final firstCount = <String, int>{};
+    for (final p in ps) {
+      final f = p.text.trim().split(' ').first.toLowerCase();
+      firstCount[f] = (firstCount[f] ?? 0) + 1;
+    }
+    RegExp word(String w) =>
+        RegExp('\\b${RegExp.escape(w)}\\b', caseSensitive: false);
+    final matchers = [
+      for (final p in ps)
+        (
+          p.id,
+          word(p.text.trim()),
+          firstCount[p.text.trim().split(' ').first.toLowerCase()] == 1
+              ? word(p.text.trim().split(' ').first)
+              : null,
+        )
+    ];
+    void byName(String? text, DateTime d) {
+      if (text == null || text.trim().isEmpty) return;
+      for (final (id, full, first) in matchers) {
+        if (full.hasMatch(text) || (first?.hasMatch(text) ?? false)) hit(id, d);
+      }
+    }
+
+    DateTime on(LogEntry l, String key) =>
+        DateTime.tryParse(l.str(key) ?? '') ?? l.date;
+    for (final l in _state?.logs ?? const <LogEntry>[]) {
+      switch (l.type) {
+        case 'touch' || 'help':
+          hit(l.str('person'), l.date);
+        case 'one_on_one':
+          byName(l.str('with'), l.date);
+        case 'us_checkin':
+          byName(l.str('with'), l.createdAt);
+        case 'conversation' when l.str('status') == 'done':
+          byName(l.str('with'), on(l, 'done_on'));
+        case 'gratitude' when l.str('status') == 'delivered':
+          byName(l.str('to'), on(l, 'delivered'));
+      }
+    }
+    return _contactsIndex = m;
   }
 
   /// Days since the last contact (or since he was added, if never).
@@ -4906,12 +5061,12 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   /// Overdue people, most overdue (relative to their cadence) first.
   List<LogEntry> get peopleDue {
-    final due = people
-        .where((p) => daysSinceContact(p) >= cadenceOf(p))
-        .toList()
-      ..sort((a, b) => (daysSinceContact(b) / cadenceOf(b))
-          .compareTo(daysSinceContact(a) / cadenceOf(a)));
-    return due;
+    final late = {
+      for (final p in people)
+        if (daysSinceContact(p) >= cadenceOf(p))
+          p: daysSinceContact(p) / cadenceOf(p)
+    };
+    return late.keys.toList()..sort((a, b) => late[b]!.compareTo(late[a]!));
   }
 
   // ── Deep work ────────────────────────────────────────────────────────
@@ -5615,7 +5770,12 @@ class PersonalSystemProvider extends ChangeNotifier {
   // ── Ask for help ─────────────────────────────────────────────────────
 
   /// How an ask ended.
-  static const askOutcomes = {'yes': 'Yes', 'partly': 'Partly', 'no': 'No'};
+  static const askOutcomes = {
+    'yes': 'Yes',
+    'partly': 'Partly',
+    'no': 'No',
+    'none': 'No answer',
+  };
 
   /// People guess that about half as many others will say yes as actually
   /// do (Flynn & Lake 2008). Writing down the guess, then the answer,
@@ -5652,7 +5812,10 @@ class PersonalSystemProvider extends ChangeNotifier {
     var asked = 0, yes = 0, guess = 0;
     for (final a in logsOf('ask')) {
       final st = a.str('status');
-      if (st == null || st == 'asked' || a.date.isBefore(from)) continue;
+      // No answer isn't a no: it stays out of the record.
+      if (st == null || st == 'asked' || st == 'none' || a.date.isBefore(from)) {
+        continue;
+      }
       asked++;
       if (st == 'yes' || st == 'partly') yes++;
       guess += (a.number('guess') ?? 50).toInt();

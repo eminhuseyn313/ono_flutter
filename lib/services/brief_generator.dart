@@ -106,6 +106,10 @@ class BriefInput {
   /// How many daily items there are (the Daily 10 may have 8 or 12).
   final int itemCount;
 
+  /// People on their list they were in touch with this week, of how many.
+  final int peopleReached;
+  final int peopleCount;
+
   /// Daily item id → their own if-then plan for it, when they wrote one.
   final Map<String, String> itemCues;
 
@@ -200,6 +204,8 @@ class BriefInput {
     this.itemTitles = const {},
     this.itemCount = 10,
     this.itemCues = const {},
+    this.peopleReached = 0,
+    this.peopleCount = 0,
     this.daysCounted = 7,
     this.energyPeak,
     this.feedbackThemes,
@@ -258,6 +264,7 @@ class BriefInput {
         'item_titles': itemTitles,
         'daily_item_count': itemCount,
         if (itemCues.isNotEmpty) 'item_if_then_plans': itemCues,
+        if (peopleCount > 0) 'people_in_touch_this_week': '$peopleReached of $peopleCount',
         'days_in_program_this_week': daysCounted,
         'evidence_added_this_week': evidenceAddedThisWeek,
         'artifacts_this_month': artifactsThisMonth,
@@ -436,7 +443,7 @@ class DeviceBriefGenerator implements BriefGenerator {
       if (behind.isNotEmpty)
         'Behind on ${behind.first.split(':').first}. Read your if-then plan again and make next week\'s Big 3 move it.',
       if (input.promisesOverdue > 0)
-        '${input.promisesOverdue} promise${input.promisesOverdue == 1 ? ' is' : 's are'} past the date. Keep it or renegotiate today — a new date said early keeps trust; silence doesn\'t.',
+        '${input.promisesOverdue} promise${input.promisesOverdue == 1 ? ' is' : 's are'} past the date. Close ${input.promisesOverdue == 1 ? 'it' : 'them'} honestly — kept late or missed — and tell the person; next time, say a new date before the day comes.',
       if (input.openCommitments.isNotEmpty)
         'You committed to: "${input.openCommitments.first}". Keep it, renegotiate it with yourself, or drop it on purpose — don\'t let it linger.',
       if (r.hardestMoment.trim().isNotEmpty)
@@ -470,7 +477,7 @@ class DeviceBriefGenerator implements BriefGenerator {
       if (input.weekOutcomes.any((o) => o.startsWith('[open]')))
         'Week outcomes: ${input.weekOutcomes.where((o) => o.startsWith('[done]')).length} of ${input.weekOutcomes.length} done. Carry the open one only if it still matters — otherwise drop it on purpose.',
       if (input.peopleOverdue.isNotEmpty)
-        'Overdue to reach out: ${input.peopleOverdue.join(', ')}. One message each this week — a useful link or a question beats "catching up".',
+        'Overdue to reach out: ${input.peopleOverdue.join(', ')}. One message each this week — ask about something they care about, not just "how are you".',
       if (input.deepWorkHours < 3)
         'Deep work: ${input.deepWorkHours.toStringAsFixed(1)} h this week. Book two 90-minute blocks for ${input.builtInPlan ? 'the artifact' : 'what matters most'}${input.energyPeak == null ? '' : ' in your ${input.energyPeak}'} before Monday fills up.',
       if (input.shutdowns < 4)
@@ -495,6 +502,8 @@ class DeviceBriefGenerator implements BriefGenerator {
         '${input.setbacks} setback${input.setbacks == 1 ? '' : 's'} met with a next step instead of a spiral. That is the skill.',
       if (input.thoughtsChecked > 0)
         'You put ${input.thoughtsChecked} hard thought${input.thoughtsChecked == 1 ? '' : 's'} to the test this week instead of believing ${input.thoughtsChecked == 1 ? 'it' : 'them'}.',
+      if (input.peopleCount >= 3 && input.peopleReached * 2 >= input.peopleCount)
+        'In touch with ${input.peopleReached} of your ${input.peopleCount} people this week. That is how closeness is kept.',
       if (input.kindnessActs >= 5)
         '${input.kindnessActs} kind acts this week — they count for you too.',
       if (strongest != null && (input.itemRates[strongest] ?? 0) >= 0.85)

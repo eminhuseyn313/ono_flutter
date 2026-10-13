@@ -5,6 +5,7 @@ import '../models/personal_system.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
+import 'people_screen.dart';
 
 // ── Promises ───────────────────────────────────────────────────────────
 
@@ -123,6 +124,7 @@ class _PromisesScreenState extends State<PromisesScreen> {
           decoration:
               const InputDecoration(labelText: 'To whom', hintText: 'Optional'),
         ),
+        PeoplePicker(controller: _to),
         const SizedBox(height: 10),
         Wrap(
           spacing: 6,

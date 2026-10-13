@@ -10,16 +10,34 @@ import '../widgets/ono_ui.dart';
 /// The people he invests in and how often. Closeness fades without
 /// contact; a rhythm he chose keeps it from fading by accident.
 class PeopleScreen extends StatefulWidget {
-  const PeopleScreen({super.key});
+  /// A person to open straight away (from Today's "Reach out").
+  final String? openId;
+  const PeopleScreen({super.key, this.openId});
 
   @override
   State<PeopleScreen> createState() => _PeopleScreenState();
 }
 
+const _cadenceLabels = {7: 'Weekly', 14: 'Every 2 weeks', 30: 'Monthly', 90: 'Quarterly'};
+
 class _PeopleScreenState extends State<PeopleScreen> {
   final _name = TextEditingController();
   final _role = TextEditingController();
   int _every = 30;
+
+  @override
+  void initState() {
+    super.initState();
+    final id = widget.openId;
+    if (id != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final system = context.read<PersonalSystemProvider>();
+        final p = system.personById(id);
+        if (p != null) _sheet(system, p);
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -30,10 +48,20 @@ class _PeopleScreenState extends State<PeopleScreen> {
 
   void _sheet(PersonalSystemProvider system, LogEntry p) {
     final note = TextEditingController();
+    final name = TextEditingController(text: p.text);
+    final role = TextEditingController(text: p.str('role') ?? '');
+    final askAbout = TextEditingController(text: system.askAboutOf(p));
+    final b = system.birthdayOf(p);
+    final birthday = TextEditingController(
+        text: b == null ? '' : '${b.$2}.${b.$1.toString().padLeft(2, '0')}');
     final ritual = TextEditingController(text: system.ritualOf(p));
     final growing = TextEditingController(text: p.str('growing') ?? '');
     final nextHelp = TextEditingController(text: p.str('next_help') ?? '');
+    var every = system.cadenceOf(p);
     int? quality;
+    var yesterday = false;
+    var details = false;
+    final between = system.betweenYou(p);
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -48,7 +76,29 @@ class _PeopleScreenState extends State<PeopleScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(p.text, style: AppText.title()),
-                const SizedBox(height: 12),
+                Text(
+                    [
+                      if ((p.str('role') ?? '').isNotEmpty) p.str('role')!,
+                      _cadenceLabels[every] ?? 'every $every days',
+                    ].join(' · '),
+                    style: AppText.small()),
+                if (system.askAboutOf(p).isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  Text('Ask about: ${system.askAboutOf(p)}',
+                      style: AppText.body(color: AppColors.accent)),
+                ],
+                if (between.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Text('BETWEEN YOU', style: AppText.eyebrow()),
+                  for (final (kind, text, date) in between)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                          '$kind: $text${date == null ? '' : ' · ${shortDate(date)}'}',
+                          style: AppText.small(color: AppColors.white)),
+                    ),
+                ],
+                const SizedBox(height: 14),
                 TextField(
                   controller: note,
                   style: AppText.body(color: AppColors.white),
@@ -60,6 +110,7 @@ class _PeopleScreenState extends State<PeopleScreen> {
                 const SizedBox(height: 6),
                 Wrap(
                   spacing: 6,
+                  runSpacing: 6,
                   children: [
                     for (final (i, label) in const ['Distracted', 'Okay', 'Fully present'].indexed)
                       ChoiceChip(
@@ -70,32 +121,102 @@ class _PeopleScreenState extends State<PeopleScreen> {
                       ),
                   ],
                 ),
+                const SizedBox(height: 10),
+                Segmented(
+                  labels: const ['Today', 'Yesterday'],
+                  index: yesterday ? 1 : 0,
+                  onChanged: (i) => setSheet(() => yesterday = i == 1),
+                ),
                 const SizedBox(height: 12),
-                PrimaryButton('In touch today', icon: Icons.check_rounded,
-                    onPressed: () {
-                  system.logTouch(p, note: note.text, quality: quality);
-                  if (ritual.text.trim() != system.ritualOf(p)) {
-                    system.setRitual(p, ritual.text);
-                  }
+                PrimaryButton(yesterday ? 'In touch yesterday' : 'In touch today',
+                    icon: Icons.check_rounded, onPressed: () {
+                  system.logTouch(p,
+                      note: note.text,
+                      quality: quality,
+                      date: yesterday
+                          ? dayOnly(DateTime.now()).minusDays(1)
+                          : null);
                   Navigator.of(ctx).pop();
                   toast(context, 'Logged. Next in ${system.cadenceOf(p)} days.');
                 }),
-                const SizedBox(height: 14),
-                Text('Your ritual together', style: AppText.small()),
                 const SizedBox(height: 6),
-                TextField(
-                  controller: ritual,
-                  style: AppText.body(color: AppColors.white),
-                  decoration: const InputDecoration(
-                      hintText: 'e.g. Friday dinner, phones away · Sunday call'),
+                TextButton.icon(
+                  key: const Key('person-details'),
+                  onPressed: () => setSheet(() => details = !details),
+                  icon: Icon(details
+                      ? Icons.expand_less_rounded
+                      : Icons.edit_outlined, size: 18),
+                  label: const Text('Details, rhythm and what to ask'),
                 ),
-                TextButton(
-                  onPressed: () {
+                if (details) ...[
+                  TextField(
+                    controller: name,
+                    style: AppText.body(color: AppColors.white),
+                    decoration: const InputDecoration(labelText: 'Name'),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: role,
+                    style: AppText.body(color: AppColors.white),
+                    decoration: const InputDecoration(labelText: 'Who they are to you'),
+                  ),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      for (final d in PersonalSystemProvider.contactCadences)
+                        ChoiceChip(
+                          label: Text(_cadenceLabels[d]!),
+                          selected: every == d,
+                          onSelected: (_) => setSheet(() => every = d),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: askAbout,
+                    style: AppText.body(color: AppColors.white),
+                    decoration: const InputDecoration(
+                        labelText: 'Next time, ask about',
+                        hintText: 'e.g. how the exam went, her new job'),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: birthday,
+                    keyboardType: TextInputType.datetime,
+                    style: AppText.body(color: AppColors.white),
+                    decoration: const InputDecoration(
+                        labelText: 'Birthday (day.month, optional)',
+                        hintText: 'e.g. 14.03'),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: ritual,
+                    style: AppText.body(color: AppColors.white),
+                    decoration: const InputDecoration(
+                        labelText: 'Your ritual together',
+                        hintText: 'e.g. Friday dinner, phones away · Sunday call'),
+                  ),
+                  const SizedBox(height: 10),
+                  GhostButton('Save details', icon: Icons.check_rounded,
+                      onPressed: () {
+                    final bd = _parseBirthday(birthday.text);
+                    if (birthday.text.trim().isNotEmpty && bd == null) {
+                      toast(context, 'Birthday as day.month, e.g. 14.03');
+                      return;
+                    }
+                    system.updatePerson(p,
+                        name: name.text,
+                        role: role.text,
+                        every: every,
+                        askAbout: askAbout.text,
+                        birthday: bd ?? '');
                     system.setRitual(p, ritual.text);
                     Navigator.of(ctx).pop();
-                  },
-                  child: const Text('Save ritual only'),
-                ),
+                    toast(context, 'Saved.');
+                  }),
+                ],
                 const SizedBox(height: 14),
                 Text('Helping them grow', style: AppText.small()),
                 const SizedBox(height: 6),
@@ -144,7 +265,7 @@ class _PeopleScreenState extends State<PeopleScreen> {
                     builder: (d) => AlertDialog(
                       title: Text('Remove ${p.text}?'),
                       content: const Text(
-                          'Their contact history and the help you logged go too.'),
+                          'Their contact history and the help you logged go too. To see them less often, change the rhythm under Details instead.'),
                       actions: [
                         TextButton(
                             onPressed: () => Navigator.pop(d, false),
@@ -165,17 +286,25 @@ class _PeopleScreenState extends State<PeopleScreen> {
         ),
       ),
     ).whenComplete(() {
-      note.dispose();
-      ritual.dispose();
-      growing.dispose();
-      nextHelp.dispose();
+      for (final c in [note, name, role, askAbout, birthday, ritual, growing, nextHelp]) {
+        c.dispose();
+      }
     });
+  }
+
+  /// "14.03" or "14/3" → "03-14"; null when it isn't a date.
+  static String? _parseBirthday(String text) {
+    final parts = text.trim().split(RegExp(r'[./\- ]+'));
+    if (parts.length != 2) return null;
+    final d = int.tryParse(parts[0]), m = int.tryParse(parts[1]);
+    if (d == null || m == null || m < 1 || m > 12 || d < 1 || d > 31) return null;
+    return '${m.toString().padLeft(2, '0')}-${d.toString().padLeft(2, '0')}';
   }
 
   @override
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
-    final people = system.people;
+    final people = system.peopleByDue;
     final missing = activeProfile.keyPeople
         .where((k) => !people.any((p) => p.text.split(' ').first == k.name))
         .toList();
@@ -229,12 +358,7 @@ class _PeopleScreenState extends State<PeopleScreen> {
           children: [
             for (final d in PersonalSystemProvider.contactCadences)
               ChoiceChip(
-                label: Text(switch (d) {
-                  7 => 'Weekly',
-                  14 => 'Every 2 weeks',
-                  30 => 'Monthly',
-                  _ => 'Quarterly',
-                }),
+                label: Text(_cadenceLabels[d]!),
                 selected: _every == d,
                 onSelected: (_) => setState(() => _every = d),
               ),
@@ -277,6 +401,8 @@ class _PeopleScreenState extends State<PeopleScreen> {
                         if ((p.str('role') ?? '').isNotEmpty) p.str('role')!,
                         last == null ? 'no contact yet' : '$days d ago',
                         'every $every d',
+                        if (system.askAboutOf(p).isNotEmpty)
+                          'ask about ${system.askAboutOf(p)}',
                       ].join(' · '),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -305,6 +431,39 @@ class _PeopleScreenState extends State<PeopleScreen> {
               Text('Due',
                   style: AppText.small(color: AppColors.warning)
                       .copyWith(fontWeight: FontWeight.w700)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Names from People under a "to / who / with" field, so a promise, an ask
+/// or a conversation is tied to the person in one tap.
+class PeoplePicker extends StatelessWidget {
+  final TextEditingController controller;
+  const PeoplePicker({super.key, required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    final people = context.watch<PersonalSystemProvider>().peopleByDue.take(8);
+    if (people.isEmpty) return const SizedBox.shrink();
+    return ListenableBuilder(
+      listenable: controller,
+      builder: (context, _) => Padding(
+        padding: const EdgeInsets.only(top: 6),
+        child: Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            for (final p in people)
+              ChoiceChip(
+                label: Text(p.text),
+                selected: controller.text.trim() == p.text,
+                showCheckmark: false,
+                visualDensity: VisualDensity.compact,
+                onSelected: (_) => controller.text = p.text,
+              ),
           ],
         ),
       ),

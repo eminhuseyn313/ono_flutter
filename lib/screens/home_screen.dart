@@ -1348,8 +1348,10 @@ class _PromptsState extends State<_Prompts> {
             context,
             Icons.handshake_outlined,
             AppColors.social,
-            'A promise is due${(p.str('to') ?? '').isEmpty ? '' : ' · ${p.str('to')}'}',
-            '${p.text} — keep it, or say a new date now',
+            '${system.promiseOverdue(p) ? 'A promise is past its date' : 'A promise is due today'}${(p.str('to') ?? '').isEmpty ? '' : ' · ${p.str('to')}'}',
+            system.promiseOverdue(p)
+                ? '${p.text} — kept late, or missed? Say it, then make it right'
+                : '${p.text} — keep it, or say a new date now',
             '/promises'),
       if (system.worryTimeDue(now))
         _row(
@@ -1444,14 +1446,28 @@ class _PromptsState extends State<_Prompts> {
             'A letter is ready to open',
             'Written to you in month ${system.lettersToOpen.first.number('month') ?? '–'}. Read it today.',
             '/letters'),
-      if (system.peopleDue.isNotEmpty)
+      for (final b in system.birthdaysSoon(now).take(1))
+        _row(
+            context,
+            Icons.cake_outlined,
+            AppColors.social,
+            system.birthdayOf(b) == (now.month, now.day)
+                ? 'It\'s ${b.text}\'s birthday today'
+                : '${b.text}\'s birthday is tomorrow',
+            system.askAboutOf(b).isEmpty
+                ? 'A message in your own words beats a reminder app\'s'
+                : 'Ask about ${system.askAboutOf(b)}',
+            '/people?id=${b.id}'),
+      if (system.peopleDue.firstOrNull case final p?)
         _row(
             context,
             Icons.group_outlined,
             AppColors.social,
-            'Reach out: ${system.peopleDue.first.text}${system.ritualOf(system.peopleDue.first).isEmpty ? '' : ' — ${system.ritualOf(system.peopleDue.first)}'}',
-            '${system.lastContact(system.peopleDue.first) == null ? 'No contact logged yet' : '${system.daysSinceContact(system.peopleDue.first)} days since you were in touch'} · every ${system.cadenceOf(system.peopleDue.first)} days',
-            '/people'),
+            'Reach out: ${p.text}${system.ritualOf(p).isEmpty ? '' : ' — ${system.ritualOf(p)}'}',
+            system.askAboutOf(p).isNotEmpty
+                ? 'Ask about ${system.askAboutOf(p)}'
+                : '${system.lastContact(p) == null ? 'No contact logged yet' : '${system.daysSinceContact(p)} days since you were in touch'} · every ${system.cadenceOf(p)} days',
+            '/people?id=${p.id}'),
       if (system.automaticityDue)
         _row(context, Icons.autorenew_rounded, AppColors.body,
             'Is it a habit yet?', 'Monthly check · 1 minute', '/habits'),
