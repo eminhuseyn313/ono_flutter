@@ -344,10 +344,7 @@ class _BestSelfScreenState extends State<BestSelfScreen> {
           ],
         ),
       ),
-    ).whenComplete(() {
-      from.dispose();
-      story.dispose();
-    });
+    );
   }
 
   @override

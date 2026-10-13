@@ -285,11 +285,7 @@ class _PeopleScreenState extends State<PeopleScreen> {
           ),
         ),
       ),
-    ).whenComplete(() {
-      for (final c in [note, name, role, askAbout, birthday, ritual, growing, nextHelp]) {
-        c.dispose();
-      }
-    });
+    );
   }
 
   /// "14.03" or "14/3" → "03-14"; null when it isn't a date.

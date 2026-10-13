@@ -165,7 +165,7 @@ class _GratitudeScreenState extends State<GratitudeScreen> {
           ],
         ),
       ),
-    ).whenComplete(c.dispose);
+    );
   }
 
   @override
@@ -295,7 +295,7 @@ class _RoleModelsScreenState extends State<RoleModelsScreen> {
           ],
         ),
       ),
-    ).whenComplete(c.dispose);
+    );
   }
 
   @override

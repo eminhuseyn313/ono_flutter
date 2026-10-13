@@ -65,7 +65,7 @@ Services: ReminderService (local notifications), BriefGenerator (weekly brief)
 - **Calendar days: `d.plusDays(n)`, `d.minusDays(n)`, `a.daysSince(b)`** (`CalendarDays` extension), never `add(Duration(days: n))` or `.difference().inDays` — those count 24-hour blocks and break across daylight saving. `test/dst_test.dart` checks it; run it with `TZ=Europe/Berlin` too.
 - Logs sort by the day they are for, then entry order (`logsOf` is newest first; `weightSeries` is oldest first).
 - Every new screen must fit iPhone SE (375×667) with the real fonts. The smoke test fails on overflow.
-- Bottom sheets opened from the four tab screens (Today, Program, Log, Me — inside the `ShellRoute`) pass `useRootNavigator: true`, or the tab bar covers their bottom, and close with the sheet's own context (or `rootNavigator: true`), never the screen's. Don't dispose a sheet's text controllers when its future completes — the closing animation still reads them; give the sheet its own StatefulWidget instead (`_EditTextSheet`).
+- Bottom sheets opened from the four tab screens (Today, Program, Log, Me — inside the `ShellRoute`) pass `useRootNavigator: true`, or the tab bar covers their bottom, and close with the sheet's own context (or `rootNavigator: true`), never the screen's. Don't dispose a sheet's local text controllers when its future completes — the closing animation still reads them; let them be collected, or give the sheet its own StatefulWidget (`_EditTextSheet`).
 - Every route a piece of content points to (`NonNegotiable.route`, `ReminderDef.route`, `Unlock.route`) must exist. The smoke test resolves each one.
 
 ### Theme

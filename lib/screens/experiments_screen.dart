@@ -80,7 +80,7 @@ class _ExperimentsScreenState extends State<ExperimentsScreen> {
           ],
         ),
       ),
-    ).whenComplete(note.dispose);
+    );
   }
 
   Widget _running(PersonalSystemProvider system, LogEntry e) {

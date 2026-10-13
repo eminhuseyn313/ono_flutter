@@ -112,8 +112,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
           .addCustomCard(front.text, back.text);
       toast(context, 'Card added — it appears in a coming session.');
     }
-    front.dispose();
-    back.dispose();
+    // Not disposed: the sheet's closing animation still reads them.
   }
 
   @override

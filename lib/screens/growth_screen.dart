@@ -467,11 +467,7 @@ class _Plan extends StatelessWidget {
           ],
         ),
       ),
-    ).whenComplete(() {
-      for (final x in c) {
-        x.dispose();
-      }
-    });
+    );
   }
 
   void _changeArea(BuildContext context, PersonalSystemProvider system) {
@@ -554,11 +550,7 @@ class _Plan extends StatelessWidget {
                   ),
                 ),
               )),
-    ).whenComplete(() {
-      for (final x in c) {
-        x.dispose();
-      }
-    });
+    );
   }
 
   void _feedbackSheet(BuildContext context, PersonalSystemProvider system) {
@@ -614,10 +606,6 @@ class _Plan extends StatelessWidget {
           ),
         ),
       ),
-    ).whenComplete(() {
-      from.dispose();
-      said.dispose();
-      action.dispose();
-    });
+    );
   }
 }

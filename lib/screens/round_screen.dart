@@ -74,7 +74,7 @@ class _RoundScreenState extends State<RoundScreen> {
           ],
         ),
       ),
-    ).whenComplete(c.dispose);
+    );
   }
 
   @override

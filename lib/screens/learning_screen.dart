@@ -82,10 +82,7 @@ class _LearningScreenState extends State<LearningScreen> {
           ),
         ),
       ),
-    ).whenComplete(() {
-      principle.dispose();
-      experiment.dispose();
-    });
+    );
   }
 
   void _result(PersonalSystemProvider system, LogEntry l) {
@@ -120,7 +117,7 @@ class _LearningScreenState extends State<LearningScreen> {
           ],
         ),
       ),
-    ).whenComplete(c.dispose);
+    );
   }
 
   /// Write what you just read without looking — retrieval is the learning,
@@ -165,7 +162,7 @@ class _LearningScreenState extends State<LearningScreen> {
           ],
         ),
       ),
-    ).whenComplete(c.dispose);
+    );
   }
 
   Widget _item(PersonalSystemProvider system, LogEntry l) {
