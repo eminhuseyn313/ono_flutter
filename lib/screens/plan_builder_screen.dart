@@ -128,6 +128,11 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
         if (_wheel.length < lifeAreas.length) return 'Rate all eight areas.';
       case 2:
         if (_area == null) return 'Pick one area to grow this month.';
+      case 3:
+        if (_goal.text.trim().isEmpty &&
+            [_why, _obstacle, _plan].any((c) => c.text.trim().isNotEmpty)) {
+          return 'Write the goal itself in the first field.';
+        }
       case 4:
         final system = context.read<PersonalSystemProvider>();
         final own = _fromPack ? system.customDailyItems.length : 0;
@@ -339,7 +344,7 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(a.name, style: AppText.heading()),
-                      Text(a.bar, style: AppText.small(), maxLines: 2, overflow: TextOverflow.ellipsis),
+                      Text(a.bar, style: AppText.small(), maxLines: 4, overflow: TextOverflow.ellipsis),
                     ],
                   ),
                 ),
@@ -364,8 +369,8 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
   }
 
   List<Widget> _goalStep() => [
-        _field(_goal, 'The goal', 'e.g. Promoted to director · run a marathon · 3 months saved'),
-        _field(_why, 'The best outcome', 'What would reaching it give you?'),
+        _field(_goal, 'Your goal, in a few words', 'e.g. Promoted to director · run a marathon · 3 months saved'),
+        _field(_why, 'Why it matters to you', 'What would reaching it give you?'),
         _field(_obstacle, 'The obstacle in you', 'What in you is most likely to stop it?'),
         _field(_plan, 'If–then plan', 'When that happens, I will…'),
         const SectionHeader('By when'),
@@ -401,7 +406,7 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
         Padding(
           padding: const EdgeInsets.only(top: 8),
           child: Text(
-              'Four phases — foundation, craft, signal, leverage — spread over it. At the end you look back and start the next.',
+              'It moves from building habits, to practising, to showing your work, to using what you\'ve built. At the end you look back and start the next.',
               style: AppText.small()),
         ),
       ];

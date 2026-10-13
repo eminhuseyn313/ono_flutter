@@ -44,7 +44,7 @@ const List<ToolEntry> toolIndex = [
       words: ['evening', 'tomorrow', 'good things']),
   ToolEntry('Deep work', 'One focused block, phone away', '/focus', 'Plan',
       words: ['focus', 'timer', 'pomodoro', 'concentration']),
-  ToolEntry('Morning check-in', 'Energy, mood and sleep in ten seconds', '/checkin', 'Plan',
+  ToolEntry('Morning check-in', 'Energy, mood and sleep in thirty seconds', '/checkin', 'Plan',
       words: ['morning', 'energy', 'sleep', 'mood']),
   ToolEntry('Your day', 'Wake, work and bed shape your dial and reminders', '/day', 'Plan',
       words: ['schedule', 'wake', 'bedtime']),

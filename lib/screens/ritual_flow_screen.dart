@@ -239,7 +239,7 @@ class _RitualFlowScreenState extends State<RitualFlowScreen> {
               style: AppText.small()),
           const Spacer(),
           if (system.checkinFor(DateTime.now()) == null) ...[
-            PrimaryButton('Morning check-in · 15 s',
+            PrimaryButton('Morning check-in · 30 s',
                 icon: Icons.arrow_forward_rounded,
                 onPressed: () => context.pushReplacement('/checkin')),
             const SizedBox(height: 10),

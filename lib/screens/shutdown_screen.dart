@@ -97,7 +97,7 @@ class _ShutdownScreenState extends State<ShutdownScreen> {
               : 'Three minutes',
       title: 'Shutdown',
       subtitle:
-          'Close the loops on paper, then stop thinking about work. Tomorrow starts already decided.',
+          'Close the loops on paper, then let the day go. Tomorrow starts already decided.',
       bottomBar: PrimaryButton(
           done == null ? 'Shutdown complete' : 'Save again',
           icon: Icons.nights_stay_rounded,
@@ -150,7 +150,7 @@ class _ShutdownScreenState extends State<ShutdownScreen> {
                         style: AppText.body(color: AppColors.white),
                         textInputAction: TextInputAction.next,
                         decoration: const InputDecoration(
-                            hintText: 'What must be true by 18:00?',
+                            hintText: 'What must be true by tomorrow night?',
                             border: InputBorder.none,
                             enabledBorder: InputBorder.none,
                             focusedBorder: InputBorder.none,

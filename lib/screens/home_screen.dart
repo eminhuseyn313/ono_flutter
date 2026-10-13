@@ -105,8 +105,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     final today = dayOnly(_now);
-    final date =
-        _yesterday ? today.minusDays(1) : today;
+    final date = _yesterday ? today.minusDays(1) : today;
     WidgetsBinding.instance
         .addPostFrameCallback((_) => _celebrate(system, date));
 
@@ -152,7 +151,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     onTap: () => context.go('/program?tab=1'),
                     child: DayDial(
                       now: _now,
-                      schedule: system.isBuiltInPerson ? dailySchedule : system.personalSchedule,
+                      schedule: system.isBuiltInPerson
+                          ? dailySchedule
+                          : system.personalSchedule,
                       ticks: [
                         for (final n in system.dailyItems)
                           (lane: n.lane, done: system.isChecked(date, n.id))
@@ -162,7 +163,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           score: system.scoreFor(date),
                           total: system.dailyCount,
                           target: system.targetFor(date),
-                          label: system.isBuiltInPerson ? null : _nextUp(system, date)),
+                          label: system.isBuiltInPerson
+                              ? null
+                              : _nextUp(system, date)),
                     ),
                   ),
                 ),
@@ -177,13 +180,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   _CheckinCard(now: _now),
                 ],
               ],
-              if (!_yesterday &&
-                  system.hasStarted &&
-                  system.isRecoveryDay) ...[
+              if (!_yesterday && system.hasStarted && system.isRecoveryDay) ...[
                 const SizedBox(height: 12),
                 _RecoveryCard(
-                    yesterdayScore: system.scoreFor(
-                        today.minusDays(1)),
+                    yesterdayScore: system.scoreFor(today.minusDays(1)),
                     streak: system.streak),
               ],
               if (!_yesterday && system.isRestDay(today)) ...[
@@ -192,10 +192,10 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
               if (!_yesterday && system.hasStarted) _Prompts(now: _now),
               SectionHeader('Daily ${system.dailyCount}',
-                  action: 'Edit',
-                  onAction: () => context.push('/daily')),
+                  action: 'Edit', onAction: () => context.push('/daily')),
               if (system.hasStarted &&
-                  (system.hardDayOn(date) != null || system.isReentryDay(date))) ...[
+                  (system.hardDayOn(date) != null ||
+                      system.isReentryDay(date))) ...[
                 _HardDayCard(date: date),
                 const SizedBox(height: 10),
               ],
@@ -272,7 +272,8 @@ void _showHeld(BuildContext context,
             mainAxisSize: MainAxisSize.min,
             children: [
               ScoreRing(
-                progress: total == 0 ? 1 : (score / total).clamp(0, 1).toDouble(),
+                progress:
+                    total == 0 ? 1 : (score / total).clamp(0, 1).toDouble(),
                 size: 140,
                 stroke: 12,
                 center: Text('$score',
@@ -327,32 +328,34 @@ class _Header extends StatelessWidget {
                   '${weekdayName(now.weekday).substring(0, 3)} ${shortDate(now)} · $day',
                   style: AppText.small(color: AppColors.grey)),
             ),
-            GestureDetector(
-              onTap: () => context.go('/profile'),
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppColors.card,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.divider),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.local_fire_department_rounded,
-                        size: 15,
-                        color: system.streak > 0
-                            ? AppColors.accent
-                            : AppColors.faint),
-                    const SizedBox(width: 4),
-                    Text('${system.streak}',
-                        style: AppText.small(color: AppColors.white)
-                            .copyWith(fontWeight: FontWeight.w700)),
-                  ],
+            // The streak badge appears once there has been a streak.
+            if (system.bestStreak > 0)
+              GestureDetector(
+                onTap: () => context.go('/profile'),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.card,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppColors.divider),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.local_fire_department_rounded,
+                          size: 15,
+                          color: system.streak > 0
+                              ? AppColors.accent
+                              : AppColors.faint),
+                      const SizedBox(width: 4),
+                      Text('${system.streak}',
+                          style: AppText.small(color: AppColors.white)
+                              .copyWith(fontWeight: FontWeight.w700)),
+                    ],
+                  ),
                 ),
               ),
-            ),
           ],
         ),
         const SizedBox(height: 6),
@@ -381,12 +384,10 @@ class _DateSwitch extends StatelessWidget {
               showCheckmark: false,
               selectedColor: AppColors.cardLight,
               side: BorderSide(
-                  color: yesterday == y
-                      ? AppColors.greyLight
-                      : AppColors.divider),
+                  color:
+                      yesterday == y ? AppColors.greyLight : AppColors.divider),
               labelStyle: AppText.small(
-                      color:
-                          yesterday == y ? AppColors.white : AppColors.grey)
+                      color: yesterday == y ? AppColors.white : AppColors.grey)
                   .copyWith(fontWeight: FontWeight.w700),
               onSelected: (_) => onChanged(y),
             ),
@@ -406,16 +407,30 @@ class _DateSwitch extends StatelessWidget {
 
 /// The next unticked item for this part of the day, for a plan without a
 /// built-in schedule.
-({String eyebrow, String title}) _nextUp(PersonalSystemProvider system, DateTime date) {
+({String eyebrow, String title}) _nextUp(
+    PersonalSystemProvider system, DateTime date) {
   final h = DateTime.now().hour;
   final part = h < 12 ? 'morning' : (h < 18 ? 'day' : 'evening');
-  final open = [for (final n in system.dailyItems) if (!system.isChecked(date, n.id)) n];
-  final next = open.where((n) => n.when == part).firstOrNull ?? open.firstOrNull;
+  final open = [
+    for (final n in system.dailyItems)
+      if (!system.isChecked(date, n.id)) n
+  ];
+  final now = open.where((n) => n.when == part).firstOrNull;
+  final next = now ?? open.firstOrNull;
   final block = system.personalBlockAt(DateTime.now());
+  // The label follows the item: one meant for later in the day is "next",
+  // not "this morning".
+  final when = now != null ? part : next?.when;
   return (
-    eyebrow: block != null
+    eyebrow: block != null && now != null
         ? '${block.title.toUpperCase()} · NOW'
-        : switch (part) { 'morning' => 'THIS MORNING', 'day' => 'TODAY', _ => 'THIS EVENING' },
+        : now == null
+            ? 'NEXT'
+            : switch (when) {
+                'morning' => 'THIS MORNING',
+                'day' => 'TODAY',
+                _ => 'THIS EVENING'
+              },
     title: next?.title ?? 'All done for today',
   );
 }
@@ -445,9 +460,7 @@ class _DialCenter extends StatelessWidget {
             style: AppText.eyebrow(color: AppColors.accent)),
         const SizedBox(height: 4),
         Text(label?.title ?? block.title,
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            style: AppText.heading()),
+            textAlign: TextAlign.center, maxLines: 2, style: AppText.heading()),
         const SizedBox(height: 6),
         Row(
           mainAxisSize: MainAxisSize.min,
@@ -457,11 +470,15 @@ class _DialCenter extends StatelessWidget {
             Text('$score',
                 style: AppText.serif(
                     size: 52,
-                    color: score >= target ? AppColors.accent : AppColors.white)),
+                    color:
+                        score >= target ? AppColors.accent : AppColors.white)),
             Text('/$total', style: AppText.small()),
           ],
         ),
-        Text(score >= target ? 'Day held' : '${target - score} to hold the day',
+        Text(
+            score >= target
+                ? 'Today counts'
+                : '${target - score} more and today counts',
             style: AppText.small().copyWith(fontSize: 11.5)),
       ],
     );
@@ -572,8 +589,8 @@ class _ModeCard extends StatelessWidget {
                 children: [
                   _tool(context, Icons.air_rounded, 'Sigh', '/tool/sigh',
                       AppColors.mind),
-                  _tool(context, Icons.layers_rounded, '6Q prep',
-                      '/tool/sixq', AppColors.skill),
+                  _tool(context, Icons.layers_rounded, '6Q prep', '/tool/sixq',
+                      AppColors.skill),
                   _tool(context, Icons.vertical_align_top_rounded, 'BLUF',
                       '/tool/bluf', AppColors.skill),
                   _tool(context, Icons.pause_circle_outline_rounded, 'Pause',
@@ -603,7 +620,7 @@ class _ModeCard extends StatelessWidget {
             title: 'Close the day in three minutes',
             body: open == 0
                 ? 'Write tomorrow\'s three and empty your head. Tomorrow on paper means faster sleep tonight.'
-                : '$open of today\'s three still open — they carry over. Write tomorrow\'s three, then stop thinking about work.',
+                : '$open of today\'s three still open — they carry over. Write tomorrow\'s three, then let the day go.',
             cta: 'Start shutdown',
             route: '/shutdown',
           );
@@ -635,14 +652,16 @@ class _ModeCard extends StatelessWidget {
 
   /// The same moments for someone with their own plan: no built-in
   /// schedule, ritual or training plan.
-  Widget _general(BuildContext context, PersonalSystemProvider system, DateTime today) {
+  Widget _general(
+      BuildContext context, PersonalSystemProvider system, DateTime today) {
     switch (mode) {
       case _Mode.morning:
         if (system.checkinFor(today) == null) {
           return _action(context,
               eyebrow: 'Morning',
               title: 'How are you this morning?',
-              body: 'Thirty seconds: energy, mood, sleep. It shapes what today should ask of you.',
+              body:
+                  'Thirty seconds: energy, mood, sleep. It shapes what today should ask of you.',
               cta: 'Check in',
               route: '/checkin');
         }
@@ -673,12 +692,14 @@ class _ModeCard extends StatelessWidget {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  _tool(context, Icons.air_rounded, 'Breathe', '/tool/sigh', AppColors.mind),
-                  _tool(context, Icons.center_focus_strong_rounded, 'Focus', '/focus',
-                      AppColors.skill),
-                  _tool(context, Icons.pause_circle_outline_rounded, 'Pause', '/tool/pause',
-                      AppColors.social),
-                  _tool(context, Icons.zoom_out_map_rounded, 'Step back', '/stepback', AppColors.warning),
+                  _tool(context, Icons.air_rounded, 'Breathe', '/tool/sigh',
+                      AppColors.mind),
+                  _tool(context, Icons.center_focus_strong_rounded, 'Focus',
+                      '/focus', AppColors.skill),
+                  _tool(context, Icons.pause_circle_outline_rounded, 'Pause',
+                      '/tool/pause', AppColors.social),
+                  _tool(context, Icons.zoom_out_map_rounded, 'Step back',
+                      '/stepback', AppColors.warning),
                 ],
               ),
             ],
@@ -689,21 +710,25 @@ class _ModeCard extends StatelessWidget {
           return _action(context,
               eyebrow: 'Evening',
               title: 'Close the day in three minutes',
-              body: 'Tick what happened, write tomorrow\'s three, empty your head. Then stop.',
+              body:
+                  'Tick what happened, write tomorrow\'s three, empty your head. Then stop.',
               cta: 'Start shutdown',
               route: '/shutdown');
         }
         return _action(context,
             eyebrow: 'Evening',
             title: 'One good thing from today',
-            body: 'Name it before you sleep. Small wins are what keep people going.',
+            body:
+                'Name it before you sleep. Small wins are what keep people going.',
             cta: 'Log a win',
             route: '/log?add=win');
       case _Mode.sunday:
         final done = system.reportForWeek(now) != null;
         return _action(context,
             eyebrow: 'Sunday',
-            title: done ? 'Report sent — read your brief' : 'Five answers about your week',
+            title: done
+                ? 'Report sent — read your brief'
+                : 'Five answers about your week',
             body: done
                 ? 'Next week\'s plan comes from it.'
                 : 'Your daily average fills itself. Your brief for next week comes back straight away.',
@@ -712,8 +737,8 @@ class _ModeCard extends StatelessWidget {
     }
   }
 
-  Widget _tool(BuildContext context, IconData icon, String label,
-          String route, Color color) =>
+  Widget _tool(BuildContext context, IconData icon, String label, String route,
+          Color color) =>
       Expanded(
         child: GestureDetector(
           onTap: () => context.push(route),
@@ -819,7 +844,9 @@ class _RestCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text((PersonalSystemProvider.restKinds[r.str('kind')] ?? 'Rest').toUpperCase(),
+          Text(
+              (PersonalSystemProvider.restKinds[r.str('kind')] ?? 'Rest')
+                  .toUpperCase(),
               style: AppText.eyebrow(color: AppColors.body)),
           const SizedBox(height: 4),
           Text('Rest is part of the plan. Your streak is safe today.',
@@ -831,7 +858,8 @@ class _RestCard extends StatelessWidget {
           Wrap(
             spacing: 6,
             children: [
-              for (final (i, label) in const ['Not really', 'Partly', 'Fully'].indexed)
+              for (final (i, label)
+                  in const ['Not really', 'Partly', 'Fully'].indexed)
                 ChoiceChip(
                   label: Text(label),
                   selected: level == i + 1,
@@ -915,7 +943,8 @@ class _GoalsCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SectionHeader('Goals', action: 'All', onAction: () => context.push('/goals')),
+        SectionHeader('Goals',
+            action: 'All', onAction: () => context.push('/goals')),
         for (final g in goals)
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
@@ -1045,7 +1074,8 @@ class _MeetingsCard extends StatelessWidget {
       all.isEmpty
           ? 'No meetings today'
           : '${all.length} meeting${all.length == 1 ? '' : 's'} · ${hours.toStringAsFixed(hours % 1 == 0 ? 0 : 1)} h',
-      if (system.lunchReadAtRisk(now)) 'one covers the 12:00 read — move the read, don\'t drop it',
+      if (system.lunchReadAtRisk(now))
+        'one covers the 12:00 read — move the read, don\'t drop it',
     ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1055,7 +1085,8 @@ class _MeetingsCard extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: 8),
           child: Text(notes.join(' · '),
               style: AppText.small(
-                  color: notes.length > 1 ? AppColors.warning : AppColors.grey)),
+                  color:
+                      notes.length > 1 ? AppColors.warning : AppColors.grey)),
         ),
         OnoCard(
           padding: const EdgeInsets.fromLTRB(14, 4, 4, 4),
@@ -1124,8 +1155,8 @@ class _MeetingRow extends StatelessWidget {
                   color: keyMeeting ? AppColors.white : AppColors.greyLight)),
         ),
         TextButton(
-          onPressed: () => context
-              .push(route ?? (keyMeeting ? '/tool/sixq' : '/tool/sigh')),
+          onPressed: () =>
+              context.push(route ?? (keyMeeting ? '/tool/sixq' : '/tool/sigh')),
           child: Text(action ?? (keyMeeting ? '6 Qs' : 'Sigh')),
         ),
       ],
@@ -1159,98 +1190,216 @@ class _PromptsState extends State<_Prompts> {
     // Ranked: direction first, then what is due, then the rest.
     final cards = <Widget>[
       if (system.programComplete)
-        _row(context, Icons.flag_circle_rounded, AppColors.accent,
+        _row(
+            context,
+            Icons.flag_circle_rounded,
+            AppColors.accent,
             'Program ${system.cycle} is complete',
-            'Look back, then start the next — everything stays', '/next-program'),
+            'Look back, then start the next — everything stays',
+            '/next-program'),
       if (system.planBuildSuggested)
-        _row(context, Icons.auto_awesome_outlined, AppColors.accent,
-            'Build your plan in 5 minutes', 'Who you are becoming, one goal, a few daily actions', '/start'),
+        _row(
+            context,
+            Icons.auto_awesome_outlined,
+            AppColors.accent,
+            'Build your plan in 5 minutes',
+            'Who you are becoming, one goal, a few daily actions',
+            '/start'),
       if (system.activeGoals.isEmpty && !system.planBuildSuggested)
-        _row(context, Icons.flag_circle_outlined, AppColors.accent,
-            'Set your first goal', 'The outcome everything else here serves', '/goals'),
+        _row(
+            context,
+            Icons.flag_circle_outlined,
+            AppColors.accent,
+            'Set your first goal',
+            'The outcome everything else here serves',
+            '/goals'),
       if (system.focusArea() == null)
-        _row(context, Icons.trending_up_rounded, AppColors.accent,
+        _row(
+            context,
+            Icons.trending_up_rounded,
+            AppColors.accent,
             'What are you growing this month?',
-            'Suggested: ${system.suggestedArea.name}', '/growth'),
+            'Suggested: ${system.suggestedArea.name}',
+            '/growth'),
       if (reviews.isNotEmpty)
-        _row(context, Icons.balance_rounded, AppColors.accent,
+        _row(
+            context,
+            Icons.balance_rounded,
+            AppColors.accent,
             'Decision review due',
-            '"${reviews.first.text}" — was the call right?', '/cockpit?tab=1'),
-      if (!system.isBuiltInPerson && system.dayShape == null && system.programDay >= 2)
+            '"${reviews.first.text}" — was the call right?',
+            '/cockpit?tab=1'),
+      if (!system.isBuiltInPerson &&
+          system.dayShape == null &&
+          system.programDay >= 2)
         _row(context, Icons.schedule_rounded, AppColors.mind, 'Shape your day',
             'Wake, work, bed — your dial and reminders follow it', '/day'),
-      if (system.values.isEmpty && system.programDay >= 7 && system.programDay <= 30)
-        _row(context, Icons.diamond_outlined, AppColors.mind, 'What do you stand for?',
-            'Name three to five values — decisions and your brief use them', '/values'),
+      if (system.values.isEmpty &&
+          system.programDay >= 7 &&
+          system.programDay <= 30)
+        _row(
+            context,
+            Icons.diamond_outlined,
+            AppColors.mind,
+            'What do you stand for?',
+            'Name three to five values — decisions and your brief use them',
+            '/values'),
       if (system.monthReviewDue)
-        _row(context, Icons.fact_check_outlined, AppColors.accent,
+        _row(
+            context,
+            Icons.fact_check_outlined,
+            AppColors.accent,
             'Close month ${system.monthToReview}',
             'Ten minutes: what held, one lesson, what comes with you',
-            system.isBuiltInPerson ? '/month/${system.monthToReview}' : '/month-review'),
-      if (system.upkeepDue.where((u) => system.upkeepNextDue(u) != null).firstOrNull case final u?)
-        _row(context, Icons.health_and_safety_outlined, AppColors.body, '${u.text} is due',
-            'Book it this week — it only takes a call', '/upkeep'),
+            system.isBuiltInPerson
+                ? '/month/${system.monthToReview}'
+                : '/month-review'),
+      if (system.upkeepDue
+              .where((u) => system.upkeepNextDue(u) != null)
+              .firstOrNull
+          case final u?)
+        _row(
+            context,
+            Icons.health_and_safety_outlined,
+            AppColors.body,
+            '${u.text} is due',
+            'Book it this week — it only takes a call',
+            '/upkeep'),
       if (system.moneyCheckDue)
         _row(context, Icons.savings_outlined, AppColors.body, 'Money check-in',
             'Ten minutes: in, out, set aside, one decision', '/money'),
       if (system.goalsToReflect.firstOrNull case final g?)
-        _row(context, Icons.emoji_events_outlined, AppColors.accent,
-            g.str('status') == 'achieved' ? 'You reached "${g.text}"' : 'Look back at "${g.text}"',
-            'Two minutes: what made the difference', '/goals/view?id=${g.id}'),
+        _row(
+            context,
+            Icons.emoji_events_outlined,
+            AppColors.accent,
+            g.str('status') == 'achieved'
+                ? 'You reached "${g.text}"'
+                : 'Look back at "${g.text}"',
+            'Two minutes: what made the difference',
+            '/goals/view?id=${g.id}'),
       if (system.conversationsDue(now).firstOrNull case final c?)
-        _row(context, Icons.forum_outlined, AppColors.social,
+        _row(
+            context,
+            Icons.forum_outlined,
+            AppColors.social,
             'The conversation with ${c.str('with')}',
-            'Have it today, or debrief it if it happened', '/conversations'),
+            'Have it today, or debrief it if it happened',
+            '/conversations'),
       if (system.yearReviewDue)
-        _row(context, Icons.celebration_outlined, AppColors.accent,
+        _row(
+            context,
+            Icons.celebration_outlined,
+            AppColors.accent,
             'Close ${system.yearToReview}',
-            'Twenty minutes: what the year added up to, and one word for the next', '/year'),
+            'Twenty minutes: what the year added up to, and one word for the next',
+            '/year'),
       if (system.asksToClose.firstOrNull case final a?)
-        _row(context, Icons.pan_tool_alt_outlined, AppColors.social,
+        _row(
+            context,
+            Icons.pan_tool_alt_outlined,
+            AppColors.social,
             'Did ${(a.str('of') ?? '').isEmpty ? 'they' : a.str('of')} say yes?',
-            '${a.text} — note the answer', '/asks'),
+            '${a.text} — note the answer',
+            '/asks'),
       if (system.promisesDue(now).firstOrNull case final p?)
-        _row(context, Icons.handshake_outlined, AppColors.social,
+        _row(
+            context,
+            Icons.handshake_outlined,
+            AppColors.social,
             'A promise is due${(p.str('to') ?? '').isEmpty ? '' : ' · ${p.str('to')}'}',
-            '${p.text} — keep it, or say a new date now', '/promises'),
+            '${p.text} — keep it, or say a new date now',
+            '/promises'),
       if (system.worryTimeDue(now))
-        _row(context, Icons.local_parking_rounded, AppColors.mind, 'Worry time',
-            '${system.worriesDue(now).length} parked — a next step or let go', '/worry'),
+        _row(
+            context,
+            Icons.local_parking_rounded,
+            AppColors.mind,
+            'Worry time',
+            '${system.worriesDue(now).length} parked — a next step or let go',
+            '/worry'),
       if (system.kindnessDue(now))
-        _row(context, Icons.volunteer_activism_outlined, AppColors.social,
-            'Kindness day', '${system.kindnessOn(now).length} of ${PersonalSystemProvider.kindnessPerDay} kind acts today', '/kindness'),
+        _row(
+            context,
+            Icons.volunteer_activism_outlined,
+            AppColors.social,
+            'Kindness day',
+            '${system.kindnessOn(now).length} of ${PersonalSystemProvider.kindnessPerDay} kind acts today',
+            '/kindness'),
       if (system.partnerCheckinDue)
-        _row(context, Icons.handshake_outlined, AppColors.social,
+        _row(
+            context,
+            Icons.handshake_outlined,
+            AppColors.social,
             'Check in with ${system.partner!.text.split(' ').first}',
-            'Send your update, record how you both did', '/partner'),
+            'Send your update, record how you both did',
+            '/partner'),
       if (system.roundDue)
-        _row(context, Icons.groups_2_outlined, AppColors.social,
-            'Ask three people one question', 'Your quarterly feedback round — 5 minutes to send', '/360'),
+        _row(
+            context,
+            Icons.groups_2_outlined,
+            AppColors.social,
+            'Ask three people one question',
+            'Your quarterly feedback round — 5 minutes to send',
+            '/360'),
       if (system.quarterReviewDue)
-        _row(context, Icons.donut_large_rounded, AppColors.accent,
-            'Quarterly review', 'Quarter ${system.quarterToReview} ends — 15 minutes to look at your whole life', '/quarter'),
+        _row(
+            context,
+            Icons.donut_large_rounded,
+            AppColors.accent,
+            'Quarterly review',
+            'Quarter ${system.quarterToReview} ends — 15 minutes to look at your whole life',
+            '/quarter'),
       if (system.noteDue(now))
-        _row(context, Icons.send_rounded, AppColors.social,
-            'Send your progress note', 'Five lines to ${activeProfile.manager.isEmpty ? 'one person' : activeProfile.manager} — written for you from this week', '/note'),
+        _row(
+            context,
+            Icons.send_rounded,
+            AppColors.social,
+            'Send your progress note',
+            'Five lines to ${activeProfile.manager.isEmpty ? 'one person' : activeProfile.manager} — written for you from this week',
+            '/note'),
       for (final e in system.experimentsToClose.take(1))
         _row(context, Icons.science_outlined, AppColors.mind,
             'Experiment finished: keep or drop?', e.text, '/experiments'),
       for (final l in system.experimentsToReview.take(1))
-        _row(context, Icons.science_outlined, AppColors.skill,
-            'How did the experiment go?', l.str('experiment') ?? '', '/learning'),
+        _row(
+            context,
+            Icons.science_outlined,
+            AppColors.skill,
+            'How did the experiment go?',
+            l.str('experiment') ?? '',
+            '/learning'),
       for (final g in system.goalsToMeasure.take(1))
-        _row(context, Icons.straighten_rounded, AppColors.accent,
-            'Measure: ${g.text}', '${system.daysSinceGoalUpdate(g)} days since the last number', '/goals/view?id=${g.id}'),
+        _row(
+            context,
+            Icons.straighten_rounded,
+            AppColors.accent,
+            'Measure: ${g.text}',
+            '${system.daysSinceGoalUpdate(g)} days since the last number',
+            '/goals/view?id=${g.id}'),
       for (final c in system.commitmentsDue(now).take(1))
-        _row(context, Icons.handshake_outlined, AppColors.accent,
-            'You committed: ${c.str('will')}', 'Kept it, or drop it on purpose?', '/coach'),
+        _row(
+            context,
+            Icons.handshake_outlined,
+            AppColors.accent,
+            'You committed: ${c.str('will')}',
+            'Kept it, or drop it on purpose?',
+            '/coach'),
       if (now.weekday == DateTime.sunday &&
           system.values.isNotEmpty &&
           system.valuesCheck(now).isEmpty)
-        _row(context, Icons.diamond_outlined, AppColors.mind,
-            'Did this week reflect your values?', '${system.values.map((v) => v.name).join(' · ')} · 1 minute', '/values'),
+        _row(
+            context,
+            Icons.diamond_outlined,
+            AppColors.mind,
+            'Did this week reflect your values?',
+            '${system.values.map((v) => v.name).join(' · ')} · 1 minute',
+            '/values'),
       if (system.lettersToOpen.isNotEmpty)
-        _row(context, Icons.mark_email_unread_outlined, AppColors.accent,
+        _row(
+            context,
+            Icons.mark_email_unread_outlined,
+            AppColors.accent,
             'A letter is ready to open',
             'Written to you in month ${system.lettersToOpen.first.number('month') ?? '–'}. Read it today.',
             '/letters'),
@@ -1265,15 +1414,23 @@ class _PromptsState extends State<_Prompts> {
       if (system.automaticityDue)
         _row(context, Icons.autorenew_rounded, AppColors.body,
             'Is it a habit yet?', 'Monthly check · 1 minute', '/habits'),
-      if (system.isBuiltInPerson && system.dayOfMonth >= 25 && system.readinessDueThisMonth)
-        _row(context, Icons.trending_up_rounded, AppColors.skill,
-            '${activeProfile.targetRole} readiness', 'Rate this month against the bar',
+      if (system.isBuiltInPerson &&
+          system.dayOfMonth >= 25 &&
+          system.readinessDueThisMonth)
+        _row(
+            context,
+            Icons.trending_up_rounded,
+            AppColors.skill,
+            '${activeProfile.targetRole} readiness',
+            'Rate this month against the bar',
             '/cockpit?tab=2'),
     ];
     return Column(
       children: [
-        for (final c in _all ? cards : cards.take(_visible))
-          ...[const SizedBox(height: 12), c],
+        for (final c in _all ? cards : cards.take(_visible)) ...[
+          const SizedBox(height: 12),
+          c
+        ],
         if (cards.length > _visible || followUps.isNotEmpty)
           Align(
             alignment: Alignment.centerLeft,
@@ -1295,8 +1452,7 @@ class _PromptsState extends State<_Prompts> {
                 Row(
                   children: [
                     Expanded(
-                      child: Text(
-                          'YOUR 1:1 FOLLOW-UPS · ${followUps.length}',
+                      child: Text('YOUR 1:1 FOLLOW-UPS · ${followUps.length}',
                           style: AppText.eyebrow()),
                     ),
                     GestureDetector(
@@ -1363,7 +1519,8 @@ class _RecoveryCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('RECOVERY DAY', style: AppText.eyebrow(color: AppColors.warning)),
+          Text('RECOVERY DAY',
+              style: AppText.eyebrow(color: AppColors.warning)),
           const SizedBox(height: 6),
           Builder(builder: (context) {
             final system = context.read<PersonalSystemProvider>();
@@ -1371,13 +1528,14 @@ class _RecoveryCard extends StatelessWidget {
             final was = system.itemIdsOn(dayOnly(now).minusDays(1)).length;
             final hold = system.targetFor(now);
             return Text(
-              streak > 0
-                  ? 'Yesterday slipped ($yesterdayScore/$was). Hold $hold today and your $streak-day streak carries on.'
-                  : 'Yesterday slipped ($yesterdayScore/$was). Hold $hold today to start again.',
-              style: AppText.heading().copyWith(fontSize: 15.5));
+                streak > 0
+                    ? 'Yesterday slipped ($yesterdayScore/$was). Hold $hold today and your $streak-day streak carries on.'
+                    : 'Yesterday slipped ($yesterdayScore/$was). Hold $hold today to start again.',
+                style: AppText.heading().copyWith(fontSize: 15.5));
           }),
           const SizedBox(height: 4),
-          Text('One miss is noise. Two in a row is a pattern — never miss twice.',
+          Text(
+              'One miss is noise. Two in a row is a pattern — never miss twice.',
               style: AppText.small()),
           TextButton(
             onPressed: () => context.push('/setback'),
@@ -1404,7 +1562,8 @@ class _CheckinCard extends StatelessWidget {
       if (now.hour >= 14) return const SizedBox.shrink();
       // Before 10:30 the morning card above already asks anyone but the
       // built-in person to check in; don't ask twice.
-      if (!system.isBuiltInPerson && now.hour * 60 + now.minute < 10 * 60 + 30) {
+      if (!system.isBuiltInPerson &&
+          now.hour * 60 + now.minute < 10 * 60 + 30) {
         return const SizedBox.shrink();
       }
       return Padding(
@@ -1424,8 +1583,8 @@ class _CheckinCard extends StatelessWidget {
                     Text('Morning check-in', style: AppText.heading()),
                     Text(
                         system.isBuiltInPerson
-                            ? 'Energy, mood, sleep, shoulders · 15 s'
-                            : 'Energy, mood, sleep · 15 s',
+                            ? 'Energy, mood, sleep, shoulders · 30 s'
+                            : 'Energy, mood, sleep · 30 s',
                         style: AppText.small()),
                   ],
                 ),
@@ -1538,37 +1697,36 @@ class _DailyTen extends StatelessWidget {
               excused
                   ? '$score of ${system.dailyCount} · nothing is expected today'
                   : score >= target
-                      ? '$score of ${system.dailyCount} — held'
-                      : '$score of ${system.dailyCount} · ${target - score} more holds the day${minimum ? ' (minimum day)' : ''}',
+                      ? '$score of ${system.dailyCount} — today counts'
+                      : '$score of ${system.dailyCount} done${minimum ? ' · a minimum day: $target counts' : ''}',
               style: AppText.small()),
           for (final g in nonNegotiableGroups)
-            if (system.dailyItems.any(
-                (n) => n.when == g[0] && !automatic.contains(n.id))) ...[
-            const SizedBox(height: 14),
-            Text(g[1].toUpperCase(), style: AppText.eyebrow()),
-            for (final n in system.dailyItems.where(
-                (n) => n.when == g[0] && !automatic.contains(n.id)))
-              CheckRow(
-                checked: system.isChecked(date, n.id),
-                title: n.title,
-                subtitle: system.isChecked(date, n.id)
-                    ? null
-                    : minimum && system.minimumFor(n.id).isNotEmpty
-                        ? 'Minimum: ${system.minimumFor(n.id)}'
-                        : system.cueFor(n.id),
-                lane: n.lane,
-                padding: const EdgeInsets.symmetric(vertical: 9),
-                onChanged: (_) => system.toggleCheck(date, n.id),
-                onOpen: n.route == null
-                    ? null
-                    : () => context.push(n.route!),
-              ),
-          ],
+            if (system.dailyItems
+                .any((n) => n.when == g[0] && !automatic.contains(n.id))) ...[
+              const SizedBox(height: 14),
+              Text(g[1].toUpperCase(), style: AppText.eyebrow()),
+              for (final n in system.dailyItems
+                  .where((n) => n.when == g[0] && !automatic.contains(n.id)))
+                CheckRow(
+                  checked: system.isChecked(date, n.id),
+                  title: n.title,
+                  subtitle: system.isChecked(date, n.id)
+                      ? null
+                      : minimum && system.minimumFor(n.id).isNotEmpty
+                          ? 'Minimum: ${system.minimumFor(n.id)}'
+                          : system.cueFor(n.id),
+                  lane: n.lane,
+                  padding: const EdgeInsets.symmetric(vertical: 9),
+                  onChanged: (_) => system.toggleCheck(date, n.id),
+                  onOpen: n.route == null ? null : () => context.push(n.route!),
+                ),
+            ],
           if (automatic.isNotEmpty) ...[
             const SizedBox(height: 14),
             Text('AUTOMATIC · NO REMINDERS',
                 style: AppText.eyebrow(color: AppColors.body)),
-            for (final n in system.dailyItems.where((n) => automatic.contains(n.id)))
+            for (final n
+                in system.dailyItems.where((n) => automatic.contains(n.id)))
               CheckRow(
                 checked: system.isChecked(date, n.id),
                 title: n.title,
@@ -1577,7 +1735,10 @@ class _DailyTen extends StatelessWidget {
                 onChanged: (_) => system.toggleCheck(date, n.id),
               ),
           ],
-          if (system.hasStarted && system.hardDayOn(date) == null)
+          // Not on the first days: there's nothing to be hard yet.
+          if (system.hasStarted &&
+              system.hardDayOn(date) == null &&
+              (system.programDay >= 3 || DateTime.now().hour >= 17))
             Align(
               alignment: Alignment.centerLeft,
               child: TextButton(
@@ -1600,7 +1761,8 @@ Future<void> showHardDaySheet(BuildContext context, DateTime date) {
       ListTile(
         enabled: enabled,
         contentPadding: EdgeInsets.zero,
-        leading: Icon(icon, color: enabled ? AppColors.accent : AppColors.faint),
+        leading:
+            Icon(icon, color: enabled ? AppColors.accent : AppColors.faint),
         title: Text(title, style: AppText.heading()),
         subtitle: Text(body, style: AppText.small()),
         onTap: () {
@@ -1660,8 +1822,8 @@ class _HardDayCard extends StatelessWidget {
           sickRun >= PersonalSystemProvider.pauseAfterSickDays
               ? 'Day $sickRun. The program clock is paused while you recover — your day ${system.programDay} waits for you. If it isn\'t getting better, see a doctor.'
               : sickRun >= 3
-              ? 'Day $sickRun. Nothing is expected. If it isn\'t getting better, see a doctor. Your streak waits.'
-              : 'Nothing is expected today. Sleep, water, rest. Your streak waits for you.'
+                  ? 'Day $sickRun. Nothing is expected. If it isn\'t getting better, see a doctor. Your streak waits.'
+                  : 'Nothing is expected today. Sleep, water, rest. Your streak waits for you.'
         ),
       'pass' => (
           'Emergency skip',
@@ -1712,8 +1874,7 @@ class _PrioritiesState extends State<_Priorities> {
   @override
   void initState() {
     super.initState();
-    final p =
-        context.read<PersonalSystemProvider>().prioritiesFor(widget.date);
+    final p = context.read<PersonalSystemProvider>().prioritiesFor(widget.date);
     _c = List.generate(3, (i) => TextEditingController(text: p[i]));
   }
 
@@ -1751,7 +1912,7 @@ class _PrioritiesState extends State<_Priorities> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Outcomes, not tasks. What must be true by 18:00?',
+          Text('Outcomes, not tasks. What must be true by tonight?',
               style: AppText.small()),
           for (var i = 0; i < 3; i++)
             Row(
@@ -1775,8 +1936,7 @@ class _PrioritiesState extends State<_Priorities> {
                       ][i],
                       filled: false,
                       isDense: true,
-                      contentPadding:
-                          const EdgeInsets.symmetric(vertical: 12),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
                       border: InputBorder.none,
                       enabledBorder: InputBorder.none,
                       focusedBorder: InputBorder.none,
@@ -1805,16 +1965,38 @@ class _GeneralInputs extends StatelessWidget {
     final moved = system.moveMinutesInWeek(date);
     final learning = system.learningWith('active');
     final tiles = [
-      (Icons.style_rounded, AppColors.mind, 'Review',
-          due == 0 ? 'All caught up' : '$due cards due', 'Your lessons, spaced · 5 min', '/review'),
-      (Icons.center_focus_strong_rounded, AppColors.skill, 'Deep work',
-          system.focusArea()?.name ?? 'One block, one thing',
-          '${focusH.toStringAsFixed(focusH % 1 == 0 ? 0 : 1)} h this week', '/focus'),
-      (Icons.directions_walk_rounded, AppColors.body, 'Move', '$moved of 150 min',
-          '${system.strengthDaysInWeek(date)} of 2 strength days', '/move'),
-      (Icons.school_outlined, AppColors.skill, 'Learning',
-          learning.isEmpty ? 'Nothing active' : learning.first.text,
-          'Learn it, then apply it', '/learning'),
+      (
+        Icons.style_rounded,
+        AppColors.mind,
+        'Review',
+        due == 0 ? 'All caught up' : '$due cards due',
+        'Your lessons, spaced · 5 min',
+        '/review'
+      ),
+      (
+        Icons.center_focus_strong_rounded,
+        AppColors.skill,
+        'Deep work',
+        system.focusArea()?.name ?? 'One block, one thing',
+        '${focusH.toStringAsFixed(focusH % 1 == 0 ? 0 : 1)} h this week',
+        '/focus'
+      ),
+      (
+        Icons.directions_walk_rounded,
+        AppColors.body,
+        'Move',
+        '$moved of 150 min',
+        '${system.strengthDaysInWeek(date)} of 2 strength days',
+        '/move'
+      ),
+      (
+        Icons.school_outlined,
+        AppColors.skill,
+        'Learning',
+        learning.isEmpty ? 'Nothing active' : learning.first.text,
+        'Learn it, then apply it',
+        '/learning'
+      ),
     ];
     return Column(
       children: [
@@ -1836,7 +2018,8 @@ class _GeneralInputs extends StatelessWidget {
                               Icon(t.$1, size: 18, color: t.$2),
                               const SizedBox(width: 6),
                               Text(t.$3.toUpperCase(),
-                                  style: AppText.eyebrow().copyWith(fontSize: 10)),
+                                  style:
+                                      AppText.eyebrow().copyWith(fontSize: 10)),
                             ],
                           ),
                           const SizedBox(height: 8),
@@ -1878,21 +2061,54 @@ class _InputsStrip extends StatelessWidget {
     final due = system.dueCards(date).length;
     final focusH = system.focusMinutesInWeek(date) / 60;
     final tiles = [
-      (Icons.style_rounded, AppColors.mind, 'Review',
-          due == 0 ? 'All caught up' : '$due cards due',
-          'Spaced repetition · 5 min', '/review' as String?),
-      (Icons.center_focus_strong_rounded, AppColors.skill, 'Deep work',
-          artifactFor(month),
-          '${focusH.toStringAsFixed(focusH % 1 == 0 ? 0 : 1)} h this week',
-          '/focus' as String?),
-      (Icons.podcasts_rounded, AppColors.skill, 'Drive', podcast.title,
-          podcast.detail, null as String?),
-      (Icons.travel_explore_rounded, AppColors.steel, 'Scan · 07:45',
-          scan.title, scan.detail, '/tool/scan'),
-      (Icons.menu_book_rounded, AppColors.mind, 'Lunch read', book.title,
-          book.chapters, '/tool/read'),
-      (outfit.icon, AppColors.social, 'Wear', outfit.occasion, outfit.formula,
-          '/style'),
+      (
+        Icons.style_rounded,
+        AppColors.mind,
+        'Review',
+        due == 0 ? 'All caught up' : '$due cards due',
+        'Spaced repetition · 5 min',
+        '/review' as String?
+      ),
+      (
+        Icons.center_focus_strong_rounded,
+        AppColors.skill,
+        'Deep work',
+        artifactFor(month),
+        '${focusH.toStringAsFixed(focusH % 1 == 0 ? 0 : 1)} h this week',
+        '/focus' as String?
+      ),
+      (
+        Icons.podcasts_rounded,
+        AppColors.skill,
+        'Drive',
+        podcast.title,
+        podcast.detail,
+        null as String?
+      ),
+      (
+        Icons.travel_explore_rounded,
+        AppColors.steel,
+        'Scan · 07:45',
+        scan.title,
+        scan.detail,
+        '/tool/scan'
+      ),
+      (
+        Icons.menu_book_rounded,
+        AppColors.mind,
+        'Lunch read',
+        book.title,
+        book.chapters,
+        '/tool/read'
+      ),
+      (
+        outfit.icon,
+        AppColors.social,
+        'Wear',
+        outfit.occasion,
+        outfit.formula,
+        '/style'
+      ),
     ];
     return SizedBox(
       height: 150,
@@ -1949,9 +2165,8 @@ class _BodyCard extends StatelessWidget {
     final system = context.watch<PersonalSystemProvider>();
     final protein = system.proteinFor(date);
     final weight = system.latestWeight;
-    final weighedThisWeek = system
-        .logsOf('weight')
-        .any((l) => !l.date.isBefore(weekStartOf(date)));
+    final weighedThisWeek =
+        system.logsOf('weight').any((l) => !l.date.isBefore(weekStartOf(date)));
     final gym = system.gymDayOn(date);
     final sessions = system.gymSessionsInWeek(date);
 
@@ -2067,7 +2282,8 @@ class _QuestionCardState extends State<_QuestionCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('QUESTION OF THE DAY', style: AppText.eyebrow(color: AppColors.mind)),
+          Text('QUESTION OF THE DAY',
+              style: AppText.eyebrow(color: AppColors.mind)),
           const SizedBox(height: 8),
           Text(q.$2, style: AppText.serif(size: 22)),
           const SizedBox(height: 10),

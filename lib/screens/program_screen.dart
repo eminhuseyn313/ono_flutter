@@ -47,24 +47,24 @@ class _ProgramScreenState extends State<ProgramScreen> {
         if (!system.isBuiltInPerson)
           const _Journey()
         else ...[
-        Segmented(
-          labels: const ['Journey', 'Schedule', 'Body', 'Reference'],
-          index: _tab,
-          onChanged: (i) => setState(() => _tab = i),
-        ),
-        const SizedBox(height: 18),
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 200),
-          child: KeyedSubtree(
-            key: ValueKey(_tab),
-            child: switch (_tab) {
-              0 => const _Journey(),
-              1 => _Schedule(now: now),
-              2 => _Body(now: now),
-              _ => const _Reference(),
-            },
+          Segmented(
+            labels: const ['Journey', 'Schedule', 'Body', 'Reference'],
+            index: _tab,
+            onChanged: (i) => setState(() => _tab = i),
           ),
-        ),
+          const SizedBox(height: 18),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            child: KeyedSubtree(
+              key: ValueKey(_tab),
+              child: switch (_tab) {
+                0 => const _Journey(),
+                1 => _Schedule(now: now),
+                2 => _Body(now: now),
+                _ => const _Reference(),
+              },
+            ),
+          ),
         ],
       ],
     );
@@ -121,8 +121,13 @@ class _Journey extends StatelessWidget {
           steps: builtIn
               ? pathSteps
               : [
-                  if (profile.currentRole.isNotEmpty) [profile.currentRole, '1'],
-                  if (profile.targetRole.isNotEmpty) [profile.targetRole, '${(system.programMonths * 2 ~/ 3) + 1}'],
+                  if (profile.currentRole.isNotEmpty)
+                    [profile.currentRole, '1'],
+                  if (profile.targetRole.isNotEmpty)
+                    [
+                      profile.targetRole,
+                      '${(system.programMonths * 2 ~/ 3) + 1}'
+                    ],
                 ],
           onMonthTap: (m) => builtIn ? context.push('/month/$m') : null,
         ),
@@ -143,7 +148,10 @@ class _Journey extends StatelessWidget {
               const SizedBox(height: 6),
               Text(phase.name, style: AppText.title()),
               const SizedBox(height: 6),
-              Text(builtIn ? phase.promise : generalPhasePromises[phase.id] ?? '',
+              Text(
+                  builtIn
+                      ? phase.promise
+                      : generalPhasePromises[phase.id] ?? '',
                   style: AppText.body()),
               const SizedBox(height: 16),
               Row(
@@ -154,10 +162,10 @@ class _Journey extends StatelessWidget {
                           'day of month $month',
                           unit: '/30')),
                   Expanded(
-                      child: StatTile(stats.daily10Average.toStringAsFixed(1),
-                          'Daily avg', unit: '/${system.dailyCount}')),
-                  Expanded(
-                      child: StatTile('${stats.daysHeld}', 'days held')),
+                      child: StatTile(
+                          stats.daily10Average.toStringAsFixed(1), 'Daily avg',
+                          unit: '/${system.dailyCount}')),
+                  Expanded(child: StatTile('${stats.daysHeld}', 'days held')),
                 ],
               ),
               const SizedBox(height: 14),
@@ -174,7 +182,8 @@ class _Journey extends StatelessWidget {
                 LinkRow(
                   icon: Icons.trending_up_rounded,
                   color: AppColors.accent,
-                  title: system.focusArea()?.name ?? 'Choose this month\'s area',
+                  title:
+                      system.focusArea()?.name ?? 'Choose this month\'s area',
                   subtitle: system.focusArea() == null
                       ? 'One thing to practise for 30 days'
                       : '${system.repsIn(system.focusArea()!.id, month).length} reps this month',
@@ -184,53 +193,60 @@ class _Journey extends StatelessWidget {
                 LinkRow(
                   icon: Icons.flag_circle_outlined,
                   color: AppColors.accent,
-                  title: system.activeGoals.isEmpty ? 'Set your first goal' : 'Goals',
+                  title: system.activeGoals.isEmpty
+                      ? 'Set your first goal'
+                      : 'Goals',
                   subtitle: system.activeGoals.isEmpty
                       ? 'The outcome all of this serves'
                       : system.activeGoals.map((g) => g.text).join(' · '),
                   onTap: () => context.push('/goals'),
                 ),
-                const Divider(indent: 66),
-                LinkRow(
-                  icon: Icons.fact_check_outlined,
-                  color: AppColors.accent,
-                  title: 'Close the month',
-                  subtitle: system.monthReviewFor(system.monthToReview ?? month) == null
-                      ? 'What held, one lesson, what comes with you'
-                      : 'Month ${system.monthToReview ?? month} reviewed · ${system.monthReviewFor(system.monthToReview ?? month)!.text}',
-                  onTap: () => context.push('/month-review'),
-                ),
+                // Offered once a month can be closed, not on day one.
+                if (system.monthToReview != null || month > 1) ...[
+                  const Divider(indent: 66),
+                  LinkRow(
+                    icon: Icons.fact_check_outlined,
+                    color: AppColors.accent,
+                    title: 'Close the month',
+                    subtitle: system.monthReviewFor(
+                                system.monthToReview ?? month) ==
+                            null
+                        ? 'What held, one lesson, what comes with you'
+                        : 'Month ${system.monthToReview ?? month} reviewed · ${system.monthReviewFor(system.monthToReview ?? month)!.text}',
+                    onTap: () => context.push('/month-review'),
+                  ),
+                ],
               ],
             ),
           ),
         ] else ...[
-        SectionHeader('Month $month', action: 'Open',
-            onAction: () => context.push('/month/$month')),
-        Text(monthThemes[month] ?? '', style: AppText.body()),
-        const SizedBox(height: 12),
-        OnoCard(
-          padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
-          child: Column(
-            children: [
-              for (final u in unlocks) _UnlockRow(unlock: u),
-            ],
+          SectionHeader('Month $month',
+              action: 'Open', onAction: () => context.push('/month/$month')),
+          Text(monthThemes[month] ?? '', style: AppText.body()),
+          const SizedBox(height: 12),
+          OnoCard(
+            padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
+            child: Column(
+              children: [
+                for (final u in unlocks) _UnlockRow(unlock: u),
+              ],
+            ),
           ),
-        ),
-        if (openUnlocks.isEmpty) ...[
-          const SizedBox(height: 10),
-          Text('Everything this month is done. Review the month.',
-              style: AppText.small(color: AppColors.body)),
-        ],
-        if (system.dayOfMonth >= 24 || month > 1) ...[
-          const SizedBox(height: 14),
-          GhostButton(
-              system.dayOfMonth >= 24
-                  ? 'Month $month review'
-                  : 'Review month ${month - 1}',
-              icon: Icons.fact_check_outlined,
-              onPressed: () => context.push(
-                  '/month/${system.dayOfMonth >= 24 ? month : month - 1}')),
-        ],
+          if (openUnlocks.isEmpty) ...[
+            const SizedBox(height: 10),
+            Text('Everything this month is done. Review the month.',
+                style: AppText.small(color: AppColors.body)),
+          ],
+          if (system.dayOfMonth >= 24 || month > 1) ...[
+            const SizedBox(height: 14),
+            GhostButton(
+                system.dayOfMonth >= 24
+                    ? 'Month $month review'
+                    : 'Review month ${month - 1}',
+                icon: Icons.fact_check_outlined,
+                onPressed: () => context.push(
+                    '/month/${system.dayOfMonth >= 24 ? month : month - 1}')),
+          ],
         ],
       ],
     );
@@ -296,8 +312,7 @@ class _UnlockRow extends StatelessWidget {
                     color: done ? AppColors.accent : AppColors.faint),
               )
             else
-              const Icon(Icons.chevron_right_rounded,
-                  color: AppColors.faint),
+              const Icon(Icons.chevron_right_rounded, color: AppColors.faint),
           ],
         ),
       ),
@@ -367,7 +382,8 @@ class _DayTimeline extends StatelessWidget {
         case 'Train or deep work':
           final g = system.gymDayOn(now);
           return g == null
-              ? eveningFocus(now.weekday).replaceAll(RegExp(r'Gym — .*'), 'Deep work')
+              ? eveningFocus(now.weekday)
+                  .replaceAll(RegExp(r'Gym — .*'), 'Deep work')
               : 'Gym — Day ${g.letter} ${g.name}';
         default:
           return b.detail;
@@ -518,13 +534,15 @@ class _WeekPlan extends StatelessWidget {
                       Text(weekdayName(d.weekday), style: AppText.heading()),
                       const Spacer(),
                       if (system.gymDayOn(d) != null)
-                        Tag(
-                            'Gym ${system.gymDayOn(d)!.letter}${system.gymDone(d) ? ' ✓' : ''}',
+                        Tag('Gym ${system.gymDayOn(d)!.letter}${system.gymDone(d) ? ' ✓' : ''}',
                             color: system.gymDone(d)
                                 ? AppColors.body
                                 : AppColors.grey),
                       const SizedBox(width: 8),
-                      Text(d.isAfter(now) ? '—' : '${system.scoreFor(d)}/${system.dailyCount}',
+                      Text(
+                          d.isAfter(now)
+                              ? '—'
+                              : '${system.scoreFor(d)}/${system.dailyCount}',
                           style: AppText.small(color: AppColors.white)
                               .copyWith(fontWeight: FontWeight.w700)),
                     ],
@@ -578,8 +596,8 @@ class _Body extends StatelessWidget {
       children: [
         // Training
         OnoCard(
-          highlight: dateKey(next.date) == dateKey(today) &&
-              !system.gymDone(today),
+          highlight:
+              dateKey(next.date) == dateKey(today) && !system.gymDone(today),
           padding: const EdgeInsets.all(18),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -602,7 +620,9 @@ class _Body extends StatelessWidget {
                   style: AppText.small()),
               const SizedBox(height: 14),
               PrimaryButton(
-                  system.gymDone(today) ? 'Session logged — view' : 'Start session',
+                  system.gymDone(today)
+                      ? 'Session logged — view'
+                      : 'Start session',
                   icon: Icons.fitness_center_rounded,
                   onPressed: () => context.push('/gym/${next.day.id}')),
             ],
@@ -661,8 +681,8 @@ class _Body extends StatelessWidget {
                                 .firstWhere((g) => g.id == s.str('day'),
                                     orElse: () => gymPlan.first)
                                 .letter,
-                            style: AppText.serif(
-                                size: 22, color: AppColors.body)),
+                            style:
+                                AppText.serif(size: 22, color: AppColors.body)),
                         const SizedBox(width: 12),
                         Expanded(
                             child: Text(
@@ -679,8 +699,8 @@ class _Body extends StatelessWidget {
             ),
           ),
         ],
-        SectionHeader('Weight', action: 'Log',
-            onAction: () => context.push('/log?add=weight')),
+        SectionHeader('Weight',
+            action: 'Log', onAction: () => context.push('/log?add=weight')),
         OnoCard(
           child: weights.length < 2
               ? EmptyNote(weights.isEmpty
@@ -705,7 +725,8 @@ class _Body extends StatelessWidget {
                   ],
                 ),
         ),
-        SectionHeader('Bloodwork', action: 'Add result',
+        SectionHeader('Bloodwork',
+            action: 'Add result',
             onAction: () => context.push('/log?add=blood')),
         OnoCard(
           accent: bloodDone.length == bloodwork.length
@@ -788,7 +809,8 @@ class _Reference extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('MANIFESTO', style: AppText.eyebrow(color: AppColors.accent)),
+              Text('MANIFESTO',
+                  style: AppText.eyebrow(color: AppColors.accent)),
               const SizedBox(height: 10),
               Text('I do not need to know everything to be competent.',
                   style: AppText.serif(size: 26)),
@@ -886,7 +908,8 @@ class _LaneCardState extends State<_LaneCard> {
             children: [
               Text(l.name, style: AppText.serif(size: 22)),
               const Spacer(),
-              Icon(_open ? Icons.expand_less_rounded : Icons.expand_more_rounded,
+              Icon(
+                  _open ? Icons.expand_less_rounded : Icons.expand_more_rounded,
                   color: AppColors.grey),
             ],
           ),

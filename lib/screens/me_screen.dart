@@ -24,11 +24,9 @@ class MeScreen extends StatelessWidget {
       return const Scaffold(backgroundColor: AppColors.background);
     }
     final today = dayOnly(DateTime.now());
-    final weeks =
-        ((today.daysSince(weekStartOf(system.programStart))) ~/ 7 + 1)
-            .clamp(1, 26);
-    final heatFrom =
-        weekStartOf(today).minusDays((weeks - 1) * 7);
+    final weeks = ((today.daysSince(weekStartOf(system.programStart))) ~/ 7 + 1)
+        .clamp(1, 26);
+    final heatFrom = weekStartOf(today).minusDays((weeks - 1) * 7);
     final keyLifts = [
       'Dumbbell Shoulder Press',
       'Lat Pulldown',
@@ -43,6 +41,18 @@ class MeScreen extends StatelessWidget {
       subtitle: '${activeProfile.roleLine}\n${activeProfile.organisation}',
       children: [
         const SizedBox(height: 20),
+        // Me starts with what someone came for: finding the right tool.
+        OnoCard(
+          padding: EdgeInsets.zero,
+          child: LinkRow(
+            icon: Icons.search_rounded,
+            color: AppColors.accent,
+            title: 'Find a tool',
+            subtitle: 'Search everything ONO can help with',
+            onTap: () => context.push('/tools'),
+          ),
+        ),
+        const SizedBox(height: 12),
         OnoCard(
           color: AppColors.navy,
           child: Column(
@@ -59,16 +69,20 @@ class MeScreen extends StatelessWidget {
                           system.programComplete
                               ? 'days · complete'
                               : 'day of ${system.programDays}')),
-                  Expanded(child: StatTile('${system.streak}', 'streak')),
-                  Expanded(
-                      child: StatTile('${system.bestStreak}', 'best streak')),
+                  // No row of zeros on day one: streaks show once there is one.
+                  if (system.bestStreak > 0) ...[
+                    Expanded(child: StatTile('${system.streak}', 'streak')),
+                    Expanded(
+                        child: StatTile('${system.bestStreak}', 'best streak')),
+                  ],
                   Expanded(child: StatTile('${system.daysHeld}', 'days held')),
                 ],
               ),
               const SizedBox(height: 16),
               ThinBar(
-                  value:
-                      system.hasStarted ? (system.programDay / system.programDays).clamp(0.0, 1.0) : 0),
+                  value: system.hasStarted
+                      ? (system.programDay / system.programDays).clamp(0.0, 1.0)
+                      : 0),
               const SizedBox(height: 6),
               Row(
                 children: [
@@ -78,97 +92,108 @@ class MeScreen extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 4),
-              Row(
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                spacing: 12,
                 children: [
                   Text('Month ${system.programMonth} · ${system.phase.name}',
                       style: AppText.small()),
-                  const Spacer(),
                   Text(
-                      'Ends ${shortDate(system.programEnd)}${system.pausedDays > 0 ? ' · paused ${system.pausedDays} d' : ''}',
+                      'Ends ${shortDate(system.programEnd)}${system.programEnd.year != DateTime.now().year ? ' ${system.programEnd.year}' : ''}${system.pausedDays > 0 ? ' · paused ${system.pausedDays} d' : ''}',
                       style: AppText.small()),
                 ],
               ),
             ],
           ),
         ),
-        const SectionHeader('Every day so far'),
-        OnoCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              HeatGrid(
-                from: heatFrom,
-                weeks: weeks < 8 ? 8 : weeks,
-                scoreFor: (d) =>
-                    d.isBefore(system.programStart) ? null : system.scoreOutOf10(d),
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Text('Less', style: AppText.small().copyWith(fontSize: 11)),
-                  const SizedBox(width: 6),
-                  for (final s in [0, 3, 6, 8, 10])
-                    Container(
-                      width: 10,
-                      height: 10,
-                      margin: const EdgeInsets.only(right: 3),
-                      decoration: BoxDecoration(
-                          color: heatColor(s),
-                          borderRadius: BorderRadius.circular(2)),
-                    ),
-                  Text('more · Daily ${system.dailyCount}',
-                      style: AppText.small().copyWith(fontSize: 11)),
-                ],
-              ),
-            ],
+        // History, mornings and patterns appear once there is something
+        // to show; on day one they are empty grids.
+        if (system.programDay >= 7 || system.daysHeld > 0) ...[
+          const SectionHeader('Every day so far'),
+          OnoCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                HeatGrid(
+                  from: heatFrom,
+                  weeks: weeks < 8 ? 8 : weeks,
+                  scoreFor: (d) => d.isBefore(system.programStart)
+                      ? null
+                      : system.scoreOutOf10(d),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Text('Less', style: AppText.small().copyWith(fontSize: 11)),
+                    const SizedBox(width: 6),
+                    for (final s in [0, 3, 6, 8, 10])
+                      Container(
+                        width: 10,
+                        height: 10,
+                        margin: const EdgeInsets.only(right: 3),
+                        decoration: BoxDecoration(
+                            color: heatColor(s),
+                            borderRadius: BorderRadius.circular(2)),
+                      ),
+                    Text('more · Daily ${system.dailyCount}',
+                        style: AppText.small().copyWith(fontSize: 11)),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
+        ],
         if (system.isBuiltInPerson) ...[
-        const SectionHeader('Protocol mastery'),
-        OnoCard(
-          padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
-          child: Column(
-            children: [
-              for (final p in protocols)
-                InkWell(
-                  onTap: () =>
-                      context.push(protocolTools[p.id] ?? '/protocols'),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    child: Row(
-                      children: [
-                        Icon(p.icon, size: 18, color: AppColors.lane(p.lane)),
-                        const SizedBox(width: 12),
-                        Expanded(child: Text(p.name, style: AppText.body())),
-                        Text('${system.usesOf(p.id)}',
-                            style: AppText.small(color: AppColors.white)
-                                .copyWith(fontWeight: FontWeight.w700)),
-                        const SizedBox(width: 10),
-                        SizedBox(
-                          width: 86,
-                          child: Text(system.masteryOf(p.id),
-                              textAlign: TextAlign.right,
-                              style: AppText.small(
-                                  color: system.usesOf(p.id) >= 20
-                                      ? AppColors.accent
-                                      : AppColors.grey)),
-                        ),
-                      ],
+          const SectionHeader('Protocol mastery'),
+          OnoCard(
+            padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
+            child: Column(
+              children: [
+                for (final p in protocols)
+                  InkWell(
+                    onTap: () =>
+                        context.push(protocolTools[p.id] ?? '/protocols'),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      child: Row(
+                        children: [
+                          Icon(p.icon, size: 18, color: AppColors.lane(p.lane)),
+                          const SizedBox(width: 12),
+                          Expanded(child: Text(p.name, style: AppText.body())),
+                          Text('${system.usesOf(p.id)}',
+                              style: AppText.small(color: AppColors.white)
+                                  .copyWith(fontWeight: FontWeight.w700)),
+                          const SizedBox(width: 10),
+                          SizedBox(
+                            width: 86,
+                            child: Text(system.masteryOf(p.id),
+                                textAlign: TextAlign.right,
+                                style: AppText.small(
+                                    color: system.usesOf(p.id) >= 20
+                                        ? AppColors.accent
+                                        : AppColors.grey)),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
-        ),
         ],
-        SectionHeader('Mornings',
-            action: 'Check in', onAction: () => context.push('/checkin')),
-        const _Mornings(),
+        if (system.isBuiltInPerson || system.logsOf('checkin').isNotEmpty) ...[
+          SectionHeader('Mornings',
+              action: 'Check in', onAction: () => context.push('/checkin')),
+          const _Mornings(),
+        ],
         const _AppleHealth(),
         const _CalendarLink(),
-        const SectionHeader('What moves your day'),
-        const _Patterns(),
-        const SizedBox(height: 10),
+        if (system.programDay >= 14) ...[
+          const SectionHeader('What moves your day'),
+          const _Patterns(),
+          const SizedBox(height: 10),
+        ] else
+          const SizedBox(height: 16),
         OnoCard(
           padding: EdgeInsets.zero,
           child: LinkRow(
@@ -202,61 +227,51 @@ class MeScreen extends StatelessWidget {
         if (!system.isBuiltInPerson)
           const _MoveSummary()
         else
-        OnoCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: StatTile(
-                        system.latestWeight?.toStringAsFixed(1) ?? '—',
-                        'kg now',
-                        unit: 'kg'),
-                  ),
-                  Expanded(
-                    child: StatTile(
-                        system.startWeight == null ||
-                                system.latestWeight == null
-                            ? '—'
-                            : (system.latestWeight! - system.startWeight!)
-                                .toStringAsFixed(1),
-                        'since Day 1'),
-                  ),
-                  Expanded(
-                      child: StatTile('${system.countOf('gym')}', 'sessions')),
-                ],
-              ),
-              const SizedBox(height: 14),
-              for (final l in keyLifts)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 5),
-                  child: Row(
-                    children: [
-                      Expanded(child: Text(l, style: AppText.small())),
-                      Text(
-                          system.bestLift(l) > 0
-                              ? '${system.bestLift(l).toStringAsFixed(1)} kg'
-                              : '—',
-                          style: AppText.small(color: AppColors.white)
-                              .copyWith(fontWeight: FontWeight.w700)),
-                    ],
-                  ),
+          OnoCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: StatTile(
+                          system.latestWeight?.toStringAsFixed(1) ?? '—',
+                          'kg now',
+                          unit: 'kg'),
+                    ),
+                    Expanded(
+                      child: StatTile(
+                          system.startWeight == null ||
+                                  system.latestWeight == null
+                              ? '—'
+                              : (system.latestWeight! - system.startWeight!)
+                                  .toStringAsFixed(1),
+                          'since Day 1'),
+                    ),
+                    Expanded(
+                        child:
+                            StatTile('${system.countOf('gym')}', 'sessions')),
+                  ],
                 ),
-            ],
+                const SizedBox(height: 14),
+                for (final l in keyLifts)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 5),
+                    child: Row(
+                      children: [
+                        Expanded(child: Text(l, style: AppText.small())),
+                        Text(
+                            system.bestLift(l) > 0
+                                ? '${system.bestLift(l).toStringAsFixed(1)} kg'
+                                : '—',
+                            style: AppText.small(color: AppColors.white)
+                                .copyWith(fontWeight: FontWeight.w700)),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
           ),
-        ),
-        const SizedBox(height: 16),
-        OnoCard(
-          padding: EdgeInsets.zero,
-          child: LinkRow(
-            icon: Icons.search_rounded,
-            color: AppColors.accent,
-            title: 'Find a tool',
-            subtitle: 'Search everything ONO can help with',
-            onTap: () => context.push('/tools'),
-          ),
-        ),
         const SectionHeader('Direction'),
         OnoCard(
           padding: EdgeInsets.zero,
@@ -332,25 +347,27 @@ class MeScreen extends StatelessWidget {
                 onTap: () => context.push('/values'),
               ),
               if (system.isBuiltInPerson) const Divider(indent: 66),
-              if (system.isBuiltInPerson) LinkRow(
-                icon: Icons.trending_up_rounded,
-                color: AppColors.skill,
-                title: '${activeProfile.targetRole} readiness',
-                subtitle: system.readiness.isEmpty
-                    ? 'Not rated yet'
-                    : system.readinessGap == null
-                        ? 'At the bar on every dimension'
-                        : 'Gap: ${system.readinessGap!.name}',
-                onTap: () => context.push('/cockpit?tab=2'),
-              ),
+              if (system.isBuiltInPerson)
+                LinkRow(
+                  icon: Icons.trending_up_rounded,
+                  color: AppColors.skill,
+                  title: '${activeProfile.targetRole} readiness',
+                  subtitle: system.readiness.isEmpty
+                      ? 'Not rated yet'
+                      : system.readinessGap == null
+                          ? 'At the bar on every dimension'
+                          : 'Gap: ${system.readinessGap!.name}',
+                  onTap: () => context.push('/cockpit?tab=2'),
+                ),
               const Divider(indent: 66),
               LinkRow(
                 icon: Icons.savings_outlined,
                 color: AppColors.body,
                 title: 'Money check-in',
-                subtitle: system.moneySummary == null || system.moneySummary!.isEmpty
-                    ? 'Once a month: in, out, set aside, one decision'
-                    : 'Last: ${system.moneySummary}',
+                subtitle:
+                    system.moneySummary == null || system.moneySummary!.isEmpty
+                        ? 'Once a month: in, out, set aside, one decision'
+                        : 'Last: ${system.moneySummary}',
                 onTap: () {
                   system.setDone('money:on', true);
                   context.push('/money');
@@ -436,8 +453,7 @@ class MeScreen extends StatelessWidget {
                 icon: Icons.center_focus_strong_rounded,
                 color: AppColors.skill,
                 title: 'Deep work',
-                subtitle:
-                    system.isBuiltInPerson
+                subtitle: system.isBuiltInPerson
                     ? '${(system.focusMinutesInWeek(DateTime.now()) / 60).toStringAsFixed(1)} h this week · ${(system.artifactMinutesThisMonth / 60).toStringAsFixed(1)} h on the artifact this month'
                     : '${(system.focusMinutesInWeek(DateTime.now()) / 60).toStringAsFixed(1)} h this week · one block, one thing',
                 onTap: () => context.push('/focus'),
@@ -475,7 +491,8 @@ class MeScreen extends StatelessWidget {
                 icon: Icons.battery_charging_full_rounded,
                 color: AppColors.skill,
                 title: 'What gives and drains you',
-                subtitle: system.craftingMove ?? 'Rate a normal week, then change one thing',
+                subtitle: system.craftingMove ??
+                    'Rate a normal week, then change one thing',
                 onTap: () => context.push('/crafting'),
               ),
               const Divider(indent: 66),
@@ -570,7 +587,8 @@ class MeScreen extends StatelessWidget {
                 icon: Icons.auto_awesome_outlined,
                 color: AppColors.skill,
                 title: 'You, at your best',
-                subtitle: system.bestSelfPortrait ?? 'Stories from people who have seen it',
+                subtitle: system.bestSelfPortrait ??
+                    'Stories from people who have seen it',
                 onTap: () => context.push('/best-self'),
               ),
               const Divider(indent: 66),
@@ -744,7 +762,8 @@ class MeScreen extends StatelessWidget {
                 icon: Icons.badge_outlined,
                 color: AppColors.accent,
                 title: 'Your profile',
-                subtitle: '${activeProfile.currentRole} → ${activeProfile.targetRole}${system.profileEdited ? ' · edited' : ''}',
+                subtitle:
+                    '${activeProfile.currentRole} → ${activeProfile.targetRole}${system.profileEdited ? ' · edited' : ''}',
                 onTap: () => context.push('/profile/edit'),
               ),
               const Divider(indent: 66),
@@ -760,9 +779,10 @@ class MeScreen extends StatelessWidget {
                     initialDate: system.programStart,
                     // A start further back than the picker's range (a long
                     // program, paused days) must still be the initial date.
-                    firstDate: system.programStart.isBefore(today.minusDays(540))
-                        ? system.programStart
-                        : today.minusDays(540),
+                    firstDate:
+                        system.programStart.isBefore(today.minusDays(540))
+                            ? system.programStart
+                            : today.minusDays(540),
                     lastDate: today.plusDays(60),
                   );
                   if (picked != null) system.setProgramStart(picked);
@@ -807,7 +827,8 @@ class MeScreen extends StatelessWidget {
                 icon: Icons.timelapse_rounded,
                 color: AppColors.accent,
                 title: 'Program length',
-                subtitle: '${system.programLengthLabel}${system.cycle > 1 ? ' · program ${system.cycle}' : ''}',
+                subtitle:
+                    '${system.programLengthLabel}${system.cycle > 1 ? ' · program ${system.cycle}' : ''}',
                 onTap: () => _lengthSheet(context, system),
               ),
               const Divider(indent: 66),
@@ -815,7 +836,8 @@ class MeScreen extends StatelessWidget {
                 icon: Icons.flash_on_outlined,
                 color: AppColors.mind,
                 title: 'Emergency skips',
-                subtitle: '${system.passesPerMonth} a month · for days you couldn\'t plan for',
+                subtitle:
+                    '${system.passesPerMonth} a month · for days you couldn\'t plan for',
                 onTap: () => _skipsSheet(context, system),
               ),
               const Divider(indent: 66),
@@ -928,7 +950,8 @@ class MeScreen extends StatelessWidget {
     );
   }
 
-  Future<void> _skipsSheet(BuildContext context, PersonalSystemProvider system) =>
+  Future<void> _skipsSheet(
+          BuildContext context, PersonalSystemProvider system) =>
       showModalBottomSheet<void>(
         context: context,
         backgroundColor: AppColors.card,
@@ -949,7 +972,9 @@ class MeScreen extends StatelessWidget {
                   spacing: 6,
                   runSpacing: 6,
                   children: [
-                    for (var n = 0; n <= PersonalSystemProvider.maxPassesPerMonth; n++)
+                    for (var n = 0;
+                        n <= PersonalSystemProvider.maxPassesPerMonth;
+                        n++)
                       ChoiceChip(
                         label: Text('$n a month'),
                         selected: system.passesPerMonth == n,
@@ -1161,7 +1186,7 @@ class _Mornings extends StatelessWidget {
     final week = system.checkinsEnding(today, 7);
     if (week.isEmpty) {
       return const EmptyNote(
-          'No check-ins yet. Fifteen seconds each morning shows how sleep, energy and mood move together.',
+          'No check-ins yet. Thirty seconds each morning shows how sleep, energy and mood move together.',
           icon: Icons.wb_twilight_rounded);
     }
     String avg(String key, int digits) {
@@ -1248,7 +1273,8 @@ class _CalendarLink extends StatelessWidget {
             }
             final err = await system.connectCalendar();
             if (context.mounted) {
-              toast(context, err ?? 'Connected — today\'s meetings are on Today.');
+              toast(context,
+                  err ?? 'Connected — today\'s meetings are on Today.');
             }
           },
         ),
@@ -1273,10 +1299,9 @@ class _AppleHealth extends StatelessWidget {
             icon: Icons.favorite_outline_rounded,
             color: AppColors.danger,
             title: 'Connect Apple Health',
-            subtitle:
-                system.isBuiltInPerson
-                    ? 'Sleep fills the check-in and ticks "bed by 22:30"; HRV and resting heart rate; weigh-ins go to Health'
-                    : 'Sleep fills the check-in; HRV and resting heart rate; weigh-ins go to Health',
+            subtitle: system.isBuiltInPerson
+                ? 'Sleep fills the check-in and ticks "bed by 22:30"; HRV and resting heart rate; weigh-ins go to Health'
+                : 'Sleep fills the check-in; HRV and resting heart rate; weigh-ins go to Health',
             onTap: () async {
               final err = await system.connectHealth();
               if (context.mounted) {
@@ -1370,11 +1395,16 @@ class _MoveSummary extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-              child: StatTile('${system.moveMinutesInWeek(now)}', 'of 150 min this week')),
+              child: StatTile(
+                  '${system.moveMinutesInWeek(now)}', 'of 150 min this week')),
           Expanded(
-              child: StatTile('${system.strengthDaysInWeek(now)}', 'of 2 strength days')),
-          Expanded(
-              child: StatTile(system.latestWeight?.toStringAsFixed(1) ?? '—', 'kg', unit: 'kg')),
+              child: StatTile(
+                  '${system.strengthDaysInWeek(now)}', 'of 2 strength days')),
+          if (system.latestWeight != null)
+            Expanded(
+                child: StatTile(
+                    system.latestWeight!.toStringAsFixed(1), 'weight',
+                    unit: 'kg')),
         ],
       ),
     );

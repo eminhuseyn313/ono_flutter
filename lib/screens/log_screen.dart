@@ -21,12 +21,82 @@ class LogScreen extends StatefulWidget {
 
 const _filters = <String, Set<String>?>{
   'All': null,
-  'Growth': {'rep', 'feedback', 'growth_focus', 'coaching', 'affirmation', 'values_check', 'goal_value', 'progress_note', 'setback', 'quarterly_review', 'learning', 'experiment', 'rest', 'detach', 'gratitude', 'feedback_round', 'wheel', 'aar', 'strength_use', 'program_cycle', 'story'},
-  'Notes': {'feynman', 'scan', 'pennebaker', 'note', 'win', 'month_review', 'shutdown', 'stepback', 'thought'},
-  'Protocols': {'sigh', 'excited', 'bluf', 'sixq', 'pause', 'still', 'ritual', 'read', 'anki'},
-  'Body': {'weight', 'protein', 'gym', 'blood', 'checkin', 'sleep', 'vitals', 'energy', 'move'},
-  'People': {'touch', 'help', 'partner_checkin', 'gratitude', 'feedback_round', 'kindness', 'promise', 'ask'},
-  'Career': {'linkedin', 'artifact', 'one_on_one', 'decision', 'readiness', 'focus', 'week_plan', 'touch'},
+  'Growth': {
+    'rep',
+    'feedback',
+    'growth_focus',
+    'coaching',
+    'affirmation',
+    'values_check',
+    'goal_value',
+    'progress_note',
+    'setback',
+    'quarterly_review',
+    'learning',
+    'experiment',
+    'rest',
+    'detach',
+    'gratitude',
+    'feedback_round',
+    'wheel',
+    'aar',
+    'strength_use',
+    'program_cycle',
+    'story'
+  },
+  'Notes': {
+    'feynman',
+    'scan',
+    'pennebaker',
+    'note',
+    'win',
+    'month_review',
+    'shutdown',
+    'stepback',
+    'thought'
+  },
+  'Protocols': {
+    'sigh',
+    'excited',
+    'bluf',
+    'sixq',
+    'pause',
+    'still',
+    'ritual',
+    'read',
+    'anki'
+  },
+  'Body': {
+    'weight',
+    'protein',
+    'gym',
+    'blood',
+    'checkin',
+    'sleep',
+    'vitals',
+    'energy',
+    'move'
+  },
+  'People': {
+    'touch',
+    'help',
+    'partner_checkin',
+    'gratitude',
+    'feedback_round',
+    'kindness',
+    'promise',
+    'ask'
+  },
+  'Career': {
+    'linkedin',
+    'artifact',
+    'one_on_one',
+    'decision',
+    'readiness',
+    'focus',
+    'week_plan',
+    'touch'
+  },
 };
 
 /// Filters that only make sense for the built-in plan's protocols.
@@ -70,8 +140,35 @@ class _LogScreenState extends State<LogScreen> {
             // Letters stay sealed: they only show on /letters.
             .where((e) => e.type != 'letter')
             // People are a list, not events; contact with them is a touch.
-            .where((e) => !const {'person', 'values', 'growth_area', 'area_drills', 'goal', 'profile', 'daily_item', 'stop', 'role_model', 'partner', 'odyssey', 'energy_audit', 'best_self', 'conversation', 'money_check', 'upkeep', 'manual', 'us_checkin', 'day_shape', 'strengths', 'best_future', 'life_story', 'kindness_plan', 'worry', 'worry_plan', 'year_review', 'daily_list'}
-                .contains(e.type))
+            .where((e) => !const {
+                  'person',
+                  'values',
+                  'growth_area',
+                  'area_drills',
+                  'goal',
+                  'profile',
+                  'daily_item',
+                  'stop',
+                  'role_model',
+                  'partner',
+                  'odyssey',
+                  'energy_audit',
+                  'best_self',
+                  'conversation',
+                  'money_check',
+                  'upkeep',
+                  'manual',
+                  'us_checkin',
+                  'day_shape',
+                  'strengths',
+                  'best_future',
+                  'life_story',
+                  'kindness_plan',
+                  'worry',
+                  'worry_plan',
+                  'year_review',
+                  'daily_list'
+                }.contains(e.type))
             .toList()
         : system.allLogs(_filters[_filter]);
     final byDay = <String, List<LogEntry>>{};
@@ -79,9 +176,8 @@ class _LogScreenState extends State<LogScreen> {
       byDay.putIfAbsent(dateKey(e.date), () => []).add(e);
     }
     return OnoPage(
-      eyebrow: system.allLogs().length == 1
-          ? '1 entry'
-          : '${system.allLogs().length} entries',
+      // What the list shows, not the settings and plans behind it.
+      eyebrow: entries.length == 1 ? '1 entry' : '${entries.length} entries',
       title: 'Log',
       children: [
         const SizedBox(height: 16),
@@ -93,10 +189,13 @@ class _LogScreenState extends State<LogScreen> {
               for (final a in [
                 ('win', Icons.emoji_events_outlined, 'Win'),
                 ('note', Icons.edit_note_rounded, 'Note'),
-                if (!system.isBuiltInPerson) ('move', Icons.directions_walk_rounded, 'Movement'),
+                if (!system.isBuiltInPerson)
+                  ('move', Icons.directions_walk_rounded, 'Movement'),
                 ('weight', Icons.monitor_weight_outlined, 'Weight'),
-                if (system.isBuiltInPerson) ('protein', Icons.egg_alt_outlined, 'Protein'),
-                if (system.isBuiltInPerson) ('blood', Icons.bloodtype_outlined, 'Bloodwork'),
+                if (system.isBuiltInPerson)
+                  ('protein', Icons.egg_alt_outlined, 'Protein'),
+                if (system.isBuiltInPerson)
+                  ('blood', Icons.bloodtype_outlined, 'Bloodwork'),
               ])
                 Padding(
                   padding: const EdgeInsets.only(right: 8),
@@ -116,15 +215,21 @@ class _LogScreenState extends State<LogScreen> {
           padding: EdgeInsets.zero,
           child: Column(
             children: [
-              LinkRow(
-                icon: Icons.work_outline_rounded,
-                color: AppColors.accent,
-                title: 'Career cockpit',
-                subtitle: '1:1s · decisions · readiness',
-                trailing: '${system.openFollowUps.length + system.dueDecisionReviews(DateTime.now()).length}',
-                onTap: () => context.push('/cockpit'),
-              ),
-              const Divider(indent: 66),
+              // Career tools show for anyone once they've used them.
+              if (system.isBuiltInPerson ||
+                  system.logsOf('one_on_one').isNotEmpty ||
+                  system.logsOf('decision').isNotEmpty) ...[
+                LinkRow(
+                  icon: Icons.work_outline_rounded,
+                  color: AppColors.accent,
+                  title: 'Career cockpit',
+                  subtitle: '1:1s · decisions · readiness',
+                  trailing:
+                      '${system.openFollowUps.length + system.dueDecisionReviews(DateTime.now()).length}',
+                  onTap: () => context.push('/cockpit'),
+                ),
+                const Divider(indent: 66),
+              ],
               LinkRow(
                 icon: Icons.style_rounded,
                 color: AppColors.mind,
@@ -133,14 +238,16 @@ class _LogScreenState extends State<LogScreen> {
                 trailing: '${system.dueCards(DateTime.now()).length}',
                 onTap: () => context.push('/review'),
               ),
-              const Divider(indent: 66),
-              LinkRow(
-                icon: Icons.inventory_2_outlined,
-                color: AppColors.steel,
-                title: 'Evidence Archive',
-                trailing: '${system.evidenceCount}',
-                onTap: () => context.push('/evidence'),
-              ),
+              if (system.isBuiltInPerson || system.evidenceCount > 0) ...[
+                const Divider(indent: 66),
+                LinkRow(
+                  icon: Icons.inventory_2_outlined,
+                  color: AppColors.steel,
+                  title: 'Evidence Archive',
+                  trailing: '${system.evidenceCount}',
+                  onTap: () => context.push('/evidence'),
+                ),
+              ],
               const Divider(indent: 66),
               LinkRow(
                 icon: Icons.assignment_outlined,
@@ -150,29 +257,29 @@ class _LogScreenState extends State<LogScreen> {
                 onTap: () => context.push('/weekly-coaching'),
               ),
               if (system.isBuiltInPerson) ...[
-              const Divider(indent: 66),
-              LinkRow(
-                icon: Icons.campaign_outlined,
-                color: AppColors.skill,
-                title: 'LinkedIn posts',
-                trailing: '${system.countOf('linkedin')}',
-                onTap: () => context.push('/tool/linkedin'),
-              ),
-              const Divider(indent: 66),
-              LinkRow(
-                icon: Icons.description_outlined,
-                color: AppColors.skill,
-                title: 'Artifacts',
-                trailing: '${system.countOf('artifact')}',
-                onTap: () => context.push('/tool/artifact'),
-              ),
-              const Divider(indent: 66),
-              LinkRow(
-                icon: Icons.school_outlined,
-                color: AppColors.mind,
-                title: 'Anki',
-                onTap: () => context.push('/tool/anki'),
-              ),
+                const Divider(indent: 66),
+                LinkRow(
+                  icon: Icons.campaign_outlined,
+                  color: AppColors.skill,
+                  title: 'LinkedIn posts',
+                  trailing: '${system.countOf('linkedin')}',
+                  onTap: () => context.push('/tool/linkedin'),
+                ),
+                const Divider(indent: 66),
+                LinkRow(
+                  icon: Icons.description_outlined,
+                  color: AppColors.skill,
+                  title: 'Artifacts',
+                  trailing: '${system.countOf('artifact')}',
+                  onTap: () => context.push('/tool/artifact'),
+                ),
+                const Divider(indent: 66),
+                LinkRow(
+                  icon: Icons.school_outlined,
+                  color: AppColors.mind,
+                  title: 'Anki',
+                  onTap: () => context.push('/tool/anki'),
+                ),
               ],
             ],
           ),
@@ -185,16 +292,16 @@ class _LogScreenState extends State<LogScreen> {
             children: [
               for (final f in _filters.keys)
                 if (system.isBuiltInPerson || !_builtInOnlyFilters.contains(f))
-                Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: ChoiceChip(
-                    label: Text(f),
-                    selected: _filter == f,
-                    showCheckmark: false,
-                    selectedColor: AppColors.cardLight,
-                    onSelected: (_) => setState(() => _filter = f),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ChoiceChip(
+                      label: Text(f),
+                      selected: _filter == f,
+                      showCheckmark: false,
+                      selectedColor: AppColors.cardLight,
+                      onSelected: (_) => setState(() => _filter = f),
+                    ),
                   ),
-                ),
             ],
           ),
         ),
@@ -205,8 +312,8 @@ class _LogScreenState extends State<LogScreen> {
         for (final day in byDay.keys) ...[
           Padding(
             padding: const EdgeInsets.fromLTRB(0, 18, 0, 8),
-            child: Text(_dayLabel(DateTime.parse(day)),
-                style: AppText.eyebrow()),
+            child:
+                Text(_dayLabel(DateTime.parse(day)), style: AppText.eyebrow()),
           ),
           OnoCard(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
@@ -292,7 +399,11 @@ class _EntryRow extends StatelessWidget {
     'wheel': (Icons.donut_large_rounded, 'mind', 'Life wheel'),
     'hard_day': (Icons.healing_outlined, 'body', 'Hard day'),
     'move': (Icons.directions_walk_rounded, 'body', 'Movement'),
-    'help': (Icons.volunteer_activism_outlined, 'social', 'Helped someone grow'),
+    'help': (
+      Icons.volunteer_activism_outlined,
+      'social',
+      'Helped someone grow'
+    ),
     'stepback': (Icons.zoom_out_map_rounded, 'mind', 'Stepped back'),
     'thought': (Icons.psychology_outlined, 'mind', 'Thought check'),
     'aar': (Icons.flag_outlined, 'skill', 'After-action review'),
@@ -395,7 +506,12 @@ class _EntryRow extends StatelessWidget {
       case 'rest':
         return '${e.str('kind') == 'light' ? 'Lighter week' : e.str('kind') == 'holiday' ? 'Holiday' : 'Rest day'} · ${e.str('from')}${e.str('to') == e.str('from') ? '' : ' → ${e.str('to')}'}';
       case 'detach':
-        return const ['', 'Not really', 'Partly', 'Fully'][(e.number('level') ?? 0).toInt().clamp(0, 3)];
+        return const [
+          '',
+          'Not really',
+          'Partly',
+          'Fully'
+        ][(e.number('level') ?? 0).toInt().clamp(0, 3)];
       case 'experiment':
         return '${e.text} · ${e.str('status') ?? 'running'}';
       case 'learning':
@@ -442,7 +558,13 @@ class _EntryRow extends StatelessWidget {
         final stiff = (e.number('stiffness') ?? 0).toInt();
         return 'Energy ${e.number('energy')}/5 · sleep ${e.number('sleep')} h · '
             'shoulders ${e.number('pain')}/10'
-            '${stiff > 0 ? ' · stiff ${const ['', '<15', '15–30', '30–60', '60+'][stiff.clamp(0, 4)]} min' : ''}';
+            '${stiff > 0 ? ' · stiff ${const [
+                '',
+                '<15',
+                '15–30',
+                '30–60',
+                '60+'
+              ][stiff.clamp(0, 4)]} min' : ''}';
       default:
         final extra = e.str('outcome');
         final t = e.text.isEmpty ? 'Logged' : e.text;
@@ -452,8 +574,7 @@ class _EntryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final m = _meta[entry.type] ??
-        (Icons.circle_outlined, 'mind', entry.type);
+    final m = _meta[entry.type] ?? (Icons.circle_outlined, 'mind', entry.type);
     final time =
         '${entry.createdAt.hour.toString().padLeft(2, '0')}:${entry.createdAt.minute.toString().padLeft(2, '0')}';
     return Padding(
@@ -592,7 +713,9 @@ Future<void> _openAdd(BuildContext context, String kind) async {
                   Wrap(
                     spacing: 6,
                     children: [
-                      for (final s in context.read<PersonalSystemProvider>().activeEvidenceSections)
+                      for (final s in context
+                          .read<PersonalSystemProvider>()
+                          .activeEvidenceSections)
                         ChoiceChip(
                           label: Text(s.title),
                           selected: section == s.section,
