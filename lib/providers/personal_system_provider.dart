@@ -2352,8 +2352,26 @@ class PersonalSystemProvider extends ChangeNotifier {
         ));
       }
     }
+    // Worry time: a daily nudge at their slot, only while something is
+    // parked (ids from worryReminderBase, below the one-off range).
+    final wt = worryTime;
+    if (wt != null && parkedWorries.isNotEmpty) {
+      for (var wd = 1; wd <= 7; wd++) {
+        out.add(PlannedReminder(
+          id: worryReminderBase + wd,
+          weekday: wd,
+          hour: wt ~/ 60,
+          minute: wt % 60,
+          title: 'Worry time',
+          body: '${parkedWorries.length} parked — a next step, or let it go.',
+          route: '/worry',
+        ));
+      }
+    }
     return out;
   }
+
+  static const worryReminderBase = 950;
 
   /// Whether what reminder [id] asks for is already done today.
   bool reminderDoneToday(String id) {
@@ -6407,11 +6425,15 @@ class PersonalSystemProvider extends ChangeNotifier {
       if (minuteOfDay != null)
         _entry('worry_plan', _now, data: {'minute': minuteOfDay}),
     ]));
+    _syncReminders();
   }
 
   void parkWorry(String worry) {
     if (worry.trim().isEmpty) return;
+    final first = parkedWorries.isEmpty;
     addLog('worry', text: worry.trim(), data: {'status': 'parked'});
+    // The worry-time reminder only exists while something is parked.
+    if (first) _syncReminders();
   }
 
   /// Parked worries, oldest first (the order they are dealt with).
@@ -6433,11 +6455,9 @@ class PersonalSystemProvider extends ChangeNotifier {
       'step': step.trim(),
       'resolved_on': dateKey(_now),
     }));
+    if (parkedWorries.isEmpty) _syncReminders();
     if (outcome != 'acted' || step.trim().isEmpty) return;
-    final today = dayOnly(_now);
-    final p = prioritiesFor(today);
-    final slot = p.indexWhere((x) => x.trim().isEmpty);
-    if (slot >= 0) setPriority(today, slot, step.trim());
+    addToTodayPriorities(step);
   }
 
   /// The worry slot has come and something is parked.

@@ -3201,4 +3201,16 @@ void main() {
     expect(p.letterIsOpen(p.letters.single), isTrue,
         reason: 'the program it waited for has closed');
   });
+
+  test('worry time reminds only while something is parked', () async {
+    final p = await _commissioned();
+    p.setWorryTime(18 * 60 + 30);
+    bool has() => p.plannedReminders().any((r) => r.title == 'Worry time');
+    expect(has(), isFalse);
+    p.parkWorry('The budget meeting');
+    expect(has(), isTrue);
+    expect(p.plannedReminders().where((r) => r.title == 'Worry time').first.hour, 18);
+    p.resolveWorry(p.parkedWorries.single.id, outcome: 'let_go');
+    expect(has(), isFalse);
+  });
 }
