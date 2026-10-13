@@ -20,11 +20,13 @@ class MonthScreen extends StatefulWidget {
 
 class _MonthScreenState extends State<MonthScreen> {
   final _carry = TextEditingController();
+  final _lesson = TextEditingController();
   bool _loaded = false;
 
   @override
   void dispose() {
     _carry.dispose();
+    _lesson.dispose();
     super.dispose();
   }
 
@@ -42,6 +44,7 @@ class _MonthScreenState extends State<MonthScreen> {
         .firstOrNull;
     if (!_loaded && review != null) {
       _carry.text = review.text;
+      _lesson.text = review.str('lesson') ?? '';
       _loaded = true;
     }
     final milestone = careerMilestones.where((c) => c.month == m).firstOrNull;
@@ -178,6 +181,21 @@ class _MonthScreenState extends State<MonthScreen> {
           Text(
               '${stats.daysElapsed} of 30 days elapsed${prev == null ? '' : ' · compared with month ${m - 1}'}.',
               style: AppText.small()),
+          Builder(builder: (_) {
+            // The same count as the month review: excused days left out.
+            final h = system.monthHeld(m);
+            return Text('Held ${h.held} of ${h.counted} counted days.',
+                style: AppText.small(color: AppColors.white));
+          }),
+          const SectionHeader('One lesson from this month'),
+          TextField(
+            controller: _lesson,
+            minLines: 2,
+            maxLines: 4,
+            style: AppText.body(color: AppColors.white),
+            decoration: const InputDecoration(
+                hintText: 'What this month taught you, in one sentence.'),
+          ),
           const SectionHeader('Carry into next month'),
           TextField(
             controller: _carry,
@@ -190,12 +208,11 @@ class _MonthScreenState extends State<MonthScreen> {
           ),
           const SizedBox(height: 12),
           PrimaryButton('Save review', onPressed: () {
-            if (review != null) {
-              system.updateLog(review.copyWith(text: _carry.text.trim()));
-            } else {
-              system.addLog('month_review',
-                  text: _carry.text.trim(), data: {'month': m});
+            if (_carry.text.trim().isEmpty) {
+              toast(context, 'Write what you carry into next month.');
+              return;
             }
+            system.saveMonthReview(m, carry: _carry.text, lesson: _lesson.text);
             toast(context, 'Month $m review saved');
           }),
         ],

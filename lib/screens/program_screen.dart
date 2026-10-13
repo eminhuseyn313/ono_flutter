@@ -202,7 +202,8 @@ class _Journey extends StatelessWidget {
                   onTap: () => context.push('/goals'),
                 ),
                 // Offered once a month can be closed, not on day one.
-                if (system.monthToReview != null || month > 1) ...[
+                // Offered when a month can actually be closed (from day 27).
+                if (system.monthToReview != null) ...[
                   const Divider(indent: 66),
                   LinkRow(
                     icon: Icons.fact_check_outlined,

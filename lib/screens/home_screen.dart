@@ -941,6 +941,7 @@ class _PlanToggle extends StatelessWidget {
       if (system.activeGoals.isNotEmpty)
         '${system.activeGoals.length} goal${system.activeGoals.length == 1 ? '' : 's'}',
       if (system.focusArea() != null) system.focusArea()!.name,
+      if (system.quarterFocus case final q?) 'quarter: $q',
       if (set > 0) 'week $done/$set',
       if (meetings > 0) '$meetings meeting${meetings == 1 ? '' : 's'}',
     ].join(' · ');
@@ -1464,7 +1465,8 @@ class _PromptsState extends State<_Prompts> {
             'Ask three people one question',
             'Your quarterly feedback round — 5 minutes to send',
             '/360'),
-      if (system.quarterReviewDue)
+      // At the program's end, its own look-back replaces the quarter's.
+      if (system.quarterReviewDue && !system.programComplete)
         _row(
             context,
             Icons.donut_large_rounded,

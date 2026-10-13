@@ -82,7 +82,8 @@ class _LettersScreenState extends State<LettersScreen> {
             toast(context, 'Write something first.');
             return;
           }
-          system.writeLetter(_text.text, options[choice].$2);
+          system.writeLetter(_text.text, options[choice].$2,
+              atEnd: choice == options.length - 1);
           _text.clear();
           FocusManager.instance.primaryFocus?.unfocus();
           toast(context, 'Sealed until ${shortDate(options[choice].$2)}.');

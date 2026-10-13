@@ -3158,4 +3158,47 @@ void main() {
     p.saveCheckin(dayOnly(_today), energy: 4, mood: 1, sleep: 7, pain: 0, stiffness: 0);
     expect(rec.last, isNotEmpty);
   });
+
+  test('reflection rhythm: honest summary, letters for the end, what carries',
+      () async {
+    final p = PersonalSystemProvider(gateway: MockPersonalSystemGateway())
+      ..clock = () => DateTime(2026, 1, 1, 9);
+    await p.load('test');
+    await p.commission(
+        start: DateTime(2026, 1, 1), gymDays: const [1, 3, 5], reminders: const {});
+    p.setProgramLength(90);
+    // A letter for the end moves with the program's length.
+    p.writeLetter('Dear me', p.programEnd, atEnd: true);
+    final letter = p.letters.single;
+    expect(p.letterOpensOn(letter), p.programEnd);
+    p.setProgramLength(180);
+    expect(p.letterOpensOn(letter), p.programEnd);
+    p.setProgramLength(90);
+    // Month 1 closed: what to carry comes back in month 2.
+    p.clock = () => DateTime(2026, 1, 29, 9);
+    p.saveMonthReview(1, carry: 'Phone out of the bedroom', lesson: 'Mornings decide days');
+    p.clock = () => DateTime(2026, 2, 2, 9);
+    expect(p.lastCarry, 'Phone out of the bedroom');
+    // End of quarter 1: one look back, not two; it closes month 3 too.
+    p.clock = () => DateTime(2026, 3, 28, 9);
+    expect(p.quarterReviewDue, isTrue);
+    expect(p.monthReviewDue, isFalse);
+    final g = p.saveGoal(title: 'Run 10 km')!;
+    p.saveQuarterReview(1,
+        wheel: const {}, lessons: 'Small beats big\nSleep first',
+        goalDecisions: {g.id: 'achieved'}, nextFocus: 'Strength');
+    expect(p.monthReviewFor(3)?.str('lesson'), 'Small beats big');
+    p.saveQuarterReview(1, wheel: const {}, nextFocus: 'Strength');
+    expect((p.reviewFor(1)!.data['goals'] as Map)[g.id], 'achieved',
+        reason: 'saving again keeps the first decisions');
+    // The program ended on day 90; opening the look-back weeks later
+    // doesn't count the weeks after it.
+    p.clock = () => DateTime(2026, 4, 25, 9);
+    expect(p.programComplete, isTrue);
+    final sum = p.programSummary();
+    expect(sum.counted, lessThanOrEqualTo(90));
+    p.startNextProgram(days: 90);
+    expect(p.letterIsOpen(p.letters.single), isTrue,
+        reason: 'the program it waited for has closed');
+  });
 }

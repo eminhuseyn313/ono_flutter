@@ -407,14 +407,17 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// What this program added up to, for the closing review.
   ({int held, int counted, int goalsAchieved, int wins, int reps, int lessons})
       programSummary() {
-    final end = dayOnly(_now);
+    final end = programSummaryEnd;
     var held = 0, counted = 0;
     for (var d = programStart; d.isBefore(end); d = d.plusDays(1)) {
       if (isExcused(d)) continue;
       counted++;
       if (isHeld(d)) held++;
     }
-    bool inProgram(LogEntry l) => !l.date.isBefore(programStart);
+    // Only what happened inside the program: opening the look-back three
+    // weeks late doesn't add those weeks to it.
+    bool inProgram(LogEntry l) =>
+        !l.date.isBefore(programStart) && l.date.isBefore(end);
     return (
       held: held,
       counted: counted,
@@ -422,7 +425,9 @@ class PersonalSystemProvider extends ChangeNotifier {
           .where((g) =>
               g.str('status') == 'achieved' &&
               !(DateTime.tryParse(g.str('closed_on') ?? '') ?? g.date)
-                  .isBefore(programStart))
+                  .isBefore(programStart) &&
+              (DateTime.tryParse(g.str('closed_on') ?? '') ?? g.date)
+                  .isBefore(end))
           .length,
       wins: logsOf('win').where(inProgram).length,
       reps: logsOf('rep').where(inProgram).length,
@@ -430,6 +435,13 @@ class PersonalSystemProvider extends ChangeNotifier {
           .where((r) => inProgram(r) && (r.str('lesson') ?? '').isNotEmpty)
           .length,
     );
+  }
+
+  /// The day after the program's last day, or today if it is still on.
+  DateTime get programSummaryEnd {
+    final today = dayOnly(_now);
+    final after = programEnd.plusDays(1);
+    return after.isBefore(today) ? after : today;
   }
 
   /// Closes this program with a look back and starts the next from today,
@@ -446,7 +458,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     final record = _entry('program_cycle', today, text: changed.trim(), data: {
       'number': cycle,
       'start': dateKey(programStart),
-      'end': dateKey(today.minusDays(1)),
+      'end': dateKey(programSummaryEnd.minusDays(1)),
       'days': programDays,
       'held': sum.held,
       'counted': sum.counted,
@@ -1029,9 +1041,13 @@ class PersonalSystemProvider extends ChangeNotifier {
         key: 'fresh:month:$month${cycle > 1 ? ':$cycle' : ''}',
         eyebrow: 'Month $month begins',
         title: isBuiltInPerson ? theme : 'A fresh month',
-        body: isBuiltInPerson
-            ? 'Artifact of the month: ${artifactFor(month)}.'
-            : 'A clean page. Pick the one area you\'ll grow this month.',
+        body: [
+          isBuiltInPerson
+              ? 'Artifact of the month: ${artifactFor(month)}.'
+              : 'A clean page. Pick the one area you\'ll grow this month.',
+          // What they decided to carry, in their words, three days ago.
+          if (lastCarry case final c?) 'You said you\'d carry: "$c".',
+        ].join('\n\n'),
         cta: isBuiltInPerson ? 'Open month $month' : 'Choose this month\'s area',
         route: isBuiltInPerson ? '/month/$month' : '/growth',
       );
@@ -2028,6 +2044,8 @@ class PersonalSystemProvider extends ChangeNotifier {
         report: report,
         itemTitles: {for (final n in dailyItems) n.id: n.title},
         itemCount: dailyCount,
+        monthCarry: lastCarry,
+        quarterFocus: quarterFocus,
         wins: [
           for (final w in logsOf('win').reversed)
             if (!w.date.isBefore(report.weekStart) &&
@@ -4363,15 +4381,28 @@ class PersonalSystemProvider extends ChangeNotifier {
       if (e.value == 'drop') setGoalStatus(e.key, 'dropped');
       if (e.value == 'achieved') setGoalStatus(e.key, 'achieved');
     }
+    // The quarter's last month is closed by this review too.
+    final lastMonth = quarter * 3;
+    if (monthReviewFor(lastMonth) == null && nextFocus.trim().isNotEmpty) {
+      saveMonthReview(lastMonth,
+          carry: nextFocus,
+          lesson: lessons.trim().split('\n').first);
+    }
+    final existing = reviewFor(quarter);
+    // Saving again keeps the decisions made the first time (those goals
+    // are closed now, so they aren't on the screen any more).
+    final earlier = {
+      for (final e in (existing?.data['goals'] as Map? ?? const {}).entries)
+        '${e.key}': '${e.value}'
+    };
     final data = {
       'quarter': quarter,
       'wheel': wheel,
       'wins': wins.trim(),
       'lessons': lessons.trim(),
-      'goals': goalDecisions,
+      'goals': {...earlier, ...goalDecisions},
       'next': nextFocus.trim(),
     };
-    final existing = reviewFor(quarter);
     if (existing == null) {
       addLog('quarterly_review', text: nextFocus.trim(), data: data);
     } else {
@@ -4565,8 +4596,15 @@ class PersonalSystemProvider extends ChangeNotifier {
     return null;
   }
 
-  bool get monthReviewDue =>
-      monthToReview != null && monthReviewFor(monthToReview!) == null;
+  bool get monthReviewDue {
+    final m = monthToReview;
+    if (m == null || monthReviewFor(m) != null) return false;
+    // One look back at a time: the quarterly review covers its last month,
+    // and the end of the program has its own.
+    if (programComplete) return false;
+    if (quarterReviewDue && m == quarterToReview * 3) return false;
+    return true;
+  }
 
   /// Held days out of the days that counted (excused days left out).
   ({int held, int counted, Map<String, int> hard}) monthHeld(int month) {
@@ -4594,6 +4632,20 @@ class PersonalSystemProvider extends ChangeNotifier {
     } else {
       updateLog(existing.copyWith(text: carry.trim(), data: {...existing.data, ...data}));
     }
+  }
+
+  /// What last month's review said to carry into this one, or null.
+  String? get lastCarry {
+    if (programMonth < 2) return null;
+    final t = (monthReviewFor(programMonth - 1)?.text ?? '').trim();
+    return t.isEmpty ? null : t;
+  }
+
+  /// The focus the last quarterly review set for this quarter, or null.
+  String? get quarterFocus {
+    if (programQuarter < 2) return null;
+    final t = (reviewFor(programQuarter - 1)?.str('next') ?? '').trim();
+    return t.isEmpty ? null : t;
   }
 
   /// (start, end) ratings for [month]'s area; end is null until rated.
@@ -5474,14 +5526,32 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   /// Sealed until [openOn]; written to the person he is becoming
   /// (future-self continuity, Hershfield 2011; Rutchick et al. 2018).
-  void writeLetter(String text, DateTime openOn) => addLog('letter',
-      text: text.trim(),
-      data: {'open_on': dateKey(openOn), 'month': programMonth});
+  /// [atEnd] seals it until the end of this program, wherever that falls
+  /// (a length change, paused days or an early close move it).
+  void writeLetter(String text, DateTime openOn, {bool atEnd = false}) =>
+      addLog('letter', text: text.trim(), data: {
+        'open_on': dateKey(openOn),
+        'month': programMonth,
+        if (atEnd) 'open_at': 'end',
+      });
 
   List<LogEntry> get letters => logsOf('letter');
 
-  DateTime letterOpensOn(LogEntry l) =>
-      DateTime.tryParse(l.str('open_on') ?? '') ?? programEnd;
+  DateTime letterOpensOn(LogEntry l) {
+    if (l.str('open_at') == 'end') {
+      // Written in an earlier program: that program has closed, so it's due.
+      final written = (l.number('cycle') ?? 1).toInt();
+      if (written < cycle) return dayOnly(l.date);
+      return programEnd;
+    }
+    return DateTime.tryParse(l.str('open_on') ?? '') ?? programEnd;
+  }
+
+  /// Letters sealed for the end of this program and still closed.
+  List<LogEntry> get lettersForTheEnd => [
+        for (final l in letters)
+          if (l.str('open_at') == 'end' && !letterIsOpen(l)) l
+      ];
 
   bool letterIsOpen(LogEntry l) =>
       !dayOnly(_now).isBefore(letterOpensOn(l));
@@ -6017,8 +6087,14 @@ class PersonalSystemProvider extends ChangeNotifier {
       if (inYear(f.date)) minutes += (f.number('minutes') ?? 0).toInt();
     }
     final lessons = [
+      // A month's lesson belongs to the year the month started in, not to
+      // the day it was written (December is often closed in January).
       for (final r in logsOf('month_review').reversed)
-        if (inYear(r.date) && (r.str('lesson') ?? '').trim().isNotEmpty) r.str('lesson')!.trim(),
+        if (inYear(cycleOf(r) == cycle && r.number('month') != null
+                ? monthStart(r.number('month')!.toInt())
+                : r.date) &&
+            (r.str('lesson') ?? '').trim().isNotEmpty)
+          r.str('lesson')!.trim(),
       for (final r in logsOf('quarterly_review').reversed)
         if (inYear(r.date) && (r.str('lessons') ?? '').trim().isNotEmpty) r.str('lessons')!.trim(),
     ];

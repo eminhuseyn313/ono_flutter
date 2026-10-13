@@ -95,7 +95,7 @@ class _QuarterScreenState extends State<QuarterScreen> {
         : areaTemplates.where((t) => t.id == low.template).firstOrNull;
     return OnoPage(
       showBack: true,
-      eyebrow: 'Quarter $_quarter of 6 · 15 minutes',
+      eyebrow: 'Quarter $_quarter of ${system.programQuarters} · 15 minutes',
       title: 'Quarterly review',
       subtitle:
           'Step back from the weeks. How is your whole life going, what did these 90 days teach you, and what matters most next?',
@@ -228,6 +228,20 @@ class _QuarterScreenState extends State<QuarterScreen> {
                   ),
                 ],
               ],
+            ),
+          ),
+        ],
+        // A fresh start is when a letter to your future self works best.
+        if (system.lettersForTheEnd.isEmpty) ...[
+          const SizedBox(height: 12),
+          OnoCard(
+            padding: EdgeInsets.zero,
+            child: LinkRow(
+              icon: Icons.mail_outline_rounded,
+              color: AppColors.accent,
+              title: 'Seal a letter for the end of this program',
+              subtitle: 'Five minutes: what you hope you will have done',
+              onTap: () => context.push('/letters'),
             ),
           ),
         ],

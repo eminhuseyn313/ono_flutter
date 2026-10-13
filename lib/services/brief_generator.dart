@@ -106,6 +106,11 @@ class BriefInput {
   /// How many daily items there are (the Daily 10 may have 8 or 12).
   final int itemCount;
 
+  /// What last month's review said to carry, and the quarter's focus, in
+  /// their words.
+  final String? monthCarry;
+  final String? quarterFocus;
+
   /// Wins logged this week (text stays on the device; only the count is
   /// sent to the coach).
   final List<String> wins;
@@ -209,6 +214,8 @@ class BriefInput {
     this.itemCount = 10,
     this.itemCues = const {},
     this.wins = const [],
+    this.monthCarry,
+    this.quarterFocus,
     this.peopleReached = 0,
     this.peopleCount = 0,
     this.daysCounted = 7,
@@ -271,6 +278,8 @@ class BriefInput {
         if (itemCues.isNotEmpty) 'item_if_then_plans': itemCues,
         if (peopleCount > 0) 'people_in_touch_this_week': '$peopleReached of $peopleCount',
         'wins_logged_this_week': wins.length,
+        if (monthCarry != null) 'month_carry': monthCarry,
+        if (quarterFocus != null) 'quarter_focus': quarterFocus,
         'days_in_program_this_week': daysCounted,
         'evidence_added_this_week': evidenceAddedThisWeek,
         'artifacts_this_month': artifactsThisMonth,
@@ -464,6 +473,8 @@ class DeviceBriefGenerator implements BriefGenerator {
       if (input.learningApplied.where((l) => l.endsWith(')') && l.contains(' (experiment: ')).firstOrNull
           case final l?)
         'You took "${_clip(l.substring(l.indexOf(': ') + 2, l.lastIndexOf(' (experiment: ')), 100)}" from ${l.substring(0, l.indexOf(': '))}. Did the experiment hold? Note what happened in Learning — applied learning is the kind that stays.',
+      if (input.monthCarry != null)
+        'Last month you decided to carry: "${_clip(input.monthCarry!, 100)}". Where will it show up next week?',
       if (input.valueGap != null)
         'This week reflected ${input.valueGap} least. Name one moment next week where you\'ll choose it on purpose.',
       if (input.feedbackThemes != null)
