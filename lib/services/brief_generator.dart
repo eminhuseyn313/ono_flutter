@@ -79,6 +79,10 @@ class BriefInput {
   /// Times they asked for help this week, and their record over six
   /// months ("7 of 9 said yes; you expected 45%").
   final int asksThisWeek;
+
+  /// Outcomes proposed for next week's Big 3 (goal's next step, the drill,
+  /// what feedback said) — the brief leads with them.
+  final List<String> proposedOutcomes;
   final String? askRecord;
 
   /// The one word chosen for this year in last year's review.
@@ -179,6 +183,7 @@ class BriefInput {
     this.sayDo,
     this.promisesOverdue = 0,
     this.asksThisWeek = 0,
+    this.proposedOutcomes = const [],
     this.askRecord,
     this.wordForTheYear,
     this.lowestLifeArea,
@@ -213,6 +218,7 @@ class BriefInput {
         if (sayDo != null) 'promises_kept_90_days': sayDo,
         if (promisesOverdue > 0) 'promises_overdue': promisesOverdue,
         'asks_for_help_this_week': asksThisWeek,
+        if (proposedOutcomes.isNotEmpty) 'proposed_big_3': proposedOutcomes,
         if (askRecord != null) 'asks_for_help_180_days': askRecord,
         if (wordForTheYear != null) 'word_for_the_year': wordForTheYear,
         'lowest_life_area': lowestLifeArea,
@@ -323,6 +329,8 @@ class DeviceBriefGenerator implements BriefGenerator {
     final word = input.wordForTheYear;
 
     final tasks = <String>[
+      // The week's three first: the same ones /week offers in one tap.
+      for (final o in input.proposedOutcomes) 'One of the week\'s three: $o',
       for (final id in weakest)
         _taskFor[id] ??
             'Protect "${title(id)}": tie it to one fixed moment in your day, and make it smaller if it keeps slipping.',

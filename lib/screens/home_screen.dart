@@ -1633,11 +1633,8 @@ class _BriefCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final system = context.watch<PersonalSystemProvider>();
-    final done = [
-      for (var i = 0; i < brief.tasks.length; i++)
-        system.isDone('brief:${brief.id}:$i')
-    ];
+    final (outDone, outSet) =
+        context.watch<PersonalSystemProvider>().weekOutcomeScore(DateTime.now());
     return OnoCard(
       color: AppColors.navy,
       padding: const EdgeInsets.fromLTRB(18, 16, 18, 8),
@@ -1648,26 +1645,35 @@ class _BriefCard extends StatelessWidget {
             children: [
               Text('THIS WEEK\'S BRIEF',
                   style: AppText.eyebrow(color: AppColors.accent)),
-              const Spacer(),
-              Text('${done.where((d) => d).length}/${brief.tasks.length}',
-                  style: AppText.small(color: AppColors.white)
-                      .copyWith(fontWeight: FontWeight.w700)),
             ],
           ),
           const SizedBox(height: 8),
           Text(brief.headline, style: AppText.heading()),
           const SizedBox(height: 4),
-          for (var i = 0; i < brief.tasks.length; i++)
-            CheckRow(
-              checked: done[i],
-              title: brief.tasks[i],
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              onChanged: (_) => system.toggleDone('brief:${brief.id}:$i'),
+          // The brief's ideas, not a second checklist: what's ticked is the
+          // week's three.
+          for (final t in brief.tasks.take(3))
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 3),
+              child: Text('• $t', style: AppText.small(color: AppColors.white)),
             ),
-          TextButton(
-            onPressed: () => context.push('/weekly-coaching'),
-            style: TextButton.styleFrom(padding: EdgeInsets.zero),
-            child: const Text('Domain brief & coaching →'),
+          const SizedBox(height: 4),
+          Wrap(
+            spacing: 4,
+            children: [
+              TextButton(
+                onPressed: () => context.push('/week'),
+                style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                child: Text(outSet == 0
+                    ? 'Plan the week\'s three →'
+                    : 'The week\'s three: $outDone of $outSet →'),
+              ),
+              TextButton(
+                onPressed: () => context.push('/weekly-coaching'),
+                style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                child: const Text('The full brief →'),
+              ),
+            ],
           ),
         ],
       ),

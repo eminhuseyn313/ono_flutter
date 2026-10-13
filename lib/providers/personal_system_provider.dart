@@ -1985,6 +1985,7 @@ class PersonalSystemProvider extends ChangeNotifier {
         promisesOverdue: promisesDue(_now.minusDays(1)).length,
         thoughtsChecked: thoughtsInWeek(report.weekStart),
         asksThisWeek: asksInWeek(report.weekStart),
+        proposedOutcomes: [for (final p in proposedOutcomes(forWeek)) p.text],
         askRecord: askRecord() == null
             ? null
             : '${askRecord()!.yes} of ${askRecord()!.asked} said yes or partly; you expected ${askRecord()!.guess}%',
@@ -4691,6 +4692,70 @@ class PersonalSystemProvider extends ChangeNotifier {
     }
     final plan = (goal.str('plan') ?? '').trim();
     return plan.isEmpty ? null : plan;
+  }
+
+  /// Up to three outcomes ONO proposes for [week]'s Big 3, so the week
+  /// doesn't start from a blank page: the first goal's next step (linked
+  /// to it), the growth area's drill, and what the latest feedback said to
+  /// do — or, without it, the weakest daily item. Ones already planned
+  /// are left out.
+  List<({String text, String? goalId})> proposedOutcomes(DateTime week) {
+    final planned = {
+      for (final o in weekOutcomes(week))
+        if (o.trim().isNotEmpty) o.trim().toLowerCase()
+    };
+    final out = <({String text, String? goalId})>[];
+    void add(String text, [String? goalId]) {
+      final t = text.trim();
+      if (t.isEmpty || planned.contains(t.toLowerCase()) || out.any((x) => x.text == t)) return;
+      out.add((text: t, goalId: goalId));
+    }
+
+    for (final g in activeGoals) {
+      final m = milestonesOf(g).where((m) => !m.done).firstOrNull?.text ??
+          (g.str('plan') ?? '').trim();
+      if (m.isNotEmpty) {
+        add(m, g.id);
+        break;
+      }
+    }
+    final area = focusArea();
+    if (area != null) {
+      add('${drillFor(area, week).title} — practise it twice');
+      final heard = feedbackIn(area.id, programMonth)
+          .map((f) => (f.str('action') ?? '').trim())
+          .where((a) => a.isNotEmpty)
+          .firstOrNull;
+      if (heard != null) add(heard);
+    }
+    if (out.length < 3) {
+      final last = weekDays(week.minusDays(7))
+          .where((d) => !d.isBefore(programStart) && d.isBefore(dayOnly(_now)))
+          .toList();
+      if (last.length >= 3) {
+        final rates = itemRates(last).entries.toList()
+          ..sort((a, b) => a.value.compareTo(b.value));
+        final weakest = rates.isEmpty ? null : dailyItem(rates.first.key);
+        if (weakest != null && rates.first.value < 0.7) {
+          add('${weakest.title} on 5 of 7 days');
+        }
+      }
+    }
+    return out.take(3).toList();
+  }
+
+  /// Fills [week]'s empty Big 3 slots with [proposedOutcomes], linking
+  /// goal ones to their goal. Returns how many were added.
+  int useProposedOutcomes(DateTime week) {
+    final proposals = proposedOutcomes(week);
+    var n = 0;
+    for (var i = 0; i < 3 && n < proposals.length; i++) {
+      if (weekOutcomes(week)[i].trim().isNotEmpty) continue;
+      final p = proposals[n++];
+      setWeekOutcome(week, i, p.text);
+      if (p.goalId != null) setWeekOutcomeGoal(week, i, p.goalId);
+    }
+    return n;
   }
 
   void setWeekOutcome(DateTime anyDay, int i, String text) {

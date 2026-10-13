@@ -2887,5 +2887,31 @@ void main() {
         reason: 'one rep does not move the week\'s drill');
     expect(p.drillRepsThisWeek(area, drill, wednesday), 1);
   });
+
+  test('the week\'s three are proposed from the goal, the drill and feedback',
+      () async {
+    final p = await _commissioned();
+    final goal = p.saveGoal(
+        title: 'Lead the pricing launch',
+        plan: 'If a review slips, I book the next slot the same day',
+        milestones: const ['Draft the pricing page'])!;
+    final area = p.allGrowthAreas.first;
+    p.setFocus(area.id, startRating: 2);
+    p.logFeedback(area, from: 'A peer', said: 'You rush the first minute', action: 'Rehearse the opening');
+    final week = weekStartOf(_today);
+    final proposals = p.proposedOutcomes(week);
+    expect(proposals.first.text, 'Draft the pricing page');
+    expect(proposals.first.goalId, goal.id);
+    expect(proposals.map((x) => x.text), contains('Rehearse the opening'));
+    expect(proposals.length, 3);
+
+    p.setWeekOutcome(week, 1, 'My own outcome');
+    expect(p.useProposedOutcomes(week), 2);
+    final o = p.weekOutcomes(week);
+    expect(o[0], 'Draft the pricing page');
+    expect(o[1], 'My own outcome');
+    expect(p.weekOutcomeGoal(week, 0), goal.id);
+    expect(p.proposedOutcomes(week).map((x) => x.text), isNot(contains('Draft the pricing page')));
+  });
 }
 

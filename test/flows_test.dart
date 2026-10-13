@@ -300,5 +300,15 @@ void main() {
     expect(r.text, 'Steady');
     expect(r.str('proud'), 'Keeping the mornings');
   });
+
+  testWidgets('the week\'s three: one tap fills them from the plan', (tester) async {
+    final system = await _start(tester);
+    system.saveGoal(title: 'Run a half marathon', milestones: const ['Run 10 km without stopping']);
+    await _go(tester, '/week');
+    await _tap(tester, find.text('Use these'));
+    final week = weekStartOf(DateTime.now());
+    expect(system.weekOutcomes(week).first, 'Run 10 km without stopping');
+    expect(find.text('Use these'), findsNothing);
+  });
 }
 

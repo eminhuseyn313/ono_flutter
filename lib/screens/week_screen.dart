@@ -73,6 +73,53 @@ class _OutcomesState extends State<_Outcomes> {
   @override
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
+    final proposals = system.proposedOutcomes(widget.week);
+    final empty = _c.where((c) => c.text.trim().isEmpty).length;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _card(context, system),
+        // Not a blank page: what the goal, the growth area and the latest
+        // feedback point to, in one tap.
+        if (empty > 0 && proposals.isNotEmpty) ...[
+          const SizedBox(height: 10),
+          OnoCard(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('SUGGESTED FROM YOUR PLAN',
+                    style: AppText.eyebrow(color: AppColors.accent)),
+                const SizedBox(height: 6),
+                for (final p in proposals.take(empty))
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Text('• ${p.text}',
+                        style: AppText.body(color: AppColors.white)),
+                  ),
+                TextButton(
+                  key: Key('use-proposals-${dateKey(widget.week)}'),
+                  onPressed: () {
+                    system.useProposedOutcomes(widget.week);
+                    final o = system.weekOutcomes(widget.week);
+                    setState(() {
+                      for (var i = 0; i < 3; i++) {
+                        _c[i].text = o[i];
+                      }
+                    });
+                  },
+                  style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                  child: Text(empty == 3 ? 'Use these' : 'Fill the empty ones'),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _card(BuildContext context, PersonalSystemProvider system) {
     return OnoCard(
       padding: const EdgeInsets.fromLTRB(12, 6, 16, 6),
       child: Column(
@@ -100,8 +147,8 @@ class _OutcomesState extends State<_Outcomes> {
                     width: 40,
                     child: Center(
                       child: Text('${i + 1}',
-                          style: AppText.serif(
-                              size: 20, color: AppColors.accent)),
+                          style:
+                              AppText.serif(size: 20, color: AppColors.accent)),
                     ),
                   ),
                 Expanded(
@@ -142,10 +189,11 @@ class _OutcomesState extends State<_Outcomes> {
                           constraints: const BoxConstraints(maxWidth: 200),
                           child: Text(g.text, overflow: TextOverflow.ellipsis),
                         ),
-                        selected: system.weekOutcomeGoal(widget.week, i) == g.id,
+                        selected:
+                            system.weekOutcomeGoal(widget.week, i) == g.id,
                         showCheckmark: false,
-                        onSelected: (on) =>
-                            system.setWeekOutcomeGoal(widget.week, i, on ? g.id : null),
+                        onSelected: (on) => system.setWeekOutcomeGoal(
+                            widget.week, i, on ? g.id : null),
                       ),
                   ],
                 ),
