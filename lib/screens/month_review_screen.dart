@@ -85,6 +85,22 @@ class _MonthReviewScreenState extends State<MonthReviewScreen> {
                   ? 'Rate where you are now against the bar.'
                   : 'You started at $start. Where are you now?',
               style: AppText.small()),
+          for (final l in [
+            for (final r in system.repsIn(area.id, m))
+              if ((r.str('lesson') ?? '').trim().isNotEmpty) r.str('lesson')!.trim()
+          ].take(3))
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text('• You learned: $l',
+                  style: AppText.small(color: AppColors.white)),
+            ),
+          for (final f in system.feedbackIn(area.id, m).take(2))
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                  '• ${(f.str('from') ?? '').isEmpty ? 'Someone' : f.str('from')} said: "${f.text}"',
+                  style: AppText.small(color: AppColors.white)),
+            ),
           const SizedBox(height: 8),
           Segmented(
             labels: const ['1', '2', '3', '4', '5'],

@@ -189,6 +189,10 @@ class _Plan extends StatelessWidget {
     final feedback = system.feedbackIn(area.id, system.programMonth);
     final (start, end) = system.focusRatings();
     final practised = reps.map((r) => r.str('drill')).toSet();
+    final lessons = [
+      for (final r in reps)
+        if ((r.str('lesson') ?? '').trim().isNotEmpty) r.str('lesson')!.trim()
+    ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -354,8 +358,32 @@ class _Plan extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                  'Rate yourself again against the bar. The gap is what you grew.',
+                  system.dayOfMonth < 22 && end == null
+                      ? 'From day 22: rate yourself again against the bar, after a few weeks of reps. The gap is what you grew.'
+                      : 'Rate yourself again against the bar. The gap is what you grew.',
                   style: AppText.small()),
+              if (start != null) ...[
+                const SizedBox(height: 6),
+                Text('You started the month at $start.',
+                    style: AppText.small(color: AppColors.white)),
+              ],
+              if (lessons.isNotEmpty || feedback.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                Text('WHAT YOU HAVE TO GO ON', style: AppText.eyebrow()),
+                for (final l in lessons.take(4))
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text('• $l',
+                        style: AppText.small(color: AppColors.white)),
+                  ),
+                for (final f in feedback.take(3))
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                        '• ${(f.str('from') ?? '').isEmpty ? 'Someone' : f.str('from')} said: "${f.text}"',
+                        style: AppText.small(color: AppColors.white)),
+                  ),
+              ],
               const SizedBox(height: 8),
               _RatingRow(
                   value: end ?? 0,

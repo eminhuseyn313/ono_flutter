@@ -310,5 +310,18 @@ void main() {
     expect(system.weekOutcomes(week).first, 'Run 10 km without stopping');
     expect(find.text('Use these'), findsNothing);
   });
-}
 
+  testWidgets('the month-end rating shows the lessons and feedback first',
+      (tester) async {
+    final system = await _start(tester);
+    final area = system.focusArea(system.programMonth) ?? system.allGrowthAreas.first;
+    if (system.focusArea(system.programMonth) == null) system.setFocus(area.id, startRating: 2);
+    final drill = system.drillsOf(area).first;
+    system.logRep(area, drill, did: 'Ran the meeting', lesson: 'Say the ask first');
+    system.logFeedback(area, from: 'Sam', said: 'Clearer than last month');
+    await _go(tester, '/growth');
+    await _reach(tester, find.text('WHAT YOU HAVE TO GO ON'));
+    expect(find.text('• Say the ask first'), findsOneWidget);
+    expect(find.text('• Sam said: "Clearer than last month"'), findsOneWidget);
+  });
+}
