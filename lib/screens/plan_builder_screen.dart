@@ -39,6 +39,30 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
   int? _length;
   final List<DailyIdea> _picks = [];
   bool? _replace;
+
+  /// A plan pack applied from step 1: its items, area and goal are kept.
+  bool _fromPack = false;
+
+  /// A new person always replaces the built-in list; someone rebuilding
+  /// chooses (and adds to it by default).
+  bool _replacing(PersonalSystemProvider system) =>
+      _newPerson || !system.isCommissioned || (_replace ?? false);
+
+  Future<void> _openPacks(PersonalSystemProvider system) async {
+    final items = system.customDailyItems.length;
+    final areas = system.customAreas.length;
+    final goals = {for (final g in system.activeGoals) g.id};
+    await context.push('/packs');
+    if (!mounted) return;
+    if (system.customDailyItems.length == items && system.customAreas.length == areas) return;
+    setState(() {
+      _fromPack = true;
+      if (system.customAreas.length > areas) _area = system.customAreas.last;
+      final added = system.activeGoals.where((g) => !goals.contains(g.id)).firstOrNull;
+      if (added != null && _goal.text.trim().isEmpty) _goal.text = added.text;
+    });
+    toast(context, 'Pack added — its items, area and goal are in your plan. Fill in the rest.');
+  }
   bool _loaded = false;
 
   @override
@@ -77,11 +101,22 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
 
   List<GrowthArea> _suggested(PersonalSystemProvider system) {
     final ids = [for (final a in _lowest) a.template];
-    return [
-      for (final id in ids) ...areaTemplates.where((t) => t.id == id),
-      for (final t in areaTemplates) if (!ids.contains(t.id)) t,
-      if (!_newPerson) ...system.allGrowthAreas,
+    // The wheel's suggestions first (an area already adopted under the
+    // same name stands in for its template), then the areas they already
+    // have (a pack's, or the plan's), then every other template.
+    final have = [
+      ...system.customAreas,
+      if (!_newPerson) ...system.allGrowthAreas.where((a) => !a.custom),
     ];
+    GrowthArea own(GrowthArea t) =>
+        have.where((a) => a.name.toLowerCase() == t.name.toLowerCase()).firstOrNull ?? t;
+    final out = <GrowthArea>[
+      for (final id in ids) ...areaTemplates.where((t) => t.id == id).map(own),
+      ...have,
+      ...areaTemplates.map(own),
+    ];
+    final seen = <String>{};
+    return [for (final a in out) if (seen.add(a.id)) a];
   }
 
   String? _problem() {
@@ -94,9 +129,10 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
       case 2:
         if (_area == null) return 'Pick one area to grow this month.';
       case 4:
-        if (_picks.length < PersonalSystemProvider.minDailyItems &&
-            (_replace ?? _newPerson)) {
-          return 'Pick at least ${PersonalSystemProvider.minDailyItems}.';
+        final system = context.read<PersonalSystemProvider>();
+        final own = _fromPack ? system.customDailyItems.length : 0;
+        if (_picks.length + own < PersonalSystemProvider.minDailyItems && _replacing(system)) {
+          return 'Pick at least ${PersonalSystemProvider.minDailyItems - own}.';
         }
     }
     return null;
@@ -115,7 +151,7 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
     }
     final now = DateTime.now();
     final newPerson = _newPerson;
-    system.buildPlan(
+    final goalAdded = system.buildPlan(
       name: _name.text,
       currentRole: _current.text,
       targetRole: _target.text,
@@ -128,7 +164,8 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
       plan: _plan.text,
       deadline: DateTime(now.year, now.month + _months, now.day),
       daily: List.of(_picks),
-      replaceDaily: _replace ?? newPerson,
+      replaceDaily: _replacing(system),
+      keepOwnDaily: _fromPack,
       programLength: _length,
     );
     // First run: a new person starts today with their own plan and no
@@ -144,10 +181,16 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
         gymDays: system.gymDays,
         reminders: {for (final r in reminderDefs) r.id: false},
       );
+      // Their general reminders are on: ask once so they can arrive.
+      await system.requestReminderPermission();
     }
     if (!mounted) return;
     HapticFeedback.heavyImpact();
-    toast(context, 'Your plan is ready.');
+    toast(
+        context,
+        goalAdded
+            ? 'Your plan is ready.'
+            : 'Your plan is ready. The goal wasn\'t added — three are already active; close one under Goals first.');
     context.go('/home');
   }
 
@@ -221,7 +264,7 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: TextButton.icon(
-              onPressed: () => context.push('/packs'),
+              onPressed: () => _openPacks(context.read<PersonalSystemProvider>()),
               icon: const Icon(Icons.inventory_2_outlined, size: 18),
               label: const Text('Or start from a ready-made plan'),
             ),
@@ -275,7 +318,7 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
         Text('Lowest on your wheel: ${_lowest.map((a) => a.name).join(' and ')}.',
             style: AppText.small()),
       const SizedBox(height: 8),
-      for (final a in options.take(10))
+      for (final a in options)
         Padding(
           padding: const EdgeInsets.only(bottom: 6),
           child: OnoCard(
@@ -369,9 +412,9 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
       ...dailyLibrary.where((d) => first.contains(d.area)),
       ...dailyLibrary.where((d) => !first.contains(d.area)),
     ];
-    final replace = _replace ?? _newPerson;
+    final replace = _replacing(system);
     return [
-      if (system.dailyCount > 0)
+      if (system.isCommissioned && !_newPerson && system.dailyCount > 0)
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           value: replace,

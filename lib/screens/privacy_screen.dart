@@ -72,7 +72,8 @@ class PrivacyScreen extends StatelessWidget {
         ),
       ),
     );
-    typed.dispose();
+    // The dialog's field is still animating out: dispose after this frame.
+    WidgetsBinding.instance.addPostFrameCallback((_) => typed.dispose());
     if (ok != true || !context.mounted) return;
     try {
       await system.eraseEverything();

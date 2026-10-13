@@ -11,7 +11,7 @@ class LifeArea {
 }
 
 const List<LifeArea> lifeAreas = [
-  LifeArea('career', 'Career & work', 'Progress, meaning and respect in your work', 't_people_leader'),
+  LifeArea('career', 'Career & work', 'Progress, meaning and respect in your work', 't_career_change'),
   LifeArea('health', 'Health & body', 'Energy, strength, sleep, how your body feels', 't_health'),
   LifeArea('relationships', 'Partner & close relationships', 'Closeness, support, time together', 't_relationships'),
   LifeArea('family', 'Family & friends', 'Being there for the people who matter', 't_friendship'),

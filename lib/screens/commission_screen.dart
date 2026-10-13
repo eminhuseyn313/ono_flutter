@@ -24,7 +24,8 @@ class _CommissionScreenState extends State<CommissionScreen> {
 
   late DateTime _start;
   List<int> _gymDays = [DateTime.monday, DateTime.wednesday, DateTime.thursday];
-  final _weight = TextEditingController(text: '83');
+  // Empty until he weighs in: no made-up numbers.
+  final _weight = TextEditingController();
   final Map<String, bool> _reminders = {
     for (final r in reminderDefs) r.id: r.defaultOn,
   };
@@ -305,7 +306,7 @@ class _CommissionScreenState extends State<CommissionScreen> {
             controller: _weight,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             style: AppText.number(size: 22),
-            decoration: const InputDecoration(suffixText: 'kg'),
+            decoration: const InputDecoration(suffixText: 'kg', hintText: 'Optional'),
           ),
           const SizedBox(height: 8),
           Text('Target 76–78 kg over 5–6 months, keeping the muscle.',

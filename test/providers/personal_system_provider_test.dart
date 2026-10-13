@@ -2764,5 +2764,46 @@ void main() {
     p.addLog('daily_list', date: _today.plusDays(9), data: {'ids': [for (final n in nonNegotiables) n.id]});
     expect(p.itemIdsOn(_today.plusDays(10)), contains(mine.id));
   });
+
+  test('building the plan twice adds no duplicate area or goal; the goal limit is reported',
+      () async {
+    final p = await _commissioned();
+    final money = areaTemplates.firstWhere((t) => t.id == 't_money');
+    bool build(String goal) => p.buildPlan(
+        name: 'Nigar Aliyeva',
+        currentRole: 'Nurse',
+        targetRole: 'Head nurse',
+        area: money,
+        areaRating: 2,
+        goal: goal,
+        daily: dailyLibrary.take(3).toList(),
+        replaceDaily: true);
+    expect(build('Six months of savings'), isTrue);
+    expect(build('Six months of savings'), isTrue);
+    expect(p.customAreas.where((a) => a.name == money.name).length, 1);
+    expect(p.activeGoals.where((g) => g.text == 'Six months of savings').length, 1);
+    p.saveGoal(title: 'Second');
+    p.saveGoal(title: 'Third');
+    expect(build('A fourth one'), isFalse);
+  });
+
+  test('a pack applied before the plan builder keeps its items', () async {
+    final p = await _commissioned();
+    final pack = planPacks.first;
+    p.applyPack(pack, replaceDaily: false, withGoal: true);
+    final packItems = [for (final n in p.customDailyItems) n.title];
+    expect(packItems, isNotEmpty);
+    p.buildPlan(
+        name: 'Nigar Aliyeva',
+        currentRole: 'Nurse',
+        targetRole: 'Head nurse',
+        area: p.customAreas.first,
+        areaRating: 2,
+        daily: const [],
+        replaceDaily: true,
+        keepOwnDaily: true);
+    expect([for (final n in p.dailyItems) n.title], containsAll(packItems));
+    expect(p.dailyItems.any((n) => nonNegotiables.any((b) => b.id == n.id)), isFalse);
+  });
 }
 

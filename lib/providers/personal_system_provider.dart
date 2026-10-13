@@ -2532,7 +2532,8 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// A different name means a different person, so the profile's own
   /// details (organisation, people, coach context) start empty.
   /// [replaceDaily] swaps the whole daily list for [daily].
-  void buildPlan({
+  /// Returns false when the goal couldn't be added (three already active).
+  bool buildPlan({
     required String name,
     required String currentRole,
     required String targetRole,
@@ -2546,6 +2547,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     DateTime? deadline,
     required List<DailyIdea> daily,
     bool replaceDaily = false,
+    bool keepOwnDaily = false,
     int? programLength,
   }) {
     if (programLength != null) setProgramLength(programLength);
@@ -2575,32 +2577,44 @@ class PersonalSystemProvider extends ChangeNotifier {
       ]));
     }
     if (wheel.isNotEmpty) addLog('wheel', data: {'wheel': wheel});
+    // A template already adopted (a second run, or a pack) is reused.
+    final same = customAreas
+        .where((c) => c.name.toLowerCase() == area.name.toLowerCase())
+        .firstOrNull;
     final areaId = area.custom || growthAreas.any((a) => a.id == area.id)
         ? area.id
-        : saveCustomArea(area.copyWith(id: '')).id;
+        : same?.id ?? saveCustomArea(area.copyWith(id: '')).id;
     setFocus(areaId, startRating: areaRating);
-    if (goal.trim().isNotEmpty) {
-      saveGoal(
+    var goalAdded = true;
+    final title = goal.trim().toLowerCase();
+    if (title.isNotEmpty &&
+        !activeGoals.any((g) => g.text.trim().toLowerCase() == title)) {
+      goalAdded = saveGoal(
           title: goal,
           why: goalWhy,
           obstacle: obstacle,
           plan: plan,
           deadline: deadline,
-          areas: [areaId]);
+          areas: [areaId]) != null;
     }
     _changingList(() {
-      if (replaceDaily && daily.length >= minDailyItems) {
+      final own = keepOwnDaily ? customDailyItems.length : 0;
+      if (replaceDaily && daily.length + own >= minDailyItems) {
         for (final b in nonNegotiables) {
           setDone('daily:off:${b.id}', true);
         }
-        for (final l in logsOf('daily_item')) {
-          removeLog(l.id);
+        // Items just added from a plan pack stay.
+        if (!keepOwnDaily) {
+          for (final l in logsOf('daily_item')) {
+            removeLog(l.id);
+          }
         }
       }
       _addIdeas(daily);
     });
     setDone(planBuiltKey, true);
     _syncReminders();
+    return goalAdded;
   }
 
   /// Adds daily items with their cues, skipping titles already there.

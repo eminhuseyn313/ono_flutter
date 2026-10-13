@@ -46,7 +46,7 @@ const List<GrowthArea> areaTemplates = [
             'Book the check-up or blood test you have been putting off.',
             'It\'s on the calendar.'),
       ]),
-  GrowthArea('t_relationships', 'Marriage & close relationships',
+  GrowthArea('t_relationships', 'Partner & close relationships',
       personal: true,
       bar: 'Present at home, not just there; knows what the other person is carrying; repairs quickly after conflict.',
       ask: 'What is one thing I could do that would make you feel more supported this month?',
@@ -93,7 +93,7 @@ const List<GrowthArea> areaTemplates = [
       bar: 'Knows where the money goes, saves first, has an emergency fund, and invests on a plan.',
       ask: 'What do you think I spend on that doesn\'t make me happier?',
       drills: [
-        Drill('Track one month',
+        Drill('Track one week',
             'Write down every spend for seven days. No judgement — just the record.',
             'You can name your three biggest categories.'),
         Drill('Pay yourself first',
