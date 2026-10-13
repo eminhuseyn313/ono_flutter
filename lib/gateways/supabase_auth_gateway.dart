@@ -30,12 +30,22 @@ class SupabaseAuthGateway implements AuthGateway {
     try {
       final response = await _auth.signUp(email: email, password: password);
       if (response.session == null) {
+        // An email that already has an account comes back with no
+        // identities (and no email is sent): say so instead of waiting.
+        if (response.user?.identities?.isEmpty ?? false) {
+          return const AuthResult(
+              error: 'You already have an account with this email — sign in instead.');
+        }
         // The project asks new accounts to confirm their email first.
         return const AuthResult(
-            error: 'Check your email and tap the link to confirm, then sign in.');
+            error: 'Check your email and tap the link to confirm, then come back here and sign in.');
       }
       return AuthResult(user: response.user, session: response.session);
     } on AuthException catch (e) {
+      if (e.message.toLowerCase().contains('already registered')) {
+        return const AuthResult(
+            error: 'You already have an account with this email — sign in instead.');
+      }
       return AuthResult(error: e.message);
     } catch (e) {
       return AuthResult(error: e.toString());
