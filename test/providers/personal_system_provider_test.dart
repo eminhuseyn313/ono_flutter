@@ -3213,4 +3213,19 @@ void main() {
     p.resolveWorry(p.parkedWorries.single.id, outcome: 'let_go');
     expect(has(), isFalse);
   });
+
+  test('restore: only a real backup, says what it removes, can be undone',
+      () async {
+    final p = await _commissioned();
+    final backup = p.exportJson();
+    p.addLog('win', text: 'After the backup');
+    expect(p.importPreview('{"program_start": "2026-09-01"}'), isNull,
+        reason: 'a fragment is not a backup');
+    expect(p.importJson('{"program_start": "2026-09-01"}'), isFalse);
+    expect(p.importPreview(backup)!.missingHere, 1);
+    expect(p.importJson(backup), isTrue);
+    expect(p.logsOf('win'), isEmpty);
+    p.undoImport();
+    expect(p.logsOf('win').single.text, 'After the backup');
+  });
 }

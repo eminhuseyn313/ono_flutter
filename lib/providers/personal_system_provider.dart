@@ -6825,15 +6825,61 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   /// Replace all data with an exported backup. Returns false if invalid.
   bool importJson(String raw) {
+    final next = _parseBackup(raw);
+    if (next == null) return false;
+    _beforeImport = _state;
+    _update(next, reschedule: true);
+    _applyProfile();
+    return true;
+  }
+
+  /// The state before the last import, for Undo (this session only).
+  PersonalSystemState? _beforeImport;
+  bool get canUndoImport => _beforeImport != null;
+
+  /// Puts back what was there before the last import.
+  void undoImport() {
+    final s = _beforeImport;
+    if (s == null) return;
+    _beforeImport = null;
+    _update(s, reschedule: true);
+    _applyProfile();
+  }
+
+  /// A backup only if it has the program and its logs: a fragment or a
+  /// truncated paste must not replace everything.
+  PersonalSystemState? _parseBackup(String raw) {
     try {
-      final next =
-          PersonalSystemState.fromJson(jsonDecode(raw) as Map<String, dynamic>);
-      _update(next, reschedule: true);
-      _applyProfile();
-      return true;
+      final j = jsonDecode(raw);
+      if (j is! Map<String, dynamic> ||
+          j['program_start'] == null ||
+          j['logs'] is! List) {
+        return null;
+      }
+      return PersonalSystemState.fromJson(j);
     } catch (_) {
-      return false;
+      return null;
     }
+  }
+
+  /// What restoring [raw] would do: null if it isn't a backup; otherwise
+  /// its entries, how many entries here it doesn't have (they would go),
+  /// and the latest day it holds.
+  ({int entries, int missingHere, DateTime? latest})? importPreview(String raw) {
+    final next = _parseBackup(raw);
+    if (next == null) return null;
+    final ids = {for (final l in next.logs) l.id};
+    DateTime? latest;
+    for (final l in next.logs) {
+      if (latest == null || l.date.isAfter(latest)) latest = l.date;
+    }
+    return (
+      entries: next.logs.length,
+      missingHere: (_state?.logs ?? const <LogEntry>[])
+          .where((l) => !ids.contains(l.id))
+          .length,
+      latest: latest,
+    );
   }
 }
 

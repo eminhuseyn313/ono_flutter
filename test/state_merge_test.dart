@@ -90,4 +90,38 @@ void main() {
     final merged = mergeStateJson(null, phone, web);
     expect((merged['logs'] as List).map((l) => l['id']), ['p', 'w']);
   });
+
+  test('one log edited on both devices keeps both changes, field by field', () {
+    Map<String, dynamic> person(Map<String, dynamic> data) =>
+        {'id': 'p', 'type': 'person', 'text': 'Mum', 'data': data};
+    final b = {...base, 'logs': [person({'ask_about': 'the garden', 'every': 7})]};
+    // The phone logged a touch (clearing what to ask about); the web added
+    // a birthday.
+    final phone = {...base, 'logs': [person({'ask_about': '', 'every': 7})]};
+    final web = {
+      ...base,
+      'logs': [person({'ask_about': 'the garden', 'every': 7, 'birthday': '03-14'})]
+    };
+    final data = ((mergeStateJson(b, phone, web)['logs'] as List).single as Map)['data'] as Map;
+    expect(data['ask_about'], '');
+    expect(data['birthday'], '03-14');
+    // The same field changed on both: this device wins.
+    final web2 = {...base, 'logs': [person({'ask_about': 'her trip', 'every': 7})]};
+    final data2 = ((mergeStateJson(b, phone, web2)['logs'] as List).single as Map)['data'] as Map;
+    expect(data2['ask_about'], '');
+  });
+
+  test('a one-per-day record made on both devices offline keeps one', () {
+    Map<String, dynamic> plan(String id, String at, List<String> o) => {
+          'id': id, 'type': 'week_plan', 'date': '2026-10-12',
+          'created_at': at, 'text': '', 'data': {'outcomes': o}
+        };
+    final phone = {...base, 'logs': [...base['logs'], plan('a', '2026-10-12T08:00:00', ['Phone'])]};
+    final web = {...base, 'logs': [...base['logs'], plan('b', '2026-10-12T09:00:00', ['Web'])]};
+    final plans = (mergeStateJson(base, phone, web)['logs'] as List)
+        .where((l) => l['type'] == 'week_plan')
+        .toList();
+    expect(plans.length, 1);
+    expect(plans.single['id'], 'b');
+  });
 }

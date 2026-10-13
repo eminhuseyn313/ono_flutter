@@ -1018,12 +1018,18 @@ class MeScreen extends StatelessWidget {
     final data = await Clipboard.getData('text/plain');
     final text = data?.text ?? '';
     if (!context.mounted) return;
+    final preview = system.importPreview(text);
+    if (preview == null) {
+      toast(context, 'That isn\'t an ONO backup. Copy the whole backup, then try again.');
+      return;
+    }
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('Replace all data?', style: AppText.title()),
         content: Text(
-            'This overwrites everything with the backup on your clipboard (${text.length} characters).',
+            'The backup holds ${preview.entries} entries${preview.latest == null ? '' : ', the latest from ${shortDate(preview.latest!)} ${preview.latest!.year}'}.'
+            '${preview.missingHere == 0 ? '' : ' ${preview.missingHere} entries here aren\'t in it and will be removed — on every device that syncs.'}',
             style: AppText.body()),
         actions: [
           TextButton(
@@ -1036,11 +1042,17 @@ class MeScreen extends StatelessWidget {
       ),
     );
     if (ok != true || !context.mounted) return;
-    toast(
-        context,
-        system.importJson(text)
-            ? 'Backup restored.'
-            : 'That isn\'t an ONO backup.');
+    if (!system.importJson(text)) {
+      toast(context, 'That isn\'t an ONO backup.');
+      return;
+    }
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(
+        duration: const Duration(seconds: 10),
+        content: const Text('Backup restored.'),
+        action: SnackBarAction(label: 'Undo', onPressed: system.undoImport),
+      ));
   }
 
   void _gymDaysSheet(BuildContext context, PersonalSystemProvider system) {

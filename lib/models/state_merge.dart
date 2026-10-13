@@ -26,8 +26,9 @@ Map<String, dynamic> mergeStateJson(
     final bv = b[key], lv = local[key], rv = remote[key];
     final Object? merged;
     if (_idLists.contains(key)) {
-      merged = _mergeById(_asList(bv, base != null), _asList(lv, true),
+      final list = _mergeById(_asList(bv, base != null), _asList(lv, true),
           _asList(rv, true));
+      merged = key == 'logs' ? _onePerDay(list) : list;
     } else if (key == 'done') {
       merged = _mergeSet(_asList(bv, base != null), _asList(lv, true),
           _asList(rv, true));
@@ -55,6 +56,34 @@ Map<String, dynamic> mergeStateJson(
 }
 
 const _idLists = {'logs', 'evidence', 'reports', 'briefs', 'custom_cards'};
+
+/// Logs kept one per day: two devices that each made one offline would
+/// otherwise both keep theirs, and the app would show only one.
+const _dailyTypes = {
+  'checkin', 'week_plan', 'shutdown', 'hard_day', 'detach', 'daily_list',
+  'partner_checkin', 'us_checkin', 'values_check', 'sleep', 'vitals',
+};
+
+/// Keeps the most recently created log of each one-per-day type and day.
+List<Object?> _onePerDay(List<Object?> logs) {
+  final newest = <String, Map>{};
+  for (final l in logs) {
+    if (l is! Map || !_dailyTypes.contains(l['type'])) continue;
+    final k = '${l['type']}|${l['date']}';
+    final cur = newest[k];
+    if (cur == null ||
+        '${l['created_at']}'.compareTo('${cur['created_at']}') > 0) {
+      newest[k] = l;
+    }
+  }
+  return [
+    for (final l in logs)
+      if (l is! Map ||
+          !_dailyTypes.contains(l['type']) ||
+          identical(newest['${l['type']}|${l['date']}'], l))
+        l
+  ];
+}
 const _keyedMaps = {'priorities', 'cues', 'reminders', 'card_schedules'};
 
 /// Whether two JSON values are equal, whatever order their keys are in
@@ -75,6 +104,20 @@ Object? _canonical(Object? v) {
 /// changed: local wins.
 Object? _pick(Object? base, Object? local, Object? remote) =>
     jsonEquals(local, base) ? remote : local;
+
+/// An item (a log, a card…) changed on both sides: merge it key by key, and
+/// a nested map (a log's `data`) the same way, so a birthday edited on one
+/// device and a note cleared on the other both survive. The same key
+/// changed on both sides: local wins.
+Object? _mergeItem(Object? base, Object? local, Object? remote) {
+  if (jsonEquals(local, base)) return remote;
+  if (jsonEquals(remote, base)) return local;
+  if (base is Map && local is Map && remote is Map) {
+    return _mergeMap(_asMap(base), _asMap(local), _asMap(remote), _mergeItem,
+        hasBase: true);
+  }
+  return local;
+}
 
 List<Object?>? _asList(Object? v, bool present) =>
     v is List ? v : (present ? const [] : null);
@@ -140,7 +183,7 @@ List<Object?> _mergeById(
     final inL = l.containsKey(id), inR = r.containsKey(id);
     Object? v;
     if (inL && inR) {
-      v = hasBase && b.containsKey(id) ? _pick(b[id], l[id], r[id]) : l[id];
+      v = hasBase && b.containsKey(id) ? _mergeItem(b[id], l[id], r[id]) : l[id];
     } else if (inL) {
       v = hasBase && b.containsKey(id) && jsonEquals(l[id], b[id])
           ? null
