@@ -63,6 +63,9 @@ class PersonalSystemProvider extends ChangeNotifier {
   DateTime Function() clock = DateTime.now;
   DateTime get _now => clock();
 
+  /// The provider's time (the test clock in tests).
+  DateTime get now => _now;
+
   Future<void> load(String? userId) async {
     final id = userId ?? _fallbackUser;
     final again = _signedOut;
@@ -2568,6 +2571,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     String goalWhy = '',
     String obstacle = '',
     String plan = '',
+    String milestone = '',
     DateTime? deadline,
     required List<DailyIdea> daily,
     bool replaceDaily = false,
@@ -2619,6 +2623,7 @@ class PersonalSystemProvider extends ChangeNotifier {
           obstacle: obstacle,
           plan: plan,
           deadline: deadline,
+          milestones: [milestone],
           areas: [areaId]) != null;
     }
     _changingList(() {
@@ -3381,6 +3386,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     String unit = '',
     double? start,
     double? target,
+    bool clock = false,
     List<String> milestones = const [],
   }) {
     final existing = id == null ? null : goalById(id);
@@ -3399,6 +3405,8 @@ class PersonalSystemProvider extends ChangeNotifier {
       'unit': unit.trim(),
       'start': start,
       'target': target,
+      'clock': clock,
+      'next': old['next'] ?? '',
       'milestones': [
         for (final m in milestones)
           if (m.trim().isNotEmpty)
@@ -3417,15 +3425,90 @@ class PersonalSystemProvider extends ChangeNotifier {
     return next;
   }
 
-  void setGoalStatus(String id, String status) {
+  /// Returns false when reopening would make a fourth active goal.
+  bool setGoalStatus(String id, String status) {
     final g = goalById(id);
-    if (g == null) return;
+    if (g == null) return false;
+    if (status == 'active' &&
+        (g.str('status') ?? 'active') != 'active' &&
+        activeGoals.length >= maxActiveGoals) {
+      return false;
+    }
     updateLog(g.copyWith(data: {
       ...g.data,
       'status': status,
       'closed_on': status == 'active' ? null : dateKey(_now),
     }));
+    return true;
   }
+
+  /// A new date for a goal that reached its old one (or needs more time).
+  void setGoalDeadline(String id, DateTime deadline) {
+    final g = goalById(id);
+    if (g == null) return;
+    updateLog(g.copyWith(data: {
+      ...g.data,
+      'deadline': dateKey(dayOnly(deadline)),
+      'extended': ((g.number('extended') ?? 0) + 1).toInt(),
+    }));
+  }
+
+  /// The one next thing for this goal, in your words ('' clears it).
+  void setGoalNext(String id, String next) {
+    final g = goalById(id);
+    if (g == null) return;
+    updateLog(g.copyWith(data: {...g.data, 'next': next.trim()}));
+  }
+
+  void addMilestone(String id, String text) {
+    final g = goalById(id);
+    if (g == null || text.trim().isEmpty) return;
+    updateLog(g.copyWith(data: {
+      ...g.data,
+      'milestones': [
+        ...(g.data['milestones'] as List? ?? const []),
+        {'text': text.trim(), 'done': false},
+      ],
+    }));
+  }
+
+  /// "4:30" (minutes:seconds or hours:minutes) → 4.5; "82,5" → 82.5.
+  static double? parseGoalNumber(String text) {
+    final t = text.trim().replaceAll(',', '.');
+    final clock = RegExp(r'^(-?\d+):([0-5]\d)$').firstMatch(t);
+    if (clock != null) {
+      final whole = int.parse(clock.group(1)!);
+      return whole + (whole < 0 ? -1 : 1) * int.parse(clock.group(2)!) / 60;
+    }
+    return double.tryParse(t);
+  }
+
+  /// A goal value as written: m:ss for a goal set as a time, else the
+  /// number with at most one decimal.
+  static String formatGoalNumber(LogEntry goal, double v) {
+    if (goal.data['clock'] == true) {
+      final whole = v.truncate();
+      final rest = ((v - whole).abs() * 60).round();
+      return rest == 60 ? '${whole + 1}:00' : '$whole:${rest.toString().padLeft(2, '0')}';
+    }
+    return v == v.roundToDouble() ? v.toInt().toString() : v.toStringAsFixed(1);
+  }
+
+  /// Whether the goal can show progress: a number or at least a milestone.
+  bool goalIsMeasured(LogEntry g) =>
+      goalIsNumeric(g) || milestonesOf(g).isNotEmpty;
+
+  /// Past its date, or its target reached: time to decide — achieved, a
+  /// new date, or drop it on purpose.
+  bool goalAtDecision(LogEntry g) {
+    if ((g.str('status') ?? 'active') != 'active') return false;
+    final end = goalDeadline(g);
+    final past = end != null && dayOnly(_now).isAfter(end);
+    return past || (goalIsMeasured(g) && goalProgress(g) >= 1);
+  }
+
+  List<LogEntry> get goalsAtDecision =>
+      [for (final g in activeGoals) if (goalAtDecision(g)) g];
 
   /// Looking back at a closed goal: what made it happen (or why it was
   /// dropped and what that taught), and what you'd tell someone starting.
@@ -3533,9 +3616,14 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   /// 'ahead', 'on track', 'behind', or null without a deadline. Within 10
   /// points of the line counts as on track.
+  /// 'reached' once the target is met; 'past due' after the deadline;
+  /// null for a goal with nothing to measure it by — it can't be behind.
   String? goalPace(LogEntry g) {
     final e = goalExpected(g);
-    if (e == null) return null;
+    if (e == null || !goalIsMeasured(g)) return null;
+    if (goalProgress(g) >= 1) return 'reached';
+    final end = goalDeadline(g);
+    if (end != null && dayOnly(_now).isAfter(end)) return 'past due';
     final d = goalProgress(g) - e;
     if (d > 0.1) return 'ahead';
     if (d < -0.1) return 'behind';
@@ -3559,7 +3647,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// One line per active goal for the brief.
   List<String> goalSummaries() => [
         for (final g in activeGoals)
-          '${g.text}: ${(goalProgress(g) * 100).round()}% done'
+          '${g.text} — ${(goalProgress(g) * 100).round()}% done'
               '${goalExpected(g) == null ? '' : ', ${(goalExpected(g)! * 100).round()}% of the time used (${goalPace(g)})'}'
               '${(g.str('obstacle') ?? '').isEmpty ? '' : '. Obstacle: ${g.str('obstacle')}'}'
               '${(g.str('plan') ?? '').isEmpty ? '' : '. Plan: ${g.str('plan')}'}'
@@ -4690,9 +4778,12 @@ class PersonalSystemProvider extends ChangeNotifier {
   int weekOutcomesFor(String goalId, DateTime anyDay) =>
       [for (var i = 0; i < 3; i++) if (weekOutcomeGoal(anyDay, i) == goalId && weekOutcomes(anyDay)[i].trim().isNotEmpty) i].length;
 
-  /// The goal's next step: the first open milestone, else a Big 3 outcome
-  /// serving it this week, else its if-then plan.
+  /// The goal's next step: the one you named, else the first open
+  /// milestone, else a Big 3 outcome serving it this week. Its if-then
+  /// plan is for when the obstacle shows up, not a step.
   String? goalNextStep(LogEntry goal) {
+    final named = (goal.str('next') ?? '').trim();
+    if (named.isNotEmpty) return named;
     final m = milestonesOf(goal).where((m) => !m.done).firstOrNull;
     if (m != null) return m.text;
     final today = dayOnly(_now);
@@ -4702,8 +4793,7 @@ class PersonalSystemProvider extends ChangeNotifier {
         if (o.isNotEmpty) return o;
       }
     }
-    final plan = (goal.str('plan') ?? '').trim();
-    return plan.isEmpty ? null : plan;
+    return null;
   }
 
   /// Up to three outcomes ONO proposes for [week]'s Big 3, so the week
@@ -4723,13 +4813,15 @@ class PersonalSystemProvider extends ChangeNotifier {
       out.add((text: t, goalId: goalId));
     }
 
+    // The first goal with a step not already planned this week.
     for (final g in activeGoals) {
-      final m = milestonesOf(g).where((m) => !m.done).firstOrNull?.text ??
-          (g.str('plan') ?? '').trim();
-      if (m.isNotEmpty) {
-        add(m, g.id);
-        break;
-      }
+      final named = (g.str('next') ?? '').trim();
+      final step = named.isNotEmpty
+          ? named
+          : milestonesOf(g).where((m) => !m.done).firstOrNull?.text ?? '';
+      if (step.isEmpty || planned.contains(step.toLowerCase())) continue;
+      add(step, g.id);
+      break;
     }
     final area = focusArea();
     if (area != null) {

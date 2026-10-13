@@ -353,4 +353,24 @@ void main() {
     await _tap(tester, find.text('Save details'));
     expect(system.cadenceOf(system.personById(mum.id)!), 14);
   });
+
+  testWidgets('a goal: add a milestone, name the next step, decide at the date',
+      (tester) async {
+    final system = await _start(tester);
+    final g = system.saveGoal(
+        title: 'Write a book', deadline: dayOnly(DateTime.now()).minusDays(1))!;
+    await _go(tester, '/goals/view?id=${g.id}');
+    // Its date has passed, but with nothing to measure it isn't "past due".
+    expect(find.text('How will you know it\'s moving?'), findsOneWidget);
+    await tester.enterText(find.byKey(const Key('goal-milestone')), 'Outline done');
+    await _tap(tester, find.byKey(const Key('goal-milestone-add')));
+    expect(system.milestonesOf(system.goalById(g.id)!).single.text, 'Outline done');
+    expect(find.byKey(const Key('goal-decision')), findsOneWidget);
+    await _tap(tester, find.text('3 more months'));
+    expect(system.goalsAtDecision, isEmpty);
+    await tester.enterText(find.byKey(const Key('goal-next')), 'Write 300 words on Saturday');
+    await _tap(tester, find.byKey(const Key('goal-next-save')));
+    expect(system.goalNextStep(system.goalById(g.id)!), 'Write 300 words on Saturday',
+        reason: 'the step you name comes before the open milestone');
+  });
 }

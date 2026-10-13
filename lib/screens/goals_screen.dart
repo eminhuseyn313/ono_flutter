@@ -10,12 +10,12 @@ import '../theme/app_theme.dart';
 import '../widgets/ono_charts.dart';
 import '../widgets/ono_ui.dart';
 
-String _num(double v) =>
-    v == v.roundToDouble() ? v.toInt().toString() : v.toStringAsFixed(1);
+String _num(LogEntry goal, double v) =>
+    PersonalSystemProvider.formatGoalNumber(goal, v);
 
 Color _paceColor(String? pace) => switch (pace) {
-      'ahead' => AppColors.body,
-      'behind' => AppColors.warning,
+      'ahead' || 'reached' => AppColors.body,
+      'behind' || 'past due' => AppColors.warning,
       _ => AppColors.grey,
     };
 
@@ -91,8 +91,11 @@ class GoalTile extends StatelessWidget {
     final numeric = system.goalIsNumeric(goal);
     final unit = goal.str('unit') ?? '';
     final detail = numeric
-        ? '${_num(system.goalCurrent(goal)!)} → ${_num(goal.number('target')!.toDouble())}${unit.isEmpty ? '' : ' $unit'}'
-        : '${system.milestonesOf(goal).where((m) => m.done).length}/${system.milestonesOf(goal).length} milestones';
+        ? '${_num(goal, system.goalCurrent(goal)!)} → ${_num(goal, goal.number('target')!.toDouble())}${unit.isEmpty ? '' : ' $unit'}'
+        : system.milestonesOf(goal).isEmpty
+            ? 'Not measured yet — add a milestone'
+            : '${system.milestonesOf(goal).where((m) => m.done).length}/${system.milestonesOf(goal).length} milestones';
+    final now = system.now;
     return OnoCard(
       padding: EdgeInsets.all(compact ? 12 : 14),
       onTap: () => context.push('/goals/view?id=${goal.id}'),
@@ -134,8 +137,8 @@ class GoalTile extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: AppText.small(color: AppColors.white)),
           ],
-          if (compact && system.weekOutcomesFor(goal.id, DateTime.now()) > 0)
-            Text('${system.weekOutcomesFor(goal.id, DateTime.now())} of this week\'s three serve it',
+          if (compact && system.weekOutcomesFor(goal.id, now) > 0)
+            Text('${system.weekOutcomesFor(goal.id, now)} of this week\'s three serve it',
                 style: AppText.small(color: AppColors.accent)),
         ],
       ),
@@ -154,11 +157,73 @@ class GoalScreen extends StatefulWidget {
 
 class _GoalScreenState extends State<GoalScreen> {
   final _value = TextEditingController();
+  final _milestone = TextEditingController();
+  final _next = TextEditingController();
+  bool _nextLoaded = false;
 
   @override
   void dispose() {
     _value.dispose();
+    _milestone.dispose();
+    _next.dispose();
     super.dispose();
+  }
+
+  void _close(PersonalSystemProvider system, LogEntry g, String status) {
+    system.setGoalStatus(g.id, status);
+    if (status == 'achieved') {
+      HapticFeedback.heavyImpact();
+      toast(context, 'Achieved. Write down what made it happen — it\'s evidence.');
+    } else {
+      toast(context, 'Dropped on purpose. That frees room for what matters.');
+    }
+  }
+
+  /// When the date has come or the target is met: decide on purpose.
+  Widget _decision(PersonalSystemProvider system, LogEntry g) {
+    final reached = system.goalPace(g) == 'reached';
+    final now = dayOnly(system.now);
+    return OnoCard(
+      key: const Key('goal-decision'),
+      accent: AppColors.accent,
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(reached ? 'You reached the target' : 'Its date has come',
+              style: AppText.title()),
+          const SizedBox(height: 4),
+          Text(
+              reached
+                  ? 'Close it as achieved and write down what made it happen — or raise the bar in Edit.'
+                  : 'Decide on purpose: an open goal past its date quietly costs attention.',
+              style: AppText.small()),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              FilledButton(
+                  onPressed: () => _close(system, g, 'achieved'),
+                  child: const Text('Achieved')),
+              if (!reached)
+                for (final m in const [1, 3])
+                  OutlinedButton(
+                    onPressed: () {
+                      system.setGoalDeadline(g.id, now.plusDays(m * 30));
+                      toast(context, 'New date set. What changes so this one holds?');
+                    },
+                    child: Text('$m more month${m == 1 ? '' : 's'}'),
+                  ),
+              if (!reached)
+                OutlinedButton(
+                    onPressed: () => _close(system, g, 'dropped'),
+                    child: const Text('Drop it')),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -176,6 +241,12 @@ class _GoalScreenState extends State<GoalScreen> {
     final unit = g.str('unit') ?? '';
     final active = (g.str('status') ?? 'active') == 'active';
     final expected = system.goalExpected(g);
+    final pace = system.goalPace(g);
+    final measured = system.goalIsMeasured(g);
+    if (!_nextLoaded) {
+      _nextLoaded = true;
+      _next.text = g.str('next') ?? '';
+    }
     String s(String k) => g.str(k) ?? '';
     return OnoPage(
       showBack: true,
@@ -193,9 +264,74 @@ class _GoalScreenState extends State<GoalScreen> {
                 child: StatTile(expected == null ? '–' : '${(expected * 100).round()}',
                     'of the time used',
                     unit: expected == null ? '' : '%')),
-            Expanded(child: StatTile(system.goalPace(g) ?? '–', 'pace')),
+            Expanded(child: StatTile(pace ?? '–', 'pace')),
           ],
         ),
+        if (active && system.goalAtDecision(g)) ...[
+          const SizedBox(height: 12),
+          _decision(system, g),
+        ] else if (active && pace == 'behind') ...[
+          const SizedBox(height: 12),
+          OnoCard(
+            key: const Key('goal-behind'),
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Behind the line', style: AppText.heading()),
+                const SizedBox(height: 4),
+                Text(
+                    s('obstacle').isEmpty
+                        ? 'What is really in the way? Name it, and what you\'ll do when it shows up.'
+                        : 'Is "${s('obstacle')}" still what\'s in the way? If not, name the real one and re-plan.',
+                    style: AppText.small()),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    OutlinedButton(
+                        onPressed: () => context.push('/goals/edit?id=${g.id}'),
+                        child: const Text('Re-plan')),
+                    OutlinedButton(
+                        onPressed: () => context.push('/week'),
+                        child: const Text('Put a step in this week')),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+        if (active) ...[
+          const SectionHeader('Next step'),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  key: const Key('goal-next'),
+                  controller: _next,
+                  style: AppText.body(color: AppColors.white),
+                  decoration: const InputDecoration(
+                      hintText: 'The one next thing, small enough for this week'),
+                  onSubmitted: (v) => system.setGoalNext(g.id, v),
+                ),
+              ),
+              const SizedBox(width: 6),
+              IconButton(
+                key: const Key('goal-next-save'),
+                tooltip: 'Save the step',
+                icon: const Icon(Icons.check_rounded),
+                onPressed: () {
+                  system.setGoalNext(g.id, _next.text);
+                  FocusManager.instance.primaryFocus?.unfocus();
+                  toast(context, _next.text.trim().isEmpty
+                      ? 'Cleared.'
+                      : 'Saved. It shows on Today and is offered for the week\'s three.');
+                },
+              ),
+            ],
+          ),
+        ],
         if (numeric) ...[
           const SectionHeader('Progress'),
           if (values.length >= 2)
@@ -211,8 +347,25 @@ class _GoalScreenState extends State<GoalScreen> {
               ),
             )
           else
-            Text('Start ${_num(g.number('start')!.toDouble())} · target ${_num(g.number('target')!.toDouble())}${unit.isEmpty ? '' : ' $unit'}. Log a measurement to start the line.',
+            Text('Start ${_num(g, g.number('start')!.toDouble())} · target ${_num(g, g.number('target')!.toDouble())}${unit.isEmpty ? '' : ' $unit'}. Log a measurement to start the line.',
                 style: AppText.small()),
+          for (final v in values.reversed.take(5))
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                      '${shortDate(v.date)} · ${_num(g, (v.number('value') ?? 0).toDouble())}${unit.isEmpty ? '' : ' $unit'}',
+                      style: AppText.small(color: AppColors.white)),
+                ),
+                if (active)
+                  IconButton(
+                    tooltip: 'Remove this measurement',
+                    visualDensity: VisualDensity.compact,
+                    icon: const Icon(Icons.close_rounded, size: 16, color: AppColors.grey),
+                    onPressed: () => system.removeLog(v.id),
+                  ),
+              ],
+            ),
           if (active) ...[
             const SizedBox(height: 10),
             Row(
@@ -225,13 +378,13 @@ class _GoalScreenState extends State<GoalScreen> {
                         decimal: true, signed: true),
                     style: AppText.number(size: 18),
                     decoration: InputDecoration(
-                        hintText: 'Today\'s number',
+                        hintText: g.data['clock'] == true ? 'Today\'s time, e.g. 4:12' : 'Today\'s number',
                         suffixText: unit.isEmpty ? null : unit),
                   ),
                 ),
                 const SizedBox(width: 10),
                 GhostButton('Log', icon: Icons.check_rounded, onPressed: () {
-                  final v = double.tryParse(_value.text.replaceAll(',', '.'));
+                  final v = PersonalSystemProvider.parseGoalNumber(_value.text);
                   if (v == null) {
                     toast(context, 'Enter a number.');
                     return;
@@ -245,20 +398,52 @@ class _GoalScreenState extends State<GoalScreen> {
             ),
           ],
         ] else ...[
-          const SectionHeader('Milestones'),
-          OnoCard(
-            padding: const EdgeInsets.fromLTRB(18, 6, 18, 6),
-            child: Column(
+          SectionHeader(measured ? 'Milestones' : 'How will you know it\'s moving?'),
+          if (!measured)
+            Text(
+                'Without a milestone or a number ONO can\'t show progress. Add the first milestone below, or use Edit for a number.',
+                style: AppText.small()),
+          if (measured)
+            OnoCard(
+              padding: const EdgeInsets.fromLTRB(18, 6, 18, 6),
+              child: Column(
+                children: [
+                  for (final (i, m) in system.milestonesOf(g).indexed)
+                    CheckRow(
+                      checked: m.done,
+                      title: m.text,
+                      onChanged: active ? (_) => system.toggleMilestone(g.id, i) : (_) {},
+                    ),
+                ],
+              ),
+            ),
+          if (active)
+            Row(
               children: [
-                for (final (i, m) in system.milestonesOf(g).indexed)
-                  CheckRow(
-                    checked: m.done,
-                    title: m.text,
-                    onChanged: active ? (_) => system.toggleMilestone(g.id, i) : (_) {},
+                Expanded(
+                  child: TextField(
+                    key: const Key('goal-milestone'),
+                    controller: _milestone,
+                    style: AppText.body(color: AppColors.white),
+                    decoration: const InputDecoration(hintText: 'Add a milestone'),
+                    onSubmitted: (v) {
+                      system.addMilestone(g.id, v);
+                      _milestone.clear();
+                    },
                   ),
+                ),
+                IconButton(
+                  key: const Key('goal-milestone-add'),
+                  tooltip: 'Add the milestone',
+                  icon: const Icon(Icons.add_rounded),
+                  onPressed: () {
+                    system.addMilestone(g.id, _milestone.text);
+                    _milestone.clear();
+                    FocusManager.instance.primaryFocus?.unfocus();
+                  },
+                ),
               ],
             ),
-          ),
         ],
         const SectionHeader('In the way, and your plan'),
         OnoCard(
@@ -304,20 +489,13 @@ class _GoalScreenState extends State<GoalScreen> {
             children: [
               Expanded(
                 child: TextButton(
-                  onPressed: () {
-                    system.setGoalStatus(g.id, 'achieved');
-                    HapticFeedback.heavyImpact();
-                    toast(context, 'Achieved. Write down what made it happen — it\'s evidence.');
-                  },
+                  onPressed: () => _close(system, g, 'achieved'),
                   child: const Text('Mark achieved'),
                 ),
               ),
               Expanded(
                 child: TextButton(
-                  onPressed: () {
-                    system.setGoalStatus(g.id, 'dropped');
-                    toast(context, 'Dropped on purpose. That frees room for what matters.');
-                  },
+                  onPressed: () => _close(system, g, 'dropped'),
                   child: const Text('Drop on purpose'),
                 ),
               ),
@@ -335,7 +513,11 @@ class _GoalScreenState extends State<GoalScreen> {
             _GoalReflection(goal: g),
           const SizedBox(height: 8),
           TextButton(
-            onPressed: () => system.setGoalStatus(g.id, 'active'),
+            onPressed: () {
+              if (!system.setGoalStatus(g.id, 'active')) {
+                toast(context, 'Three goals are active. Close one first.');
+              }
+            },
             child: const Text('Reopen'),
           ),
         ],
@@ -365,7 +547,7 @@ class _GoalEditScreenState extends State<GoalEditScreen> {
   final _unit = TextEditingController();
   final _start = TextEditingController();
   final _target = TextEditingController();
-  final _milestones = List.generate(5, (_) => TextEditingController());
+  final _milestones = <TextEditingController>[];
   bool _numeric = true;
   int? _months = 6;
   DateTime? _deadline;
@@ -378,6 +560,16 @@ class _GoalEditScreenState extends State<GoalEditScreen> {
     if (_loaded) return;
     _loaded = true;
     _title.text = widget.title ?? '';
+    final existing = widget.id == null
+        ? 0
+        : context.read<PersonalSystemProvider>().goalById(widget.id!) == null
+            ? 0
+            : context
+                .read<PersonalSystemProvider>()
+                .milestonesOf(context.read<PersonalSystemProvider>().goalById(widget.id!)!)
+                .length;
+    _milestones.addAll(List.generate(
+        existing < 3 ? 3 : existing + 1, (_) => TextEditingController()));
     final g = widget.id == null
         ? null
         : context.read<PersonalSystemProvider>().goalById(widget.id!);
@@ -392,10 +584,12 @@ class _GoalEditScreenState extends State<GoalEditScreen> {
     _numeric = system.goalIsNumeric(g);
     _unit.text = s('unit');
     if (_numeric) {
-      _start.text = _num(g.number('start')!.toDouble());
-      _target.text = _num(g.number('target')!.toDouble());
+      _start.text = _num(g, g.number('start')!.toDouble());
+      _target.text = _num(g, g.number('target')!.toDouble());
+    } else if (system.milestonesOf(g).isEmpty) {
+      _numeric = false;
     }
-    for (final (i, m) in system.milestonesOf(g).take(5).indexed) {
+    for (final (i, m) in system.milestonesOf(g).indexed) {
       _milestones[i].text = m.text;
     }
     _deadline = system.goalDeadline(g);
@@ -422,7 +616,7 @@ class _GoalEditScreenState extends State<GoalEditScreen> {
       return;
     }
     double? n(TextEditingController c) =>
-        double.tryParse(c.text.trim().replaceAll(',', '.'));
+        PersonalSystemProvider.parseGoalNumber(c.text);
     if (_numeric && (n(_start) == null || n(_target) == null)) {
       toast(context, 'Enter where you start and the target — or use milestones.');
       return;
@@ -443,6 +637,7 @@ class _GoalEditScreenState extends State<GoalEditScreen> {
       unit: _numeric ? _unit.text : '',
       start: _numeric ? n(_start) : null,
       target: _numeric ? n(_target) : null,
+      clock: _numeric && (_start.text.contains(':') || _target.text.contains(':')),
       milestones: _numeric ? const [] : [for (final m in _milestones) m.text],
     );
     if (saved == null) {
@@ -532,14 +727,24 @@ class _GoalEditScreenState extends State<GoalEditScreen> {
             ],
           ),
           const SizedBox(height: 4),
-          Text('Lower can be better: a start of 4:30 and a target of 3:59 works.',
+          Text('Lower can be better (85 → 78 kg). Times work as m:ss: 4:30 → 3:59.',
               style: AppText.small()),
-        ] else
-          for (var i = 0; i < 5; i++)
+        ] else ...[
+          for (var i = 0; i < _milestones.length; i++)
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: _field(_milestones[i], 'Milestone ${i + 1}'),
             ),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: () =>
+                  setState(() => _milestones.add(TextEditingController())),
+              icon: const Icon(Icons.add_rounded, size: 18),
+              label: const Text('Another milestone'),
+            ),
+          ),
+        ],
         _step('By when', 'A deadline lets ONO tell you if you\'re on pace.'),
         Wrap(
           spacing: 6,

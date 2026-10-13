@@ -605,9 +605,12 @@ void main() {
       errors.clear();
       try {
         await _go(tester, '/goals/view?id=${run.id}');
-        if (find.text('In the way, and your plan').evaluate().isEmpty) {
+        if (find.byKey(const Key('goal-next')).evaluate().isEmpty) {
           errors.add('numeric goal did not render');
         }
+        await tester.scrollUntilVisible(find.text('In the way, and your plan'), 300,
+            scrollable: find.byType(Scrollable).first);
+        await tester.pump(const Duration(milliseconds: 200));
         await _go(tester, '/goals/view?id=${roleGoal!.id}');
         await _go(tester, '/goals/edit?id=${run.id}');
         // A closed goal asks to look back, then shows the reflection.

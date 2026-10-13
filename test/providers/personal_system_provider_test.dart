@@ -2202,7 +2202,7 @@ void main() {
   test('Big 3 outcomes serve goals; a goal shows its next step', () async {
     final p = await _commissioned();
     final g = p.saveGoal(title: 'Promoted', plan: 'When I doubt, I ship one small thing')!;
-    expect(p.goalNextStep(g), 'When I doubt, I ship one small thing');
+    expect(p.goalNextStep(g), isNull, reason: 'an if-then plan is not a step');
     p.setWeekOutcome(_today, 0, 'Strategy draft reviewed');
     p.setWeekOutcomeGoal(_today, 0, g.id);
     p.setWeekOutcome(_today, 1, 'Run 3 times');
@@ -2211,7 +2211,7 @@ void main() {
     expect(p.goalNextStep(g), 'Strategy draft reviewed');
     p.toggleWeekOutcome(_today, 0);
     expect(p.weekOutcomeGoal(_today, 0), g.id, reason: 'tags survive ticking');
-    expect(p.goalNextStep(g), 'When I doubt, I ship one small thing');
+    expect(p.goalNextStep(g), isNull);
     final m = p.saveGoal(title: 'Book', milestones: ['Outline', 'Draft'])!;
     expect(p.goalNextStep(m), 'Outline');
     p.setWeekOutcomeGoal(_today, 0, null);
@@ -2965,5 +2965,53 @@ void main() {
     final r = p.askRecord()!;
     expect((r.asked, r.yes), (3, 2));
     expect(p.openAsks, isEmpty);
+  });
+
+  test('goals: honest pace, a decision at the date, steps and times', () async {
+    final p = await _commissioned();
+    // No number and no milestone: it can't be behind.
+    final open = p.saveGoal(
+        title: 'Write more', deadline: _today.plusDays(90))!;
+    p.clock = () => _today.plusDays(60);
+    expect(p.goalPace(open), isNull);
+    p.addMilestone(open.id, 'First essay out');
+    expect(p.goalPace(p.goalById(open.id)!), 'behind');
+    // Past the date: past due, and it asks for a decision.
+    p.clock = () => _today.plusDays(95);
+    expect(p.goalPace(p.goalById(open.id)!), 'past due');
+    expect(p.goalsAtDecision.map((g) => g.id), [open.id]);
+    p.setGoalDeadline(open.id, _today.plusDays(125));
+    expect(p.goalsAtDecision, isEmpty);
+    // A time goal, lower is better, entered as m:ss.
+    expect(PersonalSystemProvider.parseGoalNumber('4:30'), 4.5);
+    expect(PersonalSystemProvider.parseGoalNumber('82,5'), 82.5);
+    final run = p.saveGoal(
+        title: 'Faster km',
+        start: 4.5,
+        target: 3.0 + 59 / 60,
+        clock: true,
+        deadline: _today.plusDays(200))!;
+    expect(PersonalSystemProvider.formatGoalNumber(run, run.number('target')!.toDouble()), '3:59');
+    p.logGoalValue(run.id, 3.9);
+    expect(p.goalPace(p.goalById(run.id)!), 'reached');
+    expect(p.goalsAtDecision.map((g) => g.id), [run.id]);
+    // The next step: yours first, never the if-then plan.
+    final third = p.saveGoal(
+        title: 'Calmer mornings', plan: 'If I wake late, then I skip the news',
+        milestones: const ['Phone out of the bedroom'])!;
+    expect(p.goalNextStep(third), 'Phone out of the bedroom');
+    p.toggleMilestone(third.id, 0);
+    expect(p.goalNextStep(p.goalById(third.id)!), isNull);
+    p.setGoalNext(third.id, 'Buy an alarm clock');
+    expect(p.goalNextStep(p.goalById(third.id)!), 'Buy an alarm clock');
+    // A planned step moves the proposal to the next goal that has one.
+    final week = weekStartOf(p.now);
+    p.setWeekOutcome(week, 0, 'First essay out');
+    expect(p.proposedOutcomes(week).map((x) => x.text), contains('Buy an alarm clock'));
+    // Three are active: reopening a fourth is refused.
+    p.setGoalStatus(open.id, 'dropped');
+    p.saveGoal(title: 'Another');
+    expect(p.setGoalStatus(open.id, 'active'), isFalse);
+    expect(p.activeGoals.length, 3);
   });
 }

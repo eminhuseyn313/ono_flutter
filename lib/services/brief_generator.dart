@@ -413,6 +413,7 @@ class DeviceBriefGenerator implements BriefGenerator {
             '4. Afterwards: log what held and what didn\'t; if it went well, it goes in the Evidence Archive.';
 
     final behind = input.goals.where((g) => g.contains('(behind)')).toList();
+    final pastDue = input.goals.where((g) => g.contains('(past due)')).toList();
     // At most six things to change and one thing done well — a long list
     // is a list nobody acts on. Health first, then what their own data
     // says, then set-up nudges (no goal, no rest planned, …), the week and
@@ -440,8 +441,10 @@ class DeviceBriefGenerator implements BriefGenerator {
         'No feedback on ${input.growthFocus} yet this month. Ask one person one specific question — practice without feedback doesn\'t improve.',
       if (input.readinessGap != null)
         '${input.profile.targetRole} gap: ${input.readinessGap}. Pick one thing this week that shows it, and log it as evidence.',
+      if (pastDue.isNotEmpty)
+        '${pastDue.first.split(' — ').first} has reached its date. Decide on purpose: achieved, a new date, or drop it — an open goal past its date quietly costs attention.',
       if (behind.isNotEmpty)
-        'Behind on ${behind.first.split(':').first}. Read your if-then plan again and make next week\'s Big 3 move it.',
+        'Behind on ${behind.first.split(' — ').first}. Is the obstacle still the one you named? Re-plan it, then make one of next week\'s three its next step.',
       if (input.promisesOverdue > 0)
         '${input.promisesOverdue} promise${input.promisesOverdue == 1 ? ' is' : 's are'} past the date. Close ${input.promisesOverdue == 1 ? 'it' : 'them'} honestly — kept late or missed — and tell the person; next time, say a new date before the day comes.',
       if (input.openCommitments.isNotEmpty)

@@ -35,6 +35,7 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
   final _why = TextEditingController();
   final _obstacle = TextEditingController();
   final _plan = TextEditingController();
+  final _milestone = TextEditingController();
   int _months = 6;
   int? _length;
   final List<DailyIdea> _picks = [];
@@ -84,7 +85,7 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
 
   @override
   void dispose() {
-    for (final c in [_name, _current, _target, _goal, _why, _obstacle, _plan]) {
+    for (final c in [_name, _current, _target, _goal, _why, _obstacle, _plan, _milestone]) {
       c.dispose();
     }
     super.dispose();
@@ -167,6 +168,7 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
       goalWhy: _why.text,
       obstacle: _obstacle.text,
       plan: _plan.text,
+      milestone: _milestone.text,
       deadline: DateTime(now.year, now.month + _months, now.day),
       daily: List.of(_picks),
       replaceDaily: _replacing(system),
@@ -373,6 +375,7 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
         _field(_why, 'Why it matters to you', 'What would reaching it give you?'),
         _field(_obstacle, 'The obstacle in you', 'What in you is most likely to stop it?'),
         _field(_plan, 'If–then plan', 'When that happens, I will…'),
+        _field(_milestone, 'A first milestone', 'The first point that shows it\'s moving, e.g. run 10 km'),
         const SectionHeader('By when'),
         Segmented(
           labels: const ['3 months', '6 months', '12 months'],

@@ -1412,6 +1412,18 @@ class _PromptsState extends State<_Prompts> {
             'How did the experiment go?',
             l.str('experiment') ?? '',
             '/learning'),
+      for (final g in system.goalsAtDecision.take(1))
+        _row(
+            context,
+            Icons.flag_circle_outlined,
+            AppColors.accent,
+            system.goalPace(g) == 'reached'
+                ? 'Target reached: ${g.text}'
+                : '${g.text} has reached its date',
+            system.goalPace(g) == 'reached'
+                ? 'Close it as achieved, and write down what made it happen'
+                : 'Achieved, a new date, or drop it on purpose',
+            '/goals/view?id=${g.id}'),
       for (final g in system.goalsToMeasure.take(1))
         _row(
             context,
