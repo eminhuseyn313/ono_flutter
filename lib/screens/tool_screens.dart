@@ -200,8 +200,11 @@ class _CountdownTimerState extends State<CountdownTimer> {
                   icon: Icons.replay_rounded,
                   onPressed: () {
                     _t?.cancel();
+                    // A reset block must not still notify at the old end.
+                    if (_endsAt != null) _system.cancelTimerEnd();
                     setState(() {
                       _t = null;
+                      _endsAt = null;
                       _left = total;
                     });
                   }),
@@ -310,6 +313,8 @@ class _SighToolState extends State<_SighTool>
   int _cycle = 0;
   bool _running = false;
   bool _done = false;
+  // Three sighs; "Keep going" carries on to about two minutes.
+  int _breaths = 3;
   final _context = TextEditingController();
 
   @override
@@ -318,7 +323,7 @@ class _SighToolState extends State<_SighTool>
     _c.addStatusListener((s) {
       if (s != AnimationStatus.completed) return;
       HapticFeedback.mediumImpact();
-      if (_cycle < 2) {
+      if (_cycle < _breaths - 1) {
         setState(() => _cycle++);
         _c.forward(from: 0);
       } else {
@@ -346,15 +351,18 @@ class _SighToolState extends State<_SighTool>
 
   @override
   Widget build(BuildContext context) {
+    final system = context.watch<PersonalSystemProvider>();
+    // Mastery and "today's list" only mean something when it's an item.
+    final onList = system.dailyItems.any((n) => n.id == 'sigh');
     return OnoPage(
       showBack: true,
-      eyebrow: 'Protocol · 30 seconds',
+      eyebrow: onList ? 'Protocol · 30 seconds' : 'Breathe · 30 seconds to 2 minutes',
       title: 'Physiological sigh',
       subtitle:
-          'Double inhale through the nose, long exhale through the mouth. Three times.',
+          'Double inhale through the nose, long exhale through the mouth. Three times — or keep going.',
       children: [
         const SizedBox(height: 12),
-        const _Mastery('sigh'),
+        if (onList) const _Mastery('sigh'),
         const SizedBox(height: 24),
         Center(
           child: AnimatedBuilder(
@@ -380,7 +388,7 @@ class _SighToolState extends State<_SighTool>
                   ),
                   const SizedBox(height: 12),
                   Text(p.label, style: AppText.title()),
-                  Text(_running ? 'Breath ${_cycle + 1} of 3' : '',
+                  Text(_running ? 'Breath ${_cycle + 1} of $_breaths' : '',
                       style: AppText.small()),
                 ],
               );
@@ -402,15 +410,41 @@ class _SighToolState extends State<_SighTool>
         else ...[
           OnoCard(
             color: AppColors.navy,
-            child: Text('Now, internally: "I am excited."',
+            child: Text(
+                system.isBuiltInPerson
+                    ? 'Now, internally: "I am excited."'
+                    : 'Notice your shoulders and jaw. Let them drop.',
                 style: AppText.serif(size: 22)),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            children: [
+              TextButton(
+                key: const Key('sigh-keep-going'),
+                onPressed: () {
+                  setState(() {
+                    _done = false;
+                    _running = true;
+                    _cycle = 0;
+                    _breaths = 10;
+                  });
+                  _c.forward(from: 0);
+                },
+                child: const Text('Keep going'),
+              ),
+              TextButton(
+                onPressed: () => context.push('/stepback'),
+                child: const Text('Step back next'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
           _field(_context, 'Before what? (optional)'),
           PrimaryButton('Log it', onPressed: () {
-            context.read<PersonalSystemProvider>().logProtocolUse('sigh',
-                text: _context.text.trim());
-            _doneAndBack(context, 'Sigh logged — today\'s list updated.');
+            system.logProtocolUse('sigh', text: _context.text.trim());
+            _doneAndBack(context,
+                onList ? 'Sigh logged — today\'s list updated.' : 'Logged.');
           }),
         ],
       ],

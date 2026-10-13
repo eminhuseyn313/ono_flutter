@@ -6,6 +6,7 @@ import '../data/emin_system.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
+import '../widgets/support_sheet.dart';
 
 /// Step back: talk about yourself by name. Self-distancing lowers
 /// distress and improves judgement under stress (Kross et al. 2014).
@@ -20,11 +21,12 @@ class _StepBackScreenState extends State<StepBackScreen> {
   final _what = TextEditingController();
   final _feeling = TextEditingController();
   final _advice = TextEditingController();
+  final _step = TextEditingController();
   int? _year;
 
   @override
   void dispose() {
-    for (final c in [_what, _feeling, _advice]) {
+    for (final c in [_what, _feeling, _advice, _step]) {
       c.dispose();
     }
     super.dispose();
@@ -45,7 +47,9 @@ class _StepBackScreenState extends State<StepBackScreen> {
   Widget build(BuildContext context) {
     final system = context.read<PersonalSystemProvider>();
     final name = activeProfile.firstName.isEmpty ? 'you' : activeProfile.firstName;
-    return OnoPage(
+    return UnsavedGuard(
+        fields: [_what, _feeling, _advice, _step],
+        child: OnoPage(
       showBack: true,
       eyebrow: 'Step back · 3 minutes',
       title: 'Talk to $name, not to "I"',
@@ -58,10 +62,18 @@ class _StepBackScreenState extends State<StepBackScreen> {
         }
         system.logStepBack(
             what: _what.text, feeling: _feeling.text, advice: _advice.text, mattersInAYear: _year);
-        toast(context, 'Saved. One step, then the next.');
+        final placed = system.addToTodayPriorities(_step.text);
+        toast(
+            context,
+            _step.text.trim().isEmpty
+                ? 'Saved. You can come back to it.'
+                : placed
+                    ? 'Saved — the step is on today\'s priorities.'
+                    : 'Saved. Today\'s three are full; the step is in your log.');
         context.canPop() ? context.pop() : context.go('/home');
       }),
       children: [
+        const SupportLink(),
         _field(_what, 'What is happening to $name?', '$name is facing…'),
         _field(_feeling, 'What is $name feeling — and why does it make sense?', '$name feels … because …'),
         _field(_advice, 'What would you tell $name, as a friend?', '$name, you can…'),
@@ -71,9 +83,10 @@ class _StepBackScreenState extends State<StepBackScreen> {
           index: _year ?? -1,
           onChanged: (i) => setState(() => _year = i),
         ),
+        _field(_step, 'One next step, if there is one', 'Optional — it goes on today\'s priorities'),
         const SizedBox(height: 16),
       ],
-    );
+    ));
   }
 }
 
@@ -112,7 +125,9 @@ class _DecideScreenState extends State<DecideScreen> {
         if (_options[i].text.trim().isNotEmpty) i
     ];
     int total(int i) => (_scores[i]?.values.fold<int>(0, (a, b) => a + b)) ?? 0;
-    return OnoPage(
+    return UnsavedGuard(
+        fields: [_question, ..._options, _ten, _premortem],
+        child: OnoPage(
       showBack: true,
       eyebrow: 'Decide with your values',
       title: 'A decision that fits you',
@@ -219,6 +234,6 @@ class _DecideScreenState extends State<DecideScreen> {
         ),
         const SizedBox(height: 16),
       ],
-    );
+    ));
   }
 }

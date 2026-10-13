@@ -6,6 +6,7 @@ import '../models/personal_system.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
+import '../widgets/support_sheet.dart';
 
 Widget _field(TextEditingController c, String label, String hint,
         {int minLines = 2, ValueChanged<String>? onChanged}) =>
@@ -71,7 +72,9 @@ class _ThoughtScreenState extends State<ThoughtScreen> {
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
     final relief = system.thoughtRelief;
-    return OnoPage(
+    return UnsavedGuard(
+        fields: [_situation, _thought, _for, _against, _balanced],
+        child: OnoPage(
       showBack: true,
       eyebrow: 'Thought check · 5 minutes',
       title: 'Is that thought true?',
@@ -101,6 +104,7 @@ class _ThoughtScreenState extends State<ThoughtScreen> {
         _close(context);
       }),
       children: [
+        const SupportLink(),
         _field(_situation, 'What happened?', 'Where, when, who — just the facts'),
         _field(_thought, 'What went through your mind?',
             'e.g. "They think I\'m not good enough"'),
@@ -143,9 +147,23 @@ class _ThoughtScreenState extends State<ThoughtScreen> {
               'Your checks in the last 30 days took the feeling down ${relief.round()} points on average.',
               style: AppText.small()),
         ],
+        // What you concluded before, in your own words: the coping card.
+        if (system.thoughts
+                .where((t) => (t.str('balanced') ?? '').trim().isNotEmpty)
+                .take(3)
+                .toList()
+            case final past when past.isNotEmpty) ...[
+          const SectionHeader('What you concluded before'),
+          for (final t in past)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Text('"${t.str('balanced')!.trim()}"',
+                  style: AppText.body(color: AppColors.white)),
+            ),
+        ],
         const SizedBox(height: 16),
       ],
-    );
+    ));
   }
 }
 

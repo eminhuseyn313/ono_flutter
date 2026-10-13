@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
+import '../widgets/support_sheet.dart';
+import 'home_screen.dart' show showHardDaySheet;
 
 /// "What do you need right now?" — the moment, then the one tool for it.
 class NeedScreen extends StatelessWidget {
@@ -43,6 +45,19 @@ class NeedScreen extends StatelessWidget {
       subtitle: 'Pick the moment you\'re in. One tool, a few minutes.',
       children: [
         const SizedBox(height: 14),
+        // First, and always: real help when it's too much.
+        OnoCard(
+          padding: EdgeInsets.zero,
+          child: LinkRow(
+            key: const Key('need-support'),
+            icon: Icons.favorite_rounded,
+            color: AppColors.accent,
+            title: 'I don\'t feel safe, or it\'s too much to carry alone',
+            subtitle: 'People who can help, tonight',
+            onTap: () => showSupportSheet(context),
+          ),
+        ),
+        const SizedBox(height: 10),
         OnoCard(
           padding: EdgeInsets.zero,
           child: Column(
@@ -56,8 +71,7 @@ class NeedScreen extends StatelessWidget {
                   subtitle: n.$3,
                   onTap: () {
                     if (n.$4 == '/home') {
-                      context.go('/home');
-                      toast(context, 'Below your list: "Hard day? Choose how today counts".');
+                      showHardDaySheet(context, DateTime.now());
                       return;
                     }
                     context.push(n.$4);

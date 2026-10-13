@@ -2026,7 +2026,7 @@ Future<void> showHardDaySheet(BuildContext context, DateTime date) {
             Text('Some days the plan can\'t happen', style: AppText.title()),
             const SizedBox(height: 4),
             Text(
-                'That\'s part of any plan worth keeping. Choose honestly — what matters is coming back tomorrow.',
+                'That\'s part of any plan worth keeping. Pick what fits today — what matters is coming back tomorrow.',
                 style: AppText.small()),
             const SizedBox(height: 10),
             option('minimum', Icons.compress_rounded, 'Minimum day',

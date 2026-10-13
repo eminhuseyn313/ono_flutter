@@ -3899,19 +3899,29 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// After a slip: kindness first, then facts, then the smallest next step
   /// — which becomes today's first open priority. Self-compassion after a
   /// failure raises the motivation to improve (Breines & Chen 2012).
-  void logSetback(
+  /// Saves the setback; returns whether the next step went into today's
+  /// priorities (false when there is no step or all three are taken).
+  bool logSetback(
       {required String kind,
       required String happened,
       required String nextStep}) {
-    final today = dayOnly(_now);
     addLog('setback', text: happened.trim(), data: {
       'kind': kind.trim(),
       'next': nextStep.trim(),
     });
-    if (nextStep.trim().isEmpty) return;
+    return addToTodayPriorities(nextStep);
+  }
+
+  /// Puts [step] in today's first empty priority; false if all are taken.
+  bool addToTodayPriorities(String step) {
+    if (step.trim().isEmpty) return false;
+    final today = dayOnly(_now);
     final p = prioritiesFor(today);
+    if (p.any((x) => x.trim() == step.trim())) return true;
     final slot = p.indexWhere((x) => x.trim().isEmpty);
-    if (slot >= 0) setPriority(today, slot, nextStep.trim());
+    if (slot < 0) return false;
+    setPriority(today, slot, step.trim());
+    return true;
   }
 
   int setbacksInWeek(DateTime anyDay) {

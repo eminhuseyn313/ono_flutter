@@ -122,12 +122,33 @@ class _ConversationEditScreenState extends State<ConversationEditScreen> {
     super.dispose();
   }
 
+  /// Saves the plan as it stands; null when there's no one named.
+  LogEntry? _save(PersonalSystemProvider system, LogEntry? existing) =>
+      system.saveConversation(
+        id: widget.id,
+        withWhom: _c['with']!.text,
+        about: _c['about']!.text,
+        wantMe: _c['want_me']!.text,
+        wantThem: _c['want_them']!.text,
+        wantUs: _c['want_us']!.text,
+        facts: _c['facts']!.text,
+        myStory: _c['my_story']!.text,
+        theirStory: _c['their_story']!.text,
+        opening: _c['opening']!.text,
+        ask: _c['ask']!.text,
+        by: _byDays == null
+            ? (existing == null ? null : DateTime.tryParse(existing.str('by') ?? ''))
+            : dayOnly(DateTime.now()).plusDays(_byDays!),
+      );
+
   @override
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
     final existing = widget.id == null ? null : system.conversationById(widget.id!);
     final done = existing?.str('status') == 'done';
-    return OnoPage(
+    return UnsavedGuard(
+        fields: done ? const [] : _c.values.toList(),
+        child: OnoPage(
       showBack: true,
       eyebrow: done ? 'Hard conversation · had' : 'Hard conversation · prepare',
       title: existing == null ? 'Prepare it' : 'With ${existing.str('with')}',
@@ -135,29 +156,15 @@ class _ConversationEditScreenState extends State<ConversationEditScreen> {
       bottomBar: done
           ? null
           : PrimaryButton('Save', icon: Icons.check_rounded, onPressed: () {
-              final saved = system.saveConversation(
-                id: widget.id,
-                withWhom: _c['with']!.text,
-                about: _c['about']!.text,
-                wantMe: _c['want_me']!.text,
-                wantThem: _c['want_them']!.text,
-                wantUs: _c['want_us']!.text,
-                facts: _c['facts']!.text,
-                myStory: _c['my_story']!.text,
-                theirStory: _c['their_story']!.text,
-                opening: _c['opening']!.text,
-                ask: _c['ask']!.text,
-                by: _byDays == null
-                    ? (existing == null ? null : DateTime.tryParse(existing.str('by') ?? ''))
-                    : dayOnly(DateTime.now()).plusDays(_byDays!),
-              );
+              final saved = _save(system, existing);
               if (saved == null) {
                 toast(context, 'Name who it\'s with.');
                 return;
               }
               FocusManager.instance.primaryFocus?.unfocus();
               toast(context, 'Ready. Read your first sentence once more before you start.');
-              Navigator.of(context).maybePop();
+              // Saved: leave past the unsaved-writing guard.
+              Navigator.of(context).pop();
             }),
       children: [
         for (final f in _fields) ...[
@@ -166,6 +173,8 @@ class _ConversationEditScreenState extends State<ConversationEditScreen> {
             child: TextField(
               controller: _c[f.$1],
               readOnly: done,
+              // The copy button below appears as soon as there's a sentence.
+              onChanged: f.$1 == 'opening' ? (_) => setState(() {}) : null,
               minLines: f.$1 == 'with' || f.$1 == 'about' ? 1 : 2,
               maxLines: 5,
               style: AppText.body(color: AppColors.white),
@@ -212,13 +221,27 @@ class _ConversationEditScreenState extends State<ConversationEditScreen> {
           ),
           const SizedBox(height: 10),
           GhostButton('It happened — save the debrief', icon: Icons.done_all_rounded, onPressed: () {
+            // Keep any changes to the plan made since it was last saved.
+            _save(system, existing);
             system.debriefConversation(existing.id, outcome: _outcome, learned: _learned.text);
             toast(context, 'Debriefed. That took courage.');
-            Navigator.of(context).maybePop();
+            Navigator.of(context).pop();
           }),
+        ],
+        if (done && existing != null) ...[
+          const SectionHeader('How it went'),
+          Text(
+              PersonalSystemProvider.conversationOutcomes[existing.str('outcome')] ??
+                  'Had it',
+              style: AppText.heading()),
+          if ((existing.str('learned') ?? '').trim().isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text('You learned: ${existing.str('learned')}',
+                style: AppText.body(color: AppColors.white)),
+          ],
         ],
         const SizedBox(height: 16),
       ],
-    );
+    ));
   }
 }

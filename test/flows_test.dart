@@ -12,6 +12,7 @@ import 'package:ono/models/personal_system.dart';
 import 'package:ono/providers/auth_provider.dart';
 import 'package:ono/providers/personal_system_provider.dart';
 import 'package:ono/services/reminder_service.dart';
+import 'package:ono/widgets/ono_ui.dart';
 
 import 'support/fake_health.dart';
 
@@ -407,5 +408,36 @@ void main() {
     await tester.enterText(find.byKey(const Key('log-search')), 'without');
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('Ran 5 km without stopping'), findsOneWidget);
+  });
+
+  testWidgets('hard moments: help first, writing is kept, saving still leaves',
+      (tester) async {
+    final system = await _start(tester);
+    await _go(tester, '/need');
+    await _tap(tester, find.byKey(const Key('need-support')));
+    expect(find.text('You don\'t have to carry this alone'), findsOneWidget);
+    Navigator.of(tester.element(find.byType(BottomSheet)), rootNavigator: true).pop();
+    await _pumpFor(tester, const Duration(milliseconds: 600));
+    // Step back: writing, then the back arrow asks first.
+    await _go(tester, '/home');
+    GoRouter.of(tester.element(find.byType(Navigator).first)).push('/stepback');
+    await _pumpFor(tester, const Duration(milliseconds: 1200));
+    await tester.enterText(find.byType(TextField).first, 'The review went badly');
+    await tester.pump();
+    await tester.tap(find.byType(OnoBackButton));
+    await _pumpFor(tester, const Duration(milliseconds: 600));
+    expect(find.text('Leave without saving?'), findsOneWidget);
+    await tester.tap(find.text('Keep writing'));
+    await _pumpFor(tester, const Duration(milliseconds: 600));
+    expect(find.textContaining('Talk to'), findsWidgets);
+    await _tap(tester, find.text('Done'));
+    expect(system.logsOf('stepback').single.text, 'The review went badly');
+    expect(find.text('Leave without saving?'), findsNothing);
+    // A setback with all three priorities taken says so.
+    final today = dayOnly(DateTime.now());
+    for (var i = 0; i < 3; i++) {
+      system.setPriority(today, i, 'P$i');
+    }
+    expect(system.logSetback(kind: '', happened: 'Missed it', nextStep: 'Walk at 7'), isFalse);
   });
 }

@@ -609,8 +609,11 @@ class OnoBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => IconButton(
-        onPressed: () =>
-            context.canPop() ? context.pop() : context.go('/home'),
+        // maybePop, so a page guarding unsaved writing (UnsavedGuard) can
+        // ask first.
+        onPressed: () => context.canPop()
+            ? Navigator.of(context).maybePop()
+            : context.go('/home'),
         icon: Icon(icon, color: AppColors.white),
         style: IconButton.styleFrom(
           backgroundColor: AppColors.card,
@@ -850,3 +853,88 @@ String monthName(int month) => const [
     ][month - 1];
 
 String shortDate(DateTime d) => '${d.day} ${monthName(d.month).substring(0, 3)}';
+
+/// Asks before leaving a page that has writing on it: one stray swipe or
+/// tap shouldn't lose what someone wrote in a hard moment. Empty pages
+/// leave freely (and keep the iOS swipe-back).
+class UnsavedGuard extends StatefulWidget {
+  final List<TextEditingController> fields;
+  final Widget child;
+  const UnsavedGuard({super.key, required this.fields, required this.child});
+
+  @override
+  State<UnsavedGuard> createState() => _UnsavedGuardState();
+}
+
+class _UnsavedGuardState extends State<UnsavedGuard> {
+  bool _dirty = false;
+
+  /// Set once the page saved, so its own pop goes straight through.
+  static final _released = Expando<bool>();
+
+  /// Call before popping a page after saving it.
+  static void release(BuildContext context) {
+    final s = context.findAncestorStateOfType<_UnsavedGuardState>();
+    if (s != null) {
+      _released[s] = true;
+      if (s.mounted) s.setState(() => s._dirty = false);
+    }
+  }
+
+  void _check() {
+    final d = _released[this] != true &&
+        widget.fields.any((c) => c.text.trim().isNotEmpty);
+    if (d != _dirty) setState(() => _dirty = d);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    for (final c in widget.fields) {
+      c.addListener(_check);
+    }
+  }
+
+  @override
+  void dispose() {
+    for (final c in widget.fields) {
+      c.removeListener(_check);
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => PopScope(
+        canPop: !_dirty,
+        onPopInvokedWithResult: (didPop, _) async {
+          if (didPop) return;
+          final leave = await showDialog<bool>(
+            context: context,
+            builder: (d) => AlertDialog(
+              title: const Text('Leave without saving?'),
+              content: const Text('What you wrote here will be lost.'),
+              actions: [
+                TextButton(
+                    onPressed: () => Navigator.pop(d, false),
+                    child: const Text('Keep writing')),
+                TextButton(
+                    onPressed: () => Navigator.pop(d, true),
+                    child: const Text('Discard')),
+              ],
+            ),
+          );
+          if (leave == true && context.mounted) {
+            setState(() => _dirty = false);
+            _released[this] = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (context.mounted) Navigator.of(context).pop();
+            });
+          }
+        },
+        child: widget.child,
+      );
+}
+
+/// Lets a page pop after saving even though its fields have text.
+void releaseUnsavedGuard(BuildContext context) =>
+    _UnsavedGuardState.release(context);
