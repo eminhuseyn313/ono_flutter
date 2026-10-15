@@ -93,7 +93,7 @@ class AppleHealthService implements HealthService {
           HealthDataType.RESTING_HEART_RATE
         ],
         d,
-        d.add(const Duration(days: 1)));
+        DateTime(d.year, d.month, d.day + 1));
     double? avg(HealthDataType t) {
       final v = [
         for (final p in points)

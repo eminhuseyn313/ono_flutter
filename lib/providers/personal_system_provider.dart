@@ -1594,8 +1594,9 @@ class PersonalSystemProvider extends ChangeNotifier {
             'wake': night.wake.toIso8601String(),
           });
           final evening = dayOnly(night.bedStart);
-          final cutoff = evening.add(const Duration(hours: 22, minutes: 45));
-          if (evening.isBefore(morning) &&
+          final cutoff = DateTime(evening.year, evening.month, evening.day, 22, 45);
+          if (dailyItems.any((i) => i.id == 'bed') &&
+              evening.isBefore(morning) &&
               !night.bedStart.isAfter(cutoff) &&
               !evening.isBefore(programStart)) {
             setCheck(evening, 'bed', true);
@@ -1846,18 +1847,26 @@ class PersonalSystemProvider extends ChangeNotifier {
   double? get startWeight =>
       weightSeries.isEmpty ? null : weightSeries.first.number('kg')?.toDouble();
 
-  void logWeight(double kg, {DateTime? date}) {
+  /// A body weight people can have; a typo ("805") is refused before it
+  /// reaches the log or Apple Health.
+  static bool plausibleWeight(double kg) => kg >= 20 && kg <= 400;
+
+  bool logWeight(double kg, {DateTime? date}) {
+    if (!plausibleWeight(kg)) return false;
     addLog('weight', date: date, data: {'kg': kg});
     if (healthConnected) _health.writeWeight(kg, date ?? _now);
+    return true;
   }
 
   int proteinFor(DateTime date) => logsOn(date, 'protein')
       .fold<int>(0, (sum, l) => sum + (l.number('g')?.toInt() ?? 0));
 
-  void addProtein(DateTime date, int grams) {
+  bool addProtein(DateTime date, int grams) {
+    if (grams <= 0 || grams > 500) return false;
     addLog('protein', date: date, data: {'g': grams});
     // Ticks itself at 150 g; never un-ticks one ticked by hand.
     if (proteinFor(date) >= 150) setCheck(date, 'protein', true);
+    return true;
   }
 
   /// Most recent gym session for that day (A/B/C).
@@ -3126,22 +3135,31 @@ class PersonalSystemProvider extends ChangeNotifier {
     return null;
   }
 
+  /// The month a money check is for: this one, or last month during the
+  /// first 5 days of a month when last month has none yet.
+  int get moneyMonthDefault =>
+      programMonth > 1 && dayOfMonth <= 5 && moneyCheckFor(programMonth - 1) == null
+          ? programMonth - 1
+          : programMonth;
+
   void saveMoneyCheck({
+    int? month,
     required double income,
     required double spent,
     double? savings,
     String decision = '',
     String worry = '',
   }) {
+    month ??= programMonth;
     final data = {
-      'month': programMonth,
+      'month': month,
       'income': income,
       'spent': spent,
       'savings': savings,
       'decision': decision.trim(),
       'worry': worry.trim(),
     };
-    final e = moneyCheckFor(programMonth);
+    final e = moneyCheckFor(month);
     if (e == null) {
       addLog('money_check', data: data);
     } else {
@@ -5709,7 +5727,9 @@ class PersonalSystemProvider extends ChangeNotifier {
         threshold: 0.5,
         when: (d) => sleep(d) == null ? null : sleep(d)! >= 7,
         measure: score);
-    compare(
+    final items = {for (final i in dailyItems) i.id};
+    if (items.contains('bed')) {
+      compare(
         id: 'bed_energy',
         habit: 'In bed by 10:30',
         outcome: 'energy next morning',
@@ -5717,7 +5737,9 @@ class PersonalSystemProvider extends ChangeNotifier {
         threshold: 0.3,
         when: (d) => isChecked(d, 'bed'),
         measure: (d) => energy(next(d)));
-    compare(
+    }
+    if (items.contains('caffeine')) {
+      compare(
         id: 'caffeine_sleep',
         habit: 'No caffeine after 1pm',
         outcome: 'sleep that night',
@@ -5725,6 +5747,7 @@ class PersonalSystemProvider extends ChangeNotifier {
         threshold: 0.25,
         when: (d) => isChecked(d, 'caffeine'),
         measure: (d) => sleep(next(d)));
+    }
     compare(
         id: 'shutdown_sleep',
         habit: 'Evening shutdown',
@@ -5741,7 +5764,8 @@ class PersonalSystemProvider extends ChangeNotifier {
         threshold: 0.3,
         when: trained,
         measure: (d) => energy(next(d)));
-    compare(
+    if (items.contains('manifesto')) {
+      compare(
         id: 'ritual_score',
         habit: 'Morning ritual',
         outcome: 'the other nine items',
@@ -5749,6 +5773,7 @@ class PersonalSystemProvider extends ChangeNotifier {
         threshold: 0.5,
         when: (d) => isChecked(d, 'manifesto'),
         measure: (d) => scoreWithout(d, 'manifesto'));
+    }
     compare(
         id: 'energy_score',
         habit: 'Morning energy 4–5',

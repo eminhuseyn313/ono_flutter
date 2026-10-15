@@ -897,11 +897,15 @@ Future<void> _openAdd(BuildContext context, String kind) async {
               final num = double.tryParse(a.text.replaceAll(',', '.'));
               switch (kind) {
                 case 'weight':
-                  if (num == null) return;
-                  system.logWeight(num);
+                  if (num == null || !system.logWeight(num)) {
+                    toast(ctx, 'That weight looks off — check the number.');
+                    return;
+                  }
                 case 'protein':
-                  if (num == null) return;
-                  system.addProtein(now, num.round());
+                  if (num == null || !system.addProtein(now, num.round())) {
+                    toast(ctx, 'Enter grams between 1 and 500.');
+                    return;
+                  }
                 case 'blood':
                   if (num == null) return;
                   system.addLog('blood',

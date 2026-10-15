@@ -169,9 +169,9 @@ Flow:
   - Behind a `HealthService` with a conditional import, so web and tests use `NoopHealthService`; tests use `test/support/fake_health.dart`.
   - Connected = `done` key `health:connected` (Me → Mornings → Connect Apple Health).
   - `syncHealth()` runs on Today load and on pull-to-refresh. It upserts one `sleep` log (asleep h, bed start, wake) and one `vitals` log (HRV, resting HR) per morning for 3 days.
-  - Bed start ≤ 22:45 ticks `bed` for that evening; it never un-ticks.
+  - Bed start ≤ 22:45 ticks `bed` for that evening, only when `bed` is a daily item; it never un-ticks. Patterns about built-in items (bed, caffeine, the ritual) appear only while that item is on the list.
   - Overlapping samples are merged in `summarizeNight`.
-  - The check-in pre-fills sleep from it, and `logWeight` also writes to Health.
+  - The check-in pre-fills sleep from it, and `logWeight` also writes to Health. `logWeight` (20–400 kg) and `addProtein` (1–500 g) refuse typos and return false.
   - Sleep and vitals logs show under Log → Body, not in All.
   - Needs the HealthKit entitlement: `bash scripts/capabilities.sh health on` (see below). Without it, `connectHealth` returns a message saying how to switch it on.
 - **Home Screen / Lock Screen widget** (`ios/ONOWidget/ONOWidget.swift`, `home_widget` package):
@@ -183,7 +183,7 @@ Flow:
   - Choices live in `ios/.capabilities/` (git-ignored). `common.sh` re-applies them after every pull, and `Install on my iPhone.command` asks once.
   - They are kept out of the committed project because a personal Apple team may not support them, and an unsupported one would block installs.
   - Never hand-edit these in Xcode: the launchers stash local project edits.
-- **Gym rest timer** (`gym_session_screen.dart`): ticking a set starts `PersonalSystemProvider.restFor(exercise)` (90 s, 120 s for key lifts) with +15/Skip.
+- **Gym rest timer** (`gym_session_screen.dart`): only ticked sets are saved (rows are pre-filled from last time). Ticking a set starts `PersonalSystemProvider.restFor(exercise)` (90 s, 120 s for key lifts) with +15/Skip.
   - `startRest`/`cancelRest` schedule a one-off notification through `ReminderService.notifyOnce` (id `restNotificationId`, ≥ `onceIdBase`); it is silent while ONO is in the foreground.
   - Weekly `sync` only cancels ids below `onceIdBase`, so a running rest survives a reminder resync.
 - **Tool timers** (`CountdownTimer` in `tool_screens.dart`) count from an end time, so they stay right after iOS suspends ONO, and notify at the end via `notifyTimerEnd` (id `timerNotificationId`); Reset cancels that notification.
@@ -246,8 +246,8 @@ Flow:
 - **A check-in for two** (`/us`, Me → People): weekly `us_checkin` log dated `weekStartOf` (`with`, answers to `usQuestions`: appreciate, hard, need, plan); `usStreak` counts weeks in a row. Private (not in the Log tab).
 - **Step back** (`/stepback`, Me → Hard days; the general work-mode tools): self-distanced reflection by first name (Kross et al. 2014) → `stepback` log (what, feeling, advice, `year` 0–2 how much it matters in a year). Notes filter.
 - **Decide with your values** (`/decide`, Me → Hard days): options (2–4) scored −1/0/+1 against their values (or general criteria if none set), 10/10/10, premortem → `addValuesDecision` writes a normal `decision` log (reviewed after 90 days like career decisions).
-- **Health upkeep** (`/upkeep`, Me → Body): `upkeep` logs (name, `every` days, `last` done) — the person sets intervals; ONO gives no medical advice. `upkeepSuggestions` (dentist, general check-up, blood tests, eye test) add in one tap. `upkeepNextDue`, `upkeepDue` (within 14 days, overdue first; never-done count as due); Today prompts the first one that has a date. Hidden from the Log tab.
-- **Money check-in** (`/money`, Me → Direction): one `money_check` log per program month (`income`, `spent`, optional `savings`, `decision`, `worry`). `savingsRate`, `bufferMonths`, `moneySummary`. `moneyCheckDue` from day 25 once they've opened it (`money:on`) or done one; the brief gets only the savings rate and buffer (`money`), and the privacy screen says so. Hidden from the Log tab.
+- **Health upkeep** (`/upkeep`, Me → Body): `upkeep` logs (name, `every` days, `last` done) — the person sets intervals; ONO gives no medical advice. `upkeepSuggestions` (dentist, general check-up, blood tests, eye test) add in one tap; "Done…" asks the date it was done; removing offers Undo. `upkeepNextDue`, `upkeepDue` (within 14 days, overdue first; never-done count as due); Today prompts the first one that has a date. Hidden from the Log tab.
+- **Money check-in** (`/money`, Me → Direction): one `money_check` log per program month (`income`, `spent`, optional `savings`, `decision`, `worry`); in the first 5 days of a month the screen offers last month (`moneyMonthDefault`, `saveMoneyCheck(month:)`). `savingsRate`, `bufferMonths`, `moneySummary`. `moneyCheckDue` from day 25 once they've opened it (`money:on`) or done one; the brief gets only the savings rate and buffer (`money`), and the privacy screen says so. Hidden from the Log tab.
 - **Hard conversations** (`/conversations`, Me → People; Today prompts on the day): `conversation` logs (text = about; `with`, `want_me`/`want_them`/`want_us`, `facts`, `my_story`, `their_story`, `opening`, `ask`, `by`, status planned → done with `outcome` from `conversationOutcomes` and `learned`). `saveConversation`, `debriefConversation`, `plannedConversations`, `conversationsDue(day)`. Private: hidden from the Log tab, never sent to the coach. The editor is `ConversationEditScreen` (pushed, not routed).
 - **Movement** (`/move`, Me → Body's "N min moved"): `move` logs (`kind` from `moveKinds`, `minutes`, `vigorous`). `moveMinutesInWeek` = moderate-equivalent minutes (vigorous ×2) vs `weeklyMoveTarget` 150; `strengthDaysInWeek` counts strength moves and gym sessions vs 2 (WHO 2020). Shows under Log → Body; the brief gets both (minutes only once they log movement).
 - **Direction tools** (`lib/screens/direction_screens.dart`, Me → Growth):

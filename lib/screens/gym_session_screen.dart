@@ -236,6 +236,8 @@ class _GymSessionScreenState extends State<GymSessionScreen> {
       final rows = _sets[ex.name]!;
       final sets = <Map<String, dynamic>>[];
       for (final r in rows) {
+        // Rows come pre-filled from last time: only ticked sets happened.
+        if (!r.done) continue;
         final kg = double.tryParse(r.kg.text.replaceAll(',', '.'));
         final reps = int.tryParse(r.reps.text);
         if (reps == null && kg == null) continue;
@@ -249,7 +251,7 @@ class _GymSessionScreenState extends State<GymSessionScreen> {
       exercises.add({'name': ex.name, 'sets': sets});
     }
     if (exercises.isEmpty) {
-      toast(context, 'Enter at least one set.');
+      toast(context, 'Tick the sets you did.');
       return;
     }
     system.saveGymSession(DateTime.now(), _day.id, exercises,

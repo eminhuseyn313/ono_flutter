@@ -3257,4 +3257,35 @@ void main() {
     expect(p.drillFor(area, DateTime(2026, 10, 5)).title,
         p.drillFor(area, DateTime(2026, 10, 11)).title);
   });
+
+  test('body and money: typos refused, last month\'s money, his patterns only for him',
+      () async {
+    final p = await _commissioned();
+    final weights = p.logsOf('weight').length;
+    expect(p.logWeight(805), isFalse);
+    expect(p.logWeight(80.5), isTrue);
+    expect(p.logsOf('weight').length, weights + 1);
+    expect(p.addProtein(_today, -30), isFalse);
+    expect(p.addProtein(_today, 40), isTrue);
+    expect(p.proteinFor(_today), 40);
+    // 2 Oct is day 2 of month 2: last month's money is still open.
+    expect(p.programMonth, 2);
+    expect(p.moneyMonthDefault, 1);
+    p.saveMoneyCheck(month: p.moneyMonthDefault, income: 3000, spent: 2400);
+    expect(p.moneyCheckFor(1), isNotNull);
+    expect(p.moneyCheckFor(2), isNull);
+    expect(p.moneyMonthDefault, 2);
+    // Someone without a bedtime or caffeine item never sees those patterns.
+    p.saveProfile(activeProfile.copyWith(name: 'Someone Else'));
+    p.buildPlan(
+        name: 'Someone Else',
+        currentRole: '',
+        targetRole: '',
+        area: areaTemplates.first,
+        areaRating: 2,
+        daily: [for (final d in dailyLibrary.take(3)) d],
+        replaceDaily: true);
+    expect(p.dailyItems.any((i) => i.id == 'bed'), isFalse);
+    expect(p.patterns().map((x) => x.id), isNot(contains('bed_energy')));
+  });
 }

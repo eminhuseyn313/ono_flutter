@@ -20,6 +20,7 @@ class _MoneyScreenState extends State<MoneyScreen> {
   final _decision = TextEditingController();
   final _worry = TextEditingController();
   bool _loaded = false;
+  late int _month;
 
   static String _num(num? v) =>
       v == null ? '' : (v == v.roundToDouble() ? v.toInt().toString() : v.toString());
@@ -30,7 +31,15 @@ class _MoneyScreenState extends State<MoneyScreen> {
     if (_loaded) return;
     _loaded = true;
     final system = context.read<PersonalSystemProvider>();
-    final c = system.moneyCheckFor(system.programMonth);
+    _month = system.moneyMonthDefault;
+    _fill(system);
+  }
+
+  void _fill(PersonalSystemProvider system) {
+    final c = system.moneyCheckFor(_month);
+    for (final t in [_income, _spent, _savings, _decision, _worry]) {
+      t.clear();
+    }
     if (c != null) {
       _income.text = _num(c.number('income'));
       _spent.text = _num(c.number('spent'));
@@ -72,23 +81,34 @@ class _MoneyScreenState extends State<MoneyScreen> {
     final history = system.logsOf('money_check');
     return OnoPage(
       showBack: true,
-      eyebrow: 'Month ${system.programMonth} · money check-in',
+      eyebrow: 'Month $_month · money check-in',
       title: 'Where the money went',
       subtitle:
-          'Ten minutes a month, in your own currency. Seeing it clearly is most of the work; the numbers stay on your phone.',
+          'Ten minutes a month, in your own currency. Seeing it clearly is most of the work. ${system.syncsToCloud ? 'The numbers sync to your account like the rest of your data; the coach only sees your savings rate and buffer.' : 'The numbers stay on this device.'}',
       bottomBar: PrimaryButton('Save', icon: Icons.check_rounded, onPressed: () {
         if (income == null || spent == null) {
           toast(context, 'Add what came in and what went out.');
           return;
         }
         system.saveMoneyCheck(
-            income: income, spent: spent, savings: savings, decision: _decision.text, worry: _worry.text);
+            month: _month, income: income, spent: spent, savings: savings, decision: _decision.text, worry: _worry.text);
         FocusManager.instance.primaryFocus?.unfocus();
         toast(context, 'Saved. Next one in a month.');
       }),
       children: [
-        _field(_income, 'Came in this month'),
-        _field(_spent, 'Went out this month'),
+        if (system.programMonth > 1 && system.dayOfMonth <= 5) ...[
+          const SizedBox(height: 10),
+          Segmented(
+            labels: const ['Last month', 'This month'],
+            index: _month == system.programMonth ? 1 : 0,
+            onChanged: (i) => setState(() {
+              _month = system.programMonth - 1 + i;
+              _fill(system);
+            }),
+          ),
+        ],
+        _field(_income, _month == system.programMonth ? 'Came in this month' : 'Came in last month'),
+        _field(_spent, _month == system.programMonth ? 'Went out this month' : 'Went out last month'),
         _field(_savings, 'Set aside in total (optional)', hint: 'Savings you could reach in an emergency'),
         const SizedBox(height: 14),
         Row(
@@ -114,7 +134,7 @@ class _MoneyScreenState extends State<MoneyScreen> {
             Padding(
               padding: const EdgeInsets.only(bottom: 4),
               child: Text(
-                  'Month ${h.number('month')}: ${system.savingsRate(h) == null ? '—' : '${(system.savingsRate(h)! * 100).round()}%'}',
+                  '${shortDate(h.date)}: ${system.savingsRate(h) == null ? '—' : '${(system.savingsRate(h)! * 100).round()}%'}',
                   style: AppText.small(color: AppColors.white)),
             ),
         ],

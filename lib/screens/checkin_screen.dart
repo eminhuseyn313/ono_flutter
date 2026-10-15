@@ -47,13 +47,13 @@ class _CheckinScreenState extends State<CheckinScreen> {
     final c = system.checkinFor(dayOnly(DateTime.now()));
     final fromHealth = system.sleepHoursFor(dayOnly(DateTime.now()));
     if (fromHealth != null) {
-      _sleep = ((fromHealth * 2).round() / 2).clamp(3, 10).toDouble();
+      _sleep = ((fromHealth * 2).round() / 2).clamp(0, 14).toDouble();
       _sleepFromHealth = true;
     }
     if (c != null) {
       _energy = c.number('energy')?.toInt() ?? _energy;
       _mood = c.number('mood')?.toInt() ?? _mood;
-      _sleep = c.number('sleep')?.toDouble() ?? _sleep;
+      _sleep = (c.number('sleep')?.toDouble() ?? _sleep).clamp(0, 14);
       _pain = c.number('pain')?.toInt() ?? _pain;
       _stiffness = c.number('stiffness')?.toInt() ?? _stiffness;
     }
@@ -117,9 +117,9 @@ class _CheckinScreenState extends State<CheckinScreen> {
           trailing: '${_fmtHours(_sleep)} h',
           child: Slider(
             value: _sleep,
-            min: 3,
-            max: 10,
-            divisions: 14,
+            min: 0,
+            max: 14,
+            divisions: 28,
             label: '${_fmtHours(_sleep)} h',
             onChanged: (v) => setState(() => _sleep = v),
           ),

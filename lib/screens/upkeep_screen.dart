@@ -28,7 +28,7 @@ class _UpkeepScreenState extends State<UpkeepScreen> {
 
   String _due(PersonalSystemProvider system, LogEntry u) {
     final next = system.upkeepNextDue(u);
-    if (next == null) return 'Not done yet';
+    if (next == null) return 'No date yet — tap Done… to set the last time';
     final days = next.daysSince(dayOnly(DateTime.now()));
     if (days < 0) return 'Overdue by ${-days} d';
     if (days == 0) return 'Due today';
@@ -75,17 +75,38 @@ class _UpkeepScreenState extends State<UpkeepScreen> {
                           ),
                         ),
                         TextButton(
-                          onPressed: () {
-                            system.markUpkeepDone(u.id);
-                            toast(context, 'Done. Next one is remembered.');
+                          // A date, not just today: the last visit may
+                          // have been months ago.
+                          onPressed: () async {
+                            final now = DateTime.now();
+                            final on = await showDatePicker(
+                              context: context,
+                              initialDate: now,
+                              firstDate: DateTime(now.year - 5),
+                              lastDate: now,
+                              helpText: 'When was it done?',
+                            );
+                            if (on == null || !context.mounted) return;
+                            system.markUpkeepDone(u.id, on: on);
+                            toast(context, 'Noted. The next one is remembered.');
                           },
-                          child: const Text('Done'),
+                          child: const Text('Done…'),
                         ),
                         IconButton(
                           tooltip: 'Remove',
                           icon: const Icon(Icons.close_rounded, size: 18),
                           color: AppColors.faint,
-                          onPressed: () => system.removeUpkeep(u.id),
+                          onPressed: () {
+                            system.removeUpkeep(u.id);
+                            ScaffoldMessenger.of(context)
+                              ..hideCurrentSnackBar()
+                              ..showSnackBar(SnackBar(
+                                content: Text('${u.text} removed.'),
+                                action: SnackBarAction(
+                                    label: 'Undo',
+                                    onPressed: () => system.restoreLog(u)),
+                              ));
+                          },
                         ),
                       ],
                     ),

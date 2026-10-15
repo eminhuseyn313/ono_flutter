@@ -1408,7 +1408,7 @@ class _AppleHealth extends StatelessWidget {
             if (bed != null) ...[
               const SizedBox(height: 6),
               Text(
-                  'In bed ${bed.hour.toString().padLeft(2, '0')}:${bed.minute.toString().padLeft(2, '0')}${system.isBuiltInPerson && (bed.hour < 22 || (bed.hour == 22 && bed.minute <= 45)) ? ' — "bed by 22:30" ticked' : ''}',
+                  'In bed ${bed.hour.toString().padLeft(2, '0')}:${bed.minute.toString().padLeft(2, '0')}${bed.hour >= 12 && system.isChecked(dayOnly(bed), 'bed') ? ' — "bed by 22:30" ticked' : ''}',
                   style: AppText.small().copyWith(fontSize: 12)),
             ],
             const SizedBox(height: 8),

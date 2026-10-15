@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../models/personal_system.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
@@ -18,6 +19,7 @@ class _MoveScreenState extends State<MoveScreen> {
   String _kind = 'walk';
   int _minutes = 30;
   bool _vigorous = false;
+  bool _yesterday = false;
 
   @override
   Widget build(BuildContext context) {
@@ -86,8 +88,15 @@ class _MoveScreenState extends State<MoveScreen> {
           title: Text('Vigorous', style: AppText.body(color: AppColors.white)),
           subtitle: Text('Too out of breath to talk in full sentences', style: AppText.small()),
         ),
+        Segmented(
+          labels: const ['Today', 'Yesterday'],
+          index: _yesterday ? 1 : 0,
+          onChanged: (i) => setState(() => _yesterday = i == 1),
+        ),
+        const SizedBox(height: 10),
         PrimaryButton('Log $_minutes min', icon: Icons.add_rounded, onPressed: () {
-          system.logMove(_kind, _minutes, vigorous: _vigorous);
+          system.logMove(_kind, _minutes,
+              vigorous: _vigorous, day: _yesterday ? dayOnly(now).minusDays(1) : null);
           toast(context, 'Logged.');
         }),
         if (week.isNotEmpty) ...[
