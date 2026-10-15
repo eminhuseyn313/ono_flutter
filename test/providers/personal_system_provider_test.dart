@@ -3228,4 +3228,33 @@ void main() {
     p.undoImport();
     expect(p.logsOf('win').single.text, 'After the backup');
   });
+
+  test('growth: next month from what happened, Monday drill weeks, month line',
+      () async {
+    final p = await _commissioned();
+    p.saveProfile(activeProfile.copyWith(name: 'Someone Else'));
+    expect(p.programMonth, 2);
+    // Month 1 on health, rated 2 → 2: it didn't move, so keep it.
+    final health = p.focusOn('t_health', startRating: 2, month: 1);
+    p.rateFocusEnd(2, month: 1);
+    expect(p.focusArea(2), isNull, reason: 'month 1 chosen without touching 2');
+    expect(p.suggestedAreaFor(2).id, health);
+    expect(p.monthGrowthLine(1), 'Health & energy, 2→2 · 0 reps');
+    // It moved: an active goal's area that hasn't had a month comes next.
+    p.rateFocusEnd(3, month: 1);
+    final rel = p.focusOn('t_relationships', startRating: 2, month: 1);
+    p.focusOn('t_health', startRating: 2, month: 1);
+    p.rateFocusEnd(3, month: 1);
+    p.saveGoal(title: 'A closer marriage', areas: [rel]);
+    expect(p.suggestedAreaFor(2).id, rel);
+    // Choosing next month's area leaves this month alone.
+    p.focusOn(rel, startRating: 3, month: 2);
+    p.focusOn('t_strength', startRating: 1, month: 3);
+    expect(p.focusArea(2)!.id, rel);
+    expect(p.focusArea(3)!.name, 'Strength & athletic performance');
+    // Drill weeks run Monday to Sunday, even for a program begun on Tuesday.
+    final area = p.focusArea(2)!;
+    expect(p.drillFor(area, DateTime(2026, 10, 5)).title,
+        p.drillFor(area, DateTime(2026, 10, 11)).title);
+  });
 }

@@ -165,7 +165,10 @@ class _Journey extends StatelessWidget {
                       child: StatTile(
                           stats.daily10Average.toStringAsFixed(1), 'Daily avg',
                           unit: '/${system.dailyCount}')),
-                  Expanded(child: StatTile('${stats.daysHeld}', 'days held')),
+                  // Same count as the month review: excused days left out.
+                  Expanded(
+                      child: StatTile('${system.monthHeld(month).held}',
+                          'of ${system.monthHeld(month).counted} days held')),
                 ],
               ),
               const SizedBox(height: 14),
@@ -220,6 +223,49 @@ class _Journey extends StatelessWidget {
               ],
             ),
           ),
+          // Their own path, month by month: what they grew, how far, what
+          // they took from it.
+          if (month > 1) ...[
+            const SectionHeader('Your months'),
+            OnoCard(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+              child: Column(
+                children: [
+                  for (var m = month - 1; m >= 1; m--)
+                    Padding(
+                      key: Key('your-month-$m'),
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            width: 34,
+                            child: Text('$m',
+                                style: AppText.serif(size: 20, color: AppColors.accent)),
+                          ),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(system.monthGrowthLine(m) ?? 'No area chosen',
+                                    style: AppText.body(color: AppColors.white)),
+                                Text(
+                                    [
+                                      'held ${system.monthHeld(m).held} of ${system.monthHeld(m).counted}',
+                                      if ((system.monthReviewFor(m)?.str('lesson') ?? '').trim().isNotEmpty)
+                                        '"${system.monthReviewFor(m)!.str('lesson')!.trim()}"',
+                                    ].join(' · '),
+                                    style: AppText.small()),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
         ] else ...[
           SectionHeader('Month $month',
               action: 'Open', onAction: () => context.push('/month/$month')),

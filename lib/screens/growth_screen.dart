@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../models/personal_system.dart';
 import '../data/emin_system.dart';
 import '../data/growth_templates.dart';
 import '../providers/personal_system_provider.dart';
@@ -13,11 +12,36 @@ import '../widgets/ono_ui.dart';
 /// The growth plan: one area a month, practised on real work, each rep
 /// reflected on, with feedback from someone who sees it.
 class GrowthScreen extends StatelessWidget {
-  const GrowthScreen({super.key});
+  /// Choose next month's area (from the month review), leaving this
+  /// month's alone.
+  final bool next;
+  const GrowthScreen({super.key, this.next = false});
 
   @override
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
+    if (next) {
+      final m = system.programMonth + 1;
+      final chosen = system.focusArea(m);
+      return OnoPage(
+        showBack: true,
+        eyebrow: 'Month $m · growth plan',
+        title: 'Next month\'s area',
+        subtitle: chosen == null
+            ? 'Decide now, while this month is fresh. It starts on day 1 of month $m.'
+            : 'Chosen: ${chosen.name}. You can change it until month $m begins.',
+        children: [
+          if (system.monthGrowthLine(system.programMonth) case final l?) ...[
+            const SizedBox(height: 12),
+            Text('This month: $l', style: AppText.small(color: AppColors.white)),
+          ],
+          _Chooser(
+              suggested: system.suggestedAreaFor(m).id,
+              current: chosen?.id,
+              month: m),
+        ],
+      );
+    }
     final area = system.focusArea();
     return OnoPage(
       showBack: true,
@@ -26,7 +50,15 @@ class GrowthScreen extends StatelessWidget {
       subtitle: area?.bar ??
           'One area a month. Practise it on your real work, reflect on every rep, and ask someone who sees you do it.',
       children: area == null
-          ? [_Chooser(suggested: system.suggestedArea.id)]
+          ? [
+              if (system.programMonth > 1 &&
+                  system.monthGrowthLine(system.programMonth - 1) != null) ...[
+                const SizedBox(height: 12),
+                Text('Last month: ${system.monthGrowthLine(system.programMonth - 1)}',
+                    style: AppText.small(color: AppColors.white)),
+              ],
+              _Chooser(suggested: system.suggestedArea.id),
+            ]
           : [_Plan(area: area)],
     );
   }
@@ -35,7 +67,9 @@ class GrowthScreen extends StatelessWidget {
 class _Chooser extends StatefulWidget {
   final String suggested;
   final String? current;
-  const _Chooser({required this.suggested, this.current});
+  /// The month being chosen for (null: this month).
+  final int? month;
+  const _Chooser({required this.suggested, this.current, this.month});
 
   @override
   State<_Chooser> createState() => _ChooserState();
@@ -43,7 +77,18 @@ class _Chooser extends StatefulWidget {
 
 class _ChooserState extends State<_Chooser> {
   late String _area = widget.current ?? widget.suggested;
-  int _rating = 2;
+  late int _rating = _startRating();
+
+  /// Keeping last month's area starts from where it ended.
+  int _startRating() {
+    final system = context.read<PersonalSystemProvider>();
+    final m = widget.month ?? system.programMonth;
+    if (m > 1 && system.focusArea(m - 1)?.id == _area) {
+      final (_, end) = system.focusRatings(m - 1);
+      if (end != null) return end;
+    }
+    return 2;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -124,10 +169,15 @@ class _ChooserState extends State<_Chooser> {
             levels: levelsOf(system.areaById(_area)),
             onChanged: (v) => setState(() => _rating = v)),
         const SizedBox(height: 16),
-        PrimaryButton('Grow this for month ${system.programMonth}',
+        PrimaryButton('Grow this for month ${widget.month ?? system.programMonth}',
             icon: Icons.trending_up_rounded, onPressed: () {
-          system.focusOn(_area, startRating: _rating);
+          system.focusOn(_area, startRating: _rating, month: widget.month);
           HapticFeedback.mediumImpact();
+          if (widget.month != null) {
+            toast(context, 'Set for month ${widget.month}. It starts on day 1.');
+            if (Navigator.of(context).canPop()) Navigator.of(context).pop();
+            return;
+          }
           if (Navigator.of(context).canPop() && widget.current != null) {
             Navigator.of(context).pop();
           }
@@ -408,14 +458,16 @@ class _Plan extends StatelessWidget {
         ),
         if (system.growthHistory.length > 1) ...[
           const SectionHeader('Earlier months'),
-          for (final h in system.growthHistory
-              .where((h) => !system.atMonth(h, system.programMonth)))
+          // This program's earlier months only, counted by program month.
+          for (final h in system.growthHistory.where((h) =>
+              system.cycleOf(h) == system.cycle &&
+              (h.number('month')?.toInt() ?? 0) < system.programMonth))
             Padding(
               padding: const EdgeInsets.only(bottom: 6),
               child: Text(
                   'Month ${h.number('month')} · ${system.areaById(h.str('area') ?? '').name} · '
                   '${h.number('start') ?? '–'} → ${h.number('end') ?? '–'} · '
-                  '${system.logsOf('rep').where((r) => r.str('area') == h.str('area') && !r.date.isBefore(h.date) && r.date.isBefore(h.date.plusDays(30))).length} reps',
+                  '${system.repsIn(h.str('area') ?? '', h.number('month')?.toInt() ?? 0).length} reps',
                   style: AppText.small(color: AppColors.greyLight)),
             ),
         ],

@@ -3514,9 +3514,16 @@ class PersonalSystemProvider extends ChangeNotifier {
   ({int areas, int items, bool goal}) applyPack(PlanPack pack,
       {bool replaceDaily = false, bool withGoal = true}) {
     var areas = 0;
+    final areaIds = <String>[];
     for (final a in pack.areas) {
-      if (allGrowthAreas.any((x) => x.name.toLowerCase() == a.name.toLowerCase())) continue;
-      saveCustomArea(a.copyWith(id: ''));
+      final have = allGrowthAreas
+          .where((x) => x.name.toLowerCase() == a.name.toLowerCase())
+          .firstOrNull;
+      if (have != null) {
+        areaIds.add(have.id);
+        continue;
+      }
+      areaIds.add(saveCustomArea(a.copyWith(id: '')).id);
       areas++;
     }
     var goal = false;
@@ -3528,6 +3535,7 @@ class PersonalSystemProvider extends ChangeNotifier {
               title: g.title,
               obstacle: g.obstacle,
               plan: g.plan,
+              areas: areaIds,
               deadline: DateTime(now.year, now.month + g.months, now.day)) !=
           null;
     }
@@ -4546,31 +4554,65 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   /// What to suggest when nothing is chosen: the readiness gap, else the
   /// first area.
-  GrowthArea get suggestedArea {
+  GrowthArea get suggestedArea => suggestedAreaFor(programMonth);
+
+  /// What to grow in [month], from what happened: keep last month's area
+  /// if it didn't move (or wasn't rated); else an area an active goal
+  /// needs that hasn't had a month yet; else the lowest life area.
+  GrowthArea suggestedAreaFor(int month) {
     if (!isBuiltInPerson) {
+      final last = month > 1 ? focusArea(month - 1) : null;
+      if (last != null) {
+        final (start, end) = focusRatings(month - 1);
+        if (end == null || (start != null && end <= start)) return last;
+      }
+      final focused = {
+        for (var m = 1; m < month; m++)
+          if (focusArea(m) case final a?) a.id
+      };
+      for (final g in activeGoals) {
+        for (final a in (g.data['areas'] as List? ?? const [])) {
+          if (!focused.contains('$a') && allGrowthAreas.any((x) => x.id == '$a')) {
+            return areaById('$a');
+          }
+        }
+      }
+      if (lowestLifeArea?.template case final t?) return areaById(t);
       final own = customAreas;
       if (own.isNotEmpty) return own.first;
-      return areaById(lowestLifeArea?.template ?? 't_health');
+      return areaById('t_health');
     }
     return readinessGap == null ? growthAreas.first : areaById(readinessGap!.id);
   }
 
   /// Focuses on [areaId]; a template (`t_…`) first becomes an area of
   /// your own. Returns the id used.
-  String focusOn(String areaId, {required int startRating}) {
+  String focusOn(String areaId, {required int startRating, int? month}) {
     var id = areaId;
     if (areaTemplates.any((t) => t.id == areaId)) {
       final t = areaTemplates.firstWhere((t) => t.id == areaId);
       final existing = customAreas.where((a) => a.name == t.name);
       id = existing.isNotEmpty ? existing.first.id : saveCustomArea(t.copyWith(id: '')).id;
     }
-    setFocus(id, startRating: startRating);
+    setFocus(id, startRating: startRating, month: month);
     return id;
   }
 
+  /// One line on last month's area for choosing the next: name, start to
+  /// end rating, reps. Null in the first month or without an area.
+  String? monthGrowthLine(int month) {
+    final a = focusArea(month);
+    if (a == null) return null;
+    final (start, end) = focusRatings(month);
+    final reps = repsIn(a.id, month).length;
+    return '${a.name}${start == null ? '' : ', $start→${end ?? '?'}'} · $reps rep${reps == 1 ? '' : 's'}';
+  }
+
   /// Chooses this month's area, rated 1–5 where you are now.
-  void setFocus(String areaId, {required int startRating}) {
-    final month = programMonth;
+  /// [month] defaults to this one; from day 27 the next can be chosen
+  /// without touching the month being closed.
+  void setFocus(String areaId, {required int startRating, int? month}) {
+    month ??= programMonth;
     final existing = _focusLog(month);
     final data = {
       'area': areaId,
@@ -4759,7 +4801,9 @@ class PersonalSystemProvider extends ChangeNotifier {
       for (final r in repsIn(area.id, programMonth))
         if (r.date.isBefore(weekFrom)) r.str('drill')
     };
-    final week = dayOnly(day).daysSince(programStart) ~/ 7;
+    // Monday weeks, like the reps counted against it: a program that began
+    // on a Wednesday doesn't change the drill every Wednesday.
+    final week = weekStartOf(day).daysSince(weekStartOf(programStart)) ~/ 7;
     final drills = drillsOf(area);
     final n = drills.length;
     if (n == 0) {

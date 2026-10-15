@@ -149,8 +149,11 @@ class _MonthReviewScreenState extends State<MonthReviewScreen> {
               hintText: 'One thing you\'re keeping, one you\'re changing, one to start.'),
         ),
         const SizedBox(height: 10),
+        // Reviewing this month (day 27+): choose for the next one. Reviewing
+        // last month (days 1–5): the "next" one is the month already on.
         GhostButton('Choose next month\'s area', icon: Icons.trending_up_rounded,
-            onPressed: () => context.push('/growth')),
+            onPressed: () => context.push(
+                m == system.programMonth ? '/growth?next=1' : '/growth')),
         const SizedBox(height: 16),
       ],
     );
