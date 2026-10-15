@@ -10,6 +10,8 @@ BriefInput _input({
   Map<String, String> cues = const {},
   String best = '',
   String hardest = '',
+  int excused = 0,
+  int week = 1,
 }) =>
     BriefInput(
       report: WeeklyReport(
@@ -23,7 +25,8 @@ BriefInput _input({
           createdAt: DateTime(2026, 10, 11)),
       forWeek: DateTime(2026, 10, 12),
       programMonth: 1,
-      programWeek: 1,
+      programWeek: week,
+      excusedDays: excused,
       itemRates: const {'d_walk': 0.2, 'd_read': 0.4, 'd_water': 0.9},
       itemTitles: const {'d_walk': 'Walk', 'd_read': 'Read', 'd_water': 'Water'},
       itemCount: itemCount,
@@ -104,5 +107,22 @@ void main() {
     expect(input.toJson()['wins_logged_this_week'], 1);
     expect(input.toJson().toString(), isNot(contains('Called my sister')),
         reason: 'only the count leaves the device');
+  });
+
+  test('the coach gets the plan type, never built-in fields or weight for others',
+      () {
+    final json = _input().toJson();
+    expect(json['built_in_plan'], isFalse);
+    for (final k in ['posts_this_week', 'gym_days', 'open_unlocks', 'artifacts_this_month',
+        'shoulder_flag_mornings', 'readiness_gap', 'latest_weight_kg']) {
+      expect(json.containsKey(k), isFalse, reason: k);
+    }
+  });
+
+  test('a week mostly sick or resting gets no verdict and no "shrink"',
+      () async {
+    final b = await DeviceBriefGenerator().generate(_input(avg: 1, excused: 5, week: 3));
+    expect(b.headline, contains('rest or illness'));
+    expect(b.adjustments.join(' '), isNot(contains('Shrink')));
   });
 }

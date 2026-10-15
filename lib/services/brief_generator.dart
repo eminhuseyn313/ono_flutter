@@ -136,6 +136,10 @@ class BriefInput {
   /// Hard days this week by kind: minimum days, sick days, emergency skips.
   final Map<String, int> hardDays;
 
+  /// Days this week that were sick, skipped, rest or paused: left out of
+  /// the average, and a reason for a gentler verdict.
+  final int excusedDays;
+
   /// The accountability pact over the last 4 check-ins, e.g. "with Sam:
   /// you kept it 3 of 4 weeks, they 2".
   final String? partner;
@@ -222,6 +226,7 @@ class BriefInput {
     this.energyPeak,
     this.feedbackThemes,
     this.hardDays = const {},
+    this.excusedDays = 0,
     this.partner,
     this.direction,
     this.craftingMove,
@@ -235,6 +240,9 @@ class BriefInput {
   Map<String, dynamic> toJson() => {
         'profile': profile.toJson(),
         'goals': goals,
+        // Which plan this is: the built-in one (training, posts, artifact,
+        // readiness) or someone's own.
+        'built_in_plan': builtInPlan,
         'progress_note_sent': noteSent,
         'setbacks_handled': setbacks,
         'kindness_acts_this_week': kindnessActs,
@@ -254,6 +262,7 @@ class BriefInput {
         'rest_planned_next_8_weeks': restPlanned,
         'energy_peak': energyPeak,
         'hard_days': hardDays,
+        'excused_days_this_week': excusedDays,
         'accountability_partner': partner,
         'five_year_direction': direction,
         'crafting_move': craftingMove,
@@ -268,6 +277,13 @@ class BriefInput {
         'program_week': programWeek,
         'phase': phaseName ?? phaseFor(programMonth).name,
         if (builtInPlan) ...{
+          'evidence_added_this_week': evidenceAddedThisWeek,
+          'artifacts_this_month': artifactsThisMonth,
+          'posts_this_week': postsThisWeek,
+          'gym_days': gymDays,
+          'open_unlocks': openUnlocks,
+          'shoulder_flag_mornings': shoulderFlagDays,
+          'readiness_gap': readinessGap,
           'month_theme': monthThemes[programMonth],
           'artifact_of_month': artifactFor(programMonth),
           if (scheduledBook(programMonth) case final b?) 'book_of_month': b.title,
@@ -281,16 +297,9 @@ class BriefInput {
         if (monthCarry != null) 'month_carry': monthCarry,
         if (quarterFocus != null) 'quarter_focus': quarterFocus,
         'days_in_program_this_week': daysCounted,
-        'evidence_added_this_week': evidenceAddedThisWeek,
-        'artifacts_this_month': artifactsThisMonth,
-        'posts_this_week': postsThisWeek,
-        'gym_days': gymDays,
-        'open_unlocks': openUnlocks,
-        'latest_weight_kg': latestWeight,
+        // Body weight stays on the device.
         'avg_energy_1_to_5': avgEnergy,
         'avg_sleep_hours': avgSleep,
-        'shoulder_flag_mornings': shoulderFlagDays,
-        'readiness_gap': readinessGap,
         'open_one_on_one_followups': openFollowUps,
         'personal_patterns': patterns,
         'deep_work_hours': deepWorkHours,
@@ -354,7 +363,10 @@ class DeviceBriefGenerator implements BriefGenerator {
     final strongest = rates.isEmpty ? null : rates.last.key;
 
     final partial = input.daysCounted < 5;
-    final headline = partial
+    final restWeek = !partial && input.daysCounted - input.excusedDays < 3;
+    final headline = restWeek
+        ? 'A week given mostly to rest or illness. That is part of the plan — next week starts fresh.'
+        : partial
         ? 'Your first ${input.daysCounted == 1 ? 'day' : '${input.daysCounted} days'} (${avg.toStringAsFixed(1)}/${input.itemCount}). Too early for a verdict — next week is the first full one.'
         : ratio >= 0.8
         ? 'Strong week (${avg.toStringAsFixed(1)}/${input.itemCount}). Hold the line and raise one bar.'
@@ -434,7 +446,7 @@ class DeviceBriefGenerator implements BriefGenerator {
     // says, then set-up nudges (no goal, no rest planned, …), the week and
     // the rest.
     final health = <String>[
-      if (ratio < 0.6 && !partial && input.itemCount > 3)
+      if (ratio < 0.6 && !partial && input.excusedDays < 2 && input.itemCount > 3)
         input.builtInPlan
             ? 'Shrink to the core five next week: manifesto, scan, BLUF, protein, bed. Add the rest back when you hold 5/5.'
             : 'Shrink the list next week: keep the three items that matter most, use their minimum versions on hard days, and add the rest back once those hold.',
@@ -602,10 +614,12 @@ class RemoteBriefGenerator implements BriefGenerator {
         createdAt: DateTime.now(),
         source: 'ai',
         headline: r['headline'] as String,
-        tasks: List<String>.from(r['tasks'] as List),
+        // The same caps as the device's brief: a long list isn't acted on.
+        tasks: List<String>.from(r['tasks'] as List).take(6).toList(),
         domainBrief: r['domain_brief'] as String,
         coaching: r['coaching'] as String,
-        adjustments: List<String>.from(r['adjustments'] as List? ?? const []),
+        adjustments:
+            List<String>.from(r['adjustments'] as List? ?? const []).take(7).toList(),
       );
     } catch (_) {
       return fallback.generate(input);

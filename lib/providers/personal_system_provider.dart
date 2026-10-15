@@ -950,8 +950,14 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// inside the program.
   double weekAverage(DateTime anyDay) {
     final now = _now;
+    // Sick days, skips, rest and paused days aren't failures: left out.
     final days = weekDays(anyDay)
-        .where((d) => !d.isAfter(now) && !d.isBefore(programStart))
+        .where((d) =>
+            !d.isAfter(now) &&
+            !d.isBefore(programStart) &&
+            !isExcused(d) &&
+            !isRestDay(d) &&
+            !isPaused(d))
         .toList();
     if (days.isEmpty) return 0;
     return days.fold<int>(0, (sum, d) => sum + scoreFor(d)) / days.length;
@@ -2161,8 +2167,16 @@ class PersonalSystemProvider extends ChangeNotifier {
         programMonth: programMonth,
         phaseName: phase.name,
         programWeek: programWeek,
-        itemRates: itemRates(
-            weekDays(report.weekStart).where((d) => !d.isAfter(_now)).toList()),
+        // Only program days: a Saturday start isn't five missed days.
+        itemRates: itemRates(weekDays(report.weekStart)
+            .where((d) => !d.isAfter(_now) && !d.isBefore(programStart))
+            .toList()),
+        excusedDays: weekDays(report.weekStart)
+            .where((d) =>
+                !d.isAfter(_now) &&
+                !d.isBefore(programStart) &&
+                (isExcused(d) || isRestDay(d) || isPaused(d)))
+            .length,
         evidenceAddedThisWeek: evidenceAddedBetween(
             report.weekStart, report.weekStart.plusDays(7)),
         artifactsThisMonth: countBetween(
@@ -2189,7 +2203,9 @@ class PersonalSystemProvider extends ChangeNotifier {
         money: moneySummary == null || moneySummary!.isEmpty ? null : moneySummary,
         growingOthers: [
           for (final p in peopleGrowing)
-            '${p.text}: ${p.str('growing')} (${helpsInMonth(p, programMonth)} helps this month)'
+            // Their name and how often you helped; what they're working on
+            // stays on the device.
+            '${p.text} (${helpsInMonth(p, programMonth)} helps this month)'
         ],
         moveMinutes: logsOf('move').isEmpty ? null : moveMinutesInWeek(report.weekStart),
         strengthDays: strengthDaysInWeek(report.weekStart),
@@ -2252,7 +2268,7 @@ class PersonalSystemProvider extends ChangeNotifier {
         valueGap: valueGap(report.weekStart),
         openCommitments: [
           for (final c in commitmentsDue(report.weekStart.plusDays(6)))
-            c.str('will') ?? ''
+            if ((c.str('will') ?? '').trim().isNotEmpty) c.str('will')!
         ],
         feedbackThisMonth: focusArea() == null
             ? 0
@@ -3294,7 +3310,10 @@ class PersonalSystemProvider extends ChangeNotifier {
     final r = savingsRate(l.first);
     final b = bufferMonths(l.first);
     return [
-      if (r != null) 'saved ${(r * 100).round()}% of income',
+      if (r != null)
+        r >= 0
+            ? 'saved ${(r * 100).round()}% of income'
+            : 'spent ${(-r * 100).round()}% more than income',
       if (b != null) '${b.toStringAsFixed(1)} months\' buffer',
     ].join(' · ');
   }
