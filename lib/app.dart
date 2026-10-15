@@ -62,6 +62,9 @@ class _OnoAppState extends State<OnoApp> {
     );
     _router = createRouter(_auth);
     _auth.addListener(_onAuth);
+    // Recovery links, expired sessions and sign-outs elsewhere arrive as
+    // events; without this they would never reach the app.
+    _auth.listenToAuthChanges();
     _auth.init();
     widget.reminders.init(onOpen: _open);
     widget.shortcuts.init(onOpen: _open);
@@ -87,7 +90,10 @@ class _OnoAppState extends State<OnoApp> {
   }
 
   Future<void> _onAuth() async {
-    if (_auth.status == AuthStatus.unauthenticated) _system.signedOut();
+    if (_auth.status == AuthStatus.unauthenticated) {
+      _system.signedOut();
+      _pendingRoute = null;
+    }
     if (_auth.status != AuthStatus.authenticated) return;
     await _system.load(_auth.userId);
     final route = _pendingRoute;

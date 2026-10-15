@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show AuthChangeEvent;
 
 import 'package:ono/main.dart';
 import 'package:ono/gateways/mock_auth_gateway.dart';
@@ -28,12 +29,12 @@ Future<void> _pumpFor(WidgetTester tester, Duration total) async {
 }
 
 Future<PersonalSystemProvider> _start(WidgetTester tester,
-    {Size size = const Size(1179, 2556)}) async {
+    {Size size = const Size(1179, 2556), MockAuthGateway? auth}) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
   await tester.pumpWidget(OnoApp(
-    authGateway: MockAuthGateway(),
+    authGateway: auth ?? MockAuthGateway(),
     personalGateway: MockPersonalSystemGateway(),
     reminders: NoopReminderService(),
     health: FakeHealthService(),
@@ -477,5 +478,18 @@ void main() {
     await _tap(tester, find.text('Record the check-in'));
     expect(system.partnerCheckinFor(DateTime.now())!.str('mine'), 'missed');
     expect(system.logsOf('partner_checkin').length, 1);
+  });
+
+  testWidgets('a password reset link opens the new password page, with a way out',
+      (tester) async {
+    final auth = MockAuthGateway();
+    await _start(tester, auth: auth);
+    await _go(tester, '/home');
+    auth.emit(AuthChangeEvent.passwordRecovery);
+    await _pumpFor(tester, const Duration(seconds: 1));
+    expect(find.text('Choose a new password'), findsOneWidget);
+    await _tap(tester, find.text('Not now — sign out'));
+    await _pumpFor(tester, const Duration(seconds: 1));
+    expect(find.text('Choose a new password'), findsNothing);
   });
 }

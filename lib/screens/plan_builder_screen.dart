@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -144,7 +146,12 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
     return null;
   }
 
+  /// Building runs once: a second tap while permission is asked would
+  /// build the plan twice.
+  bool _building = false;
+
   Future<void> _next(PersonalSystemProvider system) async {
+    if (_building) return;
     final problem = _problem();
     if (problem != null) {
       toast(context, problem);
@@ -155,6 +162,7 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
       setState(() => _step++);
       return;
     }
+    _building = true;
     final now = DateTime.now();
     final newPerson = _newPerson;
     final goalAdded = system.buildPlan(
@@ -169,7 +177,8 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
       obstacle: _obstacle.text,
       plan: _plan.text,
       milestone: _milestone.text,
-      deadline: DateTime(now.year, now.month + _months, now.day),
+      deadline: DateTime(now.year, now.month + _months,
+          min(now.day, DateTime(now.year, now.month + _months + 1, 0).day)),
       daily: List.of(_picks),
       replaceDaily: _replacing(system),
       keepOwnDaily: _fromPack,
@@ -180,6 +189,7 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
     // built-in person goes on to the full setup: training days, reminders.
     if (!system.isCommissioned) {
       if (!newPerson) {
+        _building = false;
         if (mounted) context.go('/commission');
         return;
       }
@@ -191,6 +201,7 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
       // Their general reminders are on: ask once so they can arrive.
       await system.requestReminderPermission();
     }
+    _building = false;
     if (!mounted) return;
     HapticFeedback.heavyImpact();
     toast(

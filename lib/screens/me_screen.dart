@@ -904,8 +904,14 @@ class MeScreen extends StatelessWidget {
                 title: 'Sign out',
                 subtitle: 'Your data stays on this device',
                 onTap: () async {
-                  await context.read<AuthProvider>().signOut();
-                  if (context.mounted) context.go('/welcome');
+                  final auth = context.read<AuthProvider>();
+                  await auth.signOut();
+                  if (!context.mounted) return;
+                  if (auth.isAuthenticated) {
+                    toast(context, 'Couldn\'t sign out. Check your connection and try again.');
+                    return;
+                  }
+                  context.go('/welcome');
                 },
               ),
             ],
@@ -948,9 +954,30 @@ class MeScreen extends StatelessWidget {
                     ChoiceChip(
                       label: Text(e.value),
                       selected: system.programDays == e.key,
-                      onSelected: (_) {
+                      onSelected: (_) async {
+                        // Shorter than the day you're on ends the program
+                        // today: ask, so a stray tap doesn't.
+                        if (e.key < system.programDay) {
+                          final yes = await showDialog<bool>(
+                            context: ctx,
+                            builder: (d) => AlertDialog(
+                              title: const Text('End this program today?'),
+                              content: Text(
+                                  'You are on day ${system.programDay}. ${e.value} ends it now and opens the look back.'),
+                              actions: [
+                                TextButton(
+                                    onPressed: () => Navigator.pop(d, false),
+                                    child: const Text('Keep going')),
+                                TextButton(
+                                    onPressed: () => Navigator.pop(d, true),
+                                    child: const Text('End it')),
+                              ],
+                            ),
+                          );
+                          if (yes != true) return;
+                        }
                         system.setProgramLength(e.key);
-                        Navigator.of(ctx).pop();
+                        if (ctx.mounted) Navigator.of(ctx).pop();
                       },
                     ),
                 ],

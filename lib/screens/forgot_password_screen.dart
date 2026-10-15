@@ -27,6 +27,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
   @override
   void initState() {
     super.initState();
+    // A message from another auth screen doesn't belong here.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<AuthProvider>().clearError();
+    });
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 700),
       vsync: this,
@@ -47,7 +51,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
 
   Future<void> _submit() async {
     final email = _emailController.text.trim();
-    if (email.isEmpty || !email.contains('@')) return;
+    if (email.isEmpty || !email.contains('@')) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Enter the email you signed up with.')));
+      return;
+    }
 
     HapticFeedback.mediumImpact();
     setState(() => _loading = true);

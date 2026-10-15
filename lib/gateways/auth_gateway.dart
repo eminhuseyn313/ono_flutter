@@ -51,3 +51,15 @@ abstract class AuthGateway {
   /// Sign in with Google.
   Future<AuthResult> signInWithGoogle();
 }
+
+/// What a person sees when sign-in fails for a reason that isn't theirs:
+/// never a raw exception with an address in it.
+String friendlyAuthError(Object e) {
+  final t = '$e'.toLowerCase();
+  const offline = ['socketexception', 'clientexception', 'failed host lookup',
+      'xmlhttprequest', 'connection', 'network', 'timeout', 'timed out'];
+  if (offline.any(t.contains)) {
+    return 'Couldn\'t reach ONO. Check your connection and try again.';
+  }
+  return 'Something went wrong. Try again in a moment.';
+}

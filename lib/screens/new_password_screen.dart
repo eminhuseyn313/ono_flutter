@@ -74,6 +74,14 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
           decoration: const InputDecoration(labelText: 'The same again'),
         ),
         const SizedBox(height: 16),
+        // A link that expired can't set a password: a way out.
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton(
+            onPressed: () => context.read<AuthProvider>().signOut(),
+            child: const Text('Not now — sign out'),
+          ),
+        ),
       ],
     );
   }

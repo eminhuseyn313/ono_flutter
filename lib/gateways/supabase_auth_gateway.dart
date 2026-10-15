@@ -53,7 +53,7 @@ class SupabaseAuthGateway implements AuthGateway {
       }
       return AuthResult(error: e.message);
     } catch (e) {
-      return AuthResult(error: e.toString());
+      return AuthResult(error: friendlyAuthError(e));
     }
   }
 
@@ -73,7 +73,7 @@ class SupabaseAuthGateway implements AuthGateway {
     } on AuthException catch (e) {
       return AuthResult(error: e.message);
     } catch (e) {
-      return AuthResult(error: e.toString());
+      return AuthResult(error: friendlyAuthError(e));
     }
   }
 
@@ -122,7 +122,7 @@ class SupabaseAuthGateway implements AuthGateway {
     } on AuthException catch (e) {
       return AuthResult(error: e.message);
     } catch (e) {
-      return AuthResult(error: e.toString());
+      return AuthResult(error: friendlyAuthError(e));
     }
   }
 

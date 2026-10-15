@@ -29,6 +29,10 @@ class _SignInScreenState extends State<SignInScreen>
   @override
   void initState() {
     super.initState();
+    // A message from another auth screen doesn't belong here.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<AuthProvider>().clearError();
+    });
     _fadeController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),

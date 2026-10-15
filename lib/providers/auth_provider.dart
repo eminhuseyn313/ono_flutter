@@ -45,7 +45,7 @@ class AuthProvider extends ChangeNotifier {
       }
     } catch (e) {
       _status = AuthStatus.unauthenticated;
-      _errorMessage = e.toString();
+      _errorMessage = friendlyAuthError(e);
     }
     notifyListeners();
   }
@@ -69,7 +69,7 @@ class AuthProvider extends ChangeNotifier {
       }
     } catch (e) {
       _status = AuthStatus.unauthenticated;
-      _errorMessage = e.toString();
+      _errorMessage = friendlyAuthError(e);
     }
     notifyListeners();
   }
@@ -91,7 +91,7 @@ class AuthProvider extends ChangeNotifier {
       }
     } catch (e) {
       _status = AuthStatus.unauthenticated;
-      _errorMessage = e.toString();
+      _errorMessage = friendlyAuthError(e);
     }
     notifyListeners();
   }
@@ -101,10 +101,11 @@ class AuthProvider extends ChangeNotifier {
       await _gateway.signOut();
       _user = null;
       _status = AuthStatus.unauthenticated;
+      _passwordRecovery = false;
       _errorMessage = null;
     } catch (e) {
       // Sign-out failed — keep user authenticated, surface the error.
-      _errorMessage = e.toString();
+      _errorMessage = friendlyAuthError(e);
     }
     notifyListeners();
   }
@@ -128,7 +129,7 @@ class AuthProvider extends ChangeNotifier {
       }
     } catch (e) {
       _status = AuthStatus.unauthenticated;
-      _errorMessage = e.toString();
+      _errorMessage = friendlyAuthError(e);
     }
     notifyListeners();
   }
@@ -150,7 +151,7 @@ class AuthProvider extends ChangeNotifier {
       }
     } catch (e) {
       _status = AuthStatus.unauthenticated;
-      _errorMessage = e.toString();
+      _errorMessage = friendlyAuthError(e);
     }
     notifyListeners();
   }
@@ -182,7 +183,7 @@ class AuthProvider extends ChangeNotifier {
       return true;
     } catch (e) {
       _status = AuthStatus.unauthenticated;
-      _errorMessage = e.toString();
+      _errorMessage = friendlyAuthError(e);
       notifyListeners();
       return false;
     }
@@ -220,6 +221,7 @@ class AuthProvider extends ChangeNotifier {
       case AuthChangeEvent.signedOut:
         _user = null;
         _status = AuthStatus.unauthenticated;
+        _passwordRecovery = false;
         notifyListeners();
         break;
       default:

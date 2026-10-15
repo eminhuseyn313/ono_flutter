@@ -80,8 +80,26 @@ class PersonalSystemProvider extends ChangeNotifier {
     return n.hour < dayEndsAt ? d.minusDays(1) : d;
   }
 
-  Future<void> load(String? userId) async {
+  Future<void>? _loadFuture;
+  String? _loadingFor;
+
+  /// Loads [userId]'s program. A second call while the first is still
+  /// syncing waits for it, so Today never judges a half-loaded device
+  /// (and opens the plan builder over a program on its way).
+  Future<void> load(String? userId) {
     final id = userId ?? _fallbackUser;
+    final running = _loadFuture;
+    if (running != null && _loadingFor == id) return running;
+    final f = _load(id);
+    _loadFuture = f;
+    _loadingFor = id;
+    f.whenComplete(() {
+      if (identical(_loadFuture, f)) _loadFuture = null;
+    });
+    return f;
+  }
+
+  Future<void> _load(String id) async {
     final again = _signedOut;
     _signedOut = false;
     if (_state != null && id == _userId && !again) return;
@@ -115,6 +133,16 @@ class PersonalSystemProvider extends ChangeNotifier {
     _syncTimer = null;
     _syncSoon = null;
     _signedOut = true;
+    _beforeImport = null;
+    // Their reminders and one-off nudges stop with them: the next person
+    // to sign in here mustn't get them.
+    _widgetTimer?.cancel();
+    _reminders?.sync(const []);
+    _reminders?.cancel(restNotificationId);
+    _reminders?.cancel(timerNotificationId);
+    for (var i = 0; i < 40; i++) {
+      _reminders?.cancel(onceIdBase + 100 + i);
+    }
   }
 
   bool _signedOut = false;

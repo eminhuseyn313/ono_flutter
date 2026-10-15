@@ -3343,4 +3343,24 @@ void main() {
     expect(p.valuesCheckDone(_today), isTrue);
     expect(p.valueGap(_today), 'Courage', reason: 'a removed value is never the gap');
   });
+
+  test('loads overlap into one; signing out stops this person\'s reminders',
+      () async {
+    final r = _RecordingReminders();
+    final p = PersonalSystemProvider(gateway: MockPersonalSystemGateway(), reminders: r)
+      ..clock = () => _today;
+    final a = p.load('one');
+    final b = p.load('one');
+    expect(identical(a, b), isTrue);
+    await a;
+    await p.commission(start: _start, gymDays: const [1, 3, 5], reminders: const {});
+    p.setReminder(reminderDefs.first.id, true);
+    await Future<void>.delayed(Duration.zero);
+    expect(r.last, isNotEmpty);
+    r.once[PersonalSystemProvider.restNotificationId] = _today;
+    p.signedOut();
+    await Future<void>.delayed(Duration.zero);
+    expect(r.last, isEmpty);
+    expect(r.once.containsKey(PersonalSystemProvider.restNotificationId), isFalse);
+  });
 }

@@ -241,9 +241,27 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           icon: const Icon(Icons.person_add_alt_rounded, size: 18),
           label: const Text('Add a person'),
         ),
-        if (system.profileEdited)
+        // Only the built-in person has an original to go back to; for
+        // anyone else it would become someone else's profile.
+        if (system.profileEdited && system.isBuiltInPerson)
           TextButton(
-            onPressed: () {
+            onPressed: () async {
+              final yes = await showDialog<bool>(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Text('Reset your profile?'),
+                  content: const Text('Your edits here are replaced by the original profile.'),
+                  actions: [
+                    TextButton(
+                        onPressed: () => Navigator.pop(ctx, false),
+                        child: const Text('Keep mine')),
+                    TextButton(
+                        onPressed: () => Navigator.pop(ctx, true),
+                        child: const Text('Reset')),
+                  ],
+                ),
+              );
+              if (yes != true || !context.mounted) return;
               system.resetProfile();
               setState(() => _fill(activeProfile));
               toast(context, 'Back to the original profile.');

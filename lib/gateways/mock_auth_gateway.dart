@@ -70,6 +70,10 @@ class MockAuthGateway implements AuthGateway {
   @override
   Stream<AuthChangeEvent> onAuthStateChange() => _controller.stream;
 
+  /// Sends an auth event, as Supabase would (a recovery link, a sign-out
+  /// elsewhere). For tests.
+  void emit(AuthChangeEvent event) => _controller.add(event);
+
   @override
   bool get offersSocialSignIn => true;
 

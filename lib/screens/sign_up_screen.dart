@@ -31,6 +31,10 @@ class _SignUpScreenState extends State<SignUpScreen>
   @override
   void initState() {
     super.initState();
+    // A message from another auth screen doesn't belong here.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<AuthProvider>().clearError();
+    });
     _fadeController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
@@ -354,18 +358,18 @@ class _SignUpScreenState extends State<SignUpScreen>
                             padding: const EdgeInsets.all(12),
                             margin: const EdgeInsets.only(bottom: 12),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFE0605A)
+                              color: _tone(auth.errorMessage!)
                                   .withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: const Color(0xFFE0605A)
+                                color: _tone(auth.errorMessage!)
                                     .withValues(alpha: 0.3),
                               ),
                             ),
                             child: Row(
                               children: [
-                                Icon(Icons.error_outline,
-                                    color: const Color(0xFFE0605A)
+                                Icon(_isNotice(auth.errorMessage!) ? Icons.mark_email_read_outlined : Icons.error_outline,
+                                    color: _tone(auth.errorMessage!)
                                         .withValues(alpha: 0.8),
                                     size: 18),
                                 const SizedBox(width: 10),
@@ -373,7 +377,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                                   child: Text(
                                     auth.errorMessage!,
                                     style: TextStyle(
-                                      color: const Color(0xFFE0605A)
+                                      color: _tone(auth.errorMessage!)
                                           .withValues(alpha: 0.9),
                                       fontSize: 13,
                                     ),
@@ -615,3 +619,9 @@ class _GoogleLogoPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
+
+/// Sign-up's "check your email" is good news, not an error.
+bool _isNotice(String message) => message.startsWith('Check your email');
+
+Color _tone(String message) =>
+    _isNotice(message) ? const Color(0xFFC8894A) : const Color(0xFFE0605A);
