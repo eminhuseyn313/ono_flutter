@@ -133,7 +133,9 @@ class _ExperimentsScreenState extends State<ExperimentsScreen> {
       ...system.experimentsWith('kept'),
       ...system.experimentsWith('dropped'),
     ];
-    final ideas = system.patterns().take(2).toList();
+    // Only habits a person can choose to do; "morning energy 4–5" is an
+    // outcome, not a change.
+    final ideas = system.patterns().where((p) => p.id != 'energy_score').take(2).toList();
     return OnoPage(
       showBack: true,
       eyebrow: 'Mind · personal science',

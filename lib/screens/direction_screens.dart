@@ -23,6 +23,7 @@ class _OdysseyScreenState extends State<OdysseyScreen> {
   final _prototype = TextEditingController();
   int? _leaning;
   bool _loaded = false;
+  int _saves = 0;
 
   @override
   void didChangeDependencies() {
@@ -56,6 +57,7 @@ class _OdysseyScreenState extends State<OdysseyScreen> {
       for (var i = 0; i < 3; i++)
         {'title': _titles[i].text.trim(), 'story': _stories[i].text.trim(), ..._ratings[i]}
     ], leaning: _leaning, prototype: _prototype.text);
+    setState(() => _saves++);
     FocusManager.instance.primaryFocus?.unfocus();
     toast(context, 'Saved. Come back to it each quarter.');
   }
@@ -63,7 +65,11 @@ class _OdysseyScreenState extends State<OdysseyScreen> {
   @override
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
-    return OnoPage(
+    return UnsavedGuard(
+        changesOnly: true,
+        saves: _saves,
+        fields: [..._titles, ..._stories, _prototype],
+        child: OnoPage(
       showBack: true,
       eyebrow: 'Odyssey plan · 20 minutes',
       title: 'Three possible lives',
@@ -132,7 +138,7 @@ class _OdysseyScreenState extends State<OdysseyScreen> {
         ],
         const SizedBox(height: 16),
       ],
-    );
+    ));
   }
 }
 
@@ -150,6 +156,7 @@ class _CraftingScreenState extends State<CraftingScreen> {
   String _move = 'reshape';
   final _how = TextEditingController();
   bool _loaded = false;
+  int _saves = 0;
 
   static const _energyLabels = ['Drains', 'Tires', 'Neutral', 'Lifts', 'Energises'];
 
@@ -189,7 +196,11 @@ class _CraftingScreenState extends State<CraftingScreen> {
       for (final r in _rows)
         if (r.name.text.trim().isNotEmpty) r.name.text.trim()
     ];
-    return OnoPage(
+    return UnsavedGuard(
+        changesOnly: true,
+        saves: _saves,
+        fields: [_how, for (final r in _rows) r.name],
+        child: OnoPage(
       showBack: true,
       eyebrow: 'Quarter ${system.programQuarter} · energy audit',
       title: 'What gives and drains you',
@@ -201,6 +212,7 @@ class _CraftingScreenState extends State<CraftingScreen> {
             craftActivity: _craft ?? '',
             craftMove: _move,
             craftHow: _how.text);
+        setState(() => _saves++);
         FocusManager.instance.primaryFocus?.unfocus();
         toast(context, 'Saved. Your move goes into the Sunday brief.');
       }),
@@ -273,7 +285,7 @@ class _CraftingScreenState extends State<CraftingScreen> {
         ],
         const SizedBox(height: 16),
       ],
-    );
+    ));
   }
 }
 

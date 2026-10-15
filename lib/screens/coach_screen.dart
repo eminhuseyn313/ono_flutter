@@ -54,7 +54,7 @@ class _CoachScreenState extends State<CoachScreen> {
   @override
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
-    final due = system.commitmentsDue(DateTime.now());
+    final due = system.commitmentsDue(system.logicalToday);
     final past = system.coachingSessions;
     return OnoPage(
       showBack: true,
@@ -111,7 +111,7 @@ class _CoachScreenState extends State<CoachScreen> {
             reality: _reality.text,
             options: [for (final o in _options) o.text],
             will: _will.text,
-            by: dayOnly(DateTime.now()).plusDays(_days),
+            by: system.logicalToday.plusDays(_days),
             commitment: _commitment,
           );
           HapticFeedback.mediumImpact();
@@ -168,10 +168,18 @@ class _Due extends StatelessWidget {
             Row(
               children: [
                 TextButton(
-                    onPressed: () => system.setCommitmentKept(entry.id, true),
+                    onPressed: () {
+                      system.setCommitmentKept(entry.id, true);
+                      _undo(context, 'Kept.',
+                          () => system.setCommitmentKept(entry.id, false));
+                    },
                     child: const Text('Kept it')),
                 TextButton(
-                    onPressed: () => system.dropCommitment(entry.id),
+                    onPressed: () {
+                      system.dropCommitment(entry.id);
+                      _undo(context, 'Dropped on purpose.',
+                          () => system.setDone('coach:${entry.id}:dropped', false));
+                    },
                     child: const Text('Drop it on purpose')),
               ],
             ),
@@ -181,3 +189,11 @@ class _Due extends StatelessWidget {
     );
   }
 }
+
+void _undo(BuildContext context, String text, VoidCallback undo) =>
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(
+        content: Text(text),
+        action: SnackBarAction(label: 'Undo', onPressed: undo),
+      ));

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -2289,13 +2291,14 @@ void main() {
     expect(p.parkedWorries, isEmpty);
   });
 
-  test('life chapters: edited in place, untitled chapters dropped', () async {
+  test('life chapters: edited in place, empty chapters dropped', () async {
     final p = await _commissioned();
     p.saveLifeStory(chapters: [
       {'title': 'Leaving home', 'years': '2012–2016', 'taught': 'I can start over'},
-      {'title': ' ', 'high': 'x'},
+      {'title': ' ', 'high': ' '},
+      {'title': '', 'high': 'The first job'},
     ], next: 'Leading');
-    expect(p.lifeChapters.single['title'], 'Leaving home');
+    expect(p.lifeChapters.length, 2, reason: 'untitled but written is kept');
     p.saveLifeStory(chapters: [
       {'title': 'Leaving home'},
       {'title': 'First team'},
@@ -3287,5 +3290,57 @@ void main() {
         replaceDaily: true);
     expect(p.dailyItems.any((i) => i.id == 'bed'), isFalse);
     expect(p.patterns().map((x) => x.id), isNot(contains('bed_energy')));
+  });
+
+  test('plan packs: pasted text is bounded, replacing retires (not deletes)',
+      () async {
+    final pasted = PlanPack.fromText('ONO plan: x\n${jsonEncode({
+      'name': 'Shared',
+      'areas': [
+        {'name': ''},
+        {'name': 'Focus', 'drills': []},
+      ],
+      'goal': {'title': 'Run far', 'months': -3},
+      'daily': [
+        {'title': 'Walk', 'lane': 'weird', 'when': 'noon'},
+        {'title': 'walk'},
+        {'title': 'Read'},
+        {'title': 'Stretch'},
+      ],
+      'stops': ['Scrolling', 'scrolling', ''],
+    })}')!;
+    expect(pasted.areas.map((a) => a.name), ['Focus']);
+    expect(pasted.goal!.months, 1);
+    expect(pasted.daily.map((d) => d.title), ['Walk', 'Read', 'Stretch']);
+    expect(pasted.daily.first.lane, 'mind');
+    expect(pasted.daily.first.when, 'day');
+    expect(pasted.stops, ['Scrolling']);
+    expect(PlanPack.fromText('ONO plan: {"name": 3, "areas": "x"}'), isNotNull);
+    expect(PlanPack.fromText('not a plan'), isNull);
+
+    final p = await _commissioned();
+    final mine = p.addDailyItem('Journal', lane: 'mind', when: 'evening')!;
+    p.applyPack(pasted, replaceDaily: true);
+    expect(p.dailyItems.map((d) => d.title), ['Walk', 'Read', 'Stretch']);
+    expect(p.retiredCustomItems.map((d) => d.id), [mine.id]);
+    expect(p.dailyItem(mine.id)!.title, 'Journal');
+    // Bringing a retired item back keeps it, rather than a new copy.
+    p.applyPack(const PlanPack('Again', daily: [DailyIdea('Journal', 'mind', 'evening', '', '')]));
+    expect(p.dailyItems.any((d) => d.id == mine.id), isTrue);
+    expect(p.logsOf('daily_item').where((l) => l.text == 'Journal').length, 1);
+  });
+
+  test('values check: done only when every value is rated', () async {
+    final p = await _commissioned();
+    p.setValues([
+      (name: 'Courage', meaning: ''),
+      (name: 'Family', meaning: ''),
+      (name: 'Growth', meaning: ''),
+    ]);
+    p.saveValuesCheck(_today, {'Courage': 2});
+    expect(p.valuesCheckDone(_today), isFalse);
+    p.saveValuesCheck(_today, {'Courage': 2, 'Family': 4, 'Growth': 5, 'Old value': 1});
+    expect(p.valuesCheckDone(_today), isTrue);
+    expect(p.valueGap(_today), 'Courage', reason: 'a removed value is never the gap');
   });
 }

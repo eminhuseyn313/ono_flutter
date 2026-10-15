@@ -185,6 +185,7 @@ class _BestFutureScreenState extends State<BestFutureScreen> {
   };
   final _step = TextEditingController();
   int _years = 1;
+  final _saves = 0;
 
   @override
   void dispose() {
@@ -199,7 +200,11 @@ class _BestFutureScreenState extends State<BestFutureScreen> {
     final system = context.watch<PersonalSystemProvider>();
     final last = system.bestFuture;
     const years = [1, 3, 5];
-    return OnoPage(
+    return UnsavedGuard(
+        changesOnly: true,
+        saves: _saves,
+        fields: [..._areas.values, _step],
+        child: OnoPage(
       showBack: true,
       eyebrow: 'Best possible future · 15 minutes',
       title: 'Your life, when it goes well',
@@ -261,7 +266,7 @@ class _BestFutureScreenState extends State<BestFutureScreen> {
         ],
         const SizedBox(height: 16),
       ],
-    );
+    ));
   }
 }
 
@@ -545,6 +550,7 @@ class _ChaptersScreenState extends State<ChaptersScreen> {
   late final List<Map<String, TextEditingController>> _chapters;
   late final TextEditingController _now;
   late final TextEditingController _next;
+  final _saves = 0;
 
   Map<String, TextEditingController> _blank([Map<String, String>? from]) =>
       {for (final k in _keys) k: TextEditingController(text: from?[k] ?? '')};
@@ -577,7 +583,11 @@ class _ChaptersScreenState extends State<ChaptersScreen> {
   @override
   Widget build(BuildContext context) {
     final system = context.read<PersonalSystemProvider>();
-    return OnoPage(
+    return UnsavedGuard(
+        changesOnly: true,
+        saves: _saves,
+        fields: [_now, _next, for (final c in _chapters) ...c.values],
+        child: OnoPage(
       showBack: true,
       eyebrow: 'Life chapters',
       title: 'The story so far',
@@ -644,6 +654,6 @@ class _ChaptersScreenState extends State<ChaptersScreen> {
             minLines: 1),
         const SizedBox(height: 16),
       ],
-    );
+    ));
   }
 }

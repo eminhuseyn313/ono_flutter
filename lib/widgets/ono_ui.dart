@@ -888,7 +888,20 @@ String shortDate(DateTime d) =>
 class UnsavedGuard extends StatefulWidget {
   final List<TextEditingController> fields;
   final Widget child;
-  const UnsavedGuard({super.key, required this.fields, required this.child});
+
+  /// For pages edited in place (opened with saved text): only changes
+  /// since opening, or since [markSaved], count as unsaved.
+  final bool changesOnly;
+
+  /// Bump after saving a page that stays open: what's there now counts as
+  /// saved, and later edits are guarded again.
+  final int saves;
+  const UnsavedGuard(
+      {super.key,
+      required this.fields,
+      required this.child,
+      this.changesOnly = false,
+      this.saves = 0});
 
   @override
   State<UnsavedGuard> createState() => _UnsavedGuardState();
@@ -896,6 +909,7 @@ class UnsavedGuard extends StatefulWidget {
 
 class _UnsavedGuardState extends State<UnsavedGuard> {
   bool _dirty = false;
+  List<String> _baseline = const [];
 
   /// Set once the page saved, so its own pop goes straight through.
   static final _released = Expando<bool>();
@@ -910,16 +924,30 @@ class _UnsavedGuardState extends State<UnsavedGuard> {
   }
 
   void _check() {
+    final fields = widget.fields;
     final d = _released[this] != true &&
-        widget.fields.any((c) => c.text.trim().isNotEmpty);
+        (widget.changesOnly
+            ? [for (var i = 0; i < fields.length; i++) i]
+                .any((i) => fields[i].text.trim() != _baseline[i].trim())
+            : fields.any((c) => c.text.trim().isNotEmpty));
     if (d != _dirty) setState(() => _dirty = d);
   }
 
   @override
   void initState() {
     super.initState();
+    _baseline = [for (final c in widget.fields) c.text];
     for (final c in widget.fields) {
       c.addListener(_check);
+    }
+  }
+
+  @override
+  void didUpdateWidget(UnsavedGuard old) {
+    super.didUpdateWidget(old);
+    if (old.saves != widget.saves) {
+      _baseline = [for (final c in widget.fields) c.text];
+      _dirty = false;
     }
   }
 

@@ -561,9 +561,22 @@ class PersonalSystemProvider extends ChangeNotifier {
   }
 
   List<NonNegotiable> get customDailyItems => [
+        for (final n in _allCustomItems)
+          if (!isDone('daily:off:${n.id}')) n
+      ];
+
+  /// Their own items, retired ones too: retiring keeps the item, its cue
+  /// and its history, so it can come back.
+  List<NonNegotiable> get _allCustomItems => [
         for (final l in logsOf('daily_item').reversed)
           NonNegotiable(l.str('id') ?? l.id, l.text, l.str('lane') ?? 'mind',
               l.str('when') ?? 'day')
+      ];
+
+  /// Their own items they retired, to bring back on /daily.
+  List<NonNegotiable> get retiredCustomItems => [
+        for (final n in _allCustomItems)
+          if (isDone('daily:off:${n.id}')) n
       ];
 
   int get dailyCount => dailyItems.length;
@@ -859,7 +872,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   }
 
   NonNegotiable? dailyItem(String id) {
-    for (final n in [...nonNegotiables, ...customDailyItems]) {
+    for (final n in [...nonNegotiables, ..._allCustomItems]) {
       if (n.id == id) return n;
     }
     return null;
@@ -867,6 +880,13 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   /// [date]'s score on a 0–10 scale, whatever the list's length — what
   /// the heat colours and week bars draw.
+  /// Share of the day's list ticked, on 0–10 unrounded: days with a
+  /// longer or shorter list compare fairly.
+  double scoreShare10(DateTime date) {
+    final n = itemIdsOn(date).length;
+    return n == 0 ? 0 : scoreFor(date) * 10 / n;
+  }
+
   int scoreOutOf10(DateTime date) {
     final n = itemIdsOn(date).length;
     return n == 0 ? 0 : (scoreFor(date) * 10 / n).round().clamp(0, 10);
@@ -2837,10 +2857,10 @@ class PersonalSystemProvider extends ChangeNotifier {
         for (final b in nonNegotiables) {
           setDone('daily:off:${b.id}', true);
         }
-        // Items just added from a plan pack stay.
+        // Items just added from a plan pack stay. Retired, not deleted.
         if (!keepOwnDaily) {
-          for (final l in logsOf('daily_item')) {
-            removeLog(l.id);
+          for (final n in customDailyItems) {
+            setDone('daily:off:${n.id}', true);
           }
         }
       }
@@ -2858,6 +2878,15 @@ class PersonalSystemProvider extends ChangeNotifier {
     for (final d in ideas) {
       if (dailyCount >= maxDailyItems) break;
       if (dailyItems.any((x) => x.title.toLowerCase() == d.title.toLowerCase())) continue;
+      // One they retired comes back, with its history and cue.
+      final old = retiredCustomItems
+          .where((x) => x.title.toLowerCase() == d.title.toLowerCase())
+          .firstOrNull;
+      if (old != null) {
+        setDone('daily:off:${old.id}', false);
+        added++;
+        continue;
+      }
       final id = 'd_${_uid()}';
       added++;
       addLog('daily_item',
@@ -3448,8 +3477,9 @@ class PersonalSystemProvider extends ChangeNotifier {
   }
 
   /// The crafting move in a line, e.g. "Weekly report: reshape it — …".
+  /// This quarter's move only: last quarter's isn't news for the coach.
   String? get craftingMove {
-    final a = latestEnergyAudit;
+    final a = energyAudit;
     if (a == null || (a.str('craft') ?? '').isEmpty) return null;
     final how = a.str('how') ?? '';
     return '${a.str('craft')}: ${(craftMoves[a.str('move')] ?? '').split(' —').first.toLowerCase()}${how.isEmpty ? '' : ' — $how'}';
@@ -3558,7 +3588,9 @@ class PersonalSystemProvider extends ChangeNotifier {
               obstacle: g.obstacle,
               plan: g.plan,
               areas: areaIds,
-              deadline: DateTime(now.year, now.month + g.months, now.day)) !=
+              // 31 Jan + 1 month is 28 Feb, not 3 March.
+              deadline: DateTime(now.year, now.month + g.months,
+                  min(now.day, DateTime(now.year, now.month + g.months + 1, 0).day))) !=
           null;
     }
     final items = _changingList(() {
@@ -3566,8 +3598,8 @@ class PersonalSystemProvider extends ChangeNotifier {
         for (final b in nonNegotiables) {
           setDone('daily:off:${b.id}', true);
         }
-        for (final l in logsOf('daily_item')) {
-          removeLog(l.id);
+        for (final n in customDailyItems) {
+          setDone('daily:off:${n.id}', true);
         }
       }
       return _addIdeas(pack.daily);
@@ -4284,7 +4316,7 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   /// What an experiment can watch, from data already logged.
   static const experimentMeasures = {
-    'score': 'Daily score',
+    'score': 'Daily items (of 10)',
     'energy': 'Morning energy',
     'sleep': 'Sleep (h)',
     'mood': 'Mood',
@@ -4331,7 +4363,7 @@ class PersonalSystemProvider extends ChangeNotifier {
       experimentDay(e) > (e.number('days') ?? 14).toInt();
 
   double? _measureOn(String measure, DateTime d) => switch (measure) {
-        'score' => d.isAfter(dayOnly(_now)) ? null : scoreFor(d).toDouble(),
+        'score' => d.isAfter(dayOnly(_now)) || isMinimumDay(d) ? null : scoreShare10(d),
         'sleep' => sleepHoursFor(d) ?? checkinFor(d)?.number('sleep')?.toDouble(),
         _ => checkinFor(d)?.number(measure)?.toDouble(),
       };
@@ -4909,6 +4941,12 @@ class PersonalSystemProvider extends ChangeNotifier {
           text: text.trim(), data: {'value': value, 'before': before.trim()});
 
   /// How much the week reflected each value, 1–5.
+  /// Whether every current value was rated this week.
+  bool valuesCheckDone(DateTime anyDay) {
+    final r = valuesCheck(anyDay);
+    return values.isNotEmpty && values.every((v) => r.containsKey(v.name));
+  }
+
   Map<String, int> valuesCheck(DateTime anyDay) {
     final l = logsOn(weekStartOf(anyDay), 'values_check');
     if (l.isEmpty) return const {};
@@ -4921,7 +4959,12 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   /// The value this week reflected least, if checked and below 4.
   String? valueGap(DateTime anyDay) {
-    final r = valuesCheck(anyDay);
+    // Only values they still hold count.
+    final names = {for (final v in values) v.name};
+    final r = {
+      for (final e in valuesCheck(anyDay).entries)
+        if (names.contains(e.key)) e.key: e.value
+    };
     if (r.isEmpty) return null;
     final low = r.entries.reduce((a, b) => a.value <= b.value ? a : b);
     return low.value < 4 ? low.key : null;
@@ -5677,15 +5720,17 @@ class PersonalSystemProvider extends ChangeNotifier {
       today.minusDays(days),
       programStart,
     ].reduce((a, b) => a.isAfter(b) ? a : b);
+    // Sick, skipped, rest and paused days say nothing about a habit.
     final range = [
       for (var d = from; d.isBefore(today); d = d.plusDays(1))
-        d
+        if (!isExcused(d) && !isRestDay(d) && !isPaused(d)) d
     ];
     DateTime next(DateTime d) => d.plusDays(1);
     double? energy(DateTime d) => checkinFor(d)?.number('energy')?.toDouble();
     double? sleep(DateTime d) =>
         sleepHoursFor(d) ?? checkinFor(d)?.number('sleep')?.toDouble();
-    double score(DateTime d) => scoreFor(d).toDouble();
+    // A minimum day's lower bar would read as a worse day.
+    double? score(DateTime d) => isMinimumDay(d) ? null : scoreShare10(d);
     double scoreWithout(DateTime d, String id) =>
         (scoreFor(d) - (isChecked(d, id) ? 1 : 0)).toDouble();
     bool trained(DateTime d) => logsOn(d, 'gym').isNotEmpty;
@@ -5728,7 +5773,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     compare(
         id: 'sleep_score',
         habit: '7+ hours of sleep',
-        outcome: 'Daily 10 that day',
+        outcome: 'daily items held that day',
         unit: '/10',
         threshold: 0.5,
         when: (d) => sleep(d) == null ? null : sleep(d)! >= 7,
@@ -5783,7 +5828,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     compare(
         id: 'energy_score',
         habit: 'Morning energy 4–5',
-        outcome: 'Daily 10 that day',
+        outcome: 'daily items held that day',
         unit: '/10',
         threshold: 0.5,
         when: (d) {
@@ -6577,7 +6622,8 @@ class PersonalSystemProvider extends ChangeNotifier {
   }) {
     final kept = [
       for (final c in chapters)
-        if ((c['title'] ?? '').trim().isNotEmpty)
+        // A chapter with any of it written is kept, titled or not.
+        if (c.values.any((v) => v.trim().isNotEmpty))
           {for (final e in c.entries) e.key: e.value.trim()},
     ];
     final data = {'chapters': kept, 'now': now.trim(), 'next': next.trim()};
@@ -6661,7 +6707,9 @@ class PersonalSystemProvider extends ChangeNotifier {
   String? get strengthOfTheWeek {
     final top = signatureStrengths;
     if (top.isEmpty) return null;
-    return top[(programDay ~/ 7) % top.length];
+    // Calendar weeks, like the uses counted against it.
+    final today = dayOnly(_now);
+    return top[(weekStartOf(today).daysSince(weekStartOf(programStart)) ~/ 7) % top.length];
   }
 
   // ── Your personal board (developmental network) ──────────────────────

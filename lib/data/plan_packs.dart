@@ -16,10 +16,16 @@ class PackGoal {
   Map<String, dynamic> toJson() =>
       {'title': title, 'obstacle': obstacle, 'plan': plan, 'months': months};
 
-  factory PackGoal.fromJson(Map m) => PackGoal('${m['title'] ?? ''}',
-      obstacle: '${m['obstacle'] ?? ''}',
-      plan: '${m['plan'] ?? ''}',
-      months: (m['months'] as num?)?.toInt() ?? 6);
+  factory PackGoal.fromJson(Map m) => PackGoal(_clip(m['title']),
+      obstacle: _clip(m['obstacle'], 400),
+      plan: _clip(m['plan'], 400),
+      months: ((m['months'] is num ? m['months'] as num : 6).toInt()).clamp(1, 18));
+}
+
+/// Pasted text is someone else's: kept short, trimmed, never null.
+String _clip(Object? v, [int max = 200]) {
+  final t = (v ?? '').toString().trim();
+  return t.length <= max ? t : t.substring(0, max);
 }
 
 /// A plan anyone can start from or pass on: growth areas with drills, a
@@ -63,24 +69,48 @@ class PlanPack {
         'stops': stops,
       };
 
-  factory PlanPack.fromJson(Map m) => PlanPack(
-        '${m['name'] ?? 'A shared plan'}',
-        forWho: '${m['for'] ?? ''}',
-        summary: '${m['summary'] ?? ''}',
-        areas: [
-          for (final a in (m['areas'] as List? ?? const []))
-            GrowthArea.fromJson(a as Map)
-        ],
-        goal: m['goal'] is Map ? PackGoal.fromJson(m['goal'] as Map) : null,
-        daily: [
-          for (final d in (m['daily'] as List? ?? const []))
-            if (d is Map && '${d['title'] ?? ''}'.trim().isNotEmpty)
-              DailyIdea('${d['title']}', '${d['lane'] ?? 'mind'}',
-                  '${d['when'] ?? 'day'}', '', '${d['cue'] ?? ''}',
-                  minimum: '${d['min'] ?? ''}')
-        ],
-        stops: [for (final s in (m['stops'] as List? ?? const [])) '$s'],
-      );
+  /// Reads a pack, keeping only what makes sense: named areas (at most
+  /// 6, 10 drills each), daily items with distinct titles (at most 15),
+  /// known lanes and times, and up to 10 distinct stops.
+  factory PlanPack.fromJson(Map m) {
+    List list(Object? v) => v is List ? v : const [];
+    final titles = <String>{};
+    final stops = <String>{};
+    return PlanPack(
+      _clip(m['name'], 80).isEmpty ? 'A shared plan' : _clip(m['name'], 80),
+      forWho: _clip(m['for']),
+      summary: _clip(m['summary'], 400),
+      areas: [
+        for (final a in list(m['areas']))
+          if (a is Map && _clip(a['name'], 80).isNotEmpty)
+            (() {
+              final g = GrowthArea.fromJson(a);
+              return g.copyWith(
+                  name: _clip(g.name, 80), drills: g.drills.take(10).toList());
+            })()
+      ].take(6).toList(),
+      goal: m['goal'] is Map && _clip((m['goal'] as Map)['title']).isNotEmpty
+          ? PackGoal.fromJson(m['goal'] as Map)
+          : null,
+      daily: [
+        for (final d in list(m['daily']))
+          if (d is Map &&
+              _clip(d['title'], 120).isNotEmpty &&
+              titles.add(_clip(d['title'], 120).toLowerCase()))
+            DailyIdea(
+                _clip(d['title'], 120),
+                const {'mind', 'body', 'skill', 'social'}.contains(d['lane']) ? '${d['lane']}' : 'mind',
+                const {'morning', 'day', 'evening'}.contains(d['when']) ? '${d['when']}' : 'day',
+                '',
+                _clip(d['cue'], 300),
+                minimum: _clip(d['min'], 120))
+      ].take(15).toList(),
+      stops: [
+        for (final s in list(m['stops']))
+          if (_clip(s).isNotEmpty && stops.add(_clip(s).toLowerCase())) _clip(s)
+      ].take(10).toList(),
+    );
+  }
 
   /// Text to paste into a message: a readable first line, then the plan.
   String toText() => '$header: $name\n${jsonEncode(toJson())}';

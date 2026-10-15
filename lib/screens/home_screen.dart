@@ -1532,7 +1532,7 @@ class _PromptsState extends State<_Prompts> {
             '/coach'),
       if (now.weekday == DateTime.sunday &&
           system.values.isNotEmpty &&
-          system.valuesCheck(now).isEmpty)
+          !system.valuesCheckDone(now))
         _row(
             context,
             Icons.diamond_outlined,
