@@ -343,8 +343,10 @@ class _LogScreenState extends State<LogScreen> {
                 LinkRow(
                   icon: Icons.work_outline_rounded,
                   color: AppColors.accent,
-                  title: 'Career cockpit',
-                  subtitle: '1:1s · decisions · readiness',
+                  title: system.isBuiltInPerson ? 'Career cockpit' : '1:1s and decisions',
+                  subtitle: system.isBuiltInPerson
+                      ? '1:1s · decisions · readiness'
+                      : 'follow-ups · decisions to review',
                   trailing:
                       '${system.openFollowUps.length + system.dueDecisionReviews(DateTime.now()).length}',
                   onTap: () => context.push('/cockpit'),

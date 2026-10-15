@@ -671,8 +671,18 @@ void main() {
         system.saveDayShape(wake: 390, workStart: 480, workEnd: 1020, bed: 1350);
         // A short program: the spine, phases and months scale to 90 days.
         system.setProgramLength(90);
-        for (final r in ['/home', '/profile', '/goals', '/note', '/profile/edit', '/career', '/people', '/program', '/checkin', '/growth', '/move', '/log', '/weekly-coaching', '/day', '/evidence', '/month/2', '/next-program', '/letters', '/week', '/focus', '/shutdown', '/review', '/learning', '/tool/feynman']) {
+        for (final r in ['/home', '/profile', '/goals', '/note', '/profile/edit', '/career', '/people', '/program', '/checkin', '/growth', '/move', '/log', '/weekly-coaching', '/day', '/evidence', '/month/2', '/next-program', '/letters', '/week', '/focus', '/shutdown', '/review', '/learning', '/tool/feynman', '/cockpit', '/cockpit?tab=2']) {
           await _go(tester, r);
+          // 1:1s and decisions keep what was logged, but never his
+          // readiness bar (his employer, his managers).
+          if (r.startsWith('/cockpit')) {
+            for (final t in ['Readiness', 'Career cockpit', 'Ali and Rustam']) {
+              if (find.textContaining(t).evaluate().isNotEmpty) {
+                errors.add('$r shows "$t"');
+              }
+            }
+            continue;
+          }
           // His career page and month pages are only linked for him, and
           // the Log shows what was logged before the profile changed.
           if (const {'/career', '/log', '/month/2'}.contains(r)) continue;

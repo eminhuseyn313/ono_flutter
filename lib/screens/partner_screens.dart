@@ -24,8 +24,10 @@ class _PartnerScreenState extends State<PartnerScreen> {
   final _stake = TextEditingController();
   int _weekday = DateTime.friday;
   bool _editing = false;
-  String _myAnswer = 'kept';
-  String _theirAnswer = 'kept';
+  // No answer until they choose one: a tap shouldn't record "kept".
+  String? _myAnswer;
+  String? _theirAnswer;
+  bool _changing = false;
 
   @override
   void dispose() {
@@ -53,14 +55,14 @@ class _PartnerScreenState extends State<PartnerScreen> {
         ),
       );
 
-  Widget _answers(String who, String value, ValueChanged<String> onChanged) => Column(
+  Widget _answers(String who, String? value, ValueChanged<String> onChanged) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(who, style: AppText.small(color: AppColors.white)),
           const SizedBox(height: 6),
           Segmented(
             labels: const ['Kept', 'Partly', 'Missed'],
-            index: PersonalSystemProvider.checkinAnswers.indexOf(value),
+            index: value == null ? -1 : PersonalSystemProvider.checkinAnswers.indexOf(value),
             onChanged: (i) => onChanged(PersonalSystemProvider.checkinAnswers[i]),
           ),
           const SizedBox(height: 12),
@@ -142,10 +144,26 @@ class _PartnerScreenState extends State<PartnerScreen> {
             toast(context, 'Copied. Send it to ${p.text.split(' ').first}.');
           }),
           const SizedBox(height: 14),
-          if (checkin != null)
-            Text(
-                'Checked in: you ${checkin.str('mine')}, ${p.text.split(' ').first} ${checkin.str('theirs')}.',
-                style: AppText.small(color: AppColors.white))
+          if (checkin != null && !_changing)
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                      'Checked in: you ${checkin.str('mine')}, ${p.text.split(' ').first} ${checkin.str('theirs')}.',
+                      style: AppText.small(color: AppColors.white)),
+                ),
+                TextButton(
+                  key: const Key('partner-change'),
+                  onPressed: () => setState(() {
+                    _changing = true;
+                    _myAnswer = checkin.str('mine');
+                    _theirAnswer = checkin.str('theirs');
+                    _note.text = checkin.str('note') ?? '';
+                  }),
+                  child: const Text('Change'),
+                ),
+              ],
+            )
           else ...[
             _answers('Did you keep yours?', _myAnswer, (v) => setState(() => _myAnswer = v)),
             _answers('Did ${p.text.split(' ').first} keep theirs?', _theirAnswer,
@@ -157,8 +175,13 @@ class _PartnerScreenState extends State<PartnerScreen> {
             ),
             const SizedBox(height: 10),
             PrimaryButton('Record the check-in', icon: Icons.check_rounded, onPressed: () {
+              if (_myAnswer == null || _theirAnswer == null) {
+                toast(context, 'Choose an answer for both of you.');
+                return;
+              }
               system.recordPartnerCheckin(today,
-                  mine: _myAnswer, theirs: _theirAnswer, note: _note.text);
+                  mine: _myAnswer!, theirs: _theirAnswer!, note: _note.text);
+              setState(() => _changing = false);
               toast(context, 'Recorded.');
             }),
           ],
@@ -168,7 +191,23 @@ class _PartnerScreenState extends State<PartnerScreen> {
               TextButton(onPressed: () => _edit(p), child: const Text('Change the pact')),
               const Spacer(),
               TextButton(
-                onPressed: () {
+                onPressed: () async {
+                  final yes = await showDialog<bool>(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: const Text('End the pact?'),
+                      content: const Text('Your check-ins stay. You can start a new pact any time.'),
+                      actions: [
+                        TextButton(
+                            onPressed: () => Navigator.pop(ctx, false),
+                            child: const Text('Keep it')),
+                        TextButton(
+                            onPressed: () => Navigator.pop(ctx, true),
+                            child: const Text('End it')),
+                      ],
+                    ),
+                  );
+                  if (yes != true || !context.mounted) return;
                   system.endPartnership();
                   toast(context, 'Partnership ended. Your check-ins stay in the log.');
                 },

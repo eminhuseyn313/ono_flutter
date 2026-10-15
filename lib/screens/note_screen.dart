@@ -22,6 +22,10 @@ class _NoteScreenState extends State<NoteScreen> {
   final _ask = TextEditingController();
   late String _to;
   bool _ready = false;
+  String _generated = '';
+
+  /// Once they've written in the note, ONO stops rewriting it.
+  bool get _edited => _text.text != _generated;
 
   @override
   void didChangeDependencies() {
@@ -33,9 +37,11 @@ class _NoteScreenState extends State<NoteScreen> {
     _regenerate(system);
   }
 
-  void _regenerate(PersonalSystemProvider system) {
-    _text.text =
+  void _regenerate(PersonalSystemProvider system, {bool force = false}) {
+    if (_edited && !force) return;
+    _generated =
         system.progressNoteText(DateTime.now(), to: _to, ask: _ask.text);
+    _text.text = _generated;
   }
 
   @override
@@ -106,11 +112,24 @@ class _NoteScreenState extends State<NoteScreen> {
           controller: _text,
           minLines: 8,
           maxLines: 20,
+          onChanged: (_) => setState(() {}),
           style: AppText.body(color: AppColors.white),
         ),
         const SizedBox(height: 6),
-        Text('Built from your goals, Big 3, growth reps and wins. Edit freely.',
+        Text(
+            _edited
+                ? 'Your edits are kept. Changing who it\'s to or the ask won\'t rewrite it.'
+                : 'Built from your goals, Big 3, growth reps and wins. Edit freely.',
             style: AppText.small()),
+        if (_edited)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton(
+              key: const Key('note-rebuild'),
+              onPressed: () => setState(() => _regenerate(system, force: true)),
+              child: const Text('Start again from this week'),
+            ),
+          ),
         const SizedBox(height: 16),
       ],
     );

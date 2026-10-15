@@ -44,8 +44,9 @@ class _RoundScreenState extends State<RoundScreen> {
     super.dispose();
   }
 
-  void _answer(PersonalSystemProvider system, String roundId, String from) {
-    final c = TextEditingController();
+  void _answer(PersonalSystemProvider system, String roundId, String from,
+      {String said = ''}) {
+    final c = TextEditingController(text: said);
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -136,7 +137,11 @@ class _RoundScreenState extends State<RoundScreen> {
         }),
         if (round != null) ...[
           const SectionHeader('Answers'),
-          for (final p in [for (final x in (round.data['people'] as List? ?? const [])) '$x'])
+          // Everyone asked, plus anyone who answered and was later unpicked.
+          for (final p in <String>{
+            for (final x in (round.data['people'] as List? ?? const [])) '$x',
+            for (final a in answers) a.from,
+          })
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: OnoCard(
@@ -146,8 +151,15 @@ class _RoundScreenState extends State<RoundScreen> {
                   children: [
                     Text(p, style: AppText.heading()),
                     if (answers.any((a) => a.from == p))
-                      Text('"${answers.firstWhere((a) => a.from == p).said}"',
-                          style: AppText.body(color: AppColors.white))
+                      InkWell(
+                        onTap: () => _answer(system, round.id, p,
+                            said: answers.firstWhere((a) => a.from == p).said),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Text('"${answers.firstWhere((a) => a.from == p).said}"',
+                              style: AppText.body(color: AppColors.white)),
+                        ),
+                      )
                     else
                       TextButton(
                         onPressed: () => _answer(system, round.id, p),
@@ -171,7 +183,8 @@ class _RoundScreenState extends State<RoundScreen> {
           GhostButton('Save the theme', icon: Icons.check_rounded, onPressed: () {
             system.setRoundThemes(round.id, _themes.text);
             FocusManager.instance.primaryFocus?.unfocus();
-            toast(context, 'Saved. It goes into your career case.');
+            toast(context,
+                system.isBuiltInPerson ? 'Saved. It goes into your career case.' : 'Saved. It goes into your brag document.');
           }),
         ],
         if (past.isNotEmpty) ...[

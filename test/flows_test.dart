@@ -440,4 +440,42 @@ void main() {
     }
     expect(system.logSetback(kind: '', happened: 'Missed it', nextStep: 'Walk at 7'), isFalse);
   });
+
+  testWidgets('progress note: an ask after editing keeps the edits',
+      (tester) async {
+    final system = await _start(tester);
+    await _go(tester, '/note');
+    final note = find.byKey(const Key('note-text'));
+    await _reach(tester, note);
+    await tester.enterText(note, 'My own words about the week.');
+    await tester.pump();
+    final ask = find.byType(TextField).first;
+    await tester.enterText(ask, 'An intro to someone in design');
+    await tester.pump();
+    expect(tester.widget<TextField>(note).controller!.text,
+        'My own words about the week.');
+    await _tap(tester, find.byKey(const Key('note-rebuild')));
+    expect(tester.widget<TextField>(note).controller!.text,
+        contains('An intro to someone in design'));
+    expect(system.logsOf('progress_note'), isEmpty);
+  });
+
+  testWidgets('partner: no answer until chosen, and a check-in can change',
+      (tester) async {
+    final system = await _start(tester);
+    system.setPartner('Aysel Karimova',
+        mine: 'Train three times', theirs: 'Write daily', weekday: 1);
+    await _go(tester, '/partner');
+    await _tap(tester, find.text('Record the check-in'));
+    expect(system.partnerCheckinFor(DateTime.now()), isNull);
+    await _tap(tester, find.text('Partly').first);
+    await _tap(tester, find.text('Kept').last);
+    await _tap(tester, find.text('Record the check-in'));
+    expect(system.partnerCheckinFor(DateTime.now())!.str('mine'), 'partly');
+    await _tap(tester, find.byKey(const Key('partner-change')));
+    await _tap(tester, find.text('Missed').first);
+    await _tap(tester, find.text('Record the check-in'));
+    expect(system.partnerCheckinFor(DateTime.now())!.str('mine'), 'missed');
+    expect(system.logsOf('partner_checkin').length, 1);
+  });
 }

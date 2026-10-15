@@ -1462,9 +1462,11 @@ class _PromptsState extends State<_Prompts> {
             'Check in with ${system.partner!.text.split(' ').first}',
             'Send your update, record how you both did',
             '/partner'),
-      if (system.roundDue)
-        _row(
+      if (system.roundDue && !_snoozed(system, 'round'))
+        _setupRow(
             context,
+            system,
+            'round',
             Icons.groups_2_outlined,
             AppColors.social,
             'Ask three people one question',
@@ -1479,9 +1481,11 @@ class _PromptsState extends State<_Prompts> {
             'Quarterly review',
             'Quarter ${system.quarterToReview} ends — 15 minutes to look at your whole life',
             '/quarter'),
-      if (system.noteDue(now))
-        _row(
+      if (system.noteDue(now) && !_snoozed(system, 'note'))
+        _setupRow(
             context,
+            system,
+            'note',
             Icons.send_rounded,
             AppColors.social,
             'Send your progress note',
@@ -1611,7 +1615,17 @@ class _PromptsState extends State<_Prompts> {
                     checked: false,
                     title: f.text,
                     padding: const EdgeInsets.symmetric(vertical: 8),
-                    onChanged: (_) => system.setDone(f.key, true),
+                    onChanged: (_) {
+                      system.setDone(f.key, true);
+                      ScaffoldMessenger.of(context)
+                        ..hideCurrentSnackBar()
+                        ..showSnackBar(SnackBar(
+                          content: const Text('Done.'),
+                          action: SnackBarAction(
+                              label: 'Undo',
+                              onPressed: () => system.setDone(f.key, false)),
+                        ));
+                    },
                   ),
               ],
             ),

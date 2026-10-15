@@ -26,25 +26,35 @@ class _CockpitScreenState extends State<CockpitScreen> {
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
     final dueReviews = system.dueDecisionReviews(DateTime.now()).length;
+    // Readiness is measured against the built-in plan's bar; anyone else
+    // keeps their 1:1s and decisions here.
+    final builtIn = system.isBuiltInPerson;
+    final tab = builtIn ? _tab : _tab.clamp(0, 1);
+    final p = activeProfile;
     return OnoPage(
       showBack: true,
-      eyebrow: '${activeProfile.currentRole} → ${activeProfile.targetRole}',
-      title: 'Career cockpit',
-      subtitle:
-          'Do the next job before you have it — and keep the record, so the case writes itself.',
+      eyebrow: p.targetRole.trim().isEmpty
+          ? 'Your record'
+          : p.currentRole.trim().isEmpty
+              ? 'Towards ${p.targetRole}'
+              : '${p.currentRole} → ${p.targetRole}',
+      title: builtIn ? 'Career cockpit' : '1:1s and decisions',
+      subtitle: builtIn
+          ? 'Do the next job before you have it — and keep the record, so the case writes itself.'
+          : 'What you agreed, what you decided and whether it was right — kept, so you learn from it.',
       children: [
         const SizedBox(height: 14),
         Segmented(
           labels: [
             '1:1s',
             dueReviews > 0 ? 'Decisions · $dueReviews' : 'Decisions',
-            'Readiness',
+            if (builtIn) 'Readiness',
           ],
-          index: _tab,
+          index: tab,
           onChanged: (i) => setState(() => _tab = i),
         ),
         const SizedBox(height: 6),
-        ...switch (_tab) {
+        ...switch (tab) {
           0 => _oneOnOnes(context, system),
           1 => _decisions(context, system),
           _ => _readiness(context, system),
@@ -63,8 +73,9 @@ class _CockpitScreenState extends State<CockpitScreen> {
       PrimaryButton('Log a 1:1',
           icon: Icons.add_rounded, onPressed: () => _logOneOnOne(context)),
       const SizedBox(height: 8),
-      Text('Before it: run six-questions-deep prep from Today → Work.',
-          style: AppText.small().copyWith(fontSize: 12)),
+      if (system.isBuiltInPerson)
+        Text('Before it: run six-questions-deep prep from Today → Work.',
+            style: AppText.small().copyWith(fontSize: 12)),
       SectionHeader('Follow-ups you own · ${open.length}'),
       if (open.isEmpty)
         const EmptyNote('Nothing open. Follow-ups from each 1:1 land here.',
@@ -79,7 +90,17 @@ class _CockpitScreenState extends State<CockpitScreen> {
                   checked: false,
                   title: f.text,
                   subtitle: '${f.withWhom} · ${shortDate(f.date)}',
-                  onChanged: (_) => system.setDone(f.key, true),
+                  onChanged: (_) {
+                    system.setDone(f.key, true);
+                    ScaffoldMessenger.of(context)
+                      ..hideCurrentSnackBar()
+                      ..showSnackBar(SnackBar(
+                        content: const Text('Done.'),
+                        action: SnackBarAction(
+                            label: 'Undo',
+                            onPressed: () => system.setDone(f.key, false)),
+                      ));
+                  },
                 ),
             ],
           ),
@@ -95,7 +116,7 @@ class _CockpitScreenState extends State<CockpitScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                      '${l.str('with') ?? activeProfile.manager} · ${weekdayName(l.date.weekday).substring(0, 3)} ${shortDate(l.date)}',
+                      '${[l.str('with'), activeProfile.manager].firstWhere((w) => (w ?? '').trim().isNotEmpty, orElse: () => '1:1')} · ${weekdayName(l.date.weekday).substring(0, 3)} ${shortDate(l.date)}',
                       style: AppText.eyebrow()),
                   const SizedBox(height: 6),
                   Text(l.text.isEmpty ? '—' : l.text, style: AppText.body()),
@@ -145,7 +166,7 @@ class _CockpitScreenState extends State<CockpitScreen> {
           icon: Icons.add_rounded, onPressed: () => _logDecision(context)),
       const SizedBox(height: 8),
       Text(
-          'Write what you expect before you know the outcome. In 90 days ONO asks whether the call was right — that gap is product judgment.',
+          'Write what you expect before you know the outcome. In 90 days ONO asks whether the call was right — that gap is judgment.',
           style: AppText.small().copyWith(fontSize: 12)),
       const SizedBox(height: 14),
       OnoCard(

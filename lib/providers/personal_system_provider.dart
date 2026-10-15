@@ -2995,7 +2995,11 @@ class PersonalSystemProvider extends ChangeNotifier {
     final p = activeProfile;
     final b = StringBuffer()
       ..writeln('${p.name} — progress ${dateKey(from)} to ${dateKey(to.minusDays(1))}')
-      ..writeln('${p.currentRole} → ${p.targetRole}')
+      ..writeln(p.targetRole.trim().isEmpty
+          ? p.currentRole
+          : p.currentRole.trim().isEmpty
+              ? 'Towards ${p.targetRole}'
+              : '${p.currentRole} → ${p.targetRole}')
       ..writeln();
     if (activeGoals.isNotEmpty) {
       b.writeln('GOALS');
@@ -4990,7 +4994,9 @@ class PersonalSystemProvider extends ChangeNotifier {
         b.writeln('• ${r.text}${lesson.isEmpty ? '' : ' → $lesson'}');
       }
       for (final f in c.feedback.take(2)) {
-        b.writeln('• Feedback from ${f.str('from')}: "${f.text}"');
+        b.writeln((f.str('from') ?? '').trim().isEmpty
+            ? '• Feedback: "${f.text}"'
+            : '• Feedback from ${f.str('from')}: "${f.text}"');
       }
       if (c.reps.isEmpty && c.feedback.isEmpty) {
         b.writeln('• Nothing logged yet — still to build.');
@@ -5835,7 +5841,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// people you helped grow and what you learned and applied. Memory is
   /// unreliable at review time; a running record isn't.
   String bragText({DateTime? since}) {
-    final from = since ?? programStart;
+    final from = since ?? journeyStart;
     bool after(LogEntry l) => !l.date.isBefore(from);
     final b = StringBuffer()
       ..writeln('${activeProfile.name} — what I\'ve done since ${dateKey(from)}')

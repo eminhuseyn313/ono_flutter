@@ -93,8 +93,9 @@ const List<ToolEntry> toolIndex = [
       words: ['letter', 'future self']),
   ToolEntry('Career', 'Milestones on the path to the next role', '/career', 'Direction',
       builtInOnly: true, words: ['promotion', 'milestones']),
-  ToolEntry('Career cockpit', '1:1s, decisions and readiness', '/cockpit', 'Direction',
-      builtInOnly: true, words: ['one on one', 'manager', 'decisions', 'readiness']),
+  ToolEntry('1:1s and decisions', 'Follow-ups you own, decisions reviewed in 90 days',
+      '/cockpit', 'Direction',
+      words: ['one on one', 'manager', 'decisions', 'readiness', 'career cockpit']),
 
   // Practice
   ToolEntry('Learning', 'Learn it, then apply it', '/learning', 'Practice',
