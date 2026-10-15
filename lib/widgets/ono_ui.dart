@@ -31,9 +31,8 @@ class OnoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final borderColor = highlight
-        ? AppColors.accent.withValues(alpha: 0.6)
-        : AppColors.divider;
+    final borderColor =
+        highlight ? AppColors.accent.withValues(alpha: 0.6) : AppColors.divider;
     final content = Padding(padding: padding, child: child);
     return Material(
       color: color ?? AppColors.card,
@@ -178,73 +177,73 @@ class CheckRow extends StatelessWidget {
       checked: checked,
       button: true,
       child: InkWell(
-      onTap: () {
-        HapticFeedback.lightImpact();
-        onChanged(!checked);
-      },
-      borderRadius: BorderRadius.circular(10),
-      child: Padding(
-        padding: padding,
-        child: Row(
-          crossAxisAlignment: subtitle == null
-              ? CrossAxisAlignment.center
-              : CrossAxisAlignment.start,
-          children: [
-            TweenAnimationBuilder<double>(
-              key: ValueKey(checked),
-              tween: Tween(begin: checked && !still ? 0.6 : 1, end: 1),
-              duration: Duration(milliseconds: still ? 0 : 380),
-              curve: Curves.elasticOut,
-              builder: (_, scale, child) =>
-                  Transform.scale(scale: scale, child: child),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 160),
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: checked ? mark : Colors.transparent,
-                  border: Border.all(
-                    color: checked ? mark : AppColors.faint,
-                    width: 1.6,
+        onTap: () {
+          HapticFeedback.lightImpact();
+          onChanged(!checked);
+        },
+        borderRadius: BorderRadius.circular(10),
+        child: Padding(
+          padding: padding,
+          child: Row(
+            crossAxisAlignment: subtitle == null
+                ? CrossAxisAlignment.center
+                : CrossAxisAlignment.start,
+            children: [
+              TweenAnimationBuilder<double>(
+                key: ValueKey(checked),
+                tween: Tween(begin: checked && !still ? 0.6 : 1, end: 1),
+                duration: Duration(milliseconds: still ? 0 : 380),
+                curve: Curves.elasticOut,
+                builder: (_, scale, child) =>
+                    Transform.scale(scale: scale, child: child),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 160),
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: checked ? mark : Colors.transparent,
+                    border: Border.all(
+                      color: checked ? mark : AppColors.faint,
+                      width: 1.6,
+                    ),
                   ),
+                  child: checked
+                      ? const Icon(Icons.check_rounded,
+                          size: 16, color: AppColors.ink)
+                      : null,
                 ),
-                child: checked
-                    ? const Icon(Icons.check_rounded,
-                        size: 16, color: AppColors.ink)
-                    : null,
               ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: AppText.body(
-                      color: checked ? AppColors.grey : AppColors.white,
-                    ).copyWith(fontWeight: FontWeight.w500),
-                  ),
-                  if (subtitle != null) ...[
-                    const SizedBox(height: 2),
-                    Text(subtitle!, style: AppText.small()),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: AppText.body(
+                        color: checked ? AppColors.grey : AppColors.white,
+                      ).copyWith(fontWeight: FontWeight.w500),
+                    ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 2),
+                      Text(subtitle!, style: AppText.small()),
+                    ],
                   ],
-                ],
+                ),
               ),
-            ),
-            if (onOpen != null)
-              IconButton(
-                onPressed: onOpen,
-                tooltip: 'Open $title',
-                visualDensity: VisualDensity.compact,
-                icon: const Icon(Icons.arrow_forward_rounded,
-                    size: 18, color: AppColors.grey),
-              ),
-          ],
+              if (onOpen != null)
+                IconButton(
+                  onPressed: onOpen,
+                  tooltip: 'Open $title',
+                  visualDensity: VisualDensity.compact,
+                  icon: const Icon(Icons.arrow_forward_rounded,
+                      size: 18, color: AppColors.grey),
+                ),
+            ],
+          ),
         ),
       ),
-    ),
     );
   }
 }
@@ -268,18 +267,25 @@ class ScoreRing extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: size,
-      height: size,
-      child: TweenAnimationBuilder<double>(
-        tween: Tween(begin: 0, end: progress.clamp(0, 1)),
-        duration: const Duration(milliseconds: 600),
-        curve: Curves.easeOutCubic,
-        builder: (_, value, child) => CustomPaint(
-          painter: _RingPainter(value, stroke, color),
-          child: Center(child: child),
+    final still = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    // The centre usually says the number; without one, say the share.
+    return Semantics(
+      value: center == null
+          ? '${(progress.clamp(0, 1) * 100).round()} percent'
+          : null,
+      child: SizedBox(
+        width: size,
+        height: size,
+        child: TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0, end: progress.clamp(0, 1)),
+          duration: Duration(milliseconds: still ? 0 : 600),
+          curve: Curves.easeOutCubic,
+          builder: (_, value, child) => CustomPaint(
+            painter: _RingPainter(value, stroke, color),
+            child: Center(child: child),
+          ),
+          child: center,
         ),
-        child: center,
       ),
     );
   }
@@ -383,24 +389,24 @@ class TickSegments extends StatelessWidget {
       label: '$done of $total',
       excludeSemantics: true,
       child: Row(
-      children: [
-        for (var i = 0; i < total; i++) ...[
-          Expanded(
-            child: AnimatedContainer(
-              duration: Duration(milliseconds: still ? 0 : 200 + i * 30),
-              height: height,
-              decoration: BoxDecoration(
-                color: i < filled
-                    ? (colors != null ? colors![i] : color)
-                    : AppColors.cardLight,
-                borderRadius: BorderRadius.circular(height),
+        children: [
+          for (var i = 0; i < total; i++) ...[
+            Expanded(
+              child: AnimatedContainer(
+                duration: Duration(milliseconds: still ? 0 : 200 + i * 30),
+                height: height,
+                decoration: BoxDecoration(
+                  color: i < filled
+                      ? (colors != null ? colors![i] : color)
+                      : AppColors.cardLight,
+                  borderRadius: BorderRadius.circular(height),
+                ),
               ),
             ),
-          ),
-          if (i < total - 1) const SizedBox(width: 4),
+            if (i < total - 1) const SizedBox(width: 4),
+          ],
         ],
-      ],
-    ),
+      ),
     );
   }
 }
@@ -596,9 +602,7 @@ class StatTile extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 2),
-        Text(label,
-            maxLines: 2,
-            style: AppText.small().copyWith(fontSize: 12)),
+        Text(label, maxLines: 2, style: AppText.small().copyWith(fontSize: 12)),
       ],
     );
   }
@@ -752,8 +756,7 @@ class KeyValueRow extends StatelessWidget {
   final String value;
   final double labelWidth;
 
-  const KeyValueRow(this.label, this.value,
-      {super.key, this.labelWidth = 104});
+  const KeyValueRow(this.label, this.value, {super.key, this.labelWidth = 104});
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -808,7 +811,8 @@ class LinkRow extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: AppText.heading().copyWith(fontSize: 15.5)),
+                    Text(title,
+                        style: AppText.heading().copyWith(fontSize: 15.5)),
                     if (subtitle != null) ...[
                       const SizedBox(height: 1),
                       Text(subtitle!,
@@ -875,7 +879,8 @@ String monthName(int month) => const [
       'December'
     ][month - 1];
 
-String shortDate(DateTime d) => '${d.day} ${monthName(d.month).substring(0, 3)}';
+String shortDate(DateTime d) =>
+    '${d.day} ${monthName(d.month).substring(0, 3)}';
 
 /// Asks before leaving a page that has writing on it: one stray swipe or
 /// tap shouldn't lose what someone wrote in a hard moment. Empty pages

@@ -39,7 +39,9 @@ class DayDial extends StatelessWidget {
         tween: Tween(begin: 0, end: 1),
         duration: Duration(
             milliseconds:
-                (MediaQuery.maybeDisableAnimationsOf(context) ?? false) ? 0 : 900),
+                (MediaQuery.maybeDisableAnimationsOf(context) ?? false)
+                    ? 0
+                    : 900),
         curve: Curves.easeOutCubic,
         builder: (_, t, child) => CustomPaint(
           painter: _DayDialPainter(
@@ -427,38 +429,51 @@ class HeatGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final today = DateTime.now();
-    return LayoutBuilder(builder: (context, c) {
-      final cell = ((c.maxWidth - (weeks - 1) * 3) / weeks).clamp(6.0, 16.0);
-      return Row(
-        children: [
-          for (var w = 0; w < weeks; w++) ...[
-            Column(
-              children: [
-                for (var d = 0; d < 7; d++) ...[
-                  Builder(builder: (_) {
-                    final day = from.plusDays(w * 7 + d);
-                    final future = day.isAfter(today);
-                    return Container(
-                      width: cell,
-                      height: cell,
-                      decoration: BoxDecoration(
-                        color: heatColor(future ? null : scoreFor(day)),
-                        borderRadius: BorderRadius.circular(3),
-                        border: future
-                            ? Border.all(color: AppColors.cardLight)
-                            : null,
-                      ),
-                    );
-                  }),
-                  if (d < 6) const SizedBox(height: 3),
-                ],
+    final scores = [
+      for (var i = 0; i < weeks * 7; i++)
+        if (!from.plusDays(i).isAfter(today))
+          if (scoreFor(from.plusDays(i)) case final s?) s
+    ];
+    final label = scores.isEmpty
+        ? 'Last $weeks weeks: nothing logged yet'
+        : 'Last $weeks weeks: ${scores.length} days logged, '
+            'average ${(scores.reduce((a, b) => a + b) / scores.length).toStringAsFixed(1)} of 10';
+    return Semantics(
+        label: label,
+        excludeSemantics: true,
+        child: LayoutBuilder(builder: (context, c) {
+          final cell =
+              ((c.maxWidth - (weeks - 1) * 3) / weeks).clamp(6.0, 16.0);
+          return Row(
+            children: [
+              for (var w = 0; w < weeks; w++) ...[
+                Column(
+                  children: [
+                    for (var d = 0; d < 7; d++) ...[
+                      Builder(builder: (_) {
+                        final day = from.plusDays(w * 7 + d);
+                        final future = day.isAfter(today);
+                        return Container(
+                          width: cell,
+                          height: cell,
+                          decoration: BoxDecoration(
+                            color: heatColor(future ? null : scoreFor(day)),
+                            borderRadius: BorderRadius.circular(3),
+                            border: future
+                                ? Border.all(color: AppColors.cardLight)
+                                : null,
+                          ),
+                        );
+                      }),
+                      if (d < 6) const SizedBox(height: 3),
+                    ],
+                  ],
+                ),
+                if (w < weeks - 1) const SizedBox(width: 3),
               ],
-            ),
-            if (w < weeks - 1) const SizedBox(width: 3),
-          ],
-        ],
-      );
-    });
+            ],
+          );
+        }));
   }
 }
 
@@ -486,13 +501,33 @@ class TrendLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: height,
-      width: double.infinity,
-      child: CustomPaint(
-        painter: _TrendPainter(points, bandLow, bandHigh, color, unit),
+    return Semantics(
+      label: _describe(),
+      excludeSemantics: true,
+      child: SizedBox(
+        height: height,
+        width: double.infinity,
+        child: CustomPaint(
+          painter: _TrendPainter(points, bandLow, bandHigh, color, unit),
+        ),
       ),
     );
+  }
+
+  /// What the line shows, for screen readers.
+  String _describe() {
+    if (points.isEmpty) return 'No entries yet';
+    String v(double y) =>
+        '${y == y.roundToDouble() ? y.round() : y.toStringAsFixed(1)}${unit.isEmpty ? '' : ' $unit'}';
+    final last = points.last.y;
+    final parts = [
+      points.length == 1
+          ? 'One entry: ${v(last)}'
+          : '${points.length} entries, from ${v(points.first.y)} to ${v(last)}',
+      if (bandLow != null && bandHigh != null)
+        'target ${v(bandLow!)} to ${v(bandHigh!)}',
+    ];
+    return parts.join(', ');
   }
 }
 
@@ -594,6 +629,16 @@ class WeekBars extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const labels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    const days = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday'
+    ];
+    final still = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
     return SizedBox(
       height: height + 22,
       child: Row(
@@ -601,37 +646,45 @@ class WeekBars extends StatelessWidget {
         children: [
           for (var i = 0; i < 7; i++)
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 5),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TweenAnimationBuilder<double>(
-                      tween: Tween(
-                          begin: 0, end: ((scores[i] ?? 0) / 10).clamp(0, 1).toDouble()),
-                      duration: Duration(milliseconds: 400 + i * 60),
-                      curve: Curves.easeOutCubic,
-                      builder: (_, v, __) => Container(
-                        height: math.max(4, height * v),
-                        decoration: BoxDecoration(
-                          color: scores[i] == null
-                              ? AppColors.cardLight
-                              : heatColor(scores[i]),
-                          borderRadius: BorderRadius.circular(5),
-                          border: i == todayIndex
-                              ? Border.all(color: AppColors.white, width: 1.2)
-                              : null,
+              child: Semantics(
+                label: '${days[i]}${i == todayIndex ? ', today' : ''}: '
+                    '${scores[i] == null ? 'nothing yet' : '${scores[i]} of 10'}',
+                excludeSemantics: true,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 5),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TweenAnimationBuilder<double>(
+                        tween: Tween(
+                            begin: 0,
+                            end:
+                                ((scores[i] ?? 0) / 10).clamp(0, 1).toDouble()),
+                        duration:
+                            Duration(milliseconds: still ? 0 : 400 + i * 60),
+                        curve: Curves.easeOutCubic,
+                        builder: (_, v, __) => Container(
+                          height: math.max(4, height * v),
+                          decoration: BoxDecoration(
+                            color: scores[i] == null
+                                ? AppColors.cardLight
+                                : heatColor(scores[i]),
+                            borderRadius: BorderRadius.circular(5),
+                            border: i == todayIndex
+                                ? Border.all(color: AppColors.white, width: 1.2)
+                                : null,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(labels[i],
-                        style: AppText.small(
-                                color: i == todayIndex
-                                    ? AppColors.white
-                                    : AppColors.grey)
-                            .copyWith(fontSize: 11)),
-                  ],
+                      const SizedBox(height: 6),
+                      Text(labels[i],
+                          style: AppText.small(
+                                  color: i == todayIndex
+                                      ? AppColors.white
+                                      : AppColors.grey)
+                              .copyWith(fontSize: 11)),
+                    ],
+                  ),
                 ),
               ),
             ),
