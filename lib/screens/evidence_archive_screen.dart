@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:provider/provider.dart';
 
 import '../data/emin_system.dart';
+import '../models/personal_system.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
@@ -151,9 +153,14 @@ class _Section extends StatelessWidget {
                           child: const Icon(Icons.delete_outline_rounded,
                               color: AppColors.danger),
                         ),
-                        onDismissed: (_) =>
-                            system.removeEvidence(items[i].id),
-                        child: Padding(
+                        onDismissed: (_) => _remove(context, system, items[i]),
+                        // Swiping has a tap-free twin for screen readers.
+                        child: Semantics(
+                          customSemanticsActions: {
+                            const CustomSemanticsAction(label: 'Delete'): () =>
+                                _remove(context, system, items[i]),
+                          },
+                          child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -174,6 +181,7 @@ class _Section extends StatelessWidget {
                             ],
                           ),
                         ),
+                        ),
                       ),
                       if (i < items.length - 1) const Divider(),
                     ],
@@ -183,4 +191,16 @@ class _Section extends StatelessWidget {
       ],
     );
   }
+}
+
+void _remove(BuildContext context, PersonalSystemProvider system, EvidenceItem item) {
+  final index = system.state?.evidence.indexWhere((e) => e.id == item.id) ?? 0;
+  system.removeEvidence(item.id);
+  ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(SnackBar(
+      content: const Text('Removed.'),
+      action: SnackBarAction(
+          label: 'Undo', onPressed: () => system.restoreEvidence(item, index)),
+    ));
 }

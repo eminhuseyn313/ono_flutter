@@ -655,6 +655,11 @@ const List<Book> fictionSchedule = [
       fiction: true),
 ];
 
+/// The planned book for [programMonth], or null once the plan's books
+/// are read (the provider's `planBook` then follows the learning list).
+Book? scheduledBook(int programMonth) =>
+    bookSchedule.where((b) => b.month == programMonth).firstOrNull;
+
 Book currentBook(int programMonth) => bookSchedule.firstWhere(
     (b) => b.month == programMonth,
     orElse: () => bookSchedule.last);

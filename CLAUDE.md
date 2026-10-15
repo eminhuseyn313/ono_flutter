@@ -29,7 +29,7 @@ Services: ReminderService (local notifications), BriefGenerator (weekly brief)
   - Edited at Me → Settings → Your profile (`/profile/edit`; "Reset to the original profile" only for the built-in person, after asking): stored as one `profile` log (hidden from the Log tab, travels with export/import/sync); `saveProfile`/`resetProfile`; the provider applies it on `load` and `importJson`.
   - `keyPeople` (names) derives from it. `BriefInput.profile` defaults to it and goes to the coach, whose system prompt is general.
 - **Content**:
-  - `lib/data/emin_system.dart`: schedule, gym plan, Daily 10 (`nonNegotiables`), rotations, library, protocols, style, career, journey (`phases`, `monthThemes`, `unlocksFor(month)`, `artifactFor`), reminders (`reminderDefs`), mastery levels.
+  - `lib/data/emin_system.dart` (books: `scheduledBook(m)` is null after the planned months; screens use the provider's `planBook` — the planned book, else the active learning book, else `noPlanBook` "Choose your next book"): schedule, gym plan, Daily 10 (`nonNegotiables`), rotations, library, protocols, style, career, journey (`phases`, `monthThemes`, `unlocksFor(month)`, `artifactFor`), reminders (`reminderDefs`), mastery levels.
   - `lib/data/emin_personal_content.dart`: morning ritual steps, coach tips (`coachTipForDay`), weekly review questions.
 - **State**: `PersonalSystemProvider` (`lib/providers/personal_system_provider.dart`) holds everything:
   - commission and start date;
@@ -183,7 +183,7 @@ Flow:
   - Choices live in `ios/.capabilities/` (git-ignored). `common.sh` re-applies them after every pull, and `Install on my iPhone.command` asks once.
   - They are kept out of the committed project because a personal Apple team may not support them, and an unsupported one would block installs.
   - Never hand-edit these in Xcode: the launchers stash local project edits.
-- **Gym rest timer** (`gym_session_screen.dart`): only ticked sets are saved (rows are pre-filled from last time). Ticking a set starts `PersonalSystemProvider.restFor(exercise)` (90 s, 120 s for key lifts) with +15/Skip.
+- **Gym rest timer** (`gym_session_screen.dart`): only ticked sets are saved (rows are pre-filled from last time, never fewer than planned); leaving or switching day with ticked sets asks first. Ticking a set starts `PersonalSystemProvider.restFor(exercise)` (90 s, 120 s for key lifts) with +15/Skip.
   - `startRest`/`cancelRest` schedule a one-off notification through `ReminderService.notifyOnce` (id `restNotificationId`, ≥ `onceIdBase`); it is silent while ONO is in the foreground.
   - Weekly `sync` only cancels ids below `onceIdBase`, so a running rest survives a reminder resync.
 - **Tool timers** (`CountdownTimer` in `tool_screens.dart`) count from an end time, so they stay right after iOS suspends ONO, and notify at the end via `notifyTimerEnd` (id `timerNotificationId`); Reset cancels that notification.

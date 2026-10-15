@@ -777,7 +777,7 @@ class _ReadToolState extends State<_ReadTool> {
   @override
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
-    final book = currentBook(system.programMonth);
+    final book = system.planBook;
     return OnoPage(
       showBack: true,
       eyebrow: '12:00 · 20 minutes',
@@ -831,7 +831,7 @@ class _FeynmanToolState extends State<_FeynmanTool> {
     // book (built-in person), else just "your reading".
     final active = system.learningWith('active').firstOrNull;
     final bookTitle = active?.text ??
-        (system.isBuiltInPerson ? currentBook(system.programMonth).title : 'Your reading');
+        (system.isBuiltInPerson && system.planBook != PersonalSystemProvider.noPlanBook ? system.planBook.title : 'Your reading');
     final notes = system
         .logsOf('feynman')
         .where((e) => e.str('book') == bookTitle)

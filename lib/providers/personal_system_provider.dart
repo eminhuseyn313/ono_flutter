@@ -1875,13 +1875,17 @@ class PersonalSystemProvider extends ChangeNotifier {
   int usesOf(String protocolId) {
     final type = protocolLogTypes[protocolId];
     if (type == null) return 0;
-    if (type == 'evidence') return evidenceCount;
+    if (type == 'evidence') return evidenceAdded;
     return countOf(type);
   }
 
   String masteryOf(String protocolId) => masteryFor(usesOf(protocolId));
 
-  int get pennebakerSessions => countOf('pennebaker');
+  /// Sessions in this program: the four-session protocol starts again
+  /// with each new program.
+  int get pennebakerSessions => logsOf('pennebaker')
+      .where((l) => !l.date.isBefore(programStart))
+      .length;
 
   // ── Body ─────────────────────────────────────────────────────────────
 
@@ -1980,9 +1984,17 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   int get evidenceCount => _state?.evidence.length ?? 0;
 
+  /// What they added themselves: the seeded starting evidence counts as
+  /// proof to read, not as practice.
+  int get evidenceAdded =>
+      (_state?.evidence ?? const <EvidenceItem>[]).where((e) => !e.id.startsWith('seed_')).length;
+
   int evidenceAddedBetween(DateTime from, DateTime to) =>
       (_state?.evidence ?? const <EvidenceItem>[])
-          .where((e) => !e.createdAt.isBefore(from) && e.createdAt.isBefore(to))
+          .where((e) =>
+              !e.id.startsWith('seed_') &&
+              !e.createdAt.isBefore(from) &&
+              e.createdAt.isBefore(to))
           .length;
 
   void addEvidence(String section, String text) {
@@ -2001,6 +2013,14 @@ class PersonalSystemProvider extends ChangeNotifier {
     final s = _state;
     if (s == null) return;
     _update(s.copyWith(evidence: s.evidence.where((e) => e.id != id).toList()));
+  }
+
+  /// Puts back an item just removed (Undo), at its old place.
+  void restoreEvidence(EvidenceItem item, int index) {
+    final s = _state;
+    if (s == null || s.evidence.any((e) => e.id == item.id)) return;
+    final list = [...s.evidence]..insert(index.clamp(0, s.evidence.length), item);
+    _update(s.copyWith(evidence: list));
   }
 
   // ── Month review stats ───────────────────────────────────────────────
@@ -2023,7 +2043,9 @@ class PersonalSystemProvider extends ChangeNotifier {
       daysElapsed: days.length,
       daily10Average: days.isEmpty
           ? 0
-          : days.fold<int>(0, (s, d) => s + scoreFor(d)) / days.length,
+          // As a share of each day's list, so months compare across list
+          // changes.
+          : days.fold<double>(0, (s, d) => s + scoreShare10(d)) / days.length,
       daysHeld: days.where(isHeld).length,
       gymSessions: days.where(gymDone).length,
       evidenceAdded: evidenceAddedBetween(from, to),
@@ -2358,7 +2380,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   List<PlannedReminder> plannedReminders() {
     if (!isCommissioned) return const [];
     final out = <PlannedReminder>[];
-    final book = currentBook(programMonth);
+    final book = planBook;
     final defs = activeReminderDefs;
     for (var i = 0; i < defs.length; i++) {
       final def = defs[i];
@@ -4063,6 +4085,33 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// → done. Done means applied: one principle in his words and one
   /// experiment in real life (transfer of learning, Baldwin & Ford 1988).
   List<LogEntry> get learning => logsOf('learning');
+
+  /// The book for this month's lunch read: the plan's while it has one,
+  /// then the book being read on the learning list, else a prompt to
+  /// choose one — never the last planned book again for a year.
+  Book get planBook {
+    if (scheduledBook(programMonth) case final b?) return b;
+    for (final l in learningWith('active')) {
+      if ((l.str('kind') ?? 'Book').toLowerCase() == 'book') {
+        return Book(
+            slot: 'Now',
+            month: null,
+            title: l.text,
+            author: l.str('by') ?? '',
+            chapters: '',
+            why: 'From your learning list.');
+      }
+    }
+    return noPlanBook;
+  }
+
+  static const noPlanBook = Book(
+      slot: 'Now',
+      month: null,
+      title: 'Choose your next book',
+      author: '',
+      chapters: '',
+      why: 'The planned books are read. Pick the next one under Learning.');
 
   List<LogEntry> learningWith(String status) => [
         for (final l in learning)

@@ -252,8 +252,9 @@ class _LearningScreenState extends State<LearningScreen> {
     final active = system.learningWith('active');
     final queue = system.learningWith('queue');
     final done = system.learningWith('done');
-    final planBook = currentBook(system.programMonth);
-    final hasPlanBook = system.learning.any((l) => l.text == planBook.title);
+    final planBook = scheduledBook(system.programMonth);
+    final hasPlanBook =
+        planBook == null || system.learning.any((l) => l.text == planBook.title);
     return OnoPage(
       showBack: true,
       eyebrow: 'Skill · learn and apply',

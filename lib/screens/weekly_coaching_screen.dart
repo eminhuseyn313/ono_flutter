@@ -23,6 +23,7 @@ class _WeeklyCoachingScreenState extends State<WeeklyCoachingScreen> {
   final _situation = TextEditingController();
   bool _initialised = false;
   bool _editing = false;
+  int _saves = 0;
 
   @override
   void didChangeDependencies() {
@@ -65,7 +66,11 @@ class _WeeklyCoachingScreenState extends State<WeeklyCoachingScreen> {
     // the report records strength days.
     final gym = builtIn ? system.gymSessionsInWeek(week) : system.strengthDaysInWeek(week);
 
-    return OnoPage(
+    return UnsavedGuard(
+        changesOnly: true,
+        saves: _saves,
+        fields: [_best, _hardest, _situation],
+        child: OnoPage(
       showBack: true,
       eyebrow: 'Week of ${shortDate(week)}',
       title: 'Sunday report',
@@ -124,6 +129,7 @@ class _WeeklyCoachingScreenState extends State<WeeklyCoachingScreen> {
                 workSituation: _situation.text.trim(),
                 createdAt: now,
               );
+              setState(() => _saves++);
               final b = await system.submitReport(r);
               if (!context.mounted) return;
               setState(() => _editing = false);
@@ -187,7 +193,7 @@ class _WeeklyCoachingScreenState extends State<WeeklyCoachingScreen> {
             ),
         ],
       ],
-    );
+    ));
   }
 
   Widget _field(TextEditingController c, String label, String hint) =>

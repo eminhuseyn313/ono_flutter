@@ -68,7 +68,7 @@ class StyleScreen extends StatelessWidget {
                   Text('${bought.length} of ${wardrobe.length} bought',
                       style: AppText.heading()),
                   const Spacer(),
-                  Text('~$spent / $budget AZN', style: AppText.small()),
+                  Text('$spent of $budget AZN planned', style: AppText.small()),
                 ],
               ),
               const SizedBox(height: 10),

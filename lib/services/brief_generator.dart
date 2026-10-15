@@ -270,7 +270,7 @@ class BriefInput {
         if (builtInPlan) ...{
           'month_theme': monthThemes[programMonth],
           'artifact_of_month': artifactFor(programMonth),
-          'book_of_month': currentBook(programMonth).title,
+          if (scheduledBook(programMonth) case final b?) 'book_of_month': b.title,
         },
         'item_rates': itemRates,
         'item_titles': itemTitles,

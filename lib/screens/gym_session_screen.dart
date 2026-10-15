@@ -83,12 +83,17 @@ class _GymSessionScreenState extends State<GymSessionScreen> {
       if (_sets.containsKey(ex.name)) continue;
       final spec = _parse(ex.sets);
       final prev = lastByName[ex.name];
+      // At least the planned sets, even if last time fell short; the
+      // extra rows start from the last set done.
       _sets[ex.name] = List.generate(
-        prev?.length ?? spec.$1,
-        (i) => _SetRow(
-          prev == null ? '' : _fmt(prev[i]['kg']),
-          prev == null ? '${spec.$2}' : _fmt(prev[i]['reps']),
-        ),
+        prev == null ? spec.$1 : (prev.length > spec.$1 ? prev.length : spec.$1),
+        (i) {
+          final p = prev == null || prev.isEmpty ? null : prev[i < prev.length ? i : prev.length - 1];
+          return _SetRow(
+            p == null ? '' : _fmt(p['kg']),
+            p == null ? '${spec.$2}' : _fmt(p['reps']),
+          );
+        },
       );
     }
   }
@@ -228,6 +233,28 @@ class _GymSessionScreenState extends State<GymSessionScreen> {
     );
   }
 
+  /// Sets ticked but not saved yet: leaving loses them.
+  bool get _inProgress =>
+      _sets.values.any((rows) => rows.any((r) => r.done));
+
+  Future<bool> _confirmLeave() async =>
+      await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Leave this session?'),
+          content: const Text('The sets you ticked aren\'t saved until you finish the session.'),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Stay')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text('Leave')),
+          ],
+        ),
+      ) ==
+      true;
+
   void _save() {
     final system = context.read<PersonalSystemProvider>();
     final exercises = <Map<String, dynamic>>[];
@@ -274,7 +301,13 @@ class _GymSessionScreenState extends State<GymSessionScreen> {
         .logsOn(DateTime.now(), 'gym')
         .any((l) => l.str('day') == _day.id);
 
-    return OnoPage(
+    return PopScope(
+      canPop: !_inProgress,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        if (await _confirmLeave() && mounted) Navigator.of(this.context).pop();
+      },
+      child: OnoPage(
       showBack: true,
       eyebrow: _sparing
           ? 'Day ${_day.letter} · shoulder-sparing'
@@ -304,7 +337,11 @@ class _GymSessionScreenState extends State<GymSessionScreen> {
                   selected: g.id == _day.id,
                   showCheckmark: false,
                   selectedColor: AppColors.cardLight,
-                  onSelected: (_) => context.pushReplacement('/gym/${g.id}'),
+                  onSelected: (_) async {
+                    if (g.id == _day.id) return;
+                    if (_inProgress && !await _confirmLeave()) return;
+                    if (mounted) this.context.pushReplacement('/gym/${g.id}');
+                  },
                 ),
               ),
           ],
@@ -355,7 +392,7 @@ class _GymSessionScreenState extends State<GymSessionScreen> {
           ),
         ),
       ],
-    );
+    ));
   }
 
   Widget _exercise(Exercise ex, PersonalSystemProvider system) {

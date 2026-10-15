@@ -14,7 +14,7 @@ class LibraryScreen extends StatelessWidget {
     final system = context.watch<PersonalSystemProvider>();
     final month = system.programMonth;
     final now = DateTime.now();
-    final current = currentBook(month);
+    final current = system.planBook;
 
     return OnoPage(
       showBack: true,

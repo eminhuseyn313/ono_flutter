@@ -3363,4 +3363,30 @@ void main() {
     expect(r.last, isEmpty);
     expect(r.once.containsKey(PersonalSystemProvider.restNotificationId), isFalse);
   });
+
+  test('his plan after month 6: the book you read, not the last planned one',
+      () async {
+    final p = await _commissioned();
+    expect(p.planBook.title, currentBook(2).title);
+    p.clock = () => _start.plusDays(200);
+    expect(p.programMonth, 7);
+    expect(p.planBook, PersonalSystemProvider.noPlanBook);
+    final l = p.addLearning('Thinking in Systems', kind: 'Book', by: 'Donella Meadows')!;
+    p.startLearning(l.id);
+    expect(p.planBook.title, 'Thinking in Systems');
+  });
+
+  test('Pennebaker counts this program; seeded evidence isn\'t practice',
+      () async {
+    final p = await _commissioned();
+    expect(p.evidenceCount, greaterThan(0), reason: 'the seeded proof to read');
+    expect(p.usesOf('evidence'), 0);
+    for (var i = 0; i < 4; i++) {
+      p.addLog('pennebaker', date: _start.plusDays(i), text: 'x');
+    }
+    expect(p.pennebakerSessions, 4);
+    p.clock = () => _start.plusDays(40);
+    p.startNextProgram(days: 90, changed: '', carry: '');
+    expect(p.pennebakerSessions, 0);
+  });
 }

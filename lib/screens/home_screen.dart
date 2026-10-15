@@ -2326,9 +2326,9 @@ class _InputsStrip extends StatelessWidget {
   Widget build(BuildContext context) {
     final podcast = podcastFor(date);
     final scan = domainScanFor(date);
-    final book = currentBook(month);
     final outfit = outfitFor(date);
     final system = context.watch<PersonalSystemProvider>();
+    final book = system.planBook;
     final due = system.dueCards(date).length;
     final focusH = system.focusMinutesInWeek(date) / 60;
     final tiles = [

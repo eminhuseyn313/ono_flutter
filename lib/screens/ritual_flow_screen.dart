@@ -230,8 +230,8 @@ class _RitualFlowScreenState extends State<RitualFlowScreen> {
                         'minutes')),
                 Expanded(
                     child: StatTile('${system.scoreFor(DateTime.now())}',
-                        'Daily 10 now',
-                        unit: '/10')),
+                        'daily items now',
+                        unit: '/${system.dailyCount}')),
               ],
             ),
           ),

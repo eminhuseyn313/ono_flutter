@@ -426,7 +426,7 @@ class _DayTimeline extends StatelessWidget {
         case 'Desk arrival':
           return 'Breakfast + supplements. Domain scan: ${domainScanFor(now).title}.';
         case 'Lunch':
-          return 'Eat 20 min. Read ${currentBook(system.programMonth).title} 20 min. Feynman write 5 min.';
+          return 'Eat 20 min. Read ${system.planBook == PersonalSystemProvider.noPlanBook ? 'your book' : system.planBook.title} 20 min. Feynman write 5 min.';
         case 'Train or deep work':
           final g = system.gymDayOn(now);
           return g == null

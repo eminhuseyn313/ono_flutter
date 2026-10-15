@@ -157,9 +157,9 @@ class _MonthScreenState extends State<MonthScreen> {
           OnoCard(
             child: Column(
               children: [
-                _cmp('Daily 10 average', stats.daily10Average,
+                _cmp('Daily average (of 10)', stats.daily10Average,
                     prev?.daily10Average, digits: 1),
-                _cmp('Days held (7+/10)', stats.daysHeld.toDouble(),
+                _cmp('Days held', stats.daysHeld.toDouble(),
                     prev?.daysHeld.toDouble()),
                 _cmp('Gym sessions', stats.gymSessions.toDouble(),
                     prev?.gymSessions.toDouble()),
