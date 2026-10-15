@@ -644,6 +644,19 @@ class PersonalSystemProvider extends ChangeNotifier {
   }
 
   /// The ids of the daily items in effect on [date].
+  /// The items as they were on [date] (today: the current list), in the
+  /// list's order — what a past day is scored on.
+  List<NonNegotiable> itemsOn(DateTime date) {
+    final ids = itemIdsOn(date);
+    return [
+      for (final n in dailyItems)
+        if (ids.contains(n.id)) n,
+      for (final id in ids)
+        if (!_dailyIds.contains(id))
+          if (dailyItem(id) case final n?) n,
+    ];
+  }
+
   Set<String> itemIdsOn(DateTime date) {
     dailyItems;
     final s = _snapshots;
@@ -955,7 +968,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   ({int current, int best, bool pending}) _streakCache = (current: 0, best: 0, pending: false);
 
   ({int current, int best, bool pending}) get _streaks {
-    final key = dateKey(_now);
+    final key = dateKey(logicalToday);
     if (identical(_streakState, _state) && _streakDay == key) return _streakCache;
     _streakState = _state;
     _streakDay = key;
@@ -963,7 +976,8 @@ class PersonalSystemProvider extends ChangeNotifier {
   }
 
   ({int current, int best, bool pending}) _computeStreaks() {
-    final today = dayOnly(_now);
+    // Before 04:00 the open day is still last night's.
+    final today = logicalToday;
     var run = 0, best = 0;
     var prevMiss = false;
     DateTime? grace;
@@ -1000,7 +1014,7 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   /// Yesterday slipped and today isn't held yet: today decides the streak.
   bool get isRecoveryDay {
-    final today = dayOnly(_now);
+    final today = logicalToday;
     final yesterday = today.minusDays(1);
     if (yesterday.isBefore(programStart)) return false;
     return !isHeld(yesterday) &&
@@ -6170,6 +6184,9 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   static const firstWeekOffKey = 'firstweek:off';
 
+  /// "Not now" on a first-week step: the guide moves on to the next.
+  void skipFirstWeekStep(String id) => setDone('firstweek:skip:$id', true);
+
   /// Whether [step] is done, judged from what was actually logged.
   bool firstWeekDone(String step) {
     final s = _state;
@@ -6208,6 +6225,7 @@ class PersonalSystemProvider extends ChangeNotifier {
           !(_now.weekday == DateTime.sunday && weekWorthReviewing(_now))) {
         continue;
       }
+      if (isDone('firstweek:skip:${x.$1}')) continue;
       if (!firstWeekDone(x.$1)) {
         return (index: i, id: x.$1, title: x.$2, why: x.$3, route: x.$4);
       }

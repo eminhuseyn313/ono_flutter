@@ -108,7 +108,11 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    final today = dayOnly(_now);
+    // Before 04:00 it is still the night before: the dial, the list and
+    // the prompts judge the day being lived, not the one just begun.
+    final today = _now.hour < PersonalSystemProvider.dayEndsAt
+        ? dayOnly(_now).minusDays(1)
+        : dayOnly(_now);
     final date = _yesterday ? today.minusDays(1) : today;
     WidgetsBinding.instance
         .addPostFrameCallback((_) => _celebrate(system, date));
@@ -164,7 +168,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ? dailySchedule
                           : system.personalSchedule,
                       ticks: [
-                        for (final n in system.dailyItems)
+                        for (final n in system.itemsOn(date))
                           (lane: n.lane, done: system.isChecked(date, n.id))
                       ],
                       center: _DialCenter(
@@ -433,7 +437,7 @@ class _DateSwitch extends StatelessWidget {
   final h = DateTime.now().hour;
   final part = h < 12 ? 'morning' : (h < 18 ? 'day' : 'evening');
   final open = [
-    for (final n in system.dailyItems)
+    for (final n in system.itemsOn(date))
       if (!system.isChecked(date, n.id)) n
   ];
   final now = open.where((n) => n.when == part).firstOrNull;
@@ -626,7 +630,10 @@ class _ModeCard extends StatelessWidget {
         );
       case _Mode.evening:
         final gym = system.gymDayOn(today);
-        if (gym != null && !system.gymDone(today) && now.hour < 21) {
+        if (gym != null &&
+            !system.gymDone(today) &&
+            now.hour >= PersonalSystemProvider.dayEndsAt &&
+            now.hour < 21) {
           return _action(
             context,
             eyebrow: '19:00 · Day ${gym.letter}',
@@ -1327,14 +1334,33 @@ class _PromptsState extends State<_Prompts> {
     ];
     final cards = <Widget>[
       // The first week: one small step a day, ahead of everything else.
-      if (first != null)
-        _row(
-            context,
-            Icons.wb_sunny_outlined,
-            AppColors.accent,
-            'First week · ${first.title}',
-            '${first.why} (${system.firstWeekProgress} of ${PersonalSystemProvider.firstWeekSteps.length} done)',
-            first.route),
+      // Not when the card above already asks for the same thing.
+      if (first != null &&
+          !(first.id == 'checkin' &&
+              !system.isBuiltInPerson &&
+              now.hour * 60 + now.minute < 10 * 60 + 30) &&
+          !(first.id == 'shutdown' && now.hour >= 18))
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            _row(
+                context,
+                Icons.wb_sunny_outlined,
+                AppColors.accent,
+                'First week · ${first.title}',
+                '${first.why} (${system.firstWeekProgress} of ${PersonalSystemProvider.firstWeekSteps.length} done)',
+                first.route),
+            TextButton(
+              key: const Key('first-week-skip'),
+              onPressed: () => system.skipFirstWeekStep(first.id),
+              style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  minimumSize: const Size(0, 32),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+              child: Text('Not now', style: AppText.small()),
+            ),
+          ],
+        ),
       if (system.programComplete)
         _row(
             context,
@@ -1635,13 +1661,20 @@ class _PromptsState extends State<_Prompts> {
     );
   }
 
-  static String _snoozeKey(String id, DateTime now) =>
-      'snooze:$id:${dateKey(weekStartOf(now))}';
+  static String _snoozeKey(String id, DateTime day) =>
+      'snooze:$id:${dateKey(dayOnly(day))}';
 
-  bool _snoozed(PersonalSystemProvider system, String id) =>
-      system.isDone(_snoozeKey(id, widget.now));
+  /// "Not now" lasts seven days from the tap — a Sunday's doesn't come
+  /// back on Monday.
+  bool _snoozed(PersonalSystemProvider system, String id) {
+    final today = dayOnly(widget.now);
+    for (var d = 0; d < 7; d++) {
+      if (system.isDone(_snoozeKey(id, today.minusDays(d)))) return true;
+    }
+    return false;
+  }
 
-  /// A set-up step with "Not now": it comes back next week.
+  /// A set-up step with "Not now": it comes back in a week.
   Widget _setupRow(BuildContext context, PersonalSystemProvider system,
           String id, IconData icon, Color color, String title, String body,
           String route) =>
@@ -1758,7 +1791,10 @@ class _CheckinCard extends StatelessWidget {
     final today = dayOnly(now);
     final c = system.checkinFor(today);
     if (c == null) {
-      if (now.hour >= 14) return const SizedBox.shrink();
+      // After midnight it's still the night before: no morning check-in.
+      if (now.hour >= 14 || now.hour < PersonalSystemProvider.dayEndsAt) {
+        return const SizedBox.shrink();
+      }
       // Before 10:30 the morning card above already asks anyone but the
       // built-in person to check in; don't ask twice.
       if (!system.isBuiltInPerson &&
@@ -1803,6 +1839,8 @@ class _CheckinCard extends StatelessWidget {
     if (low &&
         system.hardDayOn(today) == null &&
         !system.isExcused(today) &&
+        // A re-entry day is already a minimum day.
+        !system.isMinimumDay(today) &&
         !system.isDone(lowKey)) {
       return Padding(
         padding: const EdgeInsets.only(top: 12),
@@ -1938,11 +1976,11 @@ class _DailyTen extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(right: 8),
             child: TickSegments(
-              total: system.dailyCount,
-              filled: system.dailyCount,
+              total: system.itemsOn(date).length,
+              filled: system.itemsOn(date).length,
               height: 6,
               colors: [
-                for (final n in system.dailyItems)
+                for (final n in system.itemsOn(date))
                   system.isChecked(date, n.id)
                       ? AppColors.lane(n.lane)
                       : AppColors.cardLight
@@ -1958,11 +1996,11 @@ class _DailyTen extends StatelessWidget {
                       : '$score of ${system.itemIdsOn(date).length} done${minimum ? ' · a minimum day: $target counts' : ''}',
               style: AppText.small()),
           for (final g in nonNegotiableGroups)
-            if (system.dailyItems
+            if (system.itemsOn(date)
                 .any((n) => n.when == g[0] && !automatic.contains(n.id))) ...[
               const SizedBox(height: 14),
               Text(g[1].toUpperCase(), style: AppText.eyebrow()),
-              for (final n in system.dailyItems
+              for (final n in system.itemsOn(date)
                   .where((n) => n.when == g[0] && !automatic.contains(n.id)))
                 CheckRow(
                   checked: system.isChecked(date, n.id),
@@ -1983,7 +2021,7 @@ class _DailyTen extends StatelessWidget {
             Text('AUTOMATIC · NO REMINDERS',
                 style: AppText.eyebrow(color: AppColors.body)),
             for (final n
-                in system.dailyItems.where((n) => automatic.contains(n.id)))
+                in system.itemsOn(date).where((n) => automatic.contains(n.id)))
               CheckRow(
                 checked: system.isChecked(date, n.id),
                 title: n.title,
@@ -2526,20 +2564,27 @@ class _QuestionCard extends StatefulWidget {
 
 class _QuestionCardState extends State<_QuestionCard> {
   final _answer = TextEditingController();
+  final _focus = FocusNode();
   String? _loadedFor;
+  String? _loadedAnswer;
 
-  /// Loads today's answer whenever the question changes (e.g. past
-  /// midnight with ONO open).
+  /// Loads the saved answer when the question changes (past midnight with
+  /// ONO open) or the answer changes elsewhere (another device) — never
+  /// over what is being typed.
   void _sync(PersonalSystemProvider system) {
     final q = system.questionOfTheDay.$2;
-    if (_loadedFor == q) return;
+    final a = system.questionAnswer?.text ?? '';
+    if (_loadedFor == q && _loadedAnswer == a) return;
+    if (_focus.hasFocus && _loadedFor != null) return;
     _loadedFor = q;
-    _answer.text = system.questionAnswer?.text ?? '';
+    _loadedAnswer = a;
+    _answer.text = a;
   }
 
   @override
   void dispose() {
     _answer.dispose();
+    _focus.dispose();
     super.dispose();
   }
 
@@ -2560,6 +2605,7 @@ class _QuestionCardState extends State<_QuestionCard> {
           const SizedBox(height: 10),
           TextField(
             controller: _answer,
+            focusNode: _focus,
             minLines: 1,
             maxLines: 4,
             style: AppText.body(color: AppColors.white),

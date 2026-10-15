@@ -3389,4 +3389,36 @@ void main() {
     p.startNextProgram(days: 90, changed: '', carry: '');
     expect(p.pennebakerSessions, 0);
   });
+
+  test('after midnight the day still open is last night\'s', () async {
+    final p = await _commissioned();
+    final fri = dayOnly(_today);
+    _hold(p, fri.minusDays(1));
+    // Friday not held yet; at 01:00 Saturday it is still Friday's to hold.
+    p.clock = () => DateTime(2026, 10, 3, 1);
+    expect(p.logicalToday, fri);
+    final before = p.streak;
+    expect(p.isRecoveryDay, isFalse);
+    _hold(p, fri);
+    expect(p.streak, before + 1);
+  });
+
+  test('a past day shows the list it was scored on', () async {
+    final p = await _commissioned();
+    final yesterday = dayOnly(_today).minusDays(1);
+    final first = p.dailyItems.first.id;
+    p.setItemActive(first, false);
+    expect(p.dailyItems.any((n) => n.id == first), isFalse);
+    expect(p.itemsOn(yesterday).any((n) => n.id == first), isTrue);
+    expect(p.itemsOn(yesterday).length, p.itemIdsOn(yesterday).length);
+    expect(p.itemsOn(dayOnly(_today)).length, p.dailyCount);
+  });
+
+  test('first week: Not now moves on to the next step', () async {
+    final p = await _commissioned();
+    p.clock = () => _start.plusDays(4);
+    final step = p.firstWeekStep!;
+    p.skipFirstWeekStep(step.id);
+    expect(p.firstWeekStep?.id, isNot(step.id));
+  });
 }
