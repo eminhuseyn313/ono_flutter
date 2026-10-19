@@ -114,23 +114,35 @@ class _PeopleScreenState extends State<PeopleScreen> {
                   },
                   icon: const Icon(Icons.favorite_border_rounded, size: 18),
                   label: Text(
-                      'What you know about ${p.text.split(' ').first} · ${system.knownCount(p)} of ${PersonalSystemProvider.knowQuestions.length}'),
+                      'What you know about ${p.text.split(' ').first} · ${system.knownCount(p)} of ${system.knowQuestionsFor(p).length}'),
                 ),
                 SwitchListTile(
                   key: const Key('person-in-care'),
                   contentPadding: EdgeInsets.zero,
                   dense: true,
-                  value: system.inMyCare(p),
+                  value: system.inMyCare(system.personById(p.id) ?? p),
                   onChanged: (v) {
                     system.setInMyCare(p, v);
                     setSheet(() {});
                   },
                   title: Text('In my care', style: AppText.body(color: AppColors.white)),
                   subtitle: Text(
-                      system.inMyCare(p)
+                      system.inMyCare(system.personById(p.id) ?? p)
                           ? 'Their check-ups are under Care; their story under What you know.'
                           : 'A parent, a child, someone who is ill',
                       style: AppText.small()),
+                ),
+                SwitchListTile(
+                  key: const Key('person-child'),
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                  value: system.isChild(system.personById(p.id) ?? p),
+                  onChanged: (v) {
+                    system.setIsChild(p, v);
+                    setSheet(() {});
+                  },
+                  title: Text('My child', style: AppText.body(color: AppColors.white)),
+                  subtitle: Text('Questions that fit a child, asked again every month', style: AppText.small()),
                 ),
                 SwitchListTile(
                   key: const Key('person-remembered'),

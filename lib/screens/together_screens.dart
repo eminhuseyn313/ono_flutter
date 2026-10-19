@@ -186,7 +186,10 @@ class KnowScreen extends StatefulWidget {
 
 class _KnowScreenState extends State<KnowScreen> {
   final _answers = {
-    for (final q in PersonalSystemProvider.knowQuestions)
+    for (final q in [
+      ...PersonalSystemProvider.knowQuestions,
+      ...PersonalSystemProvider.childKnowQuestions,
+    ])
       q.$1: TextEditingController(),
   };
   final _story = {
@@ -204,7 +207,7 @@ class _KnowScreenState extends State<KnowScreen> {
     final system = context.read<PersonalSystemProvider>();
     final p = widget.personId == null ? null : system.personById(widget.personId!);
     if (p == null) return;
-    for (final q in PersonalSystemProvider.knowQuestions) {
+    for (final q in system.knowQuestionsFor(p)) {
       _answers[q.$1]!.text = system.knowAnswer(p, q.$1);
     }
     for (final q in PersonalSystemProvider.storyQuestions) {
@@ -246,7 +249,7 @@ class _KnowScreenState extends State<KnowScreen> {
                       color: AppColors.social,
                       title: x.text,
                       trailing:
-                          '${system.knownCount(x)}/${PersonalSystemProvider.knowQuestions.length}',
+                          '${system.knownCount(x)}/${system.knowQuestionsFor(x).length}',
                       onTap: () => context.push('/know?id=${x.id}'),
                     ),
                 ],
@@ -258,19 +261,20 @@ class _KnowScreenState extends State<KnowScreen> {
     }
     final first = p.text.split(' ').first;
     final next = system.nextQuestionFor(p);
+    final questions = system.knowQuestionsFor(p);
     return UnsavedGuard(
       changesOnly: true,
       saves: _saves,
       fields: [..._answers.values, ..._story.values],
       child: OnoPage(
         showBack: true,
-        eyebrow: 'People · ${system.knownCount(p)} of ${PersonalSystemProvider.knowQuestions.length} known',
+        eyebrow: 'People · ${system.knownCount(p)} of ${questions.length} known',
         title: 'What you know about $first',
         subtitle:
             'Knowing someone\'s world is what closeness is built on. Write what $first told you, in a line. It stays on your devices.',
         bottomBar: PrimaryButton('Save', icon: Icons.check_rounded, onPressed: () {
-          for (final q in PersonalSystemProvider.knowQuestions) {
-            system.setKnow(p, q.$1, _answers[q.$1]!.text);
+          for (final q in questions) {
+            system.setKnow(system.personById(p.id)!, q.$1, _answers[q.$1]!.text);
           }
           for (final q in PersonalSystemProvider.storyQuestions) {
             system.setStoryAnswer(system.personById(p.id)!, q.$1, _story[q.$1]!.text);
@@ -292,7 +296,7 @@ class _KnowScreenState extends State<KnowScreen> {
                   style: AppText.body(color: AppColors.white)),
             ),
           ],
-          for (final q in PersonalSystemProvider.knowQuestions) ...[
+          for (final q in questions) ...[
             SectionHeader(q.$2),
             TextField(
               key: Key('know-${q.$1}'),

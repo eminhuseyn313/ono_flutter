@@ -6373,6 +6373,31 @@ class PersonalSystemProvider extends ChangeNotifier {
     ('coming', 'What is coming up for them?', 'what\'s coming up for them'),
   ];
 
+  /// For your child: their world changes faster, so it's asked again
+  /// sooner ([childKnowStaleDays]).
+  static const childKnowQuestions = [
+    ('loves', 'What do they love doing right now?', 'what they love doing right now'),
+    ('friends', 'Who are their friends at the moment?', 'who their friends are at the moment'),
+    ('weighing', 'What is worrying them lately?', 'what\'s worrying them'),
+    ('proud', 'What are they proud of lately?', 'what they\'re proud of lately'),
+    ('laugh', 'What makes them laugh?', 'what makes them laugh'),
+    ('learning', 'What are they learning or trying?', 'what they\'re learning or trying'),
+    ('coming', 'What is coming up for them?', 'what\'s coming up for them'),
+  ];
+
+  static const childKnowStaleDays = 30;
+
+  bool isChild(LogEntry person) => person.data['child'] == true;
+
+  void setIsChild(LogEntry person, bool on) {
+    final p = personById(person.id);
+    if (p == null) return;
+    updateLog(p.copyWith(data: {...p.data, 'child': on}));
+  }
+
+  List<(String, String, String)> knowQuestionsFor(LogEntry person) =>
+      isChild(person) ? childKnowQuestions : knowQuestions;
+
   /// An answer older than this may have changed: ask again.
   static const knowStaleDays = 90;
 
@@ -6403,24 +6428,24 @@ class PersonalSystemProvider extends ChangeNotifier {
   }
 
   int knownCount(LogEntry person) =>
-      knowQuestions.where((q) => knowAnswer(person, q.$1).isNotEmpty).length;
+      knowQuestionsFor(person).where((q) => knowAnswer(person, q.$1).isNotEmpty).length;
 
   /// Answered long enough ago that it may no longer be true.
   bool knowStale(LogEntry person, String key) {
     final on = knowOn(person, key);
     return knowAnswer(person, key).isNotEmpty &&
         on != null &&
-        dayOnly(_now).daysSince(on) >= knowStaleDays;
+        dayOnly(_now).daysSince(on) >= (isChild(person) ? childKnowStaleDays : knowStaleDays);
   }
 
   /// Something to ask next time you talk: the first thing you don't know
   /// yet, else the oldest answer that may have changed. Null when you're
   /// up to date. (key, how to ask it, whether it's asking again)
   (String, String, bool)? nextQuestionFor(LogEntry person) {
-    for (final q in knowQuestions) {
+    for (final q in knowQuestionsFor(person)) {
       if (knowAnswer(person, q.$1).isEmpty) return (q.$1, q.$3, false);
     }
-    final stale = [for (final q in knowQuestions) if (knowStale(person, q.$1)) q]
+    final stale = [for (final q in knowQuestionsFor(person)) if (knowStale(person, q.$1)) q]
       ..sort((a, b) => knowOn(person, a.$1)!.compareTo(knowOn(person, b.$1)!));
     return stale.isEmpty ? null : (stale.first.$1, stale.first.$3, true);
   }

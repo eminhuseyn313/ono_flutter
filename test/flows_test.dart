@@ -716,4 +716,18 @@ void main() {
     expect(system.activeTransition, isNull);
     expect(system.journalText(), contains('What stays: Morning walks'));
   });
+
+  testWidgets('my child: the switch shows, and the questions fit a child', (tester) async {
+    final system = await _start(tester);
+    final p = system.addPerson('Leo', role: 'Son', every: 7);
+    await _go(tester, '/people');
+    await _tap(tester, find.text('Leo'));
+    await _tap(tester, find.byKey(const Key('person-child')));
+    expect(system.isChild(system.personById(p.id)!), isTrue);
+    final sw = tester.widget<SwitchListTile>(find.byKey(const Key('person-child')));
+    expect(sw.value, isTrue, reason: 'the switch shows the change at once');
+    await _go(tester, '/know?id=${p.id}');
+    await _reach(tester, find.text('What makes them laugh?'));
+    expect(system.nextQuestionFor(system.personById(p.id)!)!.$1, 'loves');
+  });
 }
