@@ -125,4 +125,27 @@ void main() {
     expect(b.headline, contains('rest or illness'));
     expect(b.adjustments.join(' '), isNot(contains('Shrink')));
   });
+
+  test('reps without feedback get one line', () async {
+    final input = _input();
+    final b = await DeviceBriefGenerator().generate(BriefInput(
+      report: input.report,
+      forWeek: input.forWeek,
+      programMonth: 1,
+      programWeek: 3,
+      itemRates: input.itemRates,
+      itemTitles: input.itemTitles,
+      itemCount: input.itemCount,
+      daysCounted: 7,
+      evidenceAddedThisWeek: 0,
+      artifactsThisMonth: 0,
+      postsThisWeek: 0,
+      gymDays: const [],
+      openUnlocks: const [],
+      builtInPlan: false,
+      repsWithoutFeedback: (3, 4),
+    ));
+    expect(b.adjustments.join(' '), contains('no feedback'));
+    expect(input.toJson().containsKey('reps_this_month_without_feedback'), isFalse);
+  });
 }

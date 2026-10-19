@@ -549,6 +549,9 @@ class _Plan extends StatelessWidget {
       ('Next time I will…', 'One specific change'),
     ];
     var more = false;
+    String? feedbackFrom;
+    bool? stretch;
+    final subskill = TextEditingController();
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -576,11 +579,44 @@ class _Plan extends StatelessWidget {
                           decoration: InputDecoration(hintText: prompts[i].$2),
                         ),
                       ],
+                      const SizedBox(height: 10),
+                      Text('Feedback from', style: AppText.small(color: AppColors.white)),
+                      const SizedBox(height: 4),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          for (final f in PersonalSystemProvider.feedbackSources.entries)
+                            ChoiceChip(
+                              key: Key('rep-feedback-${f.key}'),
+                              label: Text(f.value),
+                              selected: feedbackFrom == f.key,
+                              showCheckmark: false,
+                              onSelected: (on) => setSheet(() => feedbackFrom = on ? f.key : null),
+                            ),
+                        ],
+                      ),
+                      if (more) ...[
+                        const SizedBox(height: 10),
+                        TextField(
+                          controller: subskill,
+                          style: AppText.body(color: AppColors.white),
+                          decoration: const InputDecoration(
+                              labelText: 'The one sub-skill this rep worked on',
+                              hintText: 'e.g. the first 30 seconds, pausing before answering'),
+                        ),
+                        SwitchListTile(
+                          contentPadding: EdgeInsets.zero,
+                          value: stretch ?? false,
+                          onChanged: (v) => setSheet(() => stretch = v),
+                          title: Text('Just beyond comfort', style: AppText.body(color: AppColors.white)),
+                          subtitle: Text('Hard enough to fail sometimes', style: AppText.small()),
+                        ),
+                      ],
                       if (!more)
                         TextButton(
                           onPressed: () => setSheet(() => more = true),
-                          child:
-                              const Text('More: what you noticed, next time'),
+                          child: const Text('More: what you noticed, next time, the sub-skill'),
                         ),
                       const SizedBox(height: 14),
                       PrimaryButton('Save the rep', icon: Icons.check_rounded,
@@ -593,7 +629,10 @@ class _Plan extends StatelessWidget {
                             did: c[0].text,
                             lesson: c[1].text,
                             noticed: c[2].text,
-                            next: c[3].text);
+                            next: c[3].text,
+                            subskill: subskill.text,
+                            feedbackFrom: feedbackFrom,
+                            stretch: stretch);
                         Navigator.of(ctx).pop();
                         HapticFeedback.mediumImpact();
                         toast(context, 'Rep saved. That\'s how the bar moves.');

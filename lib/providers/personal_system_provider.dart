@@ -2350,6 +2350,7 @@ class PersonalSystemProvider extends ChangeNotifier {
             ? null
             : drillFor(focusArea()!, report.weekStart.plusDays(7)).title,
         repsThisWeek: repsInWeek(report.weekStart),
+        repsWithoutFeedback: repsWithoutFeedback(programMonth),
         valueGap: valueGap(report.weekStart),
         openCommitments: [
           for (final c in commitmentsDue(report.weekStart.plusDays(6)))
@@ -5333,18 +5334,46 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   /// One rep through the learning cycle: what you did, what you noticed,
   /// the lesson, and what you'll do next time (Kolb 1984).
+  /// Where a rep's feedback came from. Feedback is the part of
+  /// deliberate practice with solid evidence (debriefs, Tannenbaum &
+  /// Cerasoli 2013).
+  static const feedbackSources = {
+    'recording': 'A recording',
+    'person': 'A person',
+    'result': 'The result',
+    'none': 'None',
+  };
+
   void logRep(GrowthArea area, Drill drill,
           {required String did,
           String noticed = '',
           String lesson = '',
-          String next = ''}) =>
+          String next = '',
+          String subskill = '',
+          String? feedbackFrom,
+          bool? stretch}) =>
       addLog('rep', text: did.trim(), data: {
         'area': area.id,
         'drill': drill.title,
         'noticed': noticed.trim(),
         'lesson': lesson.trim(),
         'next': next.trim(),
+        if (subskill.trim().isNotEmpty) 'subskill': subskill.trim(),
+        if (feedbackFrom != null) 'feedback_from': feedbackFrom,
+        if (stretch != null) 'stretch': stretch,
       });
+
+  /// Reps this month whose feedback source was recorded as none, out of
+  /// those that recorded one — (none, recorded).
+  (int, int) repsWithoutFeedback(int month) {
+    final reps = [
+      for (final r in logsOf('rep'))
+        if (!r.date.isBefore(monthStart(month)) && r.date.isBefore(monthStart(month + 1)) &&
+            r.str('feedback_from') != null)
+          r
+    ];
+    return (reps.where((r) => r.str('feedback_from') == 'none').length, reps.length);
+  }
 
   /// What someone told you, and what you'll do with it.
   void logFeedback(GrowthArea area,
