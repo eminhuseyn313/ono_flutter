@@ -3672,4 +3672,22 @@ void main() {
     ));
     expect(jsonEncode(sent.last!.toJson()), isNot(contains('Sheki')));
   });
+
+  test('care fixes: a passed booking comes due, care for someone leaves with them', () async {
+    final p = await _commissioned();
+    final today = dayOnly(_today);
+    final hair = p.addUpkeep('Haircut', 28, kind: 'grooming', lastDone: today.minusDays(27))!;
+    p.bookUpkeep(hair.id, today.plusDays(1));
+    expect(p.upkeepDue.any((u) => u.id == hair.id), isFalse);
+    p.clock = () => _today.plusDays(3);
+    expect(p.upkeepDue.any((u) => u.id == hair.id), isTrue, reason: 'missed booking');
+    final dad = p.addPerson('Dad', role: 'Father', every: 7);
+    p.setInMyCare(dad, true);
+    final dentist = p.addUpkeep('Dad: Dentist', 180, forPerson: dad.id)!;
+    expect(p.upkeepDue.any((u) => u.id == dentist.id), isTrue);
+    p.setInMyCare(p.personById(dad.id)!, false);
+    expect(p.upkeepDue.any((u) => u.id == dentist.id), isFalse);
+    p.removePerson(dad.id);
+    expect(p.upkeep.any((u) => u.id == dentist.id), isFalse);
+  });
 }

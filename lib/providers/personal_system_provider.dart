@@ -3473,9 +3473,13 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// count as due. Booked ones aren't due: they're planned.
   List<LogEntry> get upkeepDue {
     final today = dayOnly(_now);
+    final inCare = {for (final p in peopleInCare) p.id};
     final due = [
       for (final u in upkeep)
-        if (upkeepBooked(u) == null &&
+        // A booking still ahead is planned; one that passed without "Done"
+        // comes due again. Care for someone no longer in your care waits.
+        if ((upkeepBooked(u) == null || upkeepBooked(u)!.isBefore(today)) &&
+            (careKindOf(u) != 'for' || inCare.contains(u.str('for'))) &&
             (upkeepNextDue(u) == null ||
                 !upkeepNextDue(u)!.isAfter(today.plusDays(upkeepLead(u)))))
           u
@@ -5759,7 +5763,9 @@ class PersonalSystemProvider extends ChangeNotifier {
         logs: s.logs
             .where((l) =>
                 l.id != id &&
-                !((l.type == 'touch' || l.type == 'help') && l.str('person') == id))
+                !((l.type == 'touch' || l.type == 'help') && l.str('person') == id) &&
+                // Care you kept for them goes with them.
+                !(l.type == 'upkeep' && l.str('for') == id))
             .toList()));
   }
 
@@ -7372,7 +7378,7 @@ class PersonalSystemProvider extends ChangeNotifier {
       }
     }
     for (final y in logsOf('year_review')) {
-      add(y, 'learned', y.str('learned') ?? '', 'Year ${y.date.year} review');
+      add(y, 'learned', y.str('learned') ?? '', 'Year ${y.number('year') ?? y.date.year} review');
     }
     out.sort((a, b) => a.pinned != b.pinned
         ? (a.pinned ? -1 : 1)
@@ -7395,7 +7401,11 @@ class PersonalSystemProvider extends ChangeNotifier {
     for (final (back, label) in [(365, 'A year ago today'), (182, 'Six months ago'), (30, 'A month ago')]) {
       final d = today.minusDays(back);
       if (d.isBefore(journeyStart)) continue;
-      for (final l in logsOn(d)) {
+      final doneThatDay = [
+        for (final l in [...logsOf('courage'), ...logsOf('advice')])
+          if ((l.str('done_on') ?? l.str('closed_on')) == dateKey(d)) l
+      ];
+      for (final l in [...logsOn(d).where((x) => x.type != 'courage' && x.type != 'advice'), ...doneThatDay]) {
         final f = l.str;
         final text = switch (l.type) {
           'win' => 'Win: ${l.text}',

@@ -104,14 +104,16 @@ class _UpkeepScreenState extends State<UpkeepScreen> {
     toast(context, 'Noted. The next one is remembered.');
   }
 
-  void _edit(PersonalSystemProvider system, LogEntry u) {
-    var every = (u.number('every') ?? 365).toInt();
+  void _edit(PersonalSystemProvider system, LogEntry item) {
+    var every = (item.number('every') ?? 365).toInt();
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: AppColors.card,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setSheet) {
+          // Always the item as it is now, not as the sheet opened.
+          final u = system.upkeep.where((x) => x.id == item.id).firstOrNull ?? item;
           final usual = system.upkeepUsualEvery(u);
           return SafeArea(
             child: SingleChildScrollView(
@@ -159,9 +161,11 @@ class _UpkeepScreenState extends State<UpkeepScreen> {
                       system.upkeepBooked(u) == null ? 'Booked it — pick the day' : 'Change the booked day',
                       icon: Icons.event_outlined, onPressed: () async {
                     final now = DateTime.now();
+                    final booked = system.upkeepBooked(u);
                     final day = await showDatePicker(
                       context: ctx,
-                      initialDate: system.upkeepBooked(u) ?? now,
+                      // A booking that has passed can't be the starting day.
+                      initialDate: booked == null || booked.isBefore(dayOnly(now)) ? now : booked,
                       firstDate: dayOnly(now),
                       lastDate: DateTime(now.year + 2),
                       helpText: 'When is it booked?',
@@ -257,15 +261,18 @@ class _UpkeepScreenState extends State<UpkeepScreen> {
             ),
           ],
         ],
-        // Someone in your care: their check-ups, under their name.
-        for (final p in system.peopleInCare) ...[
-          SectionHeader('For ${p.text}'),
+        // Someone in your care: their check-ups, under their name — and
+        // anything kept for someone no longer in your care, so it can go.
+        for (final p in system.people)
+          if (system.inMyCare(p) || system.careFor(p).isNotEmpty) ...[
+          SectionHeader(system.inMyCare(p) ? 'For ${p.text}' : 'For ${p.text} · no longer in your care'),
           if (system.careFor(p).isNotEmpty)
             OnoCard(
               padding: const EdgeInsets.fromLTRB(16, 6, 8, 6),
               child: Column(children: [for (final u in system.careFor(p)) _row(system, u)]),
             ),
           const SizedBox(height: 6),
+          if (system.inMyCare(p))
           Wrap(
             spacing: 6,
             runSpacing: 6,

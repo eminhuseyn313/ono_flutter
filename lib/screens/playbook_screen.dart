@@ -70,6 +70,22 @@ class _PlaybookScreenState extends State<PlaybookScreen> {
             for (final e in rest) _entry(system, e),
           ],
           if (shown.isEmpty) const EmptyNote('Nothing matches.', icon: Icons.search_off_rounded),
+          if (system.playbook(withRetired: true).length > all.length) ...[
+            const SectionHeader('Taken out'),
+            for (final e in system.playbook(withRetired: true))
+              if (!all.any((x) => x.key == e.key))
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(e.text, style: AppText.small()),
+                    ),
+                    TextButton(
+                      onPressed: () => system.retirePlay(e.key, false),
+                      child: const Text('Bring back'),
+                    ),
+                  ],
+                ),
+          ],
         ],
         const SizedBox(height: 16),
       ],

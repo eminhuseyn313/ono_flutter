@@ -406,6 +406,22 @@ class _CourageScreenState extends State<CourageScreen> {
     super.dispose();
   }
 
+  /// Off the ladder, with Undo.
+  void _drop(PersonalSystemProvider system, LogEntry step) {
+    system.dropCourageStep(step.id);
+    _undo(system, step, 'Taken off the ladder.');
+  }
+
+  /// Puts [before] back as it was.
+  void _undo(PersonalSystemProvider system, LogEntry before, String text) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(
+        content: Text(text),
+        action: SnackBarAction(label: 'Undo', onPressed: () => system.updateLog(before)),
+      ));
+  }
+
   void _did(PersonalSystemProvider system, LogEntry step) {
     final happened = TextEditingController();
     var felt = (step.number('fear') ?? 5).toDouble();
@@ -446,7 +462,9 @@ class _CourageScreenState extends State<CourageScreen> {
                 PrimaryButton('Save', icon: Icons.check_rounded, onPressed: () {
                   system.doCourageStep(step.id, felt: felt.round(), happened: happened.text);
                   Navigator.of(ctx).pop();
-                  toast(context,
+                  _undo(
+                      system,
+                      step,
                       felt.round() < (step.number('fear') ?? 0)
                           ? 'Easier than you feared. Remember that before the next rung.'
                           : 'Done — and you know now what it takes.');
@@ -501,6 +519,13 @@ class _CourageScreenState extends State<CourageScreen> {
                     key: const Key('courage-did'),
                     icon: Icons.check_rounded,
                     onPressed: () => _did(system, next)),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => _drop(system, next),
+                    child: const Text('Take it off the ladder'),
+                  ),
+                ),
               ],
             ),
           ),
@@ -545,7 +570,7 @@ class _CourageScreenState extends State<CourageScreen> {
                   tooltip: 'Take off the ladder',
                   icon: const Icon(Icons.close_rounded, size: 18),
                   color: AppColors.faint,
-                  onPressed: () => system.dropCourageStep(l.id),
+                  onPressed: () => _drop(system, l),
                 ),
               ],
             ),
