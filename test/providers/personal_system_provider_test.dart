@@ -3492,4 +3492,24 @@ void main() {
     p.dropCourageStep(dropped.id);
     expect(p.courageLadder, isEmpty);
   });
+
+  test('playbook: lessons from everywhere, pinned first, retired out', () async {
+    final p = await _commissioned();
+    expect(p.playbook(), isEmpty);
+    p.logAar(event: 'The launch', improve: 'Rehearse the demo twice');
+    p.saveMonthReview(1, carry: 'Keep mornings', lesson: 'Small steps beat big plans');
+    final book = p.addLearning('Deep Work', kind: 'Book')!;
+    p.applyLearning(book.id, principle: 'Protect one block a day', experiment: 'No meetings before 11');
+    p.logAar(event: 'A quiet week');
+    final texts = p.playbook().map((e) => e.text).toList();
+    expect(texts, containsAll(['Rehearse the demo twice', 'Small steps beat big plans', 'Protect one block a day']));
+    expect(texts.length, 3, reason: 'empty lessons are left out');
+    final small = p.playbook().firstWhere((e) => e.text.startsWith('Small'));
+    p.pinPlay(small.key, true);
+    expect(p.playbook().first.key, small.key);
+    expect(p.playbookText(), contains('★ Small steps beat big plans'));
+    p.retirePlay(small.key, true);
+    expect(p.playbook().any((e) => e.key == small.key), isFalse);
+    expect(p.playbook(withRetired: true).any((e) => e.key == small.key), isTrue);
+  });
 }

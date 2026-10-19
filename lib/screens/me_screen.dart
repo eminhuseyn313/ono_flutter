@@ -468,6 +468,26 @@ class MeScreen extends StatelessWidget {
               ),
               const Divider(indent: 66),
               LinkRow(
+                icon: Icons.menu_book_outlined,
+                color: AppColors.skill,
+                title: 'Your playbook',
+                subtitle: system.playbook().isEmpty
+                    ? 'Every lesson you write gathers here'
+                    : '${system.playbook().length} lessons in your own words',
+                onTap: () => context.push('/playbook'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
+                icon: Icons.stairs_outlined,
+                color: AppColors.skill,
+                title: 'Courage ladder',
+                subtitle: system.nextCourageStep == null
+                    ? 'What you avoid, one rung at a time'
+                    : 'Next rung: ${system.nextCourageStep!.text}',
+                onTap: () => context.push('/courage'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
                 icon: Icons.center_focus_strong_rounded,
                 color: AppColors.skill,
                 title: 'Deep work',

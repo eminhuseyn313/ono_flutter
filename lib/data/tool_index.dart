@@ -98,6 +98,8 @@ const List<ToolEntry> toolIndex = [
       words: ['one on one', 'manager', 'decisions', 'readiness', 'career cockpit']),
 
   // Practice
+  ToolEntry('Your playbook', 'Every lesson you wrote, in one place — pin the ones to live by', '/playbook', 'Practice',
+      words: ['lessons', 'learned', 'principles', 'rules', 'insights', 'wisdom']),
   ToolEntry('Courage ladder', 'What you avoid, one rung at a time — and how hard it really was', '/courage', 'Practice',
       words: ['fear', 'avoid', 'anxiety', 'confidence', 'brave', 'comfort zone', 'exposure']),
   ToolEntry('Learning', 'Learn it, then apply it', '/learning', 'Practice',

@@ -6960,6 +6960,75 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   List<LogEntry> get aars => logsOf('aar');
 
+  // ── Your playbook ────────────────────────────────────────────────────
+
+  /// Every lesson you wrote in your own words, wherever you wrote it —
+  /// practice reps, after-action reviews, month and quarter reviews,
+  /// books applied, goals closed, hard conversations, experiments kept and
+  /// the year's lesson. Pinned first, then newest. Retired ones only with
+  /// [withRetired].
+  List<PlayEntry> playbook({bool withRetired = false}) {
+    final out = <PlayEntry>[];
+    void add(LogEntry l, String field, String text, String from) {
+      final t = text.trim();
+      if (t.isEmpty) return;
+      final key = '${l.id}:$field';
+      if (!withRetired && isDone('play:off:$key')) return;
+      out.add(PlayEntry(key, t, from, dayOnly(l.date), isDone('play:pin:$key')));
+    }
+
+    for (final r in logsOf('rep')) {
+      add(r, 'lesson', r.str('lesson') ?? '', 'Practice · ${areaById(r.str('area') ?? '').name}');
+    }
+    for (final a in logsOf('aar')) {
+      add(a, 'improve', a.str('improve') ?? '', 'After-action review · ${a.text}');
+    }
+    for (final m in logsOf('month_review')) {
+      add(m, 'lesson', m.str('lesson') ?? '', 'Month ${m.number('month')} review');
+    }
+    for (final q in logsOf('quarterly_review')) {
+      add(q, 'lessons', q.str('lessons') ?? '', 'Quarter ${q.number('quarter')} review');
+    }
+    for (final l in learning) {
+      add(l, 'principle', l.str('principle') ?? '', 'From ${l.text}');
+    }
+    for (final g in goals) {
+      add(g, 'advice', (g.str('advice') ?? '').isNotEmpty ? g.str('advice')! : g.str('reflection') ?? '',
+          'Goal · ${g.text}');
+    }
+    for (final c in conversations) {
+      add(c, 'learned', c.str('learned') ?? '',
+          'Conversation${(c.str('with') ?? '').isEmpty ? '' : ' with ${c.str('with')}'}');
+    }
+    for (final e in experiments) {
+      if (e.str('status') == 'kept') {
+        add(e, 'kept', (e.str('result') ?? '').isEmpty ? e.text : '${e.text} — ${e.str('result')}',
+            'Experiment kept');
+      }
+    }
+    for (final y in logsOf('year_review')) {
+      add(y, 'learned', y.str('learned') ?? '', 'Year ${y.date.year} review');
+    }
+    out.sort((a, b) => a.pinned != b.pinned
+        ? (a.pinned ? -1 : 1)
+        : b.date.compareTo(a.date));
+    return out;
+  }
+
+  void pinPlay(String key, bool pin) => setDone('play:pin:$key', pin);
+
+  /// Take a lesson out of the playbook (the record it came from stays).
+  void retirePlay(String key, bool retire) => setDone('play:off:$key', retire);
+
+  /// The playbook as plain text to copy: pinned, then the rest.
+  String playbookText() {
+    final b = StringBuffer('${activeProfile.firstName}\'s playbook\n');
+    for (final e in playbook()) {
+      b.writeln('${e.pinned ? '★ ' : '• '}${e.text} (${e.from}, ${dateKey(e.date)})');
+    }
+    return b.toString().trim();
+  }
+
   // ── Courage ladder ───────────────────────────────────────────────────
 
   /// Things you avoid, each with how hard it feels (0–10), climbed from
@@ -7351,4 +7420,14 @@ class DayPattern {
   /// "No caffeine after 1pm → sleep that night 7.5 h vs 6.0 h without".
   String get sentence =>
       '$habit → $outcome ${fmt(withHabit)} vs ${fmt(without)} without';
+}
+
+/// One lesson in the playbook: [key] is `<logId>:<field>`.
+class PlayEntry {
+  final String key;
+  final String text;
+  final String from;
+  final DateTime date;
+  final bool pinned;
+  const PlayEntry(this.key, this.text, this.from, this.date, this.pinned);
 }

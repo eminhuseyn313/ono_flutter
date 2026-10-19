@@ -522,4 +522,20 @@ void main() {
     expect(system.courageDone.single.str('status'), 'done');
     expect(system.courageDone.single.number('felt'), 5);
   });
+
+  testWidgets('playbook: a lesson shows up, can be pinned and searched',
+      (tester) async {
+    final system = await _start(tester);
+    system.logAar(event: 'The launch', improve: 'Rehearse the demo twice');
+    system.logAar(event: 'Board meeting', improve: 'Send the memo a day early');
+    await _go(tester, '/playbook');
+    expect(find.text('Rehearse the demo twice'), findsOneWidget);
+    final key = system.playbook().firstWhere((e) => e.text.startsWith('Send')).key;
+    await _tap(tester, find.byKey(Key('pin-$key')));
+    expect(system.playbook().first.text, 'Send the memo a day early');
+    await tester.enterText(find.byType(TextField).first, 'demo');
+    await tester.pump();
+    expect(find.text('Send the memo a day early'), findsNothing);
+    expect(find.text('Rehearse the demo twice'), findsOneWidget);
+  });
 }
