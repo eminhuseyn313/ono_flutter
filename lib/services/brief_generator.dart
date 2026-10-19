@@ -65,6 +65,9 @@ class BriefInput {
   final int kindnessActs;
   final int thoughtsChecked;
 
+  /// Rungs of the courage ladder taken this week (a count).
+  final int courageSteps;
+
   /// Signature strengths, uses of them this week, and roles nobody fills
   /// on their personal board.
   final List<String> strengths;
@@ -201,6 +204,7 @@ class BriefInput {
     this.setbacks = 0,
     this.kindnessActs = 0,
     this.thoughtsChecked = 0,
+    this.courageSteps = 0,
     this.strengths = const [],
     this.strengthUses = 0,
     this.boardGaps = const [],
@@ -247,6 +251,7 @@ class BriefInput {
         'setbacks_handled': setbacks,
         'kindness_acts_this_week': kindnessActs,
         'thoughts_checked_this_week': thoughtsChecked,
+        if (courageSteps > 0) 'courage_steps_this_week': courageSteps,
         if (strengths.isNotEmpty) 'signature_strengths': strengths,
         if (strengths.isNotEmpty) 'strength_uses_this_week': strengthUses,
         if (boardGaps.isNotEmpty) 'personal_board_gaps': boardGaps,
@@ -540,6 +545,8 @@ class DeviceBriefGenerator implements BriefGenerator {
         'Best moment: "${_clip(r.bestMoment.trim(), 120)}". What made it possible? Set that up again next week.',
       if (input.setbacks > 0)
         '${input.setbacks} setback${input.setbacks == 1 ? '' : 's'} met with a next step instead of a spiral. That is the skill.',
+      if (input.courageSteps > 0)
+        'You climbed ${input.courageSteps} rung${input.courageSteps == 1 ? '' : 's'} of your courage ladder. Doing the thing you avoid is how self-trust is built.',
       if (input.thoughtsChecked > 0)
         'You put ${input.thoughtsChecked} hard thought${input.thoughtsChecked == 1 ? '' : 's'} to the test this week instead of believing ${input.thoughtsChecked == 1 ? 'it' : 'them'}.',
       if (input.peopleCount >= 3 && input.peopleReached * 2 >= input.peopleCount)

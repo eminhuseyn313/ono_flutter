@@ -39,6 +39,7 @@ const _filters = <String, Set<String>?>{
     'feedback_round',
     'wheel',
     'aar',
+    'courage',
     'strength_use',
     'program_cycle',
     'story',
@@ -137,6 +138,7 @@ const _ownerRoute = {
   'energy': '/energy',
   'automaticity': '/habits',
   'aar': '/aar',
+  'courage': '/courage',
   'thought': '/thought',
   'stepback': '/stepback',
 };
@@ -571,6 +573,7 @@ class _EntryRow extends StatelessWidget {
     'stepback': (Icons.zoom_out_map_rounded, 'mind', 'Stepped back'),
     'thought': (Icons.psychology_outlined, 'mind', 'Thought check'),
     'aar': (Icons.flag_outlined, 'skill', 'After-action review'),
+    'courage': (Icons.stairs_outlined, 'skill', 'Courage ladder'),
     'promise': (Icons.handshake_outlined, 'social', 'Promise'),
     'ask': (Icons.pan_tool_alt_outlined, 'social', 'Asked for help'),
     'story': (Icons.menu_book_outlined, 'skill', 'Story'),
@@ -643,6 +646,11 @@ class _EntryRow extends StatelessWidget {
         return '${e.text}${(e.str('of') ?? '').isEmpty ? '' : ' · ${e.str('of')}'} · ${st == 'asked' ? 'waiting' : st}';
       case 'program_cycle':
         return 'Program ${e.number('number')} · ${e.number('held')} of ${e.number('counted')} days held';
+      case 'courage':
+        final st = e.str('status') ?? 'planned';
+        return st == 'done'
+            ? '${e.text} · feared ${e.number('fear')}, felt ${e.number('felt')}'
+            : '${e.text} · ${st == 'planned' ? 'on the ladder, ${e.number('fear')}/10' : 'taken off'}';
       case 'aar':
         final next = e.str('improve') ?? '';
         return '${e.text}${next.isEmpty ? '' : ' · next time: $next'}';

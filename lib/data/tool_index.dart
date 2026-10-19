@@ -98,6 +98,8 @@ const List<ToolEntry> toolIndex = [
       words: ['one on one', 'manager', 'decisions', 'readiness', 'career cockpit']),
 
   // Practice
+  ToolEntry('Courage ladder', 'What you avoid, one rung at a time — and how hard it really was', '/courage', 'Practice',
+      words: ['fear', 'avoid', 'anxiety', 'confidence', 'brave', 'comfort zone', 'exposure']),
   ToolEntry('Learning', 'Learn it, then apply it', '/learning', 'Practice',
       words: ['books', 'courses', 'reading', 'podcast']),
   ToolEntry('Write from memory', 'Close the book and explain what you just read — the gaps show what to reread', '/tool/feynman', 'Practice',

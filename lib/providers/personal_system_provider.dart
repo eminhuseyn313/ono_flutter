@@ -2237,6 +2237,7 @@ class PersonalSystemProvider extends ChangeNotifier {
         sayDo: sayDo() == null ? null : '${sayDo()!.kept} of ${sayDo()!.kept + sayDo()!.missed}',
         promisesOverdue: promisesDue(_now.minusDays(1)).length,
         thoughtsChecked: thoughtsInWeek(report.weekStart),
+        courageSteps: courageStepsInWeek(report.weekStart),
         asksThisWeek: asksInWeek(report.weekStart),
         proposedOutcomes: [for (final p in proposedOutcomes(forWeek)) p.text],
         askRecord: askRecord() == null
@@ -6958,6 +6959,73 @@ class PersonalSystemProvider extends ChangeNotifier {
   }
 
   List<LogEntry> get aars => logsOf('aar');
+
+  // ── Courage ladder ───────────────────────────────────────────────────
+
+  /// Things you avoid, each with how hard it feels (0–10), climbed from
+  /// the lowest rung (graded exposure). After each step you rate how hard
+  /// it really was: people expect more discomfort than they feel, and
+  /// seeing that gap is how avoidance loosens and self-trust grows.
+  LogEntry? addCourageStep(String what, {required int fear}) => what.trim().isEmpty
+      ? null
+      : addLog('courage',
+          text: what.trim(), data: {'fear': fear.clamp(0, 10), 'status': 'planned'});
+
+  /// Planned steps, lowest rung first.
+  List<LogEntry> get courageLadder => [
+        for (final l in logsOf('courage'))
+          if ((l.str('status') ?? 'planned') == 'planned') l
+      ]..sort((a, b) => (a.number('fear') ?? 0).compareTo(b.number('fear') ?? 0));
+
+  /// Steps taken, newest first.
+  List<LogEntry> get courageDone => [
+        for (final l in logsOf('courage'))
+          if (l.str('status') == 'done') l
+      ];
+
+  /// The rung to take next: the lowest still on the ladder.
+  LogEntry? get nextCourageStep => courageLadder.firstOrNull;
+
+  void doCourageStep(String id, {required int felt, String happened = ''}) {
+    final l = logsOf('courage').where((x) => x.id == id).firstOrNull;
+    if (l == null) return;
+    updateLog(l.copyWith(data: {
+      ...l.data,
+      'status': 'done',
+      'felt': felt.clamp(0, 10),
+      'happened': happened.trim(),
+      'done_on': dateKey(_now),
+    }));
+  }
+
+  /// Taken off the ladder on purpose (it stays in the log).
+  void dropCourageStep(String id) {
+    final l = logsOf('courage').where((x) => x.id == id).firstOrNull;
+    if (l == null) return;
+    updateLog(l.copyWith(data: {...l.data, 'status': 'dropped'}));
+  }
+
+  /// How much easier steps felt than feared, on average (0–10 points),
+  /// from 3+ steps taken; null before. Negative means harder.
+  double? get courageGap {
+    final done = [
+      for (final l in courageDone)
+        if (l.number('fear') != null && l.number('felt') != null)
+          (l.number('fear')! - l.number('felt')!).toDouble()
+    ];
+    if (done.length < 3) return null;
+    return done.reduce((a, b) => a + b) / done.length;
+  }
+
+  /// Steps taken in the week of [anyDay].
+  int courageStepsInWeek(DateTime anyDay) {
+    final from = dateKey(weekStartOf(anyDay)),
+        to = dateKey(weekStartOf(anyDay).plusDays(7));
+    return courageDone.where((l) {
+      final on = l.str('done_on') ?? '';
+      return on.compareTo(from) >= 0 && on.compareTo(to) < 0;
+    }).length;
+  }
 
   // ── Promises (say–do) ────────────────────────────────────────────────
 

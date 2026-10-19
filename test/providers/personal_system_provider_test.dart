@@ -3472,4 +3472,24 @@ void main() {
     ));
     expect(jsonEncode(sent.last!.toJson()), isNot(contains('unwell')));
   });
+
+  test('courage ladder: lowest rung first, felt vs feared, the gap', () async {
+    final p = await _commissioned();
+    expect(p.addCourageStep(' ', fear: 3), isNull);
+    final talk = p.addCourageStep('Give the talk', fear: 9)!;
+    final speak = p.addCourageStep('Speak first in the meeting', fear: 4)!;
+    final ask = p.addCourageStep('Ask for feedback', fear: 6)!;
+    expect(p.nextCourageStep!.id, speak.id);
+    p.doCourageStep(speak.id, felt: 2, happened: 'Nobody minded');
+    expect(p.nextCourageStep!.id, ask.id);
+    expect(p.courageGap, isNull, reason: 'needs three steps');
+    p.doCourageStep(ask.id, felt: 3);
+    p.doCourageStep(talk.id, felt: 6);
+    expect(p.courageGap, closeTo((2 + 3 + 3) / 3, 0.01));
+    expect(p.courageStepsInWeek(_today), 3);
+    expect(p.nextCourageStep, isNull);
+    final dropped = p.addCourageStep('Cold call', fear: 8)!;
+    p.dropCourageStep(dropped.id);
+    expect(p.courageLadder, isEmpty);
+  });
 }

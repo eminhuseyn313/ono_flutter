@@ -507,4 +507,19 @@ void main() {
     expect(system.knowAnswer(system.personById(p.id)!, 'working_on'), 'Her first marathon');
     expect(system.nextQuestionFor(system.personById(p.id)!)!.$1, 'weighing');
   });
+
+  testWidgets('courage ladder: add a rung, climb it, rate how it felt',
+      (tester) async {
+    final system = await _start(tester);
+    await _go(tester, '/courage');
+    await tester.enterText(find.byKey(const Key('courage-what')), 'Speak first in the meeting');
+    await tester.pump();
+    await _tap(tester, find.text('Add to the ladder'));
+    expect(system.nextCourageStep!.text, 'Speak first in the meeting');
+    await _tap(tester, find.byKey(const Key('courage-did')));
+    await tester.tap(find.text('Save').last);
+    await _pumpFor(tester, const Duration(milliseconds: 600));
+    expect(system.courageDone.single.str('status'), 'done');
+    expect(system.courageDone.single.number('felt'), 5);
+  });
 }

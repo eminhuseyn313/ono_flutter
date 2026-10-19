@@ -26,6 +26,7 @@ class NeedScreen extends StatelessWidget {
     (Icons.favorite_outline_rounded, 'I want to feel closer to someone', 'A check-in for two, or reach out today', '/us'),
     (Icons.flag_outlined, 'Something big just happened', 'Look back while it\'s fresh: keep one thing, change one', '/aar'),
     (Icons.work_outline_rounded, 'I have an interview or review coming', 'Your best stories, in four parts, ready', '/stories'),
+    (Icons.stairs_outlined, 'I keep avoiding something', 'One small rung, then see how hard it really was', '/courage'),
     (Icons.auto_awesome_outlined, 'I\'m doubting myself', 'Read what others saw in you at your best', '/best-self'),
     (Icons.explore_outlined, 'I don\'t know where I\'m going', 'Sketch three possible lives', '/odyssey'),
     (Icons.pan_tool_alt_outlined, 'I need help but don\'t want to ask', 'Most people say yes more often than you\'d guess', '/asks'),

@@ -383,3 +383,185 @@ class _PastAar extends StatelessWidget {
         ),
       );
 }
+
+// ── Courage ladder ─────────────────────────────────────────────────────
+
+/// Things you avoid, rated by how hard they feel, climbed from the bottom
+/// rung. Afterwards: how hard was it really? The gap between what you
+/// feared and what you felt is what you learn (graded exposure).
+class CourageScreen extends StatefulWidget {
+  const CourageScreen({super.key});
+
+  @override
+  State<CourageScreen> createState() => _CourageScreenState();
+}
+
+class _CourageScreenState extends State<CourageScreen> {
+  final _what = TextEditingController();
+  double _fear = 5;
+
+  @override
+  void dispose() {
+    _what.dispose();
+    super.dispose();
+  }
+
+  void _did(PersonalSystemProvider system, LogEntry step) {
+    final happened = TextEditingController();
+    var felt = (step.number('fear') ?? 5).toDouble();
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.card,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheet) => Padding(
+          padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + MediaQuery.of(ctx).viewInsets.bottom),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('You did it', style: AppText.title()),
+                Text(step.text, style: AppText.small()),
+                const SizedBox(height: 14),
+                Text('How hard was it, really? You expected ${step.number('fear')}.',
+                    style: AppText.body(color: AppColors.white)),
+                Slider(
+                  key: const Key('courage-felt'),
+                  value: felt,
+                  min: 0,
+                  max: 10,
+                  divisions: 10,
+                  label: '${felt.round()}',
+                  onChanged: (v) => setSheet(() => felt = v),
+                ),
+                TextField(
+                  controller: happened,
+                  minLines: 1,
+                  maxLines: 3,
+                  style: AppText.body(color: AppColors.white),
+                  decoration: const InputDecoration(hintText: 'What actually happened? (optional)'),
+                ),
+                const SizedBox(height: 12),
+                PrimaryButton('Save', icon: Icons.check_rounded, onPressed: () {
+                  system.doCourageStep(step.id, felt: felt.round(), happened: happened.text);
+                  Navigator.of(ctx).pop();
+                  toast(context,
+                      felt.round() < (step.number('fear') ?? 0)
+                          ? 'Easier than you feared. Remember that before the next rung.'
+                          : 'Done — and you know now what it takes.');
+                }),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final system = context.watch<PersonalSystemProvider>();
+    final ladder = system.courageLadder;
+    final next = system.nextCourageStep;
+    final done = system.courageDone;
+    final gap = system.courageGap;
+    return OnoPage(
+      showBack: true,
+      eyebrow: 'Practice · courage',
+      title: 'Courage ladder',
+      subtitle:
+          'List what you avoid and how hard each feels. Start at the bottom rung. Afterwards, rate how hard it really was — the gap is what you learn.',
+      children: [
+        if (gap != null) ...[
+          const SizedBox(height: 14),
+          OnoCard(
+            key: const Key('courage-gap'),
+            accent: AppColors.skill,
+            child: Text(
+                gap > 0
+                    ? 'Across ${done.length} steps, things felt ${gap.toStringAsFixed(1)} points easier than you feared.'
+                    : gap < 0
+                        ? 'Across ${done.length} steps, things felt ${(-gap).toStringAsFixed(1)} points harder than you expected. Take a smaller rung next.'
+                        : 'Across ${done.length} steps, things felt as hard as you expected.',
+                style: AppText.body(color: AppColors.white)),
+          ),
+        ],
+        if (next != null) ...[
+          const SectionHeader('Next rung'),
+          OnoCard(
+            accent: AppColors.accent,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(next.text, style: AppText.heading()),
+                Text('Feels like ${next.number('fear')} of 10', style: AppText.small()),
+                const SizedBox(height: 10),
+                PrimaryButton('I did it',
+                    key: const Key('courage-did'),
+                    icon: Icons.check_rounded,
+                    onPressed: () => _did(system, next)),
+              ],
+            ),
+          ),
+        ],
+        const SectionHeader('Add a rung'),
+        TextField(
+          key: const Key('courage-what'),
+          controller: _what,
+          style: AppText.body(color: AppColors.white),
+          decoration: const InputDecoration(
+              hintText: 'Something you avoid, e.g. speak first in the meeting'),
+        ),
+        const SizedBox(height: 8),
+        Text('How hard does it feel? ${_fear.round()} of 10', style: AppText.small()),
+        Slider(
+          value: _fear,
+          min: 0,
+          max: 10,
+          divisions: 10,
+          label: '${_fear.round()}',
+          onChanged: (v) => setState(() => _fear = v),
+        ),
+        GhostButton('Add to the ladder', icon: Icons.add_rounded, onPressed: () {
+          if (system.addCourageStep(_what.text, fear: _fear.round()) == null) {
+            toast(context, 'Write what you avoid first.');
+            return;
+          }
+          _what.clear();
+          FocusManager.instance.primaryFocus?.unfocus();
+        }),
+        if (ladder.length > 1) ...[
+          const SectionHeader('Higher up'),
+          for (final l in ladder.skip(1))
+            Row(
+              children: [
+                SizedBox(
+                  width: 28,
+                  child: Text('${l.number('fear')}', style: AppText.heading()),
+                ),
+                Expanded(child: Text(l.text, style: AppText.body(color: AppColors.white))),
+                IconButton(
+                  tooltip: 'Take off the ladder',
+                  icon: const Icon(Icons.close_rounded, size: 18),
+                  color: AppColors.faint,
+                  onPressed: () => system.dropCourageStep(l.id),
+                ),
+              ],
+            ),
+        ],
+        if (done.isNotEmpty) ...[
+          const SectionHeader('Climbed'),
+          for (final l in done.take(10))
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Text(
+                  '${l.text} · feared ${l.number('fear')}, felt ${l.number('felt')}${(l.str('happened') ?? '').isEmpty ? '' : ' — ${l.str('happened')}'}',
+                  style: AppText.small(color: AppColors.white)),
+            ),
+        ],
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+}
