@@ -651,5 +651,8 @@ void main() {
     await _tap(tester, find.byKey(const Key('me-more-people')));
     await _reach(tester, find.text('Gratitude letter'));
     expect(system.isDone('me:more:people'), isTrue);
+    await _go(tester, '/tools');
+    expect(find.text('Used lately'), findsOneWidget);
+    expect(find.text('Courage ladder'), findsWidgets);
   });
 }

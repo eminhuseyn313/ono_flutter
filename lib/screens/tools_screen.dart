@@ -36,12 +36,22 @@ class _ToolsScreenState extends State<ToolsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final builtIn = context.watch<PersonalSystemProvider>().isBuiltInPerson;
+    final system = context.watch<PersonalSystemProvider>();
+    final builtIn = system.isBuiltInPerson;
     final q = _query.text;
     final found = [
       for (final t in toolIndex)
         if ((builtIn || !t.builtInOnly) && t.matches(q)) t
     ];
+    // Before a search, the tools used in the last 30 days come first.
+    final recent = system.recentToolRoutes();
+    final seen = <String>{};
+    final lately = q.trim().isNotEmpty
+        ? const <ToolEntry>[]
+        : [
+            for (final t in found)
+              if (recent.contains(t.route.split('?').first) && seen.add(t.route.split('?').first)) t
+          ];
     return OnoPage(
       showBack: true,
       eyebrow: '${found.length} tools',
@@ -67,29 +77,35 @@ class _ToolsScreenState extends State<ToolsScreen> {
             child: const Text('say what you need right now'),
           ),
         ],
+        if (lately.isNotEmpty) ...[
+          const SectionHeader('Used lately'),
+          _card(context, lately),
+        ],
         for (final g in toolGroups)
           if (found.any((t) => t.group == g)) ...[
             SectionHeader(g),
-            OnoCard(
-              padding: EdgeInsets.zero,
-              child: Column(
-                children: [
-                  for (final (i, t) in found.where((t) => t.group == g).indexed) ...[
-                    if (i > 0) const Divider(indent: 16),
-                    ListTile(
-                      title: Text(t.title, style: AppText.heading()),
-                      subtitle: Text(t.what, style: AppText.small()),
-                      trailing: Icon(Icons.chevron_right_rounded,
-                          color: _groupColors[g] ?? AppColors.grey),
-                      onTap: () => context.push(t.route),
-                    ),
-                  ],
-                ],
-              ),
-            ),
+            _card(context, found.where((t) => t.group == g).toList()),
           ],
         const SizedBox(height: 16),
       ],
     );
   }
+
+  Widget _card(BuildContext context, List<ToolEntry> tools) => OnoCard(
+        padding: EdgeInsets.zero,
+        child: Column(
+          children: [
+            for (final (i, t) in tools.indexed) ...[
+              if (i > 0) const Divider(indent: 16),
+              ListTile(
+                title: Text(t.title, style: AppText.heading()),
+                subtitle: Text(t.what, style: AppText.small()),
+                trailing: Icon(Icons.chevron_right_rounded,
+                    color: _groupColors[t.group] ?? AppColors.grey),
+                onTap: () => context.push(t.route),
+              ),
+            ],
+          ],
+        ),
+      );
 }
