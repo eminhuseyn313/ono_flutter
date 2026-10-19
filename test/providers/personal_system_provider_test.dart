@@ -3531,4 +3531,18 @@ void main() {
     p.setAdviceStatus(b.id, 'tried', result: 'Better afternoons');
     expect(p.adviceToReport, isEmpty);
   });
+
+  test('a pinned rule comes back on Monday', () async {
+    final p = await _commissioned();
+    expect(p.ruleOfTheWeek(_today), isNull);
+    p.logAar(event: 'The launch', improve: 'Rehearse the demo twice');
+    p.pinPlay(p.playbook().single.key, true);
+    expect(p.ruleOfTheWeek(_today), 'Rehearse the demo twice');
+    final monday = weekStartOf(_today).plusDays(7);
+    _hold(p, monday.minusDays(3));
+    _hold(p, monday.minusDays(2));
+    _hold(p, monday.minusDays(1));
+    p.clock = () => monday.add(const Duration(hours: 9));
+    expect(p.freshStartFor(monday)?.body, contains('A rule you wrote: "Rehearse the demo twice"'));
+  });
 }

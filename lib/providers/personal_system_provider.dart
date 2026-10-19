@@ -1140,7 +1140,8 @@ class PersonalSystemProvider extends ChangeNotifier {
         body: 'Last week: $hits of $counted days.\n'
             '${cue.isEmpty ? '' : 'Your plan: $cue.\n'}\n'
             'Close your eyes for 20 seconds and picture the moment the cue '
-            'happens and you do it.',
+            'happens and you do it.'
+            '${ruleOfTheWeek(d) == null ? '' : '\n\nA rule you wrote: "${ruleOfTheWeek(d)}"'}',
         cta: 'Commit',
         itemId: weakest.id,
       );
@@ -7085,6 +7086,15 @@ class PersonalSystemProvider extends ChangeNotifier {
   }
 
   void pinPlay(String key, bool pin) => setDone('play:pin:$key', pin);
+
+  /// One pinned lesson for the week of [day], rotating through them.
+  String? ruleOfTheWeek(DateTime day) {
+    final pinned = [for (final e in playbook()) if (e.pinned) e]
+      ..sort((a, b) => a.key.compareTo(b.key));
+    if (pinned.isEmpty) return null;
+    final week = weekStartOf(day).daysSince(weekStartOf(journeyStart)) ~/ 7;
+    return pinned[week % pinned.length].text;
+  }
 
   /// Take a lesson out of the playbook (the record it came from stays).
   void retirePlay(String key, bool retire) => setDone('play:off:$key', retire);
