@@ -229,16 +229,30 @@ class MeScreen extends StatelessWidget {
             onAction: () => context.push('/move')),
         OnoCard(
           padding: EdgeInsets.zero,
-          child: LinkRow(
-            icon: Icons.spa_outlined,
-            color: AppColors.body,
-            title: 'Care',
-            subtitle: system.upkeep.isEmpty
-                ? 'Check-ups, haircut, nails, the car — what slips when busy'
-                : system.upkeepDue.isEmpty
-                    ? '${system.upkeep.length} tracked · nothing due'
-                    : 'Due: ${system.upkeepDue.map((u) => u.text).join(' · ')}',
-            onTap: () => context.push('/upkeep'),
+          child: Column(
+            children: [
+              LinkRow(
+                icon: Icons.spa_outlined,
+                color: AppColors.body,
+                title: 'Care',
+                subtitle: system.upkeep.isEmpty
+                    ? 'Check-ups, haircut, nails, the car — what slips when busy'
+                    : system.upkeepDue.isEmpty
+                        ? '${system.upkeep.length} tracked · nothing due'
+                        : 'Due: ${system.upkeepDue.map((u) => u.text).join(' · ')}',
+                onTap: () => context.push('/upkeep'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
+                icon: Icons.bedtime_outlined,
+                color: AppColors.body,
+                title: 'Steady sleep',
+                subtitle: system.wakeSpread(DateTime.now()) == null
+                    ? 'One wake time and a few rules that work'
+                    : 'Wake times within ${system.wakeSpread(DateTime.now())} min this week',
+                onTap: () => context.push('/sleep'),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 10),

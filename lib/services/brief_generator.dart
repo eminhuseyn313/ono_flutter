@@ -21,6 +21,9 @@ class BriefInput {
   /// From morning check-ins this week (null when none were logged).
   final double? avgEnergy;
   final double? avgSleep;
+
+  /// Minutes between the week's earliest and latest wake (Apple Health).
+  final int? wakeSpread;
   final int shoulderFlagDays;
 
   /// Target-role dimension furthest below the bar, if rated.
@@ -187,6 +190,7 @@ class BriefInput {
     this.latestWeight,
     this.avgEnergy,
     this.avgSleep,
+    this.wakeSpread,
     this.shoulderFlagDays = 0,
     this.readinessGap,
     this.openFollowUps = 0,
@@ -309,6 +313,7 @@ class BriefInput {
         // Body weight stays on the device.
         'avg_energy_1_to_5': avgEnergy,
         'avg_sleep_hours': avgSleep,
+        if (wakeSpread != null) 'wake_time_spread_minutes': wakeSpread,
         'open_one_on_one_followups': openFollowUps,
         'personal_patterns': patterns,
         'deep_work_hours': deepWorkHours,

@@ -1784,6 +1784,49 @@ class PersonalSystemProvider extends ChangeNotifier {
     }
   }
 
+  // ── Steady sleep ─────────────────────────────────────────────────────
+
+  /// Wake times (minutes after midnight) this week, from Apple Health.
+  List<int> wakeTimesInWeek(DateTime anyDay) => [
+        for (final d in weekDays(anyDay))
+          for (final l in logsOn(d, 'sleep'))
+            if (DateTime.tryParse(l.str('wake') ?? '') case final w?) w.hour * 60 + w.minute
+      ];
+
+  /// Minutes between the earliest and latest wake this week (3+ nights
+  /// measured). Regular sleep matters as much as long sleep (Windred et
+  /// al. 2024) — a real measure, never an invented score.
+  int? wakeSpread(DateTime anyDay) {
+    final w = wakeTimesInWeek(anyDay);
+    if (w.length < 3) return null;
+    w.sort();
+    return w.last - w.first;
+  }
+
+  /// Sleep rules to adopt as daily items, each with its cue. Behavioural
+  /// parts of CBT-I that are safe without a clinician; never limits on
+  /// time in bed.
+  List<DailyIdea> get sleepRules {
+    final bed = dayShape?.bed;
+    final caffeine = bed == null ? null : ((bed - 8 * 60) % (24 * 60));
+    String clock(int m) => '${(m ~/ 60).toString().padLeft(2, '0')}:${(m % 60).toString().padLeft(2, '0')}';
+    return [
+      DailyIdea('Same wake time every day, weekends too', 'body', 'morning', 'health',
+          dayShape == null
+              ? 'When my alarm rings, I get up — the same time all seven days.'
+              : 'When my ${clock(dayShape!.wake)} alarm rings, I get up — all seven days.',
+          minimum: 'Up within 30 minutes of it'),
+      const DailyIdea('Bed is for sleep: up if awake 20 minutes', 'body', 'evening', 'health',
+          'When I\'ve been awake in bed for about 20 minutes, I get up and read in dim light until sleepy.',
+          minimum: 'No phone in bed'),
+      DailyIdea('No caffeine 8 hours before bed', 'body', 'day', 'health',
+          caffeine == null
+              ? 'When it\'s 8 hours before my bedtime, I switch to water or herbal tea.'
+              : 'When it\'s ${clock(caffeine)}, I switch to water or herbal tea.',
+          minimum: 'Nothing after mid-afternoon'),
+    ];
+  }
+
   /// Hours asleep last night from Apple Health, if synced.
   double? sleepHoursFor(DateTime morning) {
     final l = logsOn(morning, 'sleep');
@@ -2278,6 +2321,7 @@ class PersonalSystemProvider extends ChangeNotifier {
         latestWeight: isBuiltInPerson ? latestWeight : null,
         avgEnergy: averageOf(weekCheckins, 'energy'),
         avgSleep: averageOf(weekCheckins, 'sleep'),
+        wakeSpread: wakeSpread(report.weekStart),
         readinessGap: isBuiltInPerson ? readinessGap?.name : null,
         openFollowUps: openFollowUps.length,
         patterns: patterns().map((p) => p.sentence).take(3).toList(),

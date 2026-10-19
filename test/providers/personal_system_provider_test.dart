@@ -3735,4 +3735,17 @@ void main() {
     final due = p.dueCards(_today);
     expect(due.length, due.map((c) => c.id).toSet().length);
   });
+
+  test('steady sleep: wake-time spread from three nights; rules with your times', () async {
+    final p = await _commissioned();
+    final mon = weekStartOf(_today);
+    expect(p.wakeSpread(_today), isNull);
+    for (final (d, h, m) in [(0, 7, 0), (1, 7, 30), (2, 8, 15)]) {
+      p.addLog('sleep', date: mon.plusDays(d), data: {'wake': DateTime(mon.year, mon.month, mon.day + d, h, m).toIso8601String()});
+    }
+    expect(p.wakeSpread(_today), 75);
+    p.saveDayShape(wake: 420, workStart: 540, workEnd: 1080, bed: 1380);
+    expect(p.sleepRules.last.cue, contains('15:00'));
+    expect(p.sleepRules.first.cue, contains('07:00'));
+  });
 }

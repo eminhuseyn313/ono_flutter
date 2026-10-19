@@ -99,7 +99,7 @@ Log: the last 30 days by default ("Show N earlier"), a search over text and data
 ```
 /splash /welcome /sign-up /sign-in /forgot-password /commission
 /manifesto /protocols /evidence /library /style /career /weekly-coaching /checkin /plans /review /habits /cockpit(?tab=0..2)
-/shutdown /focus /letters /week /people /growth /values /coach /case /growth/area(?id=|template=) /goals /goals/edit /goals/view?id= /note /setback /quarter /profile/edit /daily /learning /experiments /rest /stop /gratitude /models /360 /energy /start /privacy /packs /partner /coach-report /odyssey /crafting /best-self /move /conversations /money /upkeep /stepback /decide /month-review /manual /us /know /courage /playbook /advice /compassion /routine /carer /negotiate /rehearse /brag /need /day /thought /best-future /kindness /worry /chapters /strengths /board /aar /next-program /promises /stories /year /asks /tools
+/shutdown /focus /letters /week /people /growth /values /coach /case /growth/area(?id=|template=) /goals /goals/edit /goals/view?id= /note /setback /quarter /profile/edit /daily /learning /experiments /rest /stop /gratitude /models /360 /energy /start /privacy /packs /partner /coach-report /odyssey /crafting /best-self /move /conversations /money /upkeep /stepback /decide /month-review /manual /us /know /courage /playbook /advice /compassion /routine /carer /negotiate /rehearse /sleep /brag /need /day /thought /best-future /kindness /worry /chapters /strengths /board /aar /next-program /promises /stories /year /asks /tools
 /ritual-flow/:ritualId /gym /gym/:dayId (push|pull|legs) /month/:m (1–18)
 /tool/:id  sigh excited pause still bluf sixq read feynman scan pennebaker anki artifact(?month=) linkedin
 ```
@@ -176,6 +176,7 @@ Flow:
   - The check-in pre-fills sleep from it, and `logWeight` also writes to Health. `logWeight` (20–400 kg) and `addProtein` (1–500 g) refuse typos and return false.
   - Sleep and vitals logs show under Log → Body, not in All.
   - Needs the HealthKit entitlement: `bash scripts/capabilities.sh health on` (see below). Without it, `connectHealth` returns a message saying how to switch it on.
+- **Steady sleep** (`/sleep`, Me → Body; behavioural CBT-I parts that are safe alone, never time-in-bed limits): `wakeTimesInWeek`/`wakeSpread` (minutes between the week's earliest and latest wake, 3+ Health nights) → the brief (`wake_time_spread_minutes`, on `/privacy`); `sleepRules` (same wake time, up if awake ~20 min, caffeine 8 h before bed — times from `dayShape`) add as daily items with cue and minimum; links to worry parking; "see a doctor if it lasts three months".
 - **Home Screen / Lock Screen widget** (`ios/ONOWidget/ONOWidget.swift`, `home_widget` package):
   - `WidgetSync` (conditional import, as for Health) pushes a `WidgetSnapshot` 2 s after the last change, and on Today load.
   - The snapshot holds score, streak, day, protein, cards due, phase and the schedule blocks, written to app group `group.com.eminhuseynzade.ono`.

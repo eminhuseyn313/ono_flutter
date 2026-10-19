@@ -52,6 +52,7 @@ import 'screens/inner_tools_screens.dart';
 import 'screens/next_program_screen.dart';
 import 'screens/negotiation_screen.dart';
 import 'screens/playbook_screen.dart';
+import 'screens/sleep_screen.dart';
 import 'screens/routine_screen.dart';
 import 'screens/strengths_board_screens.dart';
 import 'screens/word_screens.dart';
@@ -160,6 +161,7 @@ const appRoutes = [
   '/carer',
   '/negotiate',
   '/rehearse',
+  '/sleep',
   '/brag',
   '/need',
   '/thought',
@@ -283,6 +285,7 @@ GoRouter createRouter(AuthProvider authProvider,
       _slide('/carer', (_) => const CarerScreen()),
       _slide('/negotiate', (_) => const NegotiationsScreen()),
       _slide('/rehearse', (_) => const RehearseScreen()),
+      _slide('/sleep', (_) => const SleepScreen()),
       _slide('/know', (s) => KnowScreen(personId: s.uri.queryParameters['id'])),
       _slide('/brag', (_) => const BragScreen()),
       _slide('/need', (_) => const NeedScreen()),
