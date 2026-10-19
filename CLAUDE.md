@@ -179,7 +179,7 @@ Flow:
 - **Steady sleep** (`/sleep`, Me → Body; behavioural CBT-I parts that are safe alone, never time-in-bed limits): `wakeTimesInWeek`/`wakeSpread` (minutes between the week's earliest and latest wake, 3+ Health nights) → the brief (`wake_time_spread_minutes`, on `/privacy`); `sleepRules` (same wake time, up if awake ~20 min, caffeine 8 h before bed — times from `dayShape`) add as daily items with cue and minimum; links to worry parking; "see a doctor if it lasts three months".
 - **Home Screen / Lock Screen widget** (`ios/ONOWidget/ONOWidget.swift`, `home_widget` package):
   - `WidgetSync` (conditional import, as for Health) pushes a `WidgetSnapshot` 2 s after the last change, and on Today load.
-  - The snapshot holds score, streak, day, protein, cards due, phase and the schedule blocks, written to app group `group.com.eminhuseynzade.ono`.
+  - The snapshot holds score, streak, day, protein, cards due, phase and the schedule blocks, written to app group `group.com.eminhuseynzade.ono`. Signing out and Delete everything `clear()` it (`widgetKeys`), so the next person on the phone sees none of it.
   - The Swift widget draws small and medium Home Screen sizes plus circular, rectangular and inline Lock Screen styles, with a timeline entry at each schedule block.
 - **Opt-in iOS capabilities** (`scripts/capabilities.sh health|widget on|off`):
   - `scripts/ios_capabilities.rb` uses the xcodeproj gem to add the HealthKit entitlement and/or the ONOWidget target plus the app group to a pristine `project.pbxproj`.

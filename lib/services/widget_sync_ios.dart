@@ -33,4 +33,21 @@ class HomeWidgetSync implements WidgetSync {
       // No widget or no app group yet — nothing to update.
     }
   }
+
+  @override
+  Future<void> clear() async {
+    _lastPushed = null;
+    try {
+      if (!_groupSet) {
+        await HomeWidget.setAppGroupId(widgetAppGroup);
+        _groupSet = true;
+      }
+      for (final k in widgetKeys) {
+        await HomeWidget.saveWidgetData<Object>(k, null);
+      }
+      await HomeWidget.updateWidget(iOSName: 'ONOWidget');
+    } catch (_) {
+      // No widget or no app group — nothing to clear.
+    }
+  }
 }

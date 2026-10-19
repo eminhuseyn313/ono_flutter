@@ -632,6 +632,21 @@ void main() {
     expect(values.values.every((v) => v is int || v is String), isTrue);
   });
 
+  test('widget: cleared on sign-out, so the next person sees nothing of theirs',
+      () async {
+    final sync = NoopWidgetSync();
+    final p = PersonalSystemProvider(
+        gateway: MockPersonalSystemGateway(), widgets: sync)
+      ..clock = () => _today;
+    await p.load('test');
+    await p.commission(
+        start: _start, gymDays: const [1, 3, 5], reminders: const {});
+    await p.refreshWidget();
+    expect(sync.last, isNotNull);
+    p.signedOut();
+    expect(sync.last, isNull);
+  });
+
   test('rest timer: notifies at the end, cancelled on skip', () async {
     final r = _RecordingReminders();
     final p = await _commissioned(reminders: r);

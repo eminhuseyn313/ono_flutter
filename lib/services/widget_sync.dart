@@ -56,12 +56,23 @@ class WidgetSnapshot {
 abstract class WidgetSync {
   /// Save [snapshot] for the widget and ask iOS to redraw it.
   Future<void> push(WidgetSnapshot snapshot);
+
+  /// Remove what the widget shows (signed out, everything deleted), so the
+  /// next person on this phone doesn't see the last one's numbers.
+  Future<void> clear();
 }
+
+/// Every key [WidgetSnapshot.toValues] writes.
+const widgetKeys = [
+  'date', 'score', 'total', 'target', 'streak', 'day', 'protein', 'cards_due', 'phase', 'blocks'
+];
 
 class NoopWidgetSync implements WidgetSync {
   WidgetSnapshot? last;
   @override
   Future<void> push(WidgetSnapshot snapshot) async => last = snapshot;
+  @override
+  Future<void> clear() async => last = null;
 }
 
 /// The ONOWidget bridge on iOS, [NoopWidgetSync] elsewhere.

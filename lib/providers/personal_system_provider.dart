@@ -135,8 +135,10 @@ class PersonalSystemProvider extends ChangeNotifier {
     _signedOut = true;
     _beforeImport = null;
     // Their reminders and one-off nudges stop with them: the next person
-    // to sign in here mustn't get them.
+    // to sign in here mustn't get them, nor see their numbers on the
+    // Home Screen widget.
     _widgetTimer?.cancel();
+    _widgets?.clear();
     _reminders?.sync(const []);
     _reminders?.cancel(restNotificationId);
     _reminders?.cancel(timerNotificationId);
@@ -6638,6 +6640,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   Future<void> eraseEverything() async {
     await _gateway.erase(_userId);
     _widgetTimer?.cancel();
+    await _widgets?.clear();
     await _reminders?.sync(const []);
     await _reminders?.cancel(restNotificationId);
     await _reminders?.cancel(timerNotificationId);
