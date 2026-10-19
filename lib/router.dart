@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'providers/auth_provider.dart';
+import 'screens/change_screen.dart';
 import 'screens/area_editor_screen.dart';
 import 'screens/career_screen.dart';
 import 'screens/case_screen.dart';
@@ -154,6 +155,7 @@ const appRoutes = [
   '/us',
   '/know',
   '/remember',
+  '/change',
   '/courage',
   '/playbook',
   '/advice',
@@ -290,6 +292,7 @@ GoRouter createRouter(AuthProvider authProvider,
       _slide('/sleep', (_) => const SleepScreen()),
       _slide('/visibility', (_) => const VisibilityScreen()),
       _slide('/know', (s) => KnowScreen(personId: s.uri.queryParameters['id'])),
+      _slide('/change', (_) => const ChangeScreen()),
       _slide('/remember', (s) => RememberScreen(personId: s.uri.queryParameters['id'])),
       _slide('/brag', (_) => const BragScreen()),
       _slide('/need', (_) => const NeedScreen()),

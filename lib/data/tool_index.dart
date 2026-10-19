@@ -100,6 +100,8 @@ const List<ToolEntry> toolIndex = [
   // Practice
   ToolEntry('Your playbook', 'Every lesson you wrote, in one place — pin the ones to live by', '/playbook', 'Practice',
       words: ['lessons', 'learned', 'principles', 'rules', 'insights', 'wisdom']),
+  ToolEntry('When life changes', 'A move, a new job, a baby, an ending: rebuild the few habits that matter', '/change', 'Hard moments',
+      words: ['moving', 'move', 'new job', 'baby', 'breakup', 'divorce', 'retire', 'transition', 'change', 'relocation']),
   ToolEntry('Remembering someone', 'For someone who has died: what you miss, what they taught you', '/remember', 'Hard moments',
       words: ['grief', 'loss', 'died', 'death', 'bereavement', 'mourning', 'funeral', 'miss']),
   ToolEntry('Self-compassion break', 'Notice it\'s hard, you\'re not alone, be kind', '/compassion', 'Hard moments',

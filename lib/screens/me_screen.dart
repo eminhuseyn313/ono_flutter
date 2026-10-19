@@ -804,6 +804,16 @@ class MeScreen extends StatelessWidget {
                 onTap: () => context.push('/coach'),
               ),
               LinkRow(
+                route: '/change',
+                icon: Icons.swap_horiz_rounded,
+                color: AppColors.mind,
+                title: 'When life changes',
+                subtitle: system.activeTransition == null
+                    ? 'A move, a new job, a baby, an ending'
+                    : 'Settling: ${PersonalSystemProvider.transitionKinds[system.activeTransition!.str('kind')]}',
+                onTap: () => context.push('/change'),
+              ),
+              LinkRow(
                 route: '/rest',
                 icon: Icons.beach_access_outlined,
                 color: AppColors.body,

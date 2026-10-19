@@ -695,4 +695,25 @@ void main() {
     expect(system.yearSummary(DateTime.now().year).hoursGiven, 2);
     expect(system.journalText(), contains('Gave 2.0 h to Food bank'));
   });
+
+  testWidgets('when life changes: start it, steps on Today, what stays', (tester) async {
+    final system = await _start(tester);
+    await _go(tester, '/change');
+    await _tap(tester, find.byKey(const Key('change-kind-job')));
+    await _tap(tester, find.byKey(const Key('change-start')));
+    final t = system.activeTransition!;
+    expect(t.str('kind'), 'job');
+    expect(system.nextTransitionStep!.$1, 'cues');
+    await _tap(tester, find.byKey(const Key('change-cues')));
+    expect(system.nextTransitionStep!.$1, 'three');
+    await _type(tester, 'e.g. Sunday calls with my mother, how I treat people', 'Morning walks');
+    await _tap(tester, find.text('Keep it'));
+    expect(system.activeTransition!.str('keep'), 'Morning walks');
+    system.setTransitionStep(t, 'three', true);
+    system.setTransitionStep(t, 'lean', true);
+    expect(system.nextTransitionStep, isNull);
+    await _tap(tester, find.text('It has settled — close this'));
+    expect(system.activeTransition, isNull);
+    expect(system.journalText(), contains('What stays: Morning walks'));
+  });
 }

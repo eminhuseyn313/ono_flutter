@@ -19,6 +19,7 @@ class NeedScreen extends StatelessWidget {
     (Icons.forum_outlined, 'A hard conversation is coming', 'What you want, the facts, your first sentence', '/conversations'),
     (Icons.psychology_outlined, 'A thought keeps getting to me', 'Weigh it like a fair judge, find a balanced one', '/thought'),
     (Icons.local_parking_rounded, 'I can\'t stop worrying', 'Park it now, deal with it at your worry time', '/worry'),
+    (Icons.swap_horiz_rounded, 'My life just changed', 'A move, a new job, a baby, an ending', '/change'),
     (Icons.local_florist_outlined, 'I\'m missing someone who died', 'Write what you miss and what you carry', '/remember'),
     (Icons.favorite_border_rounded, 'I\'m being hard on myself', 'Two minutes: be on your own side', '/compassion'),
     (Icons.replay_rounded, 'I slipped', 'Kindness, the facts, the smallest next step', '/setback'),

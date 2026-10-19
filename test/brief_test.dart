@@ -13,6 +13,7 @@ BriefInput _input({
   int excused = 0,
   int week = 1,
   List<String>? heavyLoad,
+  String? lifeChange,
 }) =>
     BriefInput(
       report: WeeklyReport(
@@ -40,6 +41,7 @@ BriefInput _input({
       openUnlocks: const [],
       builtInPlan: false,
       heavyLoad: heavyLoad,
+      lifeChange: lifeChange,
     );
 
 void main() {
@@ -156,5 +158,11 @@ void main() {
     expect(b.adjustments.join(' '), contains('heavy two months running (work, parenting)'));
     expect(_input(heavyLoad: const ['work']).toJson()['heavy_load_two_months'], ['work']);
     expect(_input().toJson().containsKey('heavy_load_two_months'), isFalse);
+  });
+
+  test('a recent life change asks for gentleness with the numbers', () async {
+    final b = await DeviceBriefGenerator().generate(_input(lifeChange: 'A new baby, 20 days ago'));
+    expect(b.adjustments.join(' '), contains('Life changed recently (A new baby, 20 days ago)'));
+    expect(_input(lifeChange: 'x').toJson()['life_change'], 'x');
   });
 }

@@ -2020,7 +2020,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     'partner': '/partner', 'partner_checkin': '/partner', 'feedback_round': '/360',
     'best_self': '/best-self', 'role_model': '/models', 'ask': '/asks', 'advice': '/advice',
     'visible': '/visibility', 'negotiation': '/negotiate', 'promise': '/promises',
-    'kindness': '/kindness', 'kindness_plan': '/kindness', 'giving': '/kindness', 'gratitude': '/gratitude',
+    'kindness': '/kindness', 'kindness_plan': '/kindness', 'giving': '/kindness', 'transition': '/change', 'gratitude': '/gratitude',
     'setback': '/setback', 'stepback': '/stepback', 'thought': '/thought', 'worry': '/worry',
     'coaching': '/coach', 'rest': '/rest',
   };
@@ -2080,6 +2080,69 @@ class PersonalSystemProvider extends ChangeNotifier {
           .where((l) =>
               l.type == type && !l.date.isBefore(from) && l.date.isBefore(to))
           .length;
+
+  // ── Something changed ───────────────────────────────────────────────
+
+  /// Big life changes break the cues habits run on — and, for about three
+  /// months, make new habits easier to start (habit discontinuity:
+  /// Verplanken & Roy 2016).
+  static const transitionKinds = {
+    'move': 'I moved',
+    'job': 'A new job or role',
+    'baby': 'A new baby',
+    'breakup': 'A relationship ended',
+    'study': 'I started studying',
+    'retire': 'I retired',
+    'health': 'A health change',
+    'other': 'Something else',
+  };
+
+  static const transitionDays = 90;
+
+  /// One step at a time: (id, what, where).
+  static const transitionSteps = [
+    ('cues', 'Rewrite your if–then cues for the new place or rhythm', '/plans'),
+    ('three', 'Keep the daily items that matter now; retire the rest for a while', '/daily'),
+    ('lean', 'Name who you\'ll lean on in the first months', '/people'),
+    ('keep', 'Write what stays the same', '/change'),
+  ];
+
+  LogEntry startTransition(String kind, {String note = ''}) => addLog('transition',
+      text: note.trim(),
+      data: {'kind': transitionKinds.containsKey(kind) ? kind : 'other'})!;
+
+  /// The change of the last 90 days still being settled, or null.
+  LogEntry? get activeTransition {
+    final from = dayOnly(_now).minusDays(transitionDays - 1);
+    return logsOf('transition')
+        .where((t) => !t.date.isBefore(from) && t.str('status') != 'settled')
+        .firstOrNull;
+  }
+
+  bool transitionStepDone(LogEntry t, String step) =>
+      step == 'keep' ? (t.str('keep') ?? '').isNotEmpty : isDone('transition:${t.id}:$step');
+
+  void setTransitionStep(LogEntry t, String step, bool done) =>
+      setDone('transition:${t.id}:$step', done);
+
+  void setTransitionKeep(LogEntry t, String keep) {
+    final x = logsOf('transition').where((l) => l.id == t.id).firstOrNull;
+    if (x == null) return;
+    updateLog(x.copyWith(data: {...x.data, 'keep': keep.trim()}));
+  }
+
+  void settleTransition(LogEntry t) {
+    final x = logsOf('transition').where((l) => l.id == t.id).firstOrNull;
+    if (x == null) return;
+    updateLog(x.copyWith(data: {...x.data, 'status': 'settled'}));
+  }
+
+  /// The next step of the active change, for Today.
+  (String, String, String)? get nextTransitionStep {
+    final t = activeTransition;
+    if (t == null) return null;
+    return transitionSteps.where((s) => !transitionStepDone(t, s.$1)).firstOrNull;
+  }
 
   // ── Savouring ────────────────────────────────────────────────────────
 
@@ -2475,6 +2538,9 @@ class PersonalSystemProvider extends ChangeNotifier {
         thoughtsChecked: thoughtsInWeek(report.weekStart),
         courageSteps: courageStepsInWeek(report.weekStart),
         heavyLoad: heavyLoad,
+        lifeChange: activeTransition == null
+            ? null
+            : '${transitionKinds[activeTransition!.str('kind')]}, ${dayOnly(_now).daysSince(activeTransition!.date)} days ago',
         asksThisWeek: asksInWeek(report.weekStart),
         proposedOutcomes: [for (final p in proposedOutcomes(forWeek)) p.text],
         askRecord: askRecord() == null
@@ -7352,6 +7418,7 @@ class PersonalSystemProvider extends ChangeNotifier {
         'thought' => 'Checked a thought: ${l.text}${f('balanced').isEmpty ? '' : '\n  More balanced: ${f('balanced')}'}',
         'kindness' => 'Kindness: ${l.text}',
         'giving' => 'Gave ${l.number('hours')} h to ${l.text}',
+        'transition' => '${transitionKinds[f('kind')] ?? 'Something changed'}${l.text.isEmpty ? '' : ': ${l.text}'}${f('keep').isEmpty ? '' : '\n  What stays: ${f('keep')}'}',
         'remembrance' => 'Remembering ${f('name')}:${[for (final q in remembranceQuestions) if (f(q.$1).isNotEmpty) '\n  ${q.$2}: ${f(q.$1)}'].join()}',
         'compassion' => 'Was on my own side about: ${l.text}${f('kind').isEmpty ? '' : '\n  I told myself: ${f('kind')}'}',
         'courage' => f('status') == 'done' ? 'Did what I had avoided: ${l.text} (feared ${l.number('fear')}, felt ${l.number('felt')})${f('happened').isEmpty ? '' : '\n  What happened: ${f('happened')}'}' : '',

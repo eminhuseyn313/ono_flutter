@@ -201,7 +201,7 @@ Ranked by value for effort. Effect sizes marked (abstract) were read from abstra
 | O2 | **Load check** (burnout before the crash): one item a month, where the load comes from | Single-item burnout measure r ≈ 0.8 with exhaustion (Dolan et al. 2015; Hansen & Pit 2016); prevention evidence mixed | Built: month reviews, brief |
 | O3 | **Savour a good thing**: once a week, stay with one win; who you told | Savouring RCTs meta-analysis 2026, g = 0.51 (abstract); capitalization (Gable et al. 2004) | Built: Sunday report |
 | O4 | **Your tools first**: fight tool overload | App engagement meta-analysis (JAMA Psychiatry 2025): retention, not uptake, is the failure | Built: Me groups fold, "Used lately" |
-| O5 | **Something changed** (moving, new job, baby, breakup): 90 days of re-cueing | Habit discontinuity (Verplanken & Roy 2016) | Proposed |
+| O5 | **Something changed** (moving, new job, baby, breakup): 90 days of re-cueing | Habit discontinuity (Verplanken & Roy 2016) | Built: `/change` |
 | O6 | **Giving time**: contribution beyond your circle, inside kindness | Volunteering and mortality in cohorts (Okun et al. 2013; Jenkinson et al. 2013); RCT in teens (Schreier et al. 2013) | Built: giving time on Kindness, Contribution area |
 | O7 | **A practice of your own**: prayer, meditation, a day of rest — named in your words; loving-kindness timer | Loving-kindness meta-analysis (Zeng et al. 2015); meaning interventions (Manco & Hamby 2021) | Partly built: "Wish three people well" daily idea (a practice is named in your own words as a daily item) |
 | O8 | **Parent and child**: child-appropriate questions, "10 minutes they lead" ritual | Parenting programme components (Leijten et al. 2018/2019) | Partly built: "Ten minutes they lead" daily idea |

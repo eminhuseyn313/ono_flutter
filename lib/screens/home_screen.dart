@@ -1382,6 +1382,8 @@ class _PromptsState extends State<_Prompts> {
                 ? 'A message in your own words beats a reminder app\'s'
                 : 'Ask about ${system.askAboutOf(b)}',
             '/people?id=${b.id}'),
+      if (system.nextTransitionStep case final step?)
+        _row(context, Icons.swap_horiz_rounded, AppColors.mind, 'Settling into the change', step.$2, '/change'),
       for (final r in system.remembranceDays(now).take(1))
         _row(
             context,
