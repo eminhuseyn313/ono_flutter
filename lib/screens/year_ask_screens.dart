@@ -102,6 +102,10 @@ class _YearReviewScreenState extends State<YearReviewScreen> {
             Expanded(child: StatTile('${y.promisesKept}', 'promises kept')),
           ],
         ),
+        if (y.hoursGiven > 0) ...[
+          const SizedBox(height: 8),
+          Text('${y.hoursGiven} hours given to others.', style: AppText.small(color: AppColors.social)),
+        ],
         if (y.topWins.isNotEmpty) ...[
           const SectionHeader('Your wins, in order'),
           for (final w in y.topWins.take(12))

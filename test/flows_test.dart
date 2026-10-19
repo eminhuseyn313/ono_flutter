@@ -683,4 +683,16 @@ void main() {
     expect(find.textContaining('You stayed with'), findsOneWidget);
     expect(system.journalText(), contains('What made it good: Quiet morning'));
   });
+
+  testWidgets('giving time: where and how long, counted for the year', (tester) async {
+    final system = await _start(tester);
+    await _go(tester, '/kindness');
+    await _tap(tester, find.byKey(const Key('giving-2')));
+    expect(system.logsOf('giving'), isEmpty, reason: 'needs a cause');
+    await _type(tester, 'Where you gave time', 'Food bank');
+    await _tap(tester, find.byKey(const Key('giving-2')));
+    expect(system.givingThisYear.$1, 2);
+    expect(system.yearSummary(DateTime.now().year).hoursGiven, 2);
+    expect(system.journalText(), contains('Gave 2.0 h to Food bank'));
+  });
 }

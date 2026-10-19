@@ -1640,7 +1640,7 @@ void main() {
     final p = await _commissioned();
     expect(p.planBuilt, isFalse);
     final wheel = {for (final a in lifeAreas) a.id: 7}..['money'] = 3;
-    final picks = dailyLibrary.where((d) => d.area == 'money' || d.area == 'health').toList();
+    final picks = dailyLibrary.where((d) => d.area == 'money' || d.area == 'health').take(7).toList();
     p.buildPlan(
       name: 'Leyla Mammadova',
       currentRole: 'Nurse',

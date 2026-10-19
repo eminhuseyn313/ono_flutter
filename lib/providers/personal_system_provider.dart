@@ -2020,7 +2020,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     'partner': '/partner', 'partner_checkin': '/partner', 'feedback_round': '/360',
     'best_self': '/best-self', 'role_model': '/models', 'ask': '/asks', 'advice': '/advice',
     'visible': '/visibility', 'negotiation': '/negotiate', 'promise': '/promises',
-    'kindness': '/kindness', 'kindness_plan': '/kindness', 'gratitude': '/gratitude',
+    'kindness': '/kindness', 'kindness_plan': '/kindness', 'giving': '/kindness', 'gratitude': '/gratitude',
     'setback': '/setback', 'stepback': '/stepback', 'thought': '/thought', 'worry': '/worry',
     'coaching': '/coach', 'rest': '/rest',
   };
@@ -7126,6 +7126,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     int reps,
     int focusHours,
     int kindActs,
+    int hoursGiven,
     int promisesKept,
     List<String> lessons,
     List<String> topWins,
@@ -7171,6 +7172,9 @@ class PersonalSystemProvider extends ChangeNotifier {
       reps: logsOf('rep').where((r) => inYear(r.date)).length,
       focusHours: minutes ~/ 60,
       kindActs: logsOf('kindness').where((k) => inYear(k.date)).length,
+      hoursGiven: [for (final g in logsOf('giving')) if (inYear(g.date)) g.number('hours') ?? 0]
+          .fold<num>(0, (a, b) => a + b)
+          .round(),
       promisesKept: logsOf('promise').where((p) => p.str('status') == 'kept' && closedIn(p)).length,
       lessons: lessons,
       // Oldest first reads like the year it was.
@@ -7347,6 +7351,7 @@ class PersonalSystemProvider extends ChangeNotifier {
         'shutdown' => f('open').isEmpty ? '' : 'Evening, on my mind: ${f('open')}',
         'thought' => 'Checked a thought: ${l.text}${f('balanced').isEmpty ? '' : '\n  More balanced: ${f('balanced')}'}',
         'kindness' => 'Kindness: ${l.text}',
+        'giving' => 'Gave ${l.number('hours')} h to ${l.text}',
         'remembrance' => 'Remembering ${f('name')}:${[for (final q in remembranceQuestions) if (f(q.$1).isNotEmpty) '\n  ${q.$2}: ${f(q.$1)}'].join()}',
         'compassion' => 'Was on my own side about: ${l.text}${f('kind').isEmpty ? '' : '\n  I told myself: ${f('kind')}'}',
         'courage' => f('status') == 'done' ? 'Did what I had avoided: ${l.text} (feared ${l.number('fear')}, felt ${l.number('felt')})${f('happened').isEmpty ? '' : '\n  What happened: ${f('happened')}'}' : '',
@@ -7500,6 +7505,26 @@ class PersonalSystemProvider extends ChangeNotifier {
   }
 
   List<LogEntry> kindnessOn(DateTime day) => logsOn(day, 'kindness');
+
+  /// Time given to a cause beyond your own circle: volunteering, a
+  /// community, a school. Volunteers live longer and feel better in large
+  /// cohorts (Okun et al. 2013; Jenkinson et al. 2013). No target.
+  static const givingHours = [1, 2, 3, 4, 8];
+
+  LogEntry? logGiving(String cause, double hours, {DateTime? day}) =>
+      cause.trim().isEmpty || hours <= 0 || hours > 24
+          ? null
+          : addLog('giving', date: day ?? _now, text: cause.trim(), data: {'hours': hours});
+
+  /// (hours given, causes) in the last 365 days.
+  (double, List<String>) get givingThisYear {
+    final from = dayOnly(_now).minusDays(364);
+    final recent = [for (final g in logsOf('giving')) if (!g.date.isBefore(from)) g];
+    return (
+      recent.fold<double>(0, (a, g) => a + (g.number('hours') ?? 0)),
+      {for (final g in recent) g.text}.toList(),
+    );
+  }
 
   int kindnessInWeek(DateTime anyDay) {
     final week = weekStartOf(anyDay);

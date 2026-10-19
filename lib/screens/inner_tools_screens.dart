@@ -291,10 +291,12 @@ class KindnessScreen extends StatefulWidget {
 
 class _KindnessScreenState extends State<KindnessScreen> {
   final _act = TextEditingController();
+  final _cause = TextEditingController();
 
   @override
   void dispose() {
     _act.dispose();
+    _cause.dispose();
     super.dispose();
   }
 
@@ -377,6 +379,42 @@ class _KindnessScreenState extends State<KindnessScreen> {
         const SizedBox(height: 8),
         Text('This week: ${system.kindnessInWeek(now)} acts.',
             style: AppText.small()),
+        const SectionHeader('Giving time'),
+        Text('Time for a cause beyond your own circle: a charity, a school, your street, a club.',
+            style: AppText.small()),
+        const SizedBox(height: 8),
+        TextField(
+          key: const Key('giving-cause'),
+          controller: _cause,
+          style: AppText.body(color: AppColors.white),
+          decoration: const InputDecoration(hintText: 'Where you gave time'),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            for (final h in PersonalSystemProvider.givingHours)
+              ActionChip(
+                key: Key('giving-$h'),
+                label: Text('$h h'),
+                onPressed: () {
+                  if (system.logGiving(_cause.text, h.toDouble()) == null) {
+                    toast(context, 'Say where first.');
+                    return;
+                  }
+                  _cause.clear();
+                  toast(context, 'Logged $h h.');
+                },
+              ),
+          ],
+        ),
+        if (system.givingThisYear.$1 > 0) ...[
+          const SizedBox(height: 8),
+          Text(
+              'In the last year: ${system.givingThisYear.$1.round()} h · ${system.givingThisYear.$2.take(4).join(', ')}',
+              style: AppText.small(color: AppColors.social)),
+        ],
         const SizedBox(height: 16),
       ],
     );

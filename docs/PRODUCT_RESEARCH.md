@@ -202,11 +202,11 @@ Ranked by value for effort. Effect sizes marked (abstract) were read from abstra
 | O3 | **Savour a good thing**: once a week, stay with one win; who you told | Savouring RCTs meta-analysis 2026, g = 0.51 (abstract); capitalization (Gable et al. 2004) | Built: Sunday report |
 | O4 | **Your tools first**: fight tool overload | App engagement meta-analysis (JAMA Psychiatry 2025): retention, not uptake, is the failure | Built: Me groups fold, "Used lately" |
 | O5 | **Something changed** (moving, new job, baby, breakup): 90 days of re-cueing | Habit discontinuity (Verplanken & Roy 2016) | Proposed |
-| O6 | **Giving time**: contribution beyond your circle, inside kindness | Volunteering and mortality in cohorts (Okun et al. 2013; Jenkinson et al. 2013); RCT in teens (Schreier et al. 2013) | Proposed |
-| O7 | **A practice of your own**: prayer, meditation, a day of rest — named in your words; loving-kindness timer | Loving-kindness meta-analysis (Zeng et al. 2015); meaning interventions (Manco & Hamby 2021) | Proposed |
-| O8 | **Parent and child**: child-appropriate questions, "10 minutes they lead" ritual | Parenting programme components (Leijten et al. 2018/2019) | Proposed |
+| O6 | **Giving time**: contribution beyond your circle, inside kindness | Volunteering and mortality in cohorts (Okun et al. 2013; Jenkinson et al. 2013); RCT in teens (Schreier et al. 2013) | Built: giving time on Kindness, Contribution area |
+| O7 | **A practice of your own**: prayer, meditation, a day of rest — named in your words; loving-kindness timer | Loving-kindness meta-analysis (Zeng et al. 2015); meaning interventions (Manco & Hamby 2021) | Partly built: "Wish three people well" daily idea (a practice is named in your own words as a daily item) |
+| O8 | **Parent and child**: child-appropriate questions, "10 minutes they lead" ritual | Parenting programme components (Leijten et al. 2018/2019) | Partly built: "Ten minutes they lead" daily idea |
 | O9 | Phone on your terms (= N8) | Mixed (Radtke et al. 2022) | Waiting on Emin |
-| O10 | Two more portions of fruit and vegetables, one daily idea | Conner et al. 2017 (proof of concept) | Proposed, low value |
+| O10 | Two more portions of fruit and vegetables, one daily idea | Conner et al. 2017 (proof of concept) | Built: daily idea |
 
 To reduce load: merge brag document, the case for the target role and the coach report into one "Your record"; fold role models into the personal board; keep rehearse inside the story bank only. These remove tools people may use, so they wait for Emin's decision.
 
