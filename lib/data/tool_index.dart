@@ -178,8 +178,9 @@ const List<ToolEntry> toolIndex = [
   // Body
   ToolEntry('Movement', 'Minutes moved this week and strength days', '/move', 'Body',
       words: ['exercise', 'walk', 'run', 'workout', 'sport']),
-  ToolEntry('Health upkeep', 'Check-ups you set, with due dates', '/upkeep', 'Body',
-      words: ['doctor', 'dentist', 'blood tests', 'checkup']),
+  ToolEntry('Care', 'Check-ups, haircut, nails, the car — due dates and bookings', '/upkeep', 'Body',
+      words: ['doctor', 'dentist', 'blood tests', 'checkup', 'barber', 'haircut', 'nails',
+        'manicure', 'beard', 'grooming', 'skin', 'self-care', 'car', 'appointment', 'upkeep']),
   ToolEntry('Gym', 'Today\'s session with rest timer', '/gym', 'Body',
       builtInOnly: true, words: ['training', 'weights', 'workout']),
 

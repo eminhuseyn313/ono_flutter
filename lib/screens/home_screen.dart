@@ -1428,16 +1428,25 @@ class _PromptsState extends State<_Prompts> {
             system.isBuiltInPerson
                 ? '/month/${system.monthToReview}'
                 : '/month-review'),
-      if (system.upkeepDue
+      // A booked appointment, the day before and on the day.
+      if (system.upkeepBookedSoon(now).firstOrNull case final u?)
+        _row(
+            context,
+            Icons.event_available_outlined,
+            AppColors.body,
+            '${u.text} ${dayOnly(system.upkeepBooked(u)!) == dayOnly(now) ? 'today' : 'tomorrow'}',
+            'Booked. Tap Done… afterwards and the next one is remembered.',
+            '/upkeep')
+      else if (system.upkeepDue
               .where((u) => system.upkeepNextDue(u) != null)
               .firstOrNull
           case final u?)
         _row(
             context,
-            Icons.health_and_safety_outlined,
+            Icons.spa_outlined,
             AppColors.body,
             '${u.text} is due',
-            'Book it this week — it only takes a call',
+            'Book it — then note the day so it reminds you',
             '/upkeep'),
       if (system.moneyCheckDue)
         _row(context, Icons.savings_outlined, AppColors.body, 'Money check-in',

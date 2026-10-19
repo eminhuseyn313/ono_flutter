@@ -3545,4 +3545,29 @@ void main() {
     p.clock = () => monday.add(const Duration(hours: 9));
     expect(p.freshStartFor(monday)?.body, contains('A rule you wrote: "Rehearse the demo twice"'));
   });
+
+  test('care: grooming comes due days before, booking, your real rhythm', () async {
+    final p = await _commissioned();
+    final today = dayOnly(_today);
+    final hair = p.addUpkeep('Haircut', 28, kind: 'grooming', lastDone: today.minusDays(20))!;
+    expect(p.careKindOf(hair), 'grooming');
+    // 8 days left of a 28-day cycle: not due yet (it comes due 7 days out).
+    expect(p.upkeepDue.any((u) => u.id == hair.id), isFalse);
+    p.clock = () => _today.plusDays(1);
+    expect(p.upkeepDue.any((u) => u.id == hair.id), isTrue);
+    // Booked: planned, not due; on Today the day before and on the day.
+    p.bookUpkeep(hair.id, today.plusDays(3));
+    expect(p.upkeepDue.any((u) => u.id == hair.id), isFalse);
+    expect(p.upkeepBookedSoon(today.plusDays(1)), isEmpty);
+    expect(p.upkeepBookedSoon(today.plusDays(2)).single.id, hair.id);
+    p.markUpkeepDone(hair.id, on: today.plusDays(3));
+    var h = p.upkeep.firstWhere((u) => u.id == hair.id);
+    expect(p.upkeepBooked(h), isNull, reason: 'done clears the booking');
+    expect(p.upkeepUsualEvery(h), isNull, reason: 'needs three visits');
+    p.markUpkeepDone(hair.id, on: today.plusDays(28));
+    h = p.upkeep.firstWhere((u) => u.id == hair.id);
+    expect(p.upkeepUsualEvery(h), 25, reason: 'the middle of 23 and 25 days, rounded up');
+    p.editUpkeep(hair.id, every: 25);
+    expect(p.upkeep.firstWhere((u) => u.id == hair.id).number('every'), 25);
+  });
 }

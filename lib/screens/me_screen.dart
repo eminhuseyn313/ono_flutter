@@ -230,11 +230,11 @@ class MeScreen extends StatelessWidget {
         OnoCard(
           padding: EdgeInsets.zero,
           child: LinkRow(
-            icon: Icons.health_and_safety_outlined,
+            icon: Icons.spa_outlined,
             color: AppColors.body,
-            title: 'Health upkeep',
+            title: 'Care',
             subtitle: system.upkeep.isEmpty
-                ? 'Checkups that slip when life is busy'
+                ? 'Check-ups, haircut, nails, the car — what slips when busy'
                 : system.upkeepDue.isEmpty
                     ? '${system.upkeep.length} tracked · nothing due'
                     : 'Due: ${system.upkeepDue.map((u) => u.text).join(' · ')}',

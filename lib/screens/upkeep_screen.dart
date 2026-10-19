@@ -6,7 +6,8 @@ import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
 
-/// Recurring checkups you set yourself, and when each is next due.
+/// Care: the recurring things that slip when life is busy — check-ups,
+/// the barber, nails, the car — with when each is next due or booked.
 class UpkeepScreen extends StatefulWidget {
   const UpkeepScreen({super.key});
 
@@ -16,9 +17,18 @@ class UpkeepScreen extends StatefulWidget {
 
 class _UpkeepScreenState extends State<UpkeepScreen> {
   final _name = TextEditingController();
-  int _every = 365;
+  int _every = 28;
+  String _kind = 'grooming';
 
-  static const _intervals = [(90, '3 months'), (180, '6 months'), (365, 'Yearly'), (730, 'Every 2 years')];
+  static const _intervals = [
+    (14, '2 weeks'),
+    (28, '4 weeks'),
+    (42, '6 weeks'),
+    (90, '3 months'),
+    (180, '6 months'),
+    (365, 'Yearly'),
+    (730, 'Every 2 years'),
+  ];
 
   @override
   void dispose() {
@@ -26,7 +36,20 @@ class _UpkeepScreenState extends State<UpkeepScreen> {
     super.dispose();
   }
 
+  String _every2(int days) =>
+      _intervals.where((i) => i.$1 == days).firstOrNull?.$2.toLowerCase() ?? 'every $days days';
+
   String _due(PersonalSystemProvider system, LogEntry u) {
+    if (system.upkeepBooked(u) case final b?) {
+      final days = b.daysSince(dayOnly(DateTime.now()));
+      return days == 0
+          ? 'Booked for today'
+          : days == 1
+              ? 'Booked for tomorrow'
+              : days < 0
+                  ? 'Booked for ${shortDate(b)} — done?'
+                  : 'Booked for ${weekdayName(b.weekday).substring(0, 3)} ${shortDate(b)}';
+    }
     final next = system.upkeepNextDue(u);
     if (next == null) return 'No date yet — tap Done… to set the last time';
     final days = next.daysSince(dayOnly(DateTime.now()));
@@ -35,104 +58,204 @@ class _UpkeepScreenState extends State<UpkeepScreen> {
     return days < 60 ? 'Due in $days d' : 'Next ${shortDate(next)}';
   }
 
+  Future<void> _done(PersonalSystemProvider system, LogEntry u) async {
+    final now = DateTime.now();
+    // A date, not just today: the last visit may have been months ago.
+    final on = await showDatePicker(
+      context: context,
+      initialDate: now,
+      firstDate: DateTime(now.year - 5),
+      lastDate: now,
+      helpText: 'When was it done?',
+    );
+    if (on == null || !mounted) return;
+    system.markUpkeepDone(u.id, on: on);
+    toast(context, 'Noted. The next one is remembered.');
+  }
+
+  void _edit(PersonalSystemProvider system, LogEntry u) {
+    var every = (u.number('every') ?? 365).toInt();
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.card,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheet) {
+          final usual = system.upkeepUsualEvery(u);
+          return SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(u.text, style: AppText.title()),
+                  Text(_due(system, u), style: AppText.small()),
+                  const SizedBox(height: 14),
+                  Text('How often', style: AppText.small()),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      for (final i in _intervals)
+                        ChoiceChip(
+                          label: Text(i.$2),
+                          selected: every == i.$1,
+                          onSelected: (_) {
+                            setSheet(() => every = i.$1);
+                            system.editUpkeep(u.id, every: i.$1);
+                          },
+                        ),
+                    ],
+                  ),
+                  if (usual != null && usual != every) ...[
+                    const SizedBox(height: 8),
+                    TextButton(
+                      key: const Key('care-usual'),
+                      style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                      onPressed: () {
+                        setSheet(() => every = usual);
+                        system.editUpkeep(u.id, every: usual);
+                      },
+                      child: Text('You actually go about every $usual days — use that'),
+                    ),
+                  ],
+                  const SizedBox(height: 14),
+                  GhostButton(
+                      system.upkeepBooked(u) == null ? 'Booked it — pick the day' : 'Change the booked day',
+                      icon: Icons.event_outlined, onPressed: () async {
+                    final now = DateTime.now();
+                    final day = await showDatePicker(
+                      context: ctx,
+                      initialDate: system.upkeepBooked(u) ?? now,
+                      firstDate: dayOnly(now),
+                      lastDate: DateTime(now.year + 2),
+                      helpText: 'When is it booked?',
+                    );
+                    if (day == null) return;
+                    system.bookUpkeep(u.id, day);
+                    setSheet(() {});
+                  }),
+                  if (system.upkeepBooked(u) != null)
+                    TextButton(
+                      onPressed: () {
+                        system.bookUpkeep(u.id, null);
+                        setSheet(() {});
+                      },
+                      child: const Text('Cancel the booking'),
+                    ),
+                  const SizedBox(height: 6),
+                  GhostButton('Remove', icon: Icons.delete_outline_rounded, onPressed: () {
+                    Navigator.of(ctx).pop();
+                    system.removeUpkeep(u.id);
+                    ScaffoldMessenger.of(context)
+                      ..hideCurrentSnackBar()
+                      ..showSnackBar(SnackBar(
+                        content: Text('${u.text} removed.'),
+                        action: SnackBarAction(label: 'Undo', onPressed: () => system.restoreLog(u)),
+                      ));
+                  }),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _row(PersonalSystemProvider system, LogEntry u) {
+    final due = system.upkeepDue.contains(u);
+    return InkWell(
+      key: Key('care-${u.id}'),
+      onTap: () => _edit(system, u),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(u.text, style: AppText.heading()),
+                  Text('${_due(system, u)} · ${_every2((u.number('every') ?? 365).toInt())}',
+                      style: AppText.small(color: due ? AppColors.warning : AppColors.grey)),
+                ],
+              ),
+            ),
+            TextButton(
+              onPressed: () => _done(system, u),
+              child: const Text('Done…'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
     final items = system.upkeep;
-    final missing = [
-      for (final s in PersonalSystemProvider.upkeepSuggestions)
-        if (!items.any((u) => u.text == s.$1)) s
-    ];
     return OnoPage(
       showBack: true,
-      eyebrow: 'Health upkeep',
-      title: 'Look after the basics',
+      eyebrow: 'Care',
+      title: 'Look after yourself',
       subtitle:
-          'The checkups that slip when life is busy. You choose how often — with your doctor; ONO only remembers the dates.',
+          'The things that slip when life is busy — check-ups, the barber, nails, the car. You choose how often (health ones with your doctor); ONO only remembers the dates.',
       children: [
-        const SizedBox(height: 14),
-        if (items.isNotEmpty)
-          OnoCard(
-            padding: const EdgeInsets.fromLTRB(16, 6, 8, 6),
-            child: Column(
+        for (final kind in PersonalSystemProvider.careKinds.entries) ...[
+          if (items.any((u) => system.careKindOf(u) == kind.key)) ...[
+            SectionHeader(kind.value),
+            OnoCard(
+              padding: const EdgeInsets.fromLTRB(16, 6, 8, 6),
+              child: Column(
+                children: [
+                  for (final u in items)
+                    if (system.careKindOf(u) == kind.key) _row(system, u),
+                ],
+              ),
+            ),
+          ],
+        ],
+        if (items.isEmpty) ...[
+          const SizedBox(height: 14),
+          const EmptyNote('Add what you want to keep up with — a few taps below.',
+              icon: Icons.spa_outlined),
+        ],
+        const SectionHeader('Common ones'),
+        for (final kind in PersonalSystemProvider.careKinds.entries)
+          if (PersonalSystemProvider.upkeepSuggestions
+              .any((s) => s.$3 == kind.key && !items.any((u) => u.text == s.$1))) ...[
+            Padding(
+              padding: const EdgeInsets.only(top: 6, bottom: 6),
+              child: Text(kind.value, style: AppText.small()),
+            ),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
               children: [
-                for (final u in items)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 6),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(u.text, style: AppText.heading()),
-                              Text(_due(system, u),
-                                  style: AppText.small(
-                                      color: system.upkeepDue.contains(u)
-                                          ? AppColors.warning
-                                          : AppColors.grey)),
-                            ],
-                          ),
-                        ),
-                        TextButton(
-                          // A date, not just today: the last visit may
-                          // have been months ago.
-                          onPressed: () async {
-                            final now = DateTime.now();
-                            final on = await showDatePicker(
-                              context: context,
-                              initialDate: now,
-                              firstDate: DateTime(now.year - 5),
-                              lastDate: now,
-                              helpText: 'When was it done?',
-                            );
-                            if (on == null || !context.mounted) return;
-                            system.markUpkeepDone(u.id, on: on);
-                            toast(context, 'Noted. The next one is remembered.');
-                          },
-                          child: const Text('Done…'),
-                        ),
-                        IconButton(
-                          tooltip: 'Remove',
-                          icon: const Icon(Icons.close_rounded, size: 18),
-                          color: AppColors.faint,
-                          onPressed: () {
-                            system.removeUpkeep(u.id);
-                            ScaffoldMessenger.of(context)
-                              ..hideCurrentSnackBar()
-                              ..showSnackBar(SnackBar(
-                                content: Text('${u.text} removed.'),
-                                action: SnackBarAction(
-                                    label: 'Undo',
-                                    onPressed: () => system.restoreLog(u)),
-                              ));
-                          },
-                        ),
-                      ],
+                for (final s in PersonalSystemProvider.upkeepSuggestions)
+                  if (s.$3 == kind.key && !items.any((u) => u.text == s.$1))
+                    ActionChip(
+                      label: Text(s.$1),
+                      onPressed: () => system.addUpkeep(s.$1, s.$2, kind: s.$3),
                     ),
-                  ),
               ],
             ),
-          ),
-        if (missing.isNotEmpty) ...[
-          const SectionHeader('Common ones'),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              for (final s in missing)
-                ActionChip(
-                  label: Text(s.$1),
-                  onPressed: () => system.addUpkeep(s.$1, s.$2),
-                ),
-            ],
-          ),
-        ],
+          ],
         const SectionHeader('Your own'),
         TextField(
           controller: _name,
           style: AppText.body(color: AppColors.white),
-          decoration: const InputDecoration(hintText: 'e.g. Skin check, physio review, flu jab'),
+          decoration: const InputDecoration(hintText: 'e.g. Massage, physio review, tyre change'),
+        ),
+        const SizedBox(height: 8),
+        Segmented(
+          labels: [for (final k in PersonalSystemProvider.careKinds.values) k],
+          index: PersonalSystemProvider.careKinds.keys.toList().indexOf(_kind),
+          onChanged: (i) => setState(() => _kind = PersonalSystemProvider.careKinds.keys.elementAt(i)),
         ),
         const SizedBox(height: 8),
         Wrap(
@@ -149,9 +272,11 @@ class _UpkeepScreenState extends State<UpkeepScreen> {
         ),
         const SizedBox(height: 10),
         GhostButton('Add', icon: Icons.add_rounded, onPressed: () {
-          if (system.addUpkeep(_name.text, _every) != null) {
+          if (system.addUpkeep(_name.text, _every, kind: _kind) != null) {
             _name.clear();
             FocusManager.instance.primaryFocus?.unfocus();
+          } else {
+            toast(context, 'Give it a name first.');
           }
         }),
         const SizedBox(height: 16),

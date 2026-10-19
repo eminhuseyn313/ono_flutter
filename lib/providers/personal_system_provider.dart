@@ -3189,32 +3189,106 @@ class PersonalSystemProvider extends ChangeNotifier {
     return b.toString().trim();
   }
 
-  // ── Health upkeep ────────────────────────────────────────────────────
+  // ── Care: health, grooming, home and things ──────────────────────────
 
-  /// Recurring checkups you set yourself — dentist, a yearly check, blood
-  /// tests, eyes — with how often and when last done. ONO only keeps the
-  /// dates; how often is for you and your doctor to decide.
+  /// Recurring care you set yourself — check-ups, the barber, nails, the
+  /// car — with how often and when last done. ONO only keeps the dates;
+  /// how often health checks happen is for you and your doctor.
+  static const careKinds = {
+    'health': 'Health',
+    'grooming': 'Grooming',
+    'home': 'Home & things',
+  };
+
+  /// One-tap suggestions per kind: (name, every days, kind).
   static const upkeepSuggestions = [
-    ('Dentist check-up', 180),
-    ('General check-up', 365),
-    ('Blood tests', 180),
-    ('Eye test', 730),
+    ('Dentist check-up', 180, 'health'),
+    ('General check-up', 365, 'health'),
+    ('Blood tests', 180, 'health'),
+    ('Eye test', 730, 'health'),
+    ('Skin check', 365, 'health'),
+    ('Flu jab (ask your doctor)', 365, 'health'),
+    ('New toothbrush', 90, 'health'),
+    ('Haircut', 28, 'grooming'),
+    ('Beard trim', 14, 'grooming'),
+    ('Nails', 14, 'grooming'),
+    ('Brows', 42, 'grooming'),
+    ('Car service', 365, 'home'),
+    ('Back up photos and files', 30, 'home'),
+    ('Sort the wardrobe', 180, 'home'),
+    ('Test the smoke alarm', 180, 'home'),
   ];
 
   List<LogEntry> get upkeep => logsOf('upkeep');
 
-  LogEntry? addUpkeep(String name, int everyDays, {DateTime? lastDone}) =>
+  /// Health, grooming or home — older entries without one are health.
+  String careKindOf(LogEntry u) => u.str('kind') ?? 'health';
+
+  LogEntry? addUpkeep(String name, int everyDays, {DateTime? lastDone, String kind = 'health'}) =>
       name.trim().isEmpty || everyDays <= 0
           ? null
           : addLog('upkeep', text: name.trim(), data: {
               'every': everyDays,
+              'kind': careKinds.containsKey(kind) ? kind : 'health',
               'last': lastDone == null ? null : dateKey(lastDone),
             });
 
+  /// Done on [on] (today by default): it becomes the last time, joins the
+  /// history (the last 8) and clears a booking.
   void markUpkeepDone(String id, {DateTime? on}) {
     final l = upkeep.where((u) => u.id == id);
     if (l.isEmpty) return;
-    updateLog(l.first.copyWith(data: {...l.first.data, 'last': dateKey(on ?? _now)}));
+    final day = dateKey(on ?? _now);
+    final history = <String>{
+      ...[for (final h in (l.first.data['history'] as List? ?? const [])) '$h'],
+      if ((l.first.str('last') ?? '').isNotEmpty) l.first.str('last')!,
+      day,
+    }.toList()
+      ..sort();
+    final last = history.last;
+    final data = {...l.first.data, 'last': last, 'history': history.reversed.take(8).toList().reversed.toList()};
+    data.remove('booked');
+    updateLog(l.first.copyWith(data: data));
+  }
+
+  /// Change how often, or the name.
+  void editUpkeep(String id, {String? name, int? every, String? kind}) {
+    final l = upkeep.where((u) => u.id == id).firstOrNull;
+    if (l == null) return;
+    updateLog(l.copyWith(
+      text: name == null || name.trim().isEmpty ? l.text : name.trim(),
+      data: {
+        ...l.data,
+        if (every != null && every > 0) 'every': every,
+        if (kind != null && careKinds.containsKey(kind)) 'kind': kind,
+      },
+    ));
+  }
+
+  /// An appointment made for [day]; null clears it.
+  void bookUpkeep(String id, DateTime? day) {
+    final l = upkeep.where((u) => u.id == id).firstOrNull;
+    if (l == null) return;
+    final data = {...l.data};
+    if (day == null) {
+      data.remove('booked');
+    } else {
+      data['booked'] = dateKey(day);
+    }
+    updateLog(l.copyWith(data: data));
+  }
+
+  DateTime? upkeepBooked(LogEntry u) => DateTime.tryParse(u.str('booked') ?? '');
+
+  /// Your real rhythm, from 3+ times done: the median gap in days.
+  int? upkeepUsualEvery(LogEntry u) {
+    final days = [
+      for (final h in (u.data['history'] as List? ?? const []))
+        if (DateTime.tryParse('$h') case final d?) d
+    ]..sort();
+    if (days.length < 3) return null;
+    final gaps = [for (var i = 1; i < days.length; i++) days[i].daysSince(days[i - 1])]..sort();
+    return gaps[gaps.length ~/ 2];
   }
 
   void removeUpkeep(String id) => removeLog(id);
@@ -3226,15 +3300,34 @@ class PersonalSystemProvider extends ChangeNotifier {
     return last.plusDays((u.number('every') ?? 365).toInt());
   }
 
-  /// Due within 14 days, overdue first; never-done items count as due.
+  /// How early it comes due: two weeks for a yearly check, a few days for
+  /// nails — never a permanent nag for things done every fortnight.
+  int upkeepLead(LogEntry u) =>
+      ((u.number('every') ?? 365).toInt() ~/ 4).clamp(2, 14);
+
+  /// Due soon (within its lead time), overdue first; never-done items
+  /// count as due. Booked ones aren't due: they're planned.
   List<LogEntry> get upkeepDue {
-    final horizon = dayOnly(_now).plusDays(14);
+    final today = dayOnly(_now);
     final due = [
       for (final u in upkeep)
-        if (upkeepNextDue(u) == null || !upkeepNextDue(u)!.isAfter(horizon)) u
+        if (upkeepBooked(u) == null &&
+            (upkeepNextDue(u) == null ||
+                !upkeepNextDue(u)!.isAfter(today.plusDays(upkeepLead(u)))))
+          u
     ];
     due.sort((a, b) => (upkeepNextDue(a) ?? DateTime(2000)).compareTo(upkeepNextDue(b) ?? DateTime(2000)));
     return due;
+  }
+
+  /// Appointments today or tomorrow, soonest first.
+  List<LogEntry> upkeepBookedSoon(DateTime day) {
+    final today = dayOnly(day);
+    return [
+      for (final u in upkeep)
+        if (upkeepBooked(u) case final b?)
+          if (!b.isBefore(today) && !b.isAfter(today.plusDays(1))) u
+    ]..sort((a, b) => upkeepBooked(a)!.compareTo(upkeepBooked(b)!));
   }
 
   // ── Money check-in ───────────────────────────────────────────────────
