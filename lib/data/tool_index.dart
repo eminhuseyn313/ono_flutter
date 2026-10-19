@@ -126,6 +126,8 @@ const List<ToolEntry> toolIndex = [
       words: ['mentor', 'sponsor', 'network']),
   ToolEntry('Hard conversations', 'Prepare what you want, the facts and your first sentence', '/conversations', 'People',
       words: ['conflict', 'feedback', 'difficult', 'talk']),
+  ToolEntry('What you know about them', 'What they\'re working towards, what weighs on them', '/know', 'People',
+      words: ['love maps', 'understand', 'know', 'stakeholder', 'closeness']),
   ToolEntry('A check-in for two', 'Weekly: appreciation, what was hard, what you need', '/us', 'People',
       words: ['partner', 'marriage', 'couple', 'relationship']),
   ToolEntry('How to work with me', 'A short manual for your team or partner', '/manual', 'People',

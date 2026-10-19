@@ -1582,7 +1582,10 @@ class _PromptsState extends State<_Prompts> {
             'Reach out: ${p.text}${system.ritualOf(p).isEmpty ? '' : ' — ${system.ritualOf(p)}'}',
             system.askAboutOf(p).isNotEmpty
                 ? 'Ask about ${system.askAboutOf(p)}'
-                : '${system.lastContact(p) == null ? 'No contact logged yet' : '${system.daysSinceContact(p)} days since you were in touch'} · every ${system.cadenceOf(p)} days',
+                // Nothing specific to raise: something you don't know yet.
+                : system.nextQuestionFor(p) != null
+                    ? 'Ask ${system.nextQuestionFor(p)!.$3 ? 'again: ' : ''}${system.nextQuestionFor(p)!.$2}'
+                    : '${system.lastContact(p) == null ? 'No contact logged yet' : '${system.daysSinceContact(p)} days since you were in touch'} · every ${system.cadenceOf(p)} days',
             '/people?id=${p.id}'),
       if (system.automaticityDue)
         _row(context, Icons.autorenew_rounded, AppColors.body,

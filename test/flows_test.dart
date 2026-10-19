@@ -492,4 +492,19 @@ void main() {
     await _pumpFor(tester, const Duration(seconds: 1));
     expect(find.text('Choose a new password'), findsNothing);
   });
+
+  testWidgets('what you know about them: write it, save it, see what to ask',
+      (tester) async {
+    final system = await _start(tester);
+    final p = system.addPerson('Aysel Karimova', role: 'Friend', every: 14);
+    await _go(tester, '/know?id=${p.id}');
+    expect(find.text('What you know about Aysel'), findsOneWidget);
+    expect(find.byKey(const Key('know-next')), findsOneWidget);
+    await _reach(tester, find.byKey(const Key('know-working_on')));
+    await tester.enterText(find.byKey(const Key('know-working_on')), 'Her first marathon');
+    await tester.pump();
+    await _tap(tester, find.text('Save'));
+    expect(system.knowAnswer(system.personById(p.id)!, 'working_on'), 'Her first marathon');
+    expect(system.nextQuestionFor(system.personById(p.id)!)!.$1, 'weighing');
+  });
 }

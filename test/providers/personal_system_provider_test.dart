@@ -30,6 +30,15 @@ import '../support/fake_health.dart';
 final _today = DateTime(2026, 10, 2, 12);
 final _start = DateTime(2026, 9, 1);
 
+class _CapturingBriefs implements BriefGenerator {
+  BriefInput? last;
+  @override
+  Future<WeeklyBrief> generate(BriefInput input) {
+    last = input;
+    return DeviceBriefGenerator().generate(input);
+  }
+}
+
 class _RecordingReminders implements ReminderService {
   @override
   bool get supported => true;
@@ -3420,5 +3429,47 @@ void main() {
     final step = p.firstWeekStep!;
     p.skipFirstWeekStep(step.id);
     expect(p.firstWeekStep?.id, isNot(step.id));
+  });
+
+  test('what you know about them: answers, dates, what to ask next', () async {
+    final p = await _commissioned();
+    final aysel = p.addPerson('Aysel Karimova', role: 'Friend', every: 14);
+    expect(p.knownCount(aysel), 0);
+    expect(p.nextQuestionFor(aysel)!.$1, 'working_on');
+    p.setKnow(aysel, 'working_on', ' Her first marathon ');
+    var a = p.personById(aysel.id)!;
+    expect(p.knowAnswer(a, 'working_on'), 'Her first marathon');
+    expect(p.knowOn(a, 'working_on'), dayOnly(_today));
+    expect(p.nextQuestionFor(a)!.$1, 'weighing');
+    for (final q in PersonalSystemProvider.knowQuestions) {
+      p.setKnow(p.personById(aysel.id)!, q.$1, 'Known');
+    }
+    a = p.personById(aysel.id)!;
+    expect(p.knownCount(a), PersonalSystemProvider.knowQuestions.length);
+    expect(p.nextQuestionFor(a), isNull);
+    // Three months on, the oldest answer is worth asking again.
+    p.clock = () => _today.plusDays(PersonalSystemProvider.knowStaleDays);
+    expect(p.knowStale(a, 'working_on'), isTrue);
+    expect(p.nextQuestionFor(a)!.$3, isTrue);
+    p.setKnow(a, 'working_on', '');
+    expect(p.knowAnswer(p.personById(aysel.id)!, 'working_on'), '');
+  });
+
+  test('what you know about them never goes to the coach', () async {
+    final sent = _CapturingBriefs();
+    final p = await _commissioned(briefs: sent);
+    final aysel = p.addPerson('Aysel Karimova', role: 'Friend', every: 14);
+    p.setKnow(aysel, 'weighing', 'Her mother is unwell');
+    await p.submitReport(WeeklyReport(
+      id: 'r',
+      weekStart: weekStartOf(_today),
+      nonNegotiableAverage: 7,
+      gymSessions: 3,
+      bestMoment: '',
+      hardestMoment: '',
+      workSituation: '',
+      createdAt: _today,
+    ));
+    expect(jsonEncode(sent.last!.toJson()), isNot(contains('unwell')));
   });
 }

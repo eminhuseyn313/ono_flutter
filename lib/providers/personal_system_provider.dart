@@ -5547,6 +5547,73 @@ class PersonalSystemProvider extends ChangeNotifier {
         .length;
   }
 
+  // ── What you know about them ─────────────────────────────────────────
+
+  /// What you can know about someone's world — Gottman's "love maps",
+  /// and at work the same thing as understanding a stakeholder. Each is
+  /// (key, the question, how it reads as something to ask).
+  static const knowQuestions = [
+    ('working_on', 'What are they working towards right now?', 'what they\'re working towards'),
+    ('weighing', 'What is weighing on them lately?', 'what\'s weighing on them'),
+    ('lifts', 'What gives them energy?', 'what gives them energy lately'),
+    ('appreciated', 'How do they like to be appreciated?', 'how they like to be appreciated'),
+    ('talk', 'How do they like to talk things through — and to disagree?', 'how they like to talk things through'),
+    ('matters', 'Who and what matters most to them?', 'who and what matters most to them now'),
+    ('coming', 'What is coming up for them?', 'what\'s coming up for them'),
+  ];
+
+  /// An answer older than this may have changed: ask again.
+  static const knowStaleDays = 90;
+
+  /// Their answer to [key] in your words, or ''. Stored flat on the
+  /// person (`know:<key>`, `know_on:<key>`) so two devices merge each
+  /// answer on its own.
+  String knowAnswer(LogEntry person, String key) => person.str('know:$key') ?? '';
+
+  DateTime? knowOn(LogEntry person, String key) =>
+      DateTime.tryParse(person.str('know_on:$key') ?? '');
+
+  /// Saves what you know; an empty answer clears it. The date is today's
+  /// only when the answer changed.
+  void setKnow(LogEntry person, String key, String answer) {
+    final p = personById(person.id);
+    if (p == null) return;
+    final a = answer.trim();
+    if (a == knowAnswer(p, key)) return;
+    final data = {...p.data};
+    if (a.isEmpty) {
+      data.remove('know:$key');
+      data.remove('know_on:$key');
+    } else {
+      data['know:$key'] = a;
+      data['know_on:$key'] = dateKey(_now);
+    }
+    updateLog(p.copyWith(data: data));
+  }
+
+  int knownCount(LogEntry person) =>
+      knowQuestions.where((q) => knowAnswer(person, q.$1).isNotEmpty).length;
+
+  /// Answered long enough ago that it may no longer be true.
+  bool knowStale(LogEntry person, String key) {
+    final on = knowOn(person, key);
+    return knowAnswer(person, key).isNotEmpty &&
+        on != null &&
+        dayOnly(_now).daysSince(on) >= knowStaleDays;
+  }
+
+  /// Something to ask next time you talk: the first thing you don't know
+  /// yet, else the oldest answer that may have changed. Null when you're
+  /// up to date. (key, how to ask it, whether it's asking again)
+  (String, String, bool)? nextQuestionFor(LogEntry person) {
+    for (final q in knowQuestions) {
+      if (knowAnswer(person, q.$1).isEmpty) return (q.$1, q.$3, false);
+    }
+    final stale = [for (final q in knowQuestions) if (knowStale(person, q.$1)) q]
+      ..sort((a, b) => knowOn(person, a.$1)!.compareTo(knowOn(person, b.$1)!));
+    return stale.isEmpty ? null : (stale.first.$1, stale.first.$3, true);
+  }
+
   void setRitual(LogEntry person, String ritual) {
     final p = logsOf('person').where((x) => x.id == person.id);
     if (p.isEmpty) return;

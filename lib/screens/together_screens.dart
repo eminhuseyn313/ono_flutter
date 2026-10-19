@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../data/emin_system.dart';
@@ -166,6 +167,144 @@ class _UsScreenState extends State<UsScreen> {
           ),
         const SizedBox(height: 16),
       ],
+    );
+  }
+}
+
+/// What you know about one person's world: what they're working towards,
+/// what weighs on them, how they like to be appreciated. Knowing it is
+/// what closeness is built on (Gottman's "love maps"); at work it is
+/// understanding the people you work with. Private: never sent anywhere.
+class KnowScreen extends StatefulWidget {
+  final String? personId;
+  const KnowScreen({super.key, this.personId});
+
+  @override
+  State<KnowScreen> createState() => _KnowScreenState();
+}
+
+class _KnowScreenState extends State<KnowScreen> {
+  final _answers = {
+    for (final q in PersonalSystemProvider.knowQuestions)
+      q.$1: TextEditingController(),
+  };
+  bool _loaded = false;
+  int _saves = 0;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_loaded) return;
+    _loaded = true;
+    final system = context.read<PersonalSystemProvider>();
+    final p = widget.personId == null ? null : system.personById(widget.personId!);
+    if (p == null) return;
+    for (final q in PersonalSystemProvider.knowQuestions) {
+      _answers[q.$1]!.text = system.knowAnswer(p, q.$1);
+    }
+  }
+
+  @override
+  void dispose() {
+    for (final c in _answers.values) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final system = context.watch<PersonalSystemProvider>();
+    final p = widget.personId == null ? null : system.personById(widget.personId!);
+    if (p == null) {
+      return OnoPage(
+        showBack: true,
+        eyebrow: 'People',
+        title: 'What you know about them',
+        subtitle: 'Open someone on People, then "What you know about them".',
+        children: [
+          const SizedBox(height: 14),
+          if (system.people.isEmpty)
+            const EmptyNote('Add the people who matter on People first.',
+                icon: Icons.group_outlined)
+          else
+            OnoCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  for (final x in system.people)
+                    LinkRow(
+                      icon: Icons.person_outline_rounded,
+                      color: AppColors.social,
+                      title: x.text,
+                      trailing:
+                          '${system.knownCount(x)}/${PersonalSystemProvider.knowQuestions.length}',
+                      onTap: () => context.push('/know?id=${x.id}'),
+                    ),
+                ],
+              ),
+            ),
+          const SizedBox(height: 16),
+        ],
+      );
+    }
+    final first = p.text.split(' ').first;
+    final next = system.nextQuestionFor(p);
+    return UnsavedGuard(
+      changesOnly: true,
+      saves: _saves,
+      fields: _answers.values.toList(),
+      child: OnoPage(
+        showBack: true,
+        eyebrow: 'People · ${system.knownCount(p)} of ${PersonalSystemProvider.knowQuestions.length} known',
+        title: 'What you know about $first',
+        subtitle:
+            'Knowing someone\'s world is what closeness is built on. Write what $first told you, in a line. It stays on your devices.',
+        bottomBar: PrimaryButton('Save', icon: Icons.check_rounded, onPressed: () {
+          for (final q in PersonalSystemProvider.knowQuestions) {
+            system.setKnow(p, q.$1, _answers[q.$1]!.text);
+          }
+          setState(() => _saves++);
+          FocusManager.instance.primaryFocus?.unfocus();
+          toast(context, 'Saved.');
+        }),
+        children: [
+          if (next != null) ...[
+            const SizedBox(height: 14),
+            OnoCard(
+              key: const Key('know-next'),
+              accent: AppColors.social,
+              child: Text(
+                  next.$3
+                      ? 'Next time, ask again: ${next.$2}. It may have changed.'
+                      : 'Next time, ask $first ${next.$2}.',
+                  style: AppText.body(color: AppColors.white)),
+            ),
+          ],
+          for (final q in PersonalSystemProvider.knowQuestions) ...[
+            SectionHeader(q.$2),
+            TextField(
+              key: Key('know-${q.$1}'),
+              controller: _answers[q.$1],
+              minLines: 1,
+              maxLines: 4,
+              style: AppText.body(color: AppColors.white),
+              decoration: const InputDecoration(hintText: 'Not yet — ask next time'),
+            ),
+            if (system.knowOn(p, q.$1) case final on?)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                    system.knowStale(p, q.$1)
+                        ? 'From ${shortDate(on)} — may have changed'
+                        : 'As of ${shortDate(on)}',
+                    style: AppText.small(
+                        color: system.knowStale(p, q.$1) ? AppColors.warning : AppColors.grey)),
+              ),
+          ],
+          const SizedBox(height: 16),
+        ],
+      ),
     );
   }
 }

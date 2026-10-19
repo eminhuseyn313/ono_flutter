@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../data/emin_system.dart';
@@ -98,7 +99,24 @@ class _PeopleScreenState extends State<PeopleScreen> {
                           style: AppText.small(color: AppColors.white)),
                     ),
                 ],
-                const SizedBox(height: 14),
+                const SizedBox(height: 8),
+                TextButton.icon(
+                  key: const Key('person-know'),
+                  style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                    context.push('/know?id=${p.id}');
+                  },
+                  icon: const Icon(Icons.favorite_border_rounded, size: 18),
+                  label: Text(
+                      'What you know about ${p.text.split(' ').first} · ${system.knownCount(p)} of ${PersonalSystemProvider.knowQuestions.length}'),
+                ),
+                if (system.askAboutOf(p).isEmpty)
+                  if (system.nextQuestionFor(p) case final q?)
+                    Text(
+                        q.$3 ? 'Ask again: ${q.$2}' : 'Something to ask: ${q.$2}',
+                        style: AppText.small(color: AppColors.accent)),
+                const SizedBox(height: 10),
                 TextField(
                   controller: note,
                   style: AppText.body(color: AppColors.white),
