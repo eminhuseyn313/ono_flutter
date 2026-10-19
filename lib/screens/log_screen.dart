@@ -24,6 +24,7 @@ const _filters = <String, Set<String>?>{
   'All': null,
   'Growth': {
     'rep',
+    'lesson',
     'feedback',
     'growth_focus',
     'coaching',
@@ -127,6 +128,7 @@ const _ownerRoute = {
   'story': '/stories',
   'kindness': '/kindness',
   'giving': '/kindness',
+  'lesson': '/weekly-coaching',
   'touch': '/people',
   'help': '/people',
   'one_on_one': '/cockpit',
@@ -601,6 +603,7 @@ class _EntryRow extends StatelessWidget {
     'strength_use': (Icons.bolt_outlined, 'mind', 'Strength used'),
     'kindness': (Icons.volunteer_activism_outlined, 'social', 'Kindness'),
     'giving': (Icons.handshake_outlined, 'social', 'Gave time'),
+    'lesson': (Icons.lightbulb_outline_rounded, 'mind', 'Learned'),
     'partner_checkin': (Icons.handshake_outlined, 'social', 'Partner check-in'),
     'detach': (Icons.power_settings_new_rounded, 'mind', 'Switched off'),
     'setback': (Icons.replay_rounded, 'mind', 'Setback, reset'),

@@ -2199,6 +2199,41 @@ class PersonalSystemProvider extends ChangeNotifier {
     return transitionSteps.where((s) => !transitionStepDone(t, s.$1)).firstOrNull;
   }
 
+  // ── Shipped and learned ─────────────────────────────────────────────
+
+  /// What you finished this week: one `win` with `shipped` (the week's
+  /// Monday), so the brag document and year review see it. Writing down
+  /// what you did and learned lifts performance (Di Stefano et al. 2014).
+  LogEntry? shippedInWeek(DateTime week) => logsOf('win')
+      .where((w) => w.str('shipped') == dateKey(weekStartOf(week)))
+      .firstOrNull;
+
+  /// What you learned this week, in one line: a `lesson` log dated the
+  /// week's Monday; it joins the playbook.
+  LogEntry? learnedInWeek(DateTime week) => logsOf('lesson')
+      .where((l) => dateKey(l.date) == dateKey(weekStartOf(week)))
+      .firstOrNull;
+
+  /// Saves both lines for the week; empty removes them.
+  void saveWeekLines(DateTime week, {required String shipped, required String learned}) {
+    final monday = weekStartOf(week);
+    final lastDay = monday.plusDays(6);
+    final day = dayOnly(_now).isAfter(lastDay) ? lastDay : dayOnly(_now);
+    void upsert(LogEntry? old, String text, LogEntry? Function() add) {
+      if (text.trim().isEmpty) {
+        if (old != null) removeLog(old.id);
+      } else if (old == null) {
+        add();
+      } else if (old.text != text.trim()) {
+        updateLog(old.copyWith(text: text.trim()));
+      }
+    }
+
+    upsert(shippedInWeek(week), shipped,
+        () => addLog('win', date: day, text: shipped.trim(), data: {'shipped': dateKey(monday)}));
+    upsert(learnedInWeek(week), learned, () => addLog('lesson', date: monday, text: learned.trim()));
+  }
+
   // ── Savouring ────────────────────────────────────────────────────────
 
   /// The wins of the week starting [week], newest first.
@@ -7547,6 +7582,7 @@ class PersonalSystemProvider extends ChangeNotifier {
         'kindness' => 'Kindness: ${l.text}',
         'giving' => 'Gave ${l.number('hours')} h to ${l.text}',
         'transition' => '${transitionKinds[f('kind')] ?? 'Something changed'}${l.text.isEmpty ? '' : ': ${l.text}'}${f('keep').isEmpty ? '' : '\n  What stays: ${f('keep')}'}',
+        'lesson' => 'Learned this week: ${l.text}',
         'remembrance' => 'Remembering ${f('name')}:${[for (final q in remembranceQuestions) if (f(q.$1).isNotEmpty) '\n  ${q.$2}: ${f(q.$1)}'].join()}',
         'compassion' => 'Was on my own side about: ${l.text}${f('kind').isEmpty ? '' : '\n  I told myself: ${f('kind')}'}',
         'courage' => f('status') == 'done' ? 'Did what I had avoided: ${l.text} (feared ${l.number('fear')}, felt ${l.number('felt')})${f('happened').isEmpty ? '' : '\n  What happened: ${f('happened')}'}' : '',
@@ -8014,9 +8050,13 @@ class PersonalSystemProvider extends ChangeNotifier {
     String improve = '',
     String friend = '',
     bool wentWell = true,
+    bool theirs = false,
   }) {
     if (event.trim().isEmpty) return null;
     return addLog('aar', text: event.trim(), data: {
+      // Someone else's (no names): we learn from others' misses as well as
+      // our own successes (Eskreis-Winkler & Fishbach 2019).
+      if (theirs) 'theirs': true,
       'intended': intended.trim(),
       'happened': happened.trim(),
       'why': why.trim(),
@@ -8050,8 +8090,12 @@ class PersonalSystemProvider extends ChangeNotifier {
       add(r, 'lesson', r.str('lesson') ?? '', 'Practice · ${areaById(r.str('area') ?? '').name}');
     }
     for (final a in logsOf('aar')) {
-      add(a, 'improve', a.str('improve') ?? '', 'After-action review · ${a.text}');
+      add(a, 'improve', a.str('improve') ?? '',
+          a.data['theirs'] == true ? 'From someone else\'s · ${a.text}' : 'After-action review · ${a.text}');
       add(a, 'friend', a.str('friend') ?? '', 'Advice to a friend · ${a.text}');
+    }
+    for (final l in logsOf('lesson')) {
+      add(l, 'text', l.text, 'Sunday report');
     }
     for (final m in logsOf('month_review')) {
       add(m, 'lesson', m.str('lesson') ?? '', 'Month ${m.number('month')} review');
@@ -8381,7 +8425,8 @@ class PersonalSystemProvider extends ChangeNotifier {
     final from = dayOnly(_now).minusDays(180);
     return [
       for (final l in allLogs({'win', 'aar'}))
-        if (!l.date.isBefore(from) && !used.contains(l.id)) l
+        // Someone else's review is a lesson, not your story.
+        if (!l.date.isBefore(from) && !used.contains(l.id) && l.data['theirs'] != true) l
     ].take(5).toList();
   }
 

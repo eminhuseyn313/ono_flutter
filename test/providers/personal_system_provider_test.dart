@@ -746,6 +746,14 @@ void main() {
     expect(p.isRecoveryDay, isFalse);
   });
 
+  test('someone else\'s miss: a lesson in the playbook, not a story idea', () async {
+    final p = await _commissioned();
+    p.logAar(event: 'A launch I watched slip', improve: 'Ship the smallest version first', wentWell: false, theirs: true);
+    expect(p.playbook().first.from, startsWith('From someone else'));
+    expect(p.storyIdeas, isEmpty);
+    expect(p.allCards.any((c) => c.id.startsWith('aar:')), isTrue);
+  });
+
   test('rest timer: notifies at the end, cancelled on skip', () async {
     final r = _RecordingReminders();
     final p = await _commissioned(reminders: r);

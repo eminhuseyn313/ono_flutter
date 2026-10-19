@@ -288,6 +288,7 @@ class _AarScreenState extends State<AarScreen> {
   final _improve = TextEditingController();
   final _friend = TextEditingController();
   bool _wentWell = true;
+  bool _theirs = false;
 
   @override
   void dispose() {
@@ -332,6 +333,7 @@ class _AarScreenState extends State<AarScreen> {
           improve: _improve.text,
           friend: _friend.text,
           wentWell: _wentWell,
+          theirs: _theirs,
         );
         toast(
             context,
@@ -341,7 +343,19 @@ class _AarScreenState extends State<AarScreen> {
         context.canPop() ? context.pop() : context.go('/home');
       }),
       children: [
-        _field(_event, 'What was it?', 'e.g. The board presentation'),
+        const SizedBox(height: 10),
+        Segmented(
+          labels: const ['Mine', 'Someone else\'s'],
+          index: _theirs ? 1 : 0,
+          onChanged: (i) => setState(() => _theirs = i == 1),
+        ),
+        if (_theirs)
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: Text('Learn from what you watched happen to someone else. No names — just the lesson.',
+                style: AppText.small()),
+          ),
+        _field(_event, 'What was it?', _theirs ? 'e.g. A launch I saw go wrong' : 'e.g. The board presentation'),
         const SectionHeader('How did it go?'),
         Segmented(
           labels: const ['Well', 'Not well'],
@@ -352,7 +366,8 @@ class _AarScreenState extends State<AarScreen> {
         _field(_happened, 'What actually happened?', 'The facts, not the verdict'),
         _field(_why, 'Why the difference?', 'What caused it — including what you did'),
         _field(_sustain, 'Keep: what worked that you\'ll do again', ''),
-        _field(_improve, 'Change: one thing you\'ll do differently next time', ''),
+        _field(_improve,
+            _theirs ? 'What you\'d do differently in their place' : 'Change: one thing you\'ll do differently next time', ''),
         // Lessons from our own misses are easier to take as advice to
         // someone else (Eskreis-Winkler & Fishbach 2019).
         _field(_friend, 'What would you tell a friend who just did this?', 'Optional — often the clearest lesson'),

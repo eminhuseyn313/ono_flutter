@@ -21,6 +21,8 @@ class _WeeklyCoachingScreenState extends State<WeeklyCoachingScreen> {
   final _best = TextEditingController();
   final _hardest = TextEditingController();
   final _situation = TextEditingController();
+  final _shipped = TextEditingController();
+  final _learned = TextEditingController();
   bool _initialised = false;
   bool _editing = false;
   int _saves = 0;
@@ -30,9 +32,11 @@ class _WeeklyCoachingScreenState extends State<WeeklyCoachingScreen> {
     super.didChangeDependencies();
     if (_initialised) return;
     _initialised = true;
-    final r =
-        context.read<PersonalSystemProvider>().reportForWeek(
-            context.read<PersonalSystemProvider>().reportWeekFor(DateTime.now()));
+    final system = context.read<PersonalSystemProvider>();
+    final week = system.reportWeekFor(DateTime.now());
+    _shipped.text = system.shippedInWeek(week)?.text ?? '';
+    _learned.text = system.learnedInWeek(week)?.text ?? '';
+    final r = system.reportForWeek(week);
     if (r != null) {
       _best.text = r.bestMoment;
       _hardest.text = r.hardestMoment;
@@ -45,6 +49,8 @@ class _WeeklyCoachingScreenState extends State<WeeklyCoachingScreen> {
     _best.dispose();
     _hardest.dispose();
     _situation.dispose();
+    _shipped.dispose();
+    _learned.dispose();
     super.dispose();
   }
 
@@ -69,7 +75,7 @@ class _WeeklyCoachingScreenState extends State<WeeklyCoachingScreen> {
     return UnsavedGuard(
         changesOnly: true,
         saves: _saves,
-        fields: [_best, _hardest, _situation],
+        fields: [_best, _hardest, _situation, _shipped, _learned],
         child: OnoPage(
       showBack: true,
       eyebrow: 'Week of ${shortDate(week)}',
@@ -114,6 +120,10 @@ class _WeeklyCoachingScreenState extends State<WeeklyCoachingScreen> {
               'What was hard, and what it revealed.'),
           _field(_situation, '5 · One situation to coach through',
               'At work or at home: people, stakes, what you\'re unsure of.'),
+          _line(_shipped, 'What you finished this week (optional)', 'A launch, a document, a fixed thing — it joins your wins',
+              const Key('week-shipped')),
+          _line(_learned, 'What you learned this week (optional)', 'One sentence — it joins your playbook',
+              const Key('week-learned')),
           const SizedBox(height: 10),
           // A fresh space for a fresh week: optional, a tick and nothing more.
           CheckRow(
@@ -143,6 +153,7 @@ class _WeeklyCoachingScreenState extends State<WeeklyCoachingScreen> {
                 workSituation: _situation.text.trim(),
                 createdAt: now,
               );
+              system.saveWeekLines(week, shipped: _shipped.text, learned: _learned.text);
               setState(() => _saves++);
               final b = await system.submitReport(r);
               if (!context.mounted) return;
@@ -209,6 +220,18 @@ class _WeeklyCoachingScreenState extends State<WeeklyCoachingScreen> {
       ],
     ));
   }
+
+  Widget _line(TextEditingController c, String label, String hint, Key key) => Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: TextField(
+          key: key,
+          controller: c,
+          minLines: 1,
+          maxLines: 3,
+          style: AppText.body(color: AppColors.white),
+          decoration: InputDecoration(labelText: label, hintText: hint),
+        ),
+      );
 
   Widget _field(TextEditingController c, String label, String hint) =>
       Padding(

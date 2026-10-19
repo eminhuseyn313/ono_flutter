@@ -741,4 +741,21 @@ void main() {
     }
     expect(system.isChecked(system.logicalToday, item.id), isTrue);
   });
+
+  testWidgets('Sunday report: what you finished becomes a win, what you learned a lesson', (tester) async {
+    final system = await _start(tester);
+    await _go(tester, '/weekly-coaching');
+    await _reach(tester, find.byKey(const Key('week-shipped')));
+    await tester.enterText(find.byKey(const Key('week-shipped')), 'The onboarding redesign');
+    await tester.enterText(find.byKey(const Key('week-learned')), 'Show the prototype before the deck');
+    await tester.pump();
+    final week = system.reportWeekFor(DateTime.now());
+    system.saveWeekLines(week, shipped: 'The onboarding redesign', learned: 'Show the prototype before the deck');
+    system.saveWeekLines(week, shipped: 'The onboarding redesign v2', learned: 'Show the prototype before the deck');
+    expect(system.logsOf('win').single.text, 'The onboarding redesign v2');
+    expect(system.playbook().any((e) => e.text == 'Show the prototype before the deck'), isTrue);
+    system.saveWeekLines(week, shipped: '', learned: '');
+    expect(system.logsOf('win'), isEmpty);
+    expect(system.logsOf('lesson'), isEmpty);
+  });
 }
