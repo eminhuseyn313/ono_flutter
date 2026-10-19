@@ -124,4 +124,17 @@ void main() {
     expect(plans.length, 1);
     expect(plans.single['id'], 'b');
   });
+
+  test('a week\'s lesson or a month\'s load check made on two devices keeps one', () {
+    for (final type in ['lesson', 'load_check', 'value_act']) {
+      Map<String, dynamic> log(String id, String at) => {
+            'id': id, 'type': type, 'date': '2026-10-12',
+            'created_at': at, 'text': id, 'data': {'month': 2}
+          };
+      final phone = {...base, 'logs': [...base['logs'], log('a', '2026-10-12T08:00:00')]};
+      final web = {...base, 'logs': [...base['logs'], log('b', '2026-10-12T09:00:00')]};
+      final kept = (mergeStateJson(base, phone, web)['logs'] as List).where((l) => l['type'] == type);
+      expect(kept.length, 1, reason: type);
+    }
+  });
 }
