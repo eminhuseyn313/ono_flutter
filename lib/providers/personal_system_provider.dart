@@ -1559,19 +1559,52 @@ class PersonalSystemProvider extends ChangeNotifier {
                   ),
           ];
 
+  /// How sure you can say you are, in plain words. Writing it down before
+  /// the outcome is known is what lets you see over- or under-confidence
+  /// later (Moore & Healy 2008).
+  static const confidenceLevels = {
+    55: 'Barely more than a coin flip',
+    65: 'Likely',
+    75: 'Fairly sure',
+    85: 'Very sure',
+    95: 'Almost certain',
+  };
+
   /// Decision journal entry, reviewed again after [reviewInDays].
+  /// [confidence] is a key of [confidenceLevels], or null.
   void addDecision(
       {required String decision,
       required String options,
       required String why,
       required String expected,
+      int? confidence,
       int reviewInDays = 90}) {
     addLog('decision', text: decision.trim(), data: {
       'options': options.trim(),
       'why': why.trim(),
       'expected': expected.trim(),
+      if (confidenceLevels.containsKey(confidence)) 'confidence': confidence,
       'review_on': dateKey(dayOnly(_now).plusDays(reviewInDays)),
     });
+  }
+
+  /// Reviewed decisions with a confidence, per level: (level, went right,
+  /// reviewed). Empty until [minCalibrated] are reviewed — before that it
+  /// would mean nothing. Levels with fewer than 3 are left out.
+  static const minCalibrated = 10;
+
+  List<(int, int, int)> calibration() {
+    final rated = [
+      for (final d in logsOf('decision'))
+        if (d.str('verdict') != null && d.number('confidence') != null) d
+    ];
+    if (rated.length < minCalibrated) return const [];
+    return [
+      for (final c in confidenceLevels.keys)
+        if (rated.where((d) => d.number('confidence') == c).toList() case final at
+            when at.length >= 3)
+          (c, at.where((d) => d.str('verdict') == 'right').length, at.length),
+    ];
   }
 
   /// A decision weighed against your values: each option scored −1/0/+1 per
@@ -1583,6 +1616,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     required Map<String, Map<String, int>> scores,
     String tenTenTen = '',
     String premortem = '',
+    int? confidence,
     int reviewInDays = 90,
   }) {
     String total(String o) =>
@@ -1595,6 +1629,7 @@ class PersonalSystemProvider extends ChangeNotifier {
         'Values: ${[for (final e in (scores[chosen] ?? const <String, int>{}).entries) '${e.key} ${e.value > 0 ? '+' : e.value < 0 ? '−' : '·'}'].join(', ')}',
       ].join('\n'),
       expected: premortem.trim().isEmpty ? '' : 'Premortem: ${premortem.trim()}',
+      confidence: confidence,
       reviewInDays: reviewInDays,
     );
   }
@@ -4769,17 +4804,33 @@ class PersonalSystemProvider extends ChangeNotifier {
       _setLearning(id, {'status': 'active', 'started': dateKey(_now)});
 
   /// Finishing asks for the principle and the experiment.
+  /// [teachTo]: someone you'll explain it to — teaching what you learned
+  /// deepens it (learning by teaching, Kobayashi meta-analysis).
   void applyLearning(String id,
-          {required String principle, required String experiment}) =>
+          {required String principle, required String experiment, String teachTo = ''}) =>
       _setLearning(id, {
         'status': 'done',
         'principle': principle.trim(),
         'experiment': experiment.trim(),
+        'teach_to': teachTo.trim(),
         'finished': dateKey(_now),
       });
 
-  void recordExperimentResult(String id, String result) =>
-      _setLearning(id, {'result': result.trim(), 'result_on': dateKey(_now)});
+  /// [taught]: you explained it to the person you named; when they are on
+  /// your People list it counts as help given.
+  void recordExperimentResult(String id, String result, {bool taught = false}) {
+    final l = learningById(id);
+    _setLearning(id, {
+      'result': result.trim(),
+      'result_on': dateKey(_now),
+      if (taught) 'taught': true,
+    });
+    final to = l?.str('teach_to') ?? '';
+    if (taught && l != null && to.isNotEmpty && l.data['taught'] != true) {
+      final p = activePeople.where((p) => names(p, to)).firstOrNull;
+      if (p != null) logHelp(p, 'Taught: ${l.str('principle') ?? l.text}');
+    }
+  }
 
   void removeLearning(String id) {
     final l = learningById(id);

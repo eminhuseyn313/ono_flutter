@@ -200,6 +200,7 @@ class _DecideScreenState extends State<DecideScreen> {
   final _ten = TextEditingController();
   final _premortem = TextEditingController();
   int? _chosen;
+  int? _sure;
 
   @override
   void dispose() {
@@ -242,6 +243,7 @@ class _DecideScreenState extends State<DecideScreen> {
           },
           tenTenTen: _ten.text,
           premortem: _premortem.text,
+          confidence: _sure,
         );
         toast(context, 'Saved to your decisions. Review in 90 days.');
         context.canPop() ? context.pop() : context.go('/home');
@@ -325,6 +327,20 @@ class _DecideScreenState extends State<DecideScreen> {
           style: AppText.body(color: AppColors.white),
           decoration: const InputDecoration(
               hintText: 'A year from now it went badly. What most likely happened?'),
+        ),
+        const SectionHeader('How sure are you?'),
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            for (final c in PersonalSystemProvider.confidenceLevels.entries)
+              ChoiceChip(
+                label: Text('${c.value} · ${c.key}%'),
+                selected: _sure == c.key,
+                showCheckmark: false,
+                onSelected: (on) => setState(() => _sure = on ? c.key : null),
+              ),
+          ],
         ),
         const SizedBox(height: 16),
       ],

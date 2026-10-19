@@ -210,6 +210,19 @@ Ranked by value for effort. Effect sizes marked (abstract) were read from abstra
 
 To reduce load: merge brag document, the case for the target role and the coach report into one "Your record"; fold role models into the personal board; keep rehearse inside the story bank only. These remove tools people may use, so they wait for Emin's decision.
 
+### P. Eleventh pass: craft and career (19 Oct 2026)
+| # | Idea | Evidence | Status |
+|---|---|---|---|
+| P1 | **How sure you were** on decisions, compared with how they turned out | Overconfidence (Moore & Healy 2008); forecasting training (Mellers 2014, disputed 2024) | Built: cockpit and `/decide` |
+| P2 | **Writing** growth area (memos, decision documents, half the length) | Feedback on writing, g 0.58–0.87 (Graham et al. 2015, children) | Built: template |
+| P3 | **Teach it** when you finish learning something | Learning by teaching, g 0.35–0.56 (Kobayashi) | Built |
+| P4 | **Someone else's miss** in the after-action review | Eskreis-Winkler & Fishbach 2019 | Proposed |
+| P5 | **Shipped and learned** lines in the Sunday report | Di Stefano et al. 2014 (+23%) | Proposed |
+| P6 | **What you've handed off** (delegation with a check-in) | Lee, Willis & Tian 2018 (correlational) | Waiting on Emin |
+| P7 | Meeting audit | Weak (Laker et al. 2022) | Not now |
+
+Rejected: "sleep on it" (no effect, Nieuwenstein et al. 2015), network-diversity tags, a career capital map (duplicates the record tools).
+
 ### E. Relationships
 | # | Feature | For Emin now | For anyone | Evidence | Effort |
 |---|---|---|---|---|---|

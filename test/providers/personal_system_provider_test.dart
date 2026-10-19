@@ -704,6 +704,35 @@ void main() {
     expect(p.nextStoryQuestion(p.personById(dad.id)!), PersonalSystemProvider.storyQuestions[1].$2);
   });
 
+  test('calibration: nothing until ten are reviewed, then per level', () async {
+    final p = await _commissioned();
+    for (var i = 0; i < 10; i++) {
+      p.addDecision(decision: 'Bet $i', options: '', why: '', expected: '', confidence: i < 6 ? 85 : 55);
+    }
+    p.addDecision(decision: 'No level', options: '', why: '', expected: '', confidence: 70);
+    expect(p.logsOf('decision').first.number('confidence'), isNull, reason: 'only known levels');
+    final ds = p.logsOf('decision').where((d) => d.text.startsWith('Bet')).toList();
+    for (final (i, d) in ds.take(9).indexed) {
+      p.reviewDecision(d.id, outcome: '', verdict: i.isEven ? 'right' : 'wrong');
+    }
+    expect(p.calibration(), isEmpty, reason: 'nine reviewed is too few');
+    p.reviewDecision(ds[9].id, outcome: '', verdict: 'right');
+    final c = p.calibration();
+    expect(c.map((e) => e.$1), containsAll([85, 55]));
+    final at85 = c.firstWhere((e) => e.$1 == 85);
+    expect(at85.$3, 6);
+  });
+
+  test('teach it: explaining what you learned counts as help, once', () async {
+    final p = await _commissioned();
+    final ana = p.addPerson('Ana Lima', role: 'Junior PM', every: 14);
+    final l = p.addLearning('Thinking in Bets', kind: 'book')!;
+    p.applyLearning(l.id, principle: 'Separate decisions from outcomes', experiment: 'Rate two calls', teachTo: 'Ana');
+    p.recordExperimentResult(l.id, 'It helped', taught: true);
+    p.recordExperimentResult(l.id, 'It helped a lot', taught: true);
+    expect(p.helpsFor(p.personById(ana.id)!).single.text, 'Taught: Separate decisions from outcomes');
+  });
+
   test('rest timer: notifies at the end, cancelled on skip', () async {
     final r = _RecordingReminders();
     final p = await _commissioned(reminders: r);

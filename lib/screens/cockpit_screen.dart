@@ -239,6 +239,13 @@ class _CockpitScreenState extends State<CockpitScreen> {
           ],
         ),
       ),
+      for (final (c, r, n) in system.calibration())
+        Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Text(
+              'When you were about $c% sure, $r of $n went right${(r * 100 / n - c).abs() < 12 ? ' — about as sure as you should be.' : r * 100 / n < c ? ' — you were surer than the results.' : ' — you could trust yourself more.'}',
+              style: AppText.small(color: AppColors.white)),
+        ),
       if (due.isNotEmpty) ...[
         const SectionHeader('Due for review'),
         for (final d in due)
@@ -264,11 +271,32 @@ class _CockpitScreenState extends State<CockpitScreen> {
     final options = TextEditingController();
     final why = TextEditingController();
     final expected = TextEditingController();
+    final sure = ValueNotifier<int?>(null);
     final ok = await _sheet(context, 'Record a decision', [
       _field(decision, 'The decision', lines: 2),
       _field(options, 'Options you considered', lines: 2),
       _field(why, 'Why this one', lines: 2),
       _field(expected, 'What you expect to happen — be specific', lines: 2),
+      Text('How sure are you it\'s right?', style: AppText.small()),
+      const SizedBox(height: 6),
+      ValueListenableBuilder<int?>(
+        valueListenable: sure,
+        builder: (_, v, __) => Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            for (final c in PersonalSystemProvider.confidenceLevels.entries)
+              ChoiceChip(
+                key: Key('sure-${c.key}'),
+                label: Text('${c.value} · ${c.key}%'),
+                selected: v == c.key,
+                showCheckmark: false,
+                onSelected: (on) => sure.value = on ? c.key : null,
+              ),
+          ],
+        ),
+      ),
+      const SizedBox(height: 10),
     ]);
     if (ok == true && context.mounted && decision.text.trim().isEmpty) {
       toast(context, 'Nothing recorded — write the decision first.');
@@ -279,7 +307,8 @@ class _CockpitScreenState extends State<CockpitScreen> {
           decision: decision.text,
           options: options.text,
           why: why.text,
-          expected: expected.text);
+          expected: expected.text,
+          confidence: sure.value);
       toast(context, 'Recorded. ONO brings it back in 90 days.');
     }
   }
@@ -518,6 +547,10 @@ class _DecisionCard extends StatelessWidget {
           if ((entry.str('expected') ?? '').isNotEmpty) ...[
             const SizedBox(height: 4),
             Text('Expected: ${entry.str('expected')}', style: AppText.small()),
+          ],
+          if (entry.number('confidence') != null) ...[
+            const SizedBox(height: 4),
+            Text('You were ${entry.number('confidence')!.toInt()}% sure', style: AppText.small()),
           ],
           if ((entry.str('outcome') ?? '').isNotEmpty) ...[
             const SizedBox(height: 4),

@@ -7,6 +7,7 @@ import '../models/personal_system.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
+import 'people_screen.dart' show PeoplePicker;
 
 /// What you learn from — books, courses, talks — and, for each, one
 /// principle in your own words and one experiment in real life.
@@ -70,6 +71,7 @@ class _LearningScreenState extends State<LearningScreen> {
   void _apply(PersonalSystemProvider system, LogEntry l) {
     final principle = TextEditingController();
     final experiment = TextEditingController();
+    final teach = TextEditingController();
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -110,6 +112,16 @@ class _LearningScreenState extends State<LearningScreen> {
                 style: AppText.body(color: AppColors.white),
                 decoration: const InputDecoration(hintText: 'This week I will try…'),
               ),
+              const SizedBox(height: 10),
+              Text('Explain it to someone (optional)', style: AppText.small(color: AppColors.white)),
+              const SizedBox(height: 4),
+              TextField(
+                key: const Key('learning-teach'),
+                controller: teach,
+                style: AppText.body(color: AppColors.white),
+                decoration: const InputDecoration(hintText: 'Who? Teaching it is how it sticks'),
+              ),
+              PeoplePicker(controller: teach),
               const SizedBox(height: 14),
               PrimaryButton('Done — apply it', icon: Icons.check_rounded, onPressed: () {
                 if (principle.text.trim().isEmpty || experiment.text.trim().isEmpty) {
@@ -117,7 +129,7 @@ class _LearningScreenState extends State<LearningScreen> {
                   return;
                 }
                 system.applyLearning(l.id,
-                    principle: principle.text, experiment: experiment.text);
+                    principle: principle.text, experiment: experiment.text, teachTo: teach.text);
                 Navigator.of(ctx).pop();
                 HapticFeedback.mediumImpact();
                 toast(context, 'Finished and applied. ONO asks how it went in a week.');
@@ -131,11 +143,13 @@ class _LearningScreenState extends State<LearningScreen> {
 
   void _result(PersonalSystemProvider system, LogEntry l) {
     final c = TextEditingController(text: l.str('result') ?? '');
+    final teachTo = l.str('teach_to') ?? '';
+    var taught = l.data['taught'] == true;
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: AppColors.card,
-      builder: (ctx) => Padding(
+      builder: (ctx) => StatefulBuilder(builder: (ctx, setSheet) => Padding(
         padding: EdgeInsets.fromLTRB(
             20, 20, 20, 20 + MediaQuery.of(ctx).viewInsets.bottom),
         child: Column(
@@ -153,14 +167,22 @@ class _LearningScreenState extends State<LearningScreen> {
               decoration: const InputDecoration(
                   hintText: 'What happened — keep it, change it, or drop it?'),
             ),
+            if (teachTo.isNotEmpty)
+              CheckboxListTile(
+                key: const Key('learning-taught'),
+                contentPadding: EdgeInsets.zero,
+                value: taught,
+                onChanged: (v) => setSheet(() => taught = v ?? false),
+                title: Text('I explained it to $teachTo', style: AppText.body(color: AppColors.white)),
+              ),
             const SizedBox(height: 12),
             PrimaryButton('Save', icon: Icons.check_rounded, onPressed: () {
-              system.recordExperimentResult(l.id, c.text);
+              system.recordExperimentResult(l.id, c.text, taught: taught);
               Navigator.of(ctx).pop();
             }),
           ],
         ),
-      ),
+      )),
     );
   }
 
