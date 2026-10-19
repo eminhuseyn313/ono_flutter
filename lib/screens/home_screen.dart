@@ -353,8 +353,9 @@ class _Header extends StatelessWidget {
                   '${weekdayName(now.weekday).substring(0, 3)} ${shortDate(now)} · $day',
                   style: AppText.small(color: AppColors.grey)),
             ),
-            // The streak badge appears once there has been a streak.
-            if (system.bestStreak > 0)
+            // The streak badge shows while there is a streak; a lost one
+            // isn't kept on screen as a grey zero.
+            if (system.streak > 0)
               GestureDetector(
                 onTap: () => context.go('/profile'),
                 child: Container(
@@ -1276,6 +1277,24 @@ class _PromptsState extends State<_Prompts> {
     final first = system.firstWeekStep;
     // Ranked: direction first, then what is due, then the rest.
     final setup = <Widget>[
+      if (system.remindersSupported &&
+          !system.isBuiltInPerson &&
+          system.hasStarted &&
+          !system.isDone('notify:asked') &&
+          !_snoozed(system, 'notify'))
+        _setupRow(
+            context,
+            system,
+            'notify',
+            Icons.notifications_none_rounded,
+            AppColors.accent,
+            'Let ONO nudge you',
+            'A check-in in the morning, your items at midday, the shutdown at night. Tap to allow.',
+            '',
+            onTap: () async {
+              system.setDone('notify:asked', true);
+              await system.requestReminderPermission();
+            }),
       if (system.planBuildSuggested &&
           !_snoozed(system, 'plan'))
         _setupRow(
@@ -1754,11 +1773,11 @@ class _PromptsState extends State<_Prompts> {
   /// A set-up step with "Not now": it comes back in a week.
   Widget _setupRow(BuildContext context, PersonalSystemProvider system,
           String id, IconData icon, Color color, String title, String body,
-          String route) =>
+          String route, {VoidCallback? onTap}) =>
       Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          _row(context, icon, color, title, body, route),
+          _row(context, icon, color, title, body, route, onTap: onTap),
           TextButton(
             key: Key('snooze-$id'),
             onPressed: () => system.setDone(_snoozeKey(id, widget.now), true),
@@ -1772,10 +1791,10 @@ class _PromptsState extends State<_Prompts> {
       );
 
   Widget _row(BuildContext context, IconData icon, Color color, String title,
-          String body, String route) =>
+          String body, String route, {VoidCallback? onTap}) =>
       OnoCard(
         padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
-        onTap: route.isEmpty ? null : () => context.push(route),
+        onTap: onTap ?? (route.isEmpty ? null : () => context.push(route)),
         child: Row(
           children: [
             IconTile(icon, color: color, size: 40),
@@ -1828,7 +1847,9 @@ class _RecoveryCard extends StatelessWidget {
             return Text(
                 streak > 0
                     ? 'Yesterday slipped ($yesterdayScore/$was). Hold $hold today and your $streak-day streak carries on.'
-                    : 'Yesterday slipped ($yesterdayScore/$was). Hold $hold today to start again.',
+                    : system.bestStreak == 0
+                        ? 'Yesterday was $yesterdayScore of $was. Do $hold today and your first streak starts.'
+                        : 'Yesterday slipped ($yesterdayScore/$was). Hold $hold today to start again.',
                 style: AppText.heading().copyWith(fontSize: 15.5));
           }),
           const SizedBox(height: 4),
@@ -2371,8 +2392,12 @@ class _GeneralInputs extends StatelessWidget {
         Icons.directions_walk_rounded,
         AppColors.body,
         'Move',
-        '$moved of 150 min',
-        '${system.strengthDaysInWeek(date)} of 2 strength days',
+        // No targets before they've logged a move: a "0 of 150" on day one
+        // is a verdict on a plan they haven't chosen.
+        system.logsOf('move').isEmpty ? 'Log a walk' : '$moved of 150 min',
+        system.logsOf('move').isEmpty
+            ? 'Any movement counts'
+            : '${system.strengthDaysInWeek(date)} of 2 strength days',
         '/move'
       ),
       (

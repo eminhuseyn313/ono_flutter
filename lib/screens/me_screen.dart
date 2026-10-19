@@ -77,9 +77,10 @@ class MeScreen extends StatelessWidget {
                     Expanded(
                         child: StatTile('${system.bestStreak}', 'best streak')),
                   ],
-                  Expanded(
-                      child: StatTile('${system.daysHeld}',
-                          system.cycle > 1 ? 'held this program' : 'days held')),
+                  if (system.daysHeld > 0)
+                    Expanded(
+                        child: StatTile('${system.daysHeld}',
+                            system.cycle > 1 ? 'held this program' : 'days held')),
                 ],
               ),
               const SizedBox(height: 16),
@@ -88,13 +89,11 @@ class MeScreen extends StatelessWidget {
                       ? (system.programDay / system.programDays).clamp(0.0, 1.0)
                       : 0),
               const SizedBox(height: 6),
-              Row(
-                children: [
-                  Text(
-                      '${system.daysHeldThisMonth} held this month · one slip is forgiven',
-                      style: AppText.small().copyWith(fontSize: 11.5)),
-                ],
-              ),
+              Text(
+                  system.daysHeld == 0
+                      ? 'Hold your daily list once and it counts here. One slip is always forgiven.'
+                      : '${system.daysHeldThisMonth} held this month · one slip is forgiven',
+                  style: AppText.small().copyWith(fontSize: 11.5)),
               if (system.latelyLine case final l?) ...[
                 const SizedBox(height: 6),
                 Align(
@@ -1388,6 +1387,13 @@ class _Mornings extends StatelessWidget {
       return v == null ? '—' : v.toStringAsFixed(digits);
     }
 
+    // Mood in words: a signed number means little at a glance.
+    String moodWord() {
+      final v = system.averageOf(week, 'mood');
+      if (v == null) return '—';
+      return v < -1 ? 'Low' : v < -0.3 ? 'A bit low' : v < 0.3 ? 'Okay' : v < 1 ? 'Good' : 'Great';
+    }
+
     final month = system.checkinsEnding(today, 30);
     final flags = system.flagDaysInWeekEnding(today);
     return OnoCard(
@@ -1401,11 +1407,16 @@ class _Mornings extends StatelessWidget {
               Expanded(
                   child: system.isBuiltInPerson
                       ? StatTile(avg('pain', 1), 'shoulder pain', unit: '/10')
-                      : StatTile(avg('mood', 1), 'mood', unit: '−2…2')),
+                      : StatTile(moodWord(), 'mood')),
             ],
           ),
           const SizedBox(height: 4),
-          Text('Averages of the last ${week.length} check-ins',
+          Text(
+              week.length < 3
+                  ? week.length == 1
+                      ? 'Your first check-in this week. Averages mean more after a few.'
+                      : 'Your first ${week.length} check-ins this week. Averages mean more after a few.'
+                  : 'Averages of the last ${week.length} check-ins',
               style: AppText.small().copyWith(fontSize: 11.5)),
           if (system.feelingsNamed().isNotEmpty) ...[
             const SizedBox(height: 10),

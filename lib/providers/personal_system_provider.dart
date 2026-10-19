@@ -636,7 +636,15 @@ class PersonalSystemProvider extends ChangeNotifier {
   int get dailyCount => dailyItems.length;
 
   /// Holding the day = 70% of the items (7 of 10), at least 1.
-  int get holdTarget => dailyCount == 0 ? 1 : (dailyCount * 0.7).ceil();
+  /// 70%, rounded up — but a short list leaves room for one bad item
+  /// (3 → 2, 4 → 3), so the smallest plans don't demand perfection.
+  int get holdTarget => targetOf(dailyCount);
+
+  static int targetOf(int n) => n == 0
+      ? 1
+      : n <= 4
+          ? (n - 1).clamp(1, 4)
+          : (n * 0.7).ceil();
 
   bool isHeld(DateTime date) => scoreFor(date) >= targetFor(date);
 
@@ -645,7 +653,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   int targetFor(DateTime date) {
     final n = itemIdsOn(date).length;
     if (n == 0) return 1;
-    return isMinimumDay(date) ? (n / 2).ceil() : (n * 0.7).ceil();
+    return isMinimumDay(date) ? (n / 2).ceil() : targetOf(n);
   }
 
   // ── The daily list over time ─────────────────────────────────────────
@@ -1049,6 +1057,9 @@ class PersonalSystemProvider extends ChangeNotifier {
     final today = logicalToday;
     final yesterday = today.minusDays(1);
     if (yesterday.isBefore(programStart)) return false;
+    // Nothing to recover yet: the first day, or nothing ever ticked.
+    final first = firstTickDay;
+    if (first == null || !yesterday.isAfter(dayOnly(journeyStart))) return false;
     return !isHeld(yesterday) &&
         !isExcused(yesterday) &&
         !isHeld(today) &&

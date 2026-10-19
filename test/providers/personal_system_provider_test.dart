@@ -733,6 +733,19 @@ void main() {
     expect(p.helpsFor(p.personById(ana.id)!).single.text, 'Taught: Separate decisions from outcomes');
   });
 
+  test('a short list leaves room for one bad item', () {
+    expect(PersonalSystemProvider.targetOf(3), 2);
+    expect(PersonalSystemProvider.targetOf(4), 3);
+    expect(PersonalSystemProvider.targetOf(5), 4);
+    expect(PersonalSystemProvider.targetOf(10), 7);
+    expect(PersonalSystemProvider.targetOf(1), 1);
+  });
+
+  test('no recovery card before anything was ever ticked', () async {
+    final p = await _commissioned();
+    expect(p.isRecoveryDay, isFalse);
+  });
+
   test('rest timer: notifies at the end, cancelled on skip', () async {
     final r = _RecordingReminders();
     final p = await _commissioned(reminders: r);
@@ -1705,7 +1718,7 @@ void main() {
     expect(p.dailyCount, picks.length);
     expect(p.dailyItems.map((d) => d.title), containsAll(picks.map((d) => d.title)));
     expect(p.cueFor(p.dailyItems.first.id), isNotEmpty);
-    expect(p.holdTarget, (picks.length * 0.7).ceil());
+    expect(p.holdTarget, PersonalSystemProvider.targetOf(picks.length));
     // Building again for the same person adds, without duplicates.
     p.buildPlan(
         name: 'Leyla Mammadova',

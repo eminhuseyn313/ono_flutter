@@ -93,6 +93,10 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
     super.dispose();
   }
 
+  /// A first program starts short: 90 days, lengthened any time.
+  int _defaultLength(PersonalSystemProvider system) =>
+      !system.isCommissioned && _newPerson ? 90 : system.programDays;
+
   bool get _newPerson => _name.text.trim().isNotEmpty && _name.text.trim() != activeProfile.name;
 
   /// The two lowest-rated areas of the wheel.
@@ -182,7 +186,7 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
       daily: List.of(_picks),
       replaceDaily: _replacing(system),
       keepOwnDaily: _fromPack,
-      programLength: _length,
+      programLength: _length ?? _defaultLength(system),
     );
     // First run: a new person starts today with their own plan and no
     // built-in reminders (they switch on what they want under Me). The
@@ -198,8 +202,8 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
         gymDays: system.gymDays,
         reminders: {for (final r in reminderDefs) r.id: false},
       );
-      // Their general reminders are on: ask once so they can arrive.
-      await system.requestReminderPermission();
+      // Notifications are asked for on Today, with what they'd be for —
+      // not as a surprise system dialog here.
     }
     _building = false;
     if (!mounted) return;
@@ -403,8 +407,7 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
         const SectionHeader('Your program'),
         Builder(builder: (context) {
           final lengths = PersonalSystemProvider.programLengths.keys.toList();
-          final current =
-              _length ?? context.read<PersonalSystemProvider>().programDays;
+          final current = _length ?? _defaultLength(context.read<PersonalSystemProvider>());
           return Wrap(
             spacing: 6,
             runSpacing: 6,
