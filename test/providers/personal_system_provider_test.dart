@@ -3761,4 +3761,14 @@ void main() {
     p.clock = () => _today.plusDays(95);
     expect(p.decidersSeen, (0, 2));
   });
+
+  test('1:1 agenda: the week, what you owe them, one ask to fill in', () async {
+    final p = await _commissioned();
+    p.setWeekOutcome(_today, 0, 'Ship the pricing page');
+    p.addAsk(what: 'Budget for research', of: 'Farid');
+    final agenda = p.oneOnOneAgenda('Farid');
+    expect(agenda, contains('Ship the pricing page'));
+    expect(agenda, contains('Budget for research'));
+    expect(agenda, contains('My one ask'));
+  });
 }

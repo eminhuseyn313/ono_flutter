@@ -160,7 +160,7 @@ Flow:
   - Any card can be retired (`retireCard` → done key `card:off:<id>`, filtered out of `allCards`); custom cards are deleted. A long queue offers "Just the 5 most overdue".
   - Finishing or leaving a session logs `anki` kind `review` with the count graded, so a partial session keeps the streak too.
 - **Career cockpit** (`/cockpit`): three tabs for the built-in person; anyone else gets "1:1s and decisions" (no Readiness tab — its dimensions are his; `toolIndex` lists it for everyone). Ticking a follow-up offers Undo.
-  - 1:1s are `one_on_one` logs; follow-ups use `done` keys `fu:<logId>:<i>` and show on Today.
+  - 1:1s are `one_on_one` logs; follow-ups use `done` keys `fu:<logId>:<i>` and show on Today. "Draft the next agenda" (`oneOnOneAgenda(with)`: the week's three, follow-ups owed to them, open asks of them, then input wanted and one ask to fill in) is edited and copied.
   - Decisions are `decision` logs with `review_on` 90 days out; `dueDecisionReviews` and `reviewDecision` record right/mixed/wrong.
   - Readiness is a monthly `readiness` log rated 1–5 per `readinessDimensions` (bar 4). `readinessGap` feeds the brief.
 - **Automaticity** (`/habits`): a monthly `automaticity` log, rated 1–5 per Daily 10 item.

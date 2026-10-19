@@ -65,6 +65,50 @@ class _CockpitScreenState extends State<CockpitScreen> {
 
   // ── 1:1s ───────────────────────────────────────────────────────────────
 
+  /// A drafted agenda to edit and copy — managing up with real data.
+  void _agenda(BuildContext context, PersonalSystemProvider system) {
+    final who = TextEditingController(text: activeProfile.manager);
+    final text = TextEditingController(text: system.oneOnOneAgenda(who.text));
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.card,
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + MediaQuery.of(ctx).viewInsets.bottom),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Next 1:1 agenda', style: AppText.title()),
+              const SizedBox(height: 8),
+              TextField(
+                controller: who,
+                style: AppText.body(color: AppColors.white),
+                decoration: const InputDecoration(labelText: 'With'),
+                onChanged: (v) => text.text = system.oneOnOneAgenda(v),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                key: const Key('agenda-text'),
+                controller: text,
+                minLines: 8,
+                maxLines: 16,
+                style: AppText.body(color: AppColors.white),
+              ),
+              const SizedBox(height: 12),
+              PrimaryButton('Copy', icon: Icons.copy_rounded, onPressed: () {
+                Clipboard.setData(ClipboardData(text: text.text));
+                Navigator.of(ctx).pop();
+                toast(context, 'Copied. Fill in your one ask.');
+              }),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   List<Widget> _oneOnOnes(BuildContext context, PersonalSystemProvider system) {
     final open = system.openFollowUps;
     final logs = system.logsOf('one_on_one');
@@ -72,6 +116,10 @@ class _CockpitScreenState extends State<CockpitScreen> {
       const SizedBox(height: 12),
       PrimaryButton('Log a 1:1',
           icon: Icons.add_rounded, onPressed: () => _logOneOnOne(context)),
+      const SizedBox(height: 8),
+      GhostButton('Draft the next agenda',
+          key: const Key('agenda-draft'),
+          icon: Icons.list_alt_rounded, onPressed: () => _agenda(context, system)),
       const SizedBox(height: 8),
       if (system.isBuiltInPerson)
         Text('Before it: run six-questions-deep prep from Today → Work.',

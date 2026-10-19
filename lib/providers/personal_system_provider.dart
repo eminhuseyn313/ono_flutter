@@ -1499,6 +1499,44 @@ class PersonalSystemProvider extends ChangeNotifier {
     });
   }
 
+  /// A 1:1 agenda for [withWhom], drafted from real data: the week's
+  /// three, what you still owe them, what you asked them for — and one
+  /// ask of your own to fill in. Copied, never sent.
+  String oneOnOneAgenda(String withWhom) {
+    final who = withWhom.trim();
+    final today = dayOnly(_now);
+    final outcomes = weekOutcomes(today);
+    bool forThem(String? s) => who.isNotEmpty && (s ?? '').toLowerCase().contains(who.toLowerCase());
+    final owed = [for (final f in openFollowUps) if (forThem(f.withWhom)) f.text];
+    final asked = [for (final a in openAsks) if (forThem(a.str('of'))) a.text];
+    final b = StringBuffer('1:1${who.isEmpty ? '' : ' with $who'} — ${dateKey(today)}\n');
+    if (outcomes.any((o) => o.trim().isNotEmpty)) {
+      b.writeln('\nThis week');
+      for (var i = 0; i < 3; i++) {
+        if (outcomes[i].trim().isEmpty) continue;
+        b.writeln('• ${weekOutcomeDone(today, i) ? '✓' : '○'} ${outcomes[i].trim()}');
+      }
+    }
+    if (owed.isNotEmpty) {
+      b.writeln('\nWhat I owe you');
+      for (final f in owed) {
+        b.writeln('• $f');
+      }
+    }
+    if (asked.isNotEmpty) {
+      b.writeln('\nStill open from my side');
+      for (final a in asked) {
+        b.writeln('• $a');
+      }
+    }
+    b
+      ..writeln('\nWhere I\'d value your input')
+      ..writeln('• ')
+      ..writeln('\nMy one ask')
+      ..writeln('• ');
+    return b.toString().trim();
+  }
+
   /// Follow-ups from 1:1s not yet ticked, newest first.
   List<({String key, String text, DateTime date, String withWhom})>
       get openFollowUps => [
