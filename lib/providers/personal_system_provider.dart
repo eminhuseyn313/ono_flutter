@@ -7252,6 +7252,38 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   void pinPlay(String key, bool pin) => setDone('play:pin:$key', pin);
 
+  // ── On this day ──────────────────────────────────────────────────────
+
+  /// One thing from a year, six months or a month ago today — a win, a
+  /// lesson, feedback, a fear faced, advice that worked. People
+  /// underestimate how much they'll enjoy rediscovering ordinary moments
+  /// (Zhang et al. 2014). Never thoughts, letters, conversations or other
+  /// private writing. Null once seen this week ([onThisDaySeenKey]).
+  ({String when, String text, LogEntry log})? onThisDay(DateTime day) {
+    final today = dayOnly(day);
+    if (isDone(onThisDaySeenKey(today))) return null;
+    for (final (back, label) in [(365, 'A year ago today'), (182, 'Six months ago'), (30, 'A month ago')]) {
+      final d = today.minusDays(back);
+      if (d.isBefore(journeyStart)) continue;
+      for (final l in logsOn(d)) {
+        final f = l.str;
+        final text = switch (l.type) {
+          'win' => 'Win: ${l.text}',
+          'rep' => (f('lesson') ?? '').isEmpty ? '' : 'You learned: ${f('lesson')}',
+          'feedback' => '${(f('from') ?? '').isEmpty ? 'Someone' : f('from')} told you: "${l.text}"',
+          'aar' => (f('improve') ?? '').isEmpty ? '' : 'After ${l.text}: ${f('improve')}',
+          'courage' => f('status') == 'done' ? 'You did what you had avoided: ${l.text}' : '',
+          'advice' => f('status') == 'tried' ? 'You tried: ${l.text}' : '',
+          _ => '',
+        };
+        if (text.isNotEmpty) return (when: label, text: text, log: l);
+      }
+    }
+    return null;
+  }
+
+  String onThisDaySeenKey(DateTime day) => 'otd:${dateKey(weekStartOf(day))}';
+
   /// One pinned lesson for the week of [day], rotating through them.
   String? ruleOfTheWeek(DateTime day) {
     final pinned = [for (final e in playbook()) if (e.pinned) e]

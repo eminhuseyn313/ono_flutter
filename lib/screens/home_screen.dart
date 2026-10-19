@@ -1617,6 +1617,23 @@ class _PromptsState extends State<_Prompts> {
             '${activeProfile.targetRole} readiness',
             'Rate this month against the bar',
             '/cockpit?tab=2'),
+      // Last: a look back, at most once a week.
+      if (system.onThisDay(now) case final o?)
+        Column(
+          key: const Key('on-this-day'),
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            _row(context, Icons.history_rounded, AppColors.mind, o.when, o.text, ''),
+            TextButton(
+              onPressed: () => system.setDone(system.onThisDaySeenKey(now), true),
+              style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  minimumSize: const Size(0, 32),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+              child: Text('Seen', style: AppText.small()),
+            ),
+          ],
+        ),
     ];
     return Column(
       children: [

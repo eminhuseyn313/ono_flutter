@@ -3596,4 +3596,17 @@ void main() {
     p.saveCheckin(dayOnly(_today).minusDays(2), energy: 4, mood: 1, sleep: 8, pain: 0, stiffness: 0);
     expect(p.checkinFor(dayOnly(_today).minusDays(2))!.data.containsKey('feelings'), isFalse);
   });
+
+  test('on this day: a month ago, weekly at most, never private writing', () async {
+    final p = await _commissioned();
+    final today = dayOnly(_today);
+    p.addLog('thought', date: today.minusDays(30), text: 'Private');
+    expect(p.onThisDay(today), isNull);
+    p.addLog('win', date: today.minusDays(30), text: 'Shipped the pricing page');
+    final o = p.onThisDay(today)!;
+    expect(o.when, 'A month ago');
+    expect(o.text, 'Win: Shipped the pricing page');
+    p.setDone(p.onThisDaySeenKey(today), true);
+    expect(p.onThisDay(today), isNull);
+  });
 }
