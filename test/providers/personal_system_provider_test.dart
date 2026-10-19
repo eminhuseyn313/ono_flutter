@@ -694,6 +694,16 @@ void main() {
     }
   });
 
+  test('in my care: the next part of their story to ask about', () async {
+    final p = await _commissioned();
+    final dad = p.addPerson('Rauf', role: 'Father', every: 7);
+    expect(p.nextStoryQuestion(dad), isNull, reason: 'only for someone in your care');
+    p.setInMyCare(dad, true);
+    expect(p.nextStoryQuestion(p.personById(dad.id)!), PersonalSystemProvider.storyQuestions.first.$2);
+    p.setStoryAnswer(p.personById(dad.id)!, 'grew_up', 'A village by the sea');
+    expect(p.nextStoryQuestion(p.personById(dad.id)!), PersonalSystemProvider.storyQuestions[1].$2);
+  });
+
   test('rest timer: notifies at the end, cancelled on skip', () async {
     final r = _RecordingReminders();
     final p = await _commissioned(reminders: r);

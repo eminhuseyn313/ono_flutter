@@ -3585,6 +3585,17 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   String storyAnswer(LogEntry person, String key) => person.str('story:$key') ?? '';
 
+  /// For someone in your care (not a child): the first part of their story
+  /// you haven't written down yet. Remembering together lifts older people
+  /// (reminiscence, Pinquart & Forstmeier 2012) and keeps the story.
+  String? nextStoryQuestion(LogEntry person) {
+    if (!inMyCare(person) || isChild(person)) return null;
+    for (final q in storyQuestions) {
+      if (storyAnswer(person, q.$1).isEmpty) return q.$2;
+    }
+    return null;
+  }
+
   void setStoryAnswer(LogEntry person, String key, String answer) {
     final p = personById(person.id);
     if (p == null) return;
