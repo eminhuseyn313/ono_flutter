@@ -101,7 +101,7 @@ Log: the last 30 days by default ("Show N earlier"), a search over text and data
 /manifesto /protocols /evidence /library /style /career /weekly-coaching /checkin /plans /review /habits /cockpit(?tab=0..2)
 /shutdown /focus /letters /week /people /growth /values /coach /case /growth/area(?id=|template=) /goals /goals/edit /goals/view?id= /note /setback /quarter /profile/edit /daily /learning /experiments /rest /stop /gratitude /models /360 /energy /start /privacy /packs /partner /coach-report /odyssey /crafting /best-self /move /conversations /money /upkeep /stepback /decide /month-review /manual /us /know /courage /playbook /advice /compassion /routine /carer /negotiate /rehearse /sleep /visibility /brag /need /day /thought /best-future /kindness /worry /chapters /strengths /board /aar /next-program /promises /stories /year /asks /tools /remember /change
 /ritual-flow/:ritualId /gym /gym/:dayId (push|pull|legs) /month/:m (1–18)
-/tool/:id  sigh excited pause still bluf sixq read feynman scan pennebaker anki artifact(?month=) linkedin
+/tool/:id  sigh excited pause still bluf sixq read feynman scan pennebaker anki artifact(?month=) linkedin metta
 ```
 
 Flow:
@@ -190,6 +190,7 @@ Flow:
   - `startRest`/`cancelRest` schedule a one-off notification through `ReminderService.notifyOnce` (id `restNotificationId`, ≥ `onceIdBase`); it is silent while ONO is in the foreground.
   - Weekly `sync` only cancels ids below `onceIdBase`, so a running rest survives a reminder resync.
 - **Tool timers** (`CountdownTimer` in `tool_screens.dart`) count from an end time, so they stay right after iOS suspends ONO, and notify at the end via `notifyTimerEnd` (id `timerNotificationId`); Reset cancels that notification.
+- **Wish people well** (`/tool/metta`, loving-kindness; Zeng et al. 2015): five steps (you, someone close — the first of `activePeople` —, someone you barely know, someone hard, everyone); finishing logs `metta` (hidden from the Log tab) and ticks the "Wish three people well" item. Library items open a tool via `dailyIdeaRoutes` (by title).
 - **Breathing** (`/tool/sigh`): three sighs, then "Keep going" (ten breaths, about two minutes) and "Step back next"; the built-in person gets his "I am excited" reframe, anyone else a neutral body cue; mastery and "today's list updated" only when sigh is a daily item.
 - **Home Screen shortcuts** (`lib/services/app_shortcuts.dart`, `quick_actions`): long-press the icon for check-in, protein, gym and review. `appShortcutList` routes must exist (tested). On a cold start `OnoApp` holds the route until sign-in is restored, then opens it over Today.
 - **Meetings** (`lib/services/calendar_service*.dart`, `device_calendar`, conditional import like Health; tests use `test/support/fake_calendar.dart`):

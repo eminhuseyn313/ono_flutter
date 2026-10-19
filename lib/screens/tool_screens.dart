@@ -72,6 +72,8 @@ class ToolScreen extends StatelessWidget {
         return _ArtifactTool(month: int.tryParse(params['month'] ?? ''));
       case 'linkedin':
         return const _LinkedInTool();
+      case 'metta':
+        return const _MettaTool();
       default:
         return const OnoPage(
             showBack: true, title: 'Unknown tool', children: []);
@@ -1237,3 +1239,66 @@ class _LinkedInToolState extends State<_LinkedInTool> {
     );
   }
 }
+
+// ── Wish people well (loving-kindness) ─────────────────────────────────
+
+/// Five short steps of loving-kindness: yourself, someone close, someone
+/// you barely know, someone hard, everyone. Raises positive emotion with
+/// medium effects (Zeng et al. 2015). Ticks "Wish three people well" when
+/// it is one of today's items.
+class _MettaTool extends StatefulWidget {
+  const _MettaTool();
+
+  @override
+  State<_MettaTool> createState() => _MettaToolState();
+}
+
+class _MettaToolState extends State<_MettaTool> {
+  int _step = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final system = context.watch<PersonalSystemProvider>();
+    final close = system.activePeople.firstOrNull?.text.split(' ').first;
+    final steps = [
+      ('Yourself', 'Start with you. You count too.'),
+      (close == null ? 'Someone close' : 'Someone close — $close?', 'Picture them for a moment.'),
+      ('Someone you barely know', 'The person at the shop, a neighbour, a colleague you rarely talk to.'),
+      ('Someone you find hard', 'Only as far as feels honest today. A little is enough.'),
+      ('Everyone', 'Everyone you will meet today, and everyone you won\'t.'),
+    ];
+    final (who, hint) = steps[_step];
+    final last = _step == steps.length - 1;
+    return OnoPage(
+      showBack: true,
+      eyebrow: 'Wish people well · ${_step + 1} of ${steps.length}',
+      title: who,
+      subtitle: hint,
+      bottomBar: PrimaryButton(last ? 'Done' : 'Next',
+          key: const Key('metta-next'),
+          icon: last ? Icons.check_rounded : Icons.arrow_forward_rounded, onPressed: () {
+        if (!last) {
+          setState(() => _step++);
+          return;
+        }
+        system.addLog('metta');
+        final item = system.dailyItems
+            .where((d) => d.title.toLowerCase().startsWith('wish three people well'))
+            .firstOrNull;
+        if (item != null) system.setCheck(system.logicalToday, item.id, true);
+        HapticFeedback.mediumImpact();
+        toast(context, item == null ? 'Done.' : 'Done. Ticked for today.');
+        context.canPop() ? context.pop() : context.go('/home');
+      }),
+      children: [
+        const SizedBox(height: 40),
+        Text('May you be safe.\nMay you be well.\nMay you live with ease.',
+            textAlign: TextAlign.center, style: AppText.serif(size: 30)),
+        const SizedBox(height: 24),
+        Text('Say it slowly, silently, three times. Then go on.',
+            textAlign: TextAlign.center, style: AppText.small()),
+      ],
+    );
+  }
+}
+

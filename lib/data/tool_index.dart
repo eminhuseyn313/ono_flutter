@@ -104,6 +104,8 @@ const List<ToolEntry> toolIndex = [
       words: ['moving', 'move', 'new job', 'baby', 'breakup', 'divorce', 'retire', 'transition', 'change', 'relocation']),
   ToolEntry('Remembering someone', 'For someone who has died: what you miss, what they taught you', '/remember', 'Hard moments',
       words: ['grief', 'loss', 'died', 'death', 'bereavement', 'mourning', 'funeral', 'miss']),
+  ToolEntry('Wish people well', 'Two minutes of loving-kindness: you, someone close, someone hard, everyone', '/tool/metta', 'Hard moments',
+      words: ['loving-kindness', 'metta', 'meditation', 'prayer', 'compassion', 'resentment', 'anger']),
   ToolEntry('Self-compassion break', 'Notice it\'s hard, you\'re not alone, be kind', '/compassion', 'Hard moments',
       words: ['self-compassion', 'kind', 'critic', 'hard on myself', 'shame', 'guilt', 'failure']),
   ToolEntry('Courage ladder', 'What you avoid, one rung at a time — and how hard it really was', '/courage', 'Practice',

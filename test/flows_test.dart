@@ -730,4 +730,15 @@ void main() {
     await _reach(tester, find.text('What makes them laugh?'));
     expect(system.nextQuestionFor(system.personById(p.id)!)!.$1, 'loves');
   });
+
+  testWidgets('wish people well: five steps, then the daily item is ticked', (tester) async {
+    final system = await _start(tester);
+    final item = system.addDailyItem('Wish three people well', lane: 'mind', when: 'morning')!;
+    expect(system.dailyItem(item.id)!.route, '/tool/metta');
+    await _go(tester, '/tool/metta');
+    for (var i = 0; i < 5; i++) {
+      await _tap(tester, find.byKey(const Key('metta-next')));
+    }
+    expect(system.isChecked(system.logicalToday, item.id), isTrue);
+  });
 }

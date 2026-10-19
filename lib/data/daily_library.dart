@@ -22,6 +22,12 @@ class DailyIdea {
       {this.minimum = '', this.steps = const []});
 }
 
+/// Library items that open a guided tool when tapped on Today (by title,
+/// so an item added from the library or a pack finds its tool).
+const dailyIdeaRoutes = {
+  'wish three people well': '/tool/metta',
+};
+
 const List<DailyIdea> dailyLibrary = [
   DailyIdea('Write today\'s three priorities', 'skill', 'morning', 'career',
       'When I sit down to start work, I write my three before opening messages.',

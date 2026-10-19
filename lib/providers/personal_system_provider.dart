@@ -603,7 +603,7 @@ class PersonalSystemProvider extends ChangeNotifier {
               l.str('when') ?? 'day',
               // A routine opens its step-through; a plain item is a tick.
               route: (l.data['steps'] as List? ?? const []).isEmpty
-                  ? null
+                  ? dailyIdeaRoutes[l.text.trim().toLowerCase()]
                   : '/routine?id=${l.str('id') ?? l.id}')
       ];
 
@@ -2020,7 +2020,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     'partner': '/partner', 'partner_checkin': '/partner', 'feedback_round': '/360',
     'best_self': '/best-self', 'role_model': '/models', 'ask': '/asks', 'advice': '/advice',
     'visible': '/visibility', 'negotiation': '/negotiate', 'promise': '/promises',
-    'kindness': '/kindness', 'kindness_plan': '/kindness', 'giving': '/kindness', 'transition': '/change', 'gratitude': '/gratitude',
+    'kindness': '/kindness', 'kindness_plan': '/kindness', 'giving': '/kindness', 'transition': '/change', 'metta': '/tool/metta', 'gratitude': '/gratitude',
     'setback': '/setback', 'stepback': '/stepback', 'thought': '/thought', 'worry': '/worry',
     'coaching': '/coach', 'rest': '/rest',
   };

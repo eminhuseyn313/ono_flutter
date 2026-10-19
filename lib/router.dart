@@ -109,6 +109,7 @@ const appRoutes = [
   '/tool/anki',
   '/tool/artifact',
   '/tool/linkedin',
+  '/tool/metta',
   '/checkin',
   '/plans',
   '/review',
