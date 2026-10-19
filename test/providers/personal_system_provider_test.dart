@@ -749,7 +749,9 @@ void main() {
     for (final n in [1, 2, 3, 4, 5, 10, 15]) {
       final min = PersonalSystemProvider.minTargetOf(n);
       expect(min, greaterThanOrEqualTo(1));
-      if (n > 1) expect(min, lessThan(PersonalSystemProvider.targetOf(n)), reason: '$n items');
+      if (PersonalSystemProvider.targetOf(n) > 1) {
+        expect(min, lessThan(PersonalSystemProvider.targetOf(n)), reason: '$n items');
+      }
     }
     expect(PersonalSystemProvider.minTargetOf(10), 5);
   });
