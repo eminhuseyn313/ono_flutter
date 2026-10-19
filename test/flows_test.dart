@@ -610,4 +610,19 @@ void main() {
     await _tap(tester, find.byKey(Key('care-for-${mum.id}-Eye test')));
     expect(system.careFor(system.personById(mum.id)!).single.text, 'Leyla: Eye test');
   });
+
+  testWidgets('negotiation: prepare it, then close it with a lesson',
+      (tester) async {
+    final system = await _start(tester);
+    await _go(tester, '/negotiate');
+    await _tap(tester, find.byKey(const Key('negotiation-new')));
+    await tester.enterText(find.byKey(const Key('negotiation-about')), 'My salary');
+    await _type(tester, 'Your first offer', '20% more');
+    await tester.tap(find.text('Save').last);
+    await _pumpFor(tester, const Duration(milliseconds: 800));
+    final l = system.negotiations.single;
+    expect(l.str('first_offer'), '20% more');
+    system.closeNegotiation(l.id, outcome: 'better', lesson: 'Ask for the range first');
+    expect(system.playbook().any((e) => e.text == 'Ask for the range first'), isTrue);
+  });
 }

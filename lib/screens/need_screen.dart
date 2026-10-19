@@ -26,6 +26,7 @@ class NeedScreen extends StatelessWidget {
     (Icons.center_focus_strong_rounded, 'I can\'t focus', 'One block, one thing, phone away', '/focus'),
     (Icons.favorite_outline_rounded, 'I want to feel closer to someone', 'A check-in for two, or reach out today', '/us'),
     (Icons.flag_outlined, 'Something big just happened', 'Look back while it\'s fresh: keep one thing, change one', '/aar'),
+    (Icons.handshake_outlined, 'I have to negotiate', 'Your alternative, your bottom line, a first offer with a reason', '/negotiate'),
     (Icons.work_outline_rounded, 'I have an interview or review coming', 'Your best stories, in four parts, ready', '/stories'),
     (Icons.stairs_outlined, 'I keep avoiding something', 'One small rung, then see how hard it really was', '/courage'),
     (Icons.auto_awesome_outlined, 'I\'m doubting myself', 'Read what others saw in you at your best', '/best-self'),

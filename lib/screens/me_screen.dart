@@ -665,6 +665,14 @@ class MeScreen extends StatelessWidget {
               LinkRow(
                 icon: Icons.handshake_outlined,
                 color: AppColors.social,
+                title: 'Negotiation planner',
+                subtitle: 'A raise, a scope, rent: prepare in 15 minutes',
+                onTap: () => context.push('/negotiate'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
+                icon: Icons.handshake_outlined,
+                color: AppColors.social,
                 title: 'Promises',
                 subtitle: system.sayDo() != null
                     ? 'Kept ${system.sayDo()!.kept} of ${system.sayDo()!.kept + system.sayDo()!.missed} · ${system.openPromises.length} open'

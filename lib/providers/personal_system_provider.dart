@@ -3621,6 +3621,56 @@ class PersonalSystemProvider extends ChangeNotifier {
     return null;
   }
 
+  // ── Negotiation planner ──────────────────────────────────────────────
+
+  /// The parts of a plan, in order: (key, label, hint).
+  static const negotiationFields = [
+    ('want', 'What you want', 'The outcome, as specific as you can'),
+    ('walkaway', 'If there\'s no deal, what will you do?', 'Your best alternative — it decides how firm you can be'),
+    ('bottom', 'Your bottom line', 'Below this, you\'d rather walk away'),
+    ('they_care', 'What do they care about?', 'Their pressures, goals, constraints'),
+    ('first_offer', 'Your first offer', 'Ambitious and justifiable'),
+    ('why', 'Why it\'s fair', 'The reason you\'ll give for it'),
+    ('give', 'What you could give', 'Things cheap for you, valuable to them'),
+    ('questions', 'Questions to ask', 'To learn what they need'),
+  ];
+
+  static const negotiationOutcomes = {
+    'better': 'Better than my first offer',
+    'met': 'About my first offer',
+    'less': 'Less, but above my bottom line',
+    'none': 'No deal',
+  };
+
+  List<LogEntry> get negotiations => logsOf('negotiation');
+
+  LogEntry? saveNegotiation({String? id, required String about, Map<String, String> fields = const {}}) {
+    if (about.trim().isEmpty) return null;
+    final data = {
+      for (final f in negotiationFields) f.$1: (fields[f.$1] ?? '').trim(),
+    };
+    final existing = id == null ? null : negotiations.where((l) => l.id == id).firstOrNull;
+    if (existing == null) {
+      return addLog('negotiation', text: about.trim(), data: {...data, 'status': 'planned'});
+    }
+    final updated = existing.copyWith(text: about.trim(), data: {...existing.data, ...data});
+    updateLog(updated);
+    return updated;
+  }
+
+  /// How it went, against the first offer, and one lesson.
+  void closeNegotiation(String id, {required String outcome, String lesson = ''}) {
+    final l = negotiations.where((x) => x.id == id).firstOrNull;
+    if (l == null || !negotiationOutcomes.containsKey(outcome)) return;
+    updateLog(l.copyWith(data: {
+      ...l.data,
+      'status': 'done',
+      'outcome': outcome,
+      'lesson': lesson.trim(),
+      'closed_on': dateKey(_now),
+    }));
+  }
+
   LogEntry? saveConversation({
     String? id,
     required String withWhom,
@@ -7445,6 +7495,9 @@ class PersonalSystemProvider extends ChangeNotifier {
         add(a, 'result', '${a.text} — ${a.str('result')}',
             'Advice${(a.str('from') ?? '').isEmpty ? '' : ' from ${a.str('from')}'}');
       }
+    }
+    for (final g in negotiations) {
+      add(g, 'lesson', g.str('lesson') ?? '', 'Negotiation · ${g.text}');
     }
     for (final y in logsOf('year_review')) {
       add(y, 'learned', y.str('learned') ?? '', 'Year ${y.number('year') ?? y.date.year} review');
