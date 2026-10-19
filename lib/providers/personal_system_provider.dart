@@ -2081,6 +2081,34 @@ class PersonalSystemProvider extends ChangeNotifier {
               l.type == type && !l.date.isBefore(from) && l.date.isBefore(to))
           .length;
 
+  // ── Savouring ────────────────────────────────────────────────────────
+
+  /// The wins of the week starting [week], newest first.
+  List<LogEntry> winsInWeek(DateTime week) {
+    final from = weekStartOf(week), to = weekStartOf(week).plusDays(7);
+    return [
+      for (final w in logsOf('win'))
+        if (!w.date.isBefore(from) && w.date.isBefore(to)) w
+    ];
+  }
+
+  /// Stay with one good thing: what made it good and, if you shared it,
+  /// who you told. Savouring and telling others both deepen the good
+  /// (savouring RCTs, 2026 meta-analysis; Gable et al. 2004).
+  void savourWin(LogEntry win, {required String good, String told = ''}) {
+    final w = logsOf('win').where((x) => x.id == win.id).firstOrNull;
+    if (w == null || good.trim().isEmpty) return;
+    updateLog(w.copyWith(data: {
+      ...w.data,
+      'savoured': good.trim(),
+      'told': told.trim(),
+    }));
+  }
+
+  /// The win of that week you stayed with, if any.
+  LogEntry? savouredInWeek(DateTime week) =>
+      winsInWeek(week).where((w) => (w.str('savoured') ?? '').isNotEmpty).firstOrNull;
+
   // ── Protocol uses & mastery ──────────────────────────────────────────
 
   /// Log one use of a protocol and tick the Daily 10 item it satisfies.
@@ -7250,7 +7278,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     String line(LogEntry l) {
       String f(String k) => (l.str(k) ?? '').trim();
       return switch (l.type) {
-        'win' => 'Win: ${l.text}${f('why').isEmpty ? '' : ' (why: ${f('why')})'}',
+        'win' => 'Win: ${l.text}${f('why').isEmpty ? '' : ' (why: ${f('why')})'}${f('savoured').isEmpty ? '' : '\n  What made it good: ${f('savoured')}'}${f('told').isEmpty ? '' : '\n  Told: ${f('told')}'}',
         'rep' => 'Practice — ${f('drill')}: ${l.text}${f('noticed').isEmpty ? '' : '\n  Noticed: ${f('noticed')}'}${f('lesson').isEmpty ? '' : '\n  Lesson: ${f('lesson')}'}',
         'note' => 'Note: ${l.text}',
         'feynman' => 'From memory (${f('book')}): ${l.text}',

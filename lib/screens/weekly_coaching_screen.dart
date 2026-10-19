@@ -127,6 +127,7 @@ class _WeeklyCoachingScreenState extends State<WeeklyCoachingScreen> {
             ].join(' · '),
             onChanged: (v) => system.setDone('reset:${dateKey(week)}', v),
           ),
+          _Savour(week: week),
           const SizedBox(height: 6),
           PrimaryButton(
             system.isGeneratingBrief ? 'Writing your brief…' : 'Send report → get brief',
@@ -334,6 +335,98 @@ class _WeekReview extends StatelessWidget {
                 ? 'Next week\'s three are set — review'
                 : 'Plan next week\'s three'),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Once a week, stay with one good thing for a minute: what made it good,
+/// and who you told. Optional; nothing is scored.
+class _Savour extends StatefulWidget {
+  final DateTime week;
+  const _Savour({required this.week});
+
+  @override
+  State<_Savour> createState() => _SavourState();
+}
+
+class _SavourState extends State<_Savour> {
+  final _good = TextEditingController();
+  final _told = TextEditingController();
+  String? _picked;
+
+  @override
+  void dispose() {
+    _good.dispose();
+    _told.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final system = context.watch<PersonalSystemProvider>();
+    final wins = system.winsInWeek(widget.week).take(5).toList();
+    if (wins.isEmpty) return const SizedBox.shrink();
+    final done = system.savouredInWeek(widget.week);
+    if (done != null) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 6, bottom: 6),
+        child: Text('You stayed with: ${done.text} — ${done.str('savoured')}',
+            style: AppText.small(color: AppColors.body)),
+      );
+    }
+    final picked = wins.where((w) => w.id == _picked).firstOrNull;
+    return Padding(
+      padding: const EdgeInsets.only(top: 6, bottom: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Stay with one good thing (optional)', style: AppText.heading()),
+          Text('Pick one of this week\'s wins and give it a minute.', style: AppText.small()),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              for (final w in wins)
+                ChoiceChip(
+                  label: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 220),
+                    child: Text(w.text, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  ),
+                  selected: _picked == w.id,
+                  onSelected: (_) => setState(() => _picked = w.id),
+                ),
+            ],
+          ),
+          if (picked != null) ...[
+            const SizedBox(height: 8),
+            TextField(
+              key: const Key('savour-good'),
+              controller: _good,
+              minLines: 1,
+              maxLines: 4,
+              style: AppText.body(color: AppColors.white),
+              decoration: const InputDecoration(
+                  labelText: 'What made it good?', hintText: 'Where you were, who was there, how it felt'),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _told,
+              style: AppText.body(color: AppColors.white),
+              decoration: const InputDecoration(labelText: 'Who did you tell? (optional)'),
+            ),
+            const SizedBox(height: 8),
+            GhostButton('Keep it', key: const Key('savour-keep'), icon: Icons.check_rounded, onPressed: () {
+              if (_good.text.trim().isEmpty) {
+                toast(context, 'Write what made it good first.');
+                return;
+              }
+              system.savourWin(picked, good: _good.text, told: _told.text);
+              FocusScope.of(context).unfocus();
+            }),
+          ],
         ],
       ),
     );

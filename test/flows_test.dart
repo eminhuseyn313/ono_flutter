@@ -670,4 +670,17 @@ void main() {
     await _go(tester, '/people');
     await _reach(tester, find.text('Remembered'));
   });
+
+  testWidgets('savour: stay with one of the week\'s wins in the Sunday report', (tester) async {
+    final system = await _start(tester);
+    system.addLog('win', date: system.reportWeekFor(DateTime.now()).plusDays(1), text: 'Finished the hardest chapter of the thesis draft, at last, before the deadline');
+    await _go(tester, '/weekly-coaching');
+    await _tap(tester, find.textContaining('Finished the hardest chapter'));
+    await _type(tester, 'What made it good?', 'Quiet morning, it finally clicked');
+    await _tap(tester, find.byKey(const Key('savour-keep')));
+    final w = system.logsOf('win').single;
+    expect(w.str('savoured'), 'Quiet morning, it finally clicked');
+    expect(find.textContaining('You stayed with'), findsOneWidget);
+    expect(system.journalText(), contains('What made it good: Quiet morning'));
+  });
 }

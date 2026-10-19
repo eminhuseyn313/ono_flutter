@@ -199,7 +199,7 @@ Ranked by value for effort. Effect sizes marked (abstract) were read from abstra
 |---|---|---|---|
 | O1 | **Someone you lost**: stop nudging about a person who has died; a place to remember them | Web grief interventions, meta-analysis 2025: grief SMD −0.30 (abstract); structured writing works best (Wagner et al. 2020) | Built: `/remember`, "Remember them" |
 | O2 | **Load check** (burnout before the crash): one item a month, where the load comes from | Single-item burnout measure r ≈ 0.8 with exhaustion (Dolan et al. 2015; Hansen & Pit 2016); prevention evidence mixed | Proposed |
-| O3 | **Savour a good thing**: once a week, stay with one win; who you told | Savouring RCTs meta-analysis 2026, g = 0.51 (abstract); capitalization (Gable et al. 2004) | Proposed |
+| O3 | **Savour a good thing**: once a week, stay with one win; who you told | Savouring RCTs meta-analysis 2026, g = 0.51 (abstract); capitalization (Gable et al. 2004) | Built: Sunday report |
 | O4 | **Your tools first**: fight tool overload | App engagement meta-analysis (JAMA Psychiatry 2025): retention, not uptake, is the failure | Built: Me groups fold, "Used lately" |
 | O5 | **Something changed** (moving, new job, baby, breakup): 90 days of re-cueing | Habit discontinuity (Verplanken & Roy 2016) | Proposed |
 | O6 | **Giving time**: contribution beyond your circle, inside kindness | Volunteering and mortality in cohorts (Okun et al. 2013; Jenkinson et al. 2013); RCT in teens (Schreier et al. 2013) | Proposed |
