@@ -51,11 +51,14 @@ class NegotiationsScreen extends StatelessWidget {
         if (done.isNotEmpty) ...[
           const SectionHeader('Behind you'),
           for (final l in done.take(12))
-            Padding(
-              padding: const EdgeInsets.only(bottom: 6),
+            InkWell(
+              onTap: () => _open(context, l),
+              child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
               child: Text(
                   '${l.text} · ${PersonalSystemProvider.negotiationOutcomes[l.str('outcome')] ?? ''}${(l.str('lesson') ?? '').isEmpty ? '' : ' — ${l.str('lesson')}'}',
                   style: AppText.small(color: AppColors.white)),
+            ),
             ),
         ],
         const SizedBox(height: 16),
@@ -78,8 +81,8 @@ class _NegotiationEditScreenState extends State<NegotiationEditScreen> {
     for (final f in PersonalSystemProvider.negotiationFields)
       f.$1: TextEditingController(text: widget.entry?.str(f.$1) ?? ''),
   };
-  final _lesson = TextEditingController();
-  String? _outcome;
+  late final _lesson = TextEditingController(text: widget.entry?.str('lesson') ?? '');
+  late String? _outcome = widget.entry?.str('outcome');
   int _saves = 0;
 
   @override
@@ -99,7 +102,8 @@ class _NegotiationEditScreenState extends State<NegotiationEditScreen> {
   @override
   Widget build(BuildContext context) {
     final system = context.read<PersonalSystemProvider>();
-    final planned = widget.entry != null && widget.entry!.str('status') != 'done';
+    final existing = widget.entry != null;
+    final done = widget.entry?.str('status') == 'done';
     return UnsavedGuard(
       changesOnly: true,
       saves: _saves,
@@ -136,7 +140,7 @@ class _NegotiationEditScreenState extends State<NegotiationEditScreen> {
                 decoration: InputDecoration(labelText: f.$2, hintText: f.$3),
               ),
             ),
-          if (planned) ...[
+          if (existing) ...[
             const SectionHeader('Afterwards: how did it go?'),
             Wrap(
               spacing: 6,
@@ -159,17 +163,35 @@ class _NegotiationEditScreenState extends State<NegotiationEditScreen> {
               decoration: const InputDecoration(hintText: 'One lesson for next time'),
             ),
             const SizedBox(height: 8),
-            GhostButton('It happened — close it', icon: Icons.flag_outlined, onPressed: () {
+            GhostButton(done ? 'Save how it went' : 'It happened — close it', icon: Icons.flag_outlined, onPressed: () {
               if (_outcome == null) {
                 toast(context, 'Choose how it went.');
                 return;
               }
-              _save(system);
+              if (_save(system) == null) {
+                toast(context, 'Say what it\'s about first.');
+                return;
+              }
               system.closeNegotiation(widget.entry!.id, outcome: _outcome!, lesson: _lesson.text);
               setState(() => _saves++);
               toast(context, 'Closed. The lesson is in your playbook.');
               Navigator.of(context).pop();
             }),
+            TextButton(
+              onPressed: () {
+                final entry = widget.entry!;
+                system.removeLog(entry.id);
+                final messenger = ScaffoldMessenger.of(context);
+                Navigator.of(context).pop();
+                messenger
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(SnackBar(
+                    content: const Text('Deleted.'),
+                    action: SnackBarAction(label: 'Undo', onPressed: () => system.restoreLog(entry)),
+                  ));
+              },
+              child: const Text('Delete this negotiation'),
+            ),
           ],
           const SizedBox(height: 16),
         ],

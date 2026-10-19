@@ -68,7 +68,8 @@ class _CockpitScreenState extends State<CockpitScreen> {
   /// A drafted agenda to edit and copy — managing up with real data.
   void _agenda(BuildContext context, PersonalSystemProvider system) {
     final who = TextEditingController(text: activeProfile.manager);
-    final text = TextEditingController(text: system.oneOnOneAgenda(who.text));
+    var drafted = system.oneOnOneAgenda(who.text);
+    final text = TextEditingController(text: drafted);
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -86,7 +87,13 @@ class _CockpitScreenState extends State<CockpitScreen> {
                 controller: who,
                 style: AppText.body(color: AppColors.white),
                 decoration: const InputDecoration(labelText: 'With'),
-                onChanged: (v) => text.text = system.oneOnOneAgenda(v),
+                // Rewritten only while it's still the untouched draft.
+                onChanged: (v) {
+                  if (text.text == drafted) {
+                    drafted = system.oneOnOneAgenda(v);
+                    text.text = drafted;
+                  }
+                },
               ),
               const SizedBox(height: 8),
               TextField(

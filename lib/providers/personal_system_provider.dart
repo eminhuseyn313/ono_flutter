@@ -1345,11 +1345,14 @@ class PersonalSystemProvider extends ChangeNotifier {
               source: 'goal',
             ),
         for (final a in logsOf('aar').reversed)
-          if ((a.str('improve') ?? '').trim().isNotEmpty)
+          if ((a.str('improve') ?? '').trim().isNotEmpty || (a.str('friend') ?? '').trim().isNotEmpty)
             StudyCard(
               'aar:${a.id}',
               'Next time — ${a.text}: what will you do differently?',
-              '${a.str('improve')!.trim()}${(a.str('friend') ?? '').trim().isEmpty ? '' : '\n\nWhat you\'d tell a friend: ${a.str('friend')!.trim()}'}',
+              [
+                if ((a.str('improve') ?? '').trim().isNotEmpty) a.str('improve')!.trim(),
+                if ((a.str('friend') ?? '').trim().isNotEmpty) 'What you\'d tell a friend: ${a.str('friend')!.trim()}',
+              ].join('\n\n'),
               source: 'aar',
             ),
         for (final v in values)
@@ -1506,7 +1509,9 @@ class PersonalSystemProvider extends ChangeNotifier {
     final who = withWhom.trim();
     final today = dayOnly(_now);
     final outcomes = weekOutcomes(today);
-    bool forThem(String? s) => who.isNotEmpty && (s ?? '').toLowerCase().contains(who.toLowerCase());
+    // Whole words only: "Ann" must not match "Joanna".
+    final whole = RegExp('\\b${RegExp.escape(who)}\\b', caseSensitive: false);
+    bool forThem(String? s) => who.isNotEmpty && whole.hasMatch(s ?? '');
     final owed = [for (final f in openFollowUps) if (forThem(f.withWhom)) f.text];
     final asked = [for (final a in openAsks) if (forThem(a.str('of'))) a.text];
     final b = StringBuffer('1:1${who.isEmpty ? '' : ' with $who'} — ${dateKey(today)}\n');
@@ -1838,7 +1843,12 @@ class PersonalSystemProvider extends ChangeNotifier {
     final w = wakeTimesInWeek(anyDay);
     if (w.length < 3) return null;
     w.sort();
-    return w.last - w.first;
+    // On the 24-hour clock: 23:40 and 00:20 are 40 minutes apart.
+    var gap = w.first + 1440 - w.last;
+    for (var i = 1; i < w.length; i++) {
+      if (w[i] - w[i - 1] > gap) gap = w[i] - w[i - 1];
+    }
+    return 1440 - gap;
   }
 
   /// Sleep rules to adopt as daily items, each with its cue. Behavioural
@@ -5537,22 +5547,43 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// what you value, not only naming it (values-consistent action, Tunç
   /// et al. 2023). (value, act, done — null until asked).
   ({String value, String act, bool? done})? valueAct(DateTime anyDay) {
-    final d = _weekValues(anyDay);
+    // Its own record (older ones lived on the week's values check).
+    final own = logsOn(weekStartOf(anyDay), 'value_act');
+    final d = own.isEmpty ? _weekValues(anyDay) : own.last.data;
     final act = '${d['act'] ?? ''}'.trim();
     if (act.isEmpty) return null;
     return (value: '${d['act_value'] ?? ''}', act: act, done: d['act_done'] as bool?);
   }
 
-  void setValueAct(DateTime anyDay, {required String value, required String act}) =>
-      _upsertDayLog('values_check', weekStartOf(anyDay), {
-        ..._weekValues(anyDay),
-        'act_value': value,
-        'act': act.trim(),
-      });
+  Map<String, dynamic> _actData(DateTime anyDay) {
+    final own = logsOn(weekStartOf(anyDay), 'value_act');
+    return own.isEmpty ? {} : {...own.last.data};
+  }
+
+  /// Plans (or changes) the week's act; an empty act clears it.
+  void setValueAct(DateTime anyDay, {required String value, required String act}) {
+    if (act.trim().isEmpty) {
+      for (final l in logsOn(weekStartOf(anyDay), 'value_act')) {
+        removeLog(l.id);
+      }
+      return;
+    }
+    _upsertDayLog('value_act', weekStartOf(anyDay), {
+      ..._actData(anyDay),
+      'act_value': value,
+      'act': act.trim(),
+    });
+  }
 
   void markValueAct(DateTime anyDay, bool done) {
-    if (valueAct(anyDay) == null) return;
-    _upsertDayLog('values_check', weekStartOf(anyDay), {..._weekValues(anyDay), 'act_done': done});
+    final a = valueAct(anyDay);
+    if (a == null) return;
+    _upsertDayLog('value_act', weekStartOf(anyDay), {
+      ..._actData(anyDay),
+      'act_value': a.value,
+      'act': a.act,
+      'act_done': done,
+    });
   }
 
   /// The value this week reflected least, if checked and below 4.
@@ -5993,7 +6024,8 @@ class PersonalSystemProvider extends ChangeNotifier {
                 l.id != id &&
                 !((l.type == 'touch' || l.type == 'help') && l.str('person') == id) &&
                 // Care you kept for them goes with them.
-                !(l.type == 'upkeep' && l.str('for') == id))
+                !(l.type == 'upkeep' && l.str('for') == id) &&
+                !(l.type == 'visible' && l.str('person') == id))
             .toList()));
   }
 
@@ -7558,7 +7590,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// Roles nobody fills yet (empty until someone is on the board).
   List<String> get boardGaps {
     final b = board;
-    if (b.values.every((v) => v.isEmpty)) return const [];
+    if (b.entries.every((e) => e.key == 'decider' || e.value.isEmpty)) return const [];
     // Deciders aren't a development role: no gap when there are none.
     return [for (final e in b.entries) if (e.value.isEmpty && e.key != 'decider') e.key];
   }

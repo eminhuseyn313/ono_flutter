@@ -3771,4 +3771,24 @@ void main() {
     expect(agenda, contains('Budget for research'));
     expect(agenda, contains('My one ask'));
   });
+
+  test('review fixes: whole-name agenda, circular wake spread, decider-only board', () async {
+    final p = await _commissioned();
+    p.addAsk(what: 'Budget for Natalia', of: 'Natalia');
+    expect(p.oneOnOneAgenda('Ali'), isNot(contains('Natalia')));
+    final mon = weekStartOf(_today);
+    for (final (d, h, m) in [(0, 23, 40), (1, 0, 20), (2, 0, 0)]) {
+      p.addLog('sleep', date: mon.plusDays(d), data: {'wake': DateTime(2026, 1, 1, h, m).toIso8601String()});
+    }
+    expect(p.wakeSpread(_today), 40);
+    final boss = p.addPerson('Farid', role: 'Manager', every: 7);
+    p.setBoardRoles(boss, ['decider']);
+    expect(p.boardGaps, isEmpty);
+    p.setValueAct(_today, value: 'Family', act: 'Call Dad');
+    p.saveValuesCheck(_today, {'Family': 3});
+    expect(p.valueAct(_today)!.act, 'Call Dad');
+    p.setValueAct(_today, value: 'Family', act: '');
+    expect(p.valueAct(_today), isNull);
+    expect(p.valuesCheck(_today), {'Family': 3});
+  });
 }

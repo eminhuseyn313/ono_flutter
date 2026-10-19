@@ -14,7 +14,7 @@ class SleepScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
-    final now = DateTime.now();
+    final now = system.logicalToday;
     final spread = system.wakeSpread(now);
     final week = system.checkinsEnding(now, 7);
     final sleep = system.averageOf(week, 'sleep');
@@ -45,6 +45,8 @@ class SleepScreen extends StatelessWidget {
             style: AppText.small()),
         const SectionHeader('Rules that work'),
         for (final r in system.sleepRules)
+          // The built-in plan already has its caffeine item.
+          if (!(r.title.startsWith('No caffeine') && system.dailyItems.any((d) => d.id == 'caffeine')))
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: OnoCard(

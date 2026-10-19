@@ -182,7 +182,12 @@ class _ReviewScreenState extends State<ReviewScreen> {
             alignment: Alignment.centerLeft,
             child: TextButton(
               key: const Key('review-just-five'),
-              onPressed: () => setState(() => _queue = _queue.take(5).toList()),
+              // Most overdue across all sources, not the mixed order.
+              onPressed: () => setState(() => _queue = (_queue.toList()
+                    ..sort((a, b) => (context.read<PersonalSystemProvider>().scheduleOf(a.id)?.due ?? DateTime(2100))
+                        .compareTo(context.read<PersonalSystemProvider>().scheduleOf(b.id)?.due ?? DateTime(2100))))
+                  .take(5)
+                  .toList()),
               child: const Text('Busy day? Just the 5 most overdue'),
             ),
           ),

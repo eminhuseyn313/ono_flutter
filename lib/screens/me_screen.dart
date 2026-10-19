@@ -247,9 +247,9 @@ class MeScreen extends StatelessWidget {
                 icon: Icons.bedtime_outlined,
                 color: AppColors.body,
                 title: 'Steady sleep',
-                subtitle: system.wakeSpread(DateTime.now()) == null
+                subtitle: system.wakeSpread(system.logicalToday) == null
                     ? 'One wake time and a few rules that work'
-                    : 'Wake times within ${system.wakeSpread(DateTime.now())} min this week',
+                    : 'Wake times within ${system.wakeSpread(system.logicalToday)} min this week',
                 onTap: () => context.push('/sleep'),
               ),
             ],

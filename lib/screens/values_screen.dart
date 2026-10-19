@@ -246,7 +246,7 @@ class _WeekCheck extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
-    final now = DateTime.now();
+    final now = system.logicalToday;
     final ratings = system.valuesCheck(now);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -319,8 +319,18 @@ class _WeekCheck extends StatelessWidget {
         ],
         const SizedBox(height: 12),
         if (system.valueAct(now) case final act?)
-          Text('This week: ${act.act}${act.value.isEmpty ? '' : ' — an act of ${act.value}'}',
-              style: AppText.body(color: AppColors.white))
+          Row(
+            children: [
+              Expanded(
+                child: Text('This week: ${act.act}${act.value.isEmpty ? '' : ' — an act of ${act.value}'}',
+                    style: AppText.body(color: AppColors.white)),
+              ),
+              TextButton(
+                onPressed: () => _planAct(context, system, now, act: act.act, value: act.value),
+                child: const Text('Change'),
+              ),
+            ],
+          )
         else
           GhostButton('Plan one small act of a value this week',
               key: const Key('value-act-plan'),
@@ -331,9 +341,10 @@ class _WeekCheck extends StatelessWidget {
   }
 
   /// One small, concrete act of one value, for this week.
-  void _planAct(BuildContext context, PersonalSystemProvider system, DateTime now) {
-    final act = TextEditingController();
-    var value = system.valueGap(now) ?? system.values.first.name;
+  void _planAct(BuildContext context, PersonalSystemProvider system, DateTime now,
+      {String act0 = '', String value0 = '', String? act, String? value}) {
+    final actC = TextEditingController(text: act ?? act0);
+    var chosen = (value ?? value0).isNotEmpty ? (value ?? value0) : system.valueGap(now) ?? system.values.first.name;
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -355,24 +366,32 @@ class _WeekCheck extends StatelessWidget {
                     for (final v in system.values)
                       ChoiceChip(
                         label: Text(v.name),
-                        selected: value == v.name,
-                        onSelected: (_) => setSheet(() => value = v.name),
+                        selected: chosen == v.name,
+                        onSelected: (_) => setSheet(() => chosen = v.name),
                       ),
                   ],
                 ),
                 const SizedBox(height: 10),
                 TextField(
                   key: const Key('value-act-text'),
-                  controller: act,
+                  controller: actC,
                   style: AppText.body(color: AppColors.white),
                   decoration: const InputDecoration(hintText: 'Small and concrete — e.g. call Dad on Wednesday'),
                 ),
                 const SizedBox(height: 12),
                 PrimaryButton('Save', icon: Icons.check_rounded, onPressed: () {
-                  if (act.text.trim().isEmpty) return;
-                  system.setValueAct(now, value: value, act: act.text);
+                  if (actC.text.trim().isEmpty) return;
+                  system.setValueAct(now, value: chosen, act: actC.text);
                   Navigator.of(ctx).pop();
                 }),
+                if (act != null)
+                  TextButton(
+                    onPressed: () {
+                      system.setValueAct(now, value: chosen, act: '');
+                      Navigator.of(ctx).pop();
+                    },
+                    child: const Text('Clear this week\'s act'),
+                  ),
               ],
             ),
           ),
