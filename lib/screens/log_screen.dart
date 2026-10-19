@@ -671,7 +671,7 @@ class _EntryRow extends StatelessWidget {
       case 'help':
         return '${e.str('name')}: ${e.text}';
       case 'move':
-        return '${PersonalSystemProvider.moveKinds[e.str('kind')] ?? e.str('kind')} · ${e.number('minutes')} min${e.data['vigorous'] == true ? ' · vigorous' : ''}';
+        return '${PersonalSystemProvider.moveKinds[e.str('kind')] ?? e.str('kind')} · ${e.number('minutes')} min${e.data['vigorous'] == true ? ' · vigorous' : ''}${e.data['outside'] == true ? ' · outside' : ''}';
       case 'hard_day':
         return PersonalSystemProvider.hardDayKinds[e.str('kind')] ?? 'Hard day';
       case 'wheel':

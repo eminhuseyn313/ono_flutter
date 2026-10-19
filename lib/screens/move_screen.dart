@@ -20,6 +20,7 @@ class _MoveScreenState extends State<MoveScreen> {
   int _minutes = 30;
   bool _vigorous = false;
   bool _yesterday = false;
+  bool _outside = false;
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +56,11 @@ class _MoveScreenState extends State<MoveScreen> {
             color: AppColors.body,
           ),
         ),
+        if (system.outsideMinutesInWeek(now) > 0) ...[
+          const SizedBox(height: 8),
+          Text('${system.outsideMinutesInWeek(now)} min of it outside. About two hours a week outdoors goes with feeling better.',
+              key: const Key('move-outside'), style: AppText.small()),
+        ],
         const SectionHeader('Log it'),
         Wrap(
           spacing: 6,
@@ -88,6 +94,18 @@ class _MoveScreenState extends State<MoveScreen> {
           title: Text('Vigorous', style: AppText.body(color: AppColors.white)),
           subtitle: Text('Too out of breath to talk in full sentences', style: AppText.small()),
         ),
+        SwitchListTile(
+          key: const Key('move-outside-switch'),
+          contentPadding: EdgeInsets.zero,
+          value: _outside,
+          onChanged: (v) => setState(() => _outside = v),
+          title: Text('Outside', style: AppText.body(color: AppColors.white)),
+          subtitle: Text(
+              _outside && _kind == 'walk'
+                  ? 'An awe walk: look for one thing bigger or older than your worries.'
+                  : 'In a park, by the sea, on a trail',
+              style: AppText.small()),
+        ),
         Segmented(
           labels: const ['Today', 'Yesterday'],
           index: _yesterday ? 1 : 0,
@@ -96,7 +114,9 @@ class _MoveScreenState extends State<MoveScreen> {
         const SizedBox(height: 10),
         PrimaryButton('Log $_minutes min', icon: Icons.add_rounded, onPressed: () {
           system.logMove(_kind, _minutes,
-              vigorous: _vigorous, day: _yesterday ? dayOnly(now).minusDays(1) : null);
+              vigorous: _vigorous,
+              outside: _outside,
+              day: _yesterday ? dayOnly(now).minusDays(1) : null);
           toast(context, 'Logged.');
         }),
         if (week.isNotEmpty) ...[

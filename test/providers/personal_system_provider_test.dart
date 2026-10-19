@@ -3609,4 +3609,13 @@ void main() {
     p.setDone(p.onThisDaySeenKey(today), true);
     expect(p.onThisDay(today), isNull);
   });
+
+  test('time outside: minutes as logged, only moves marked outside', () async {
+    final p = await _commissioned();
+    p.logMove('walk', 40, outside: true);
+    p.logMove('run', 20, vigorous: true, outside: true);
+    p.logMove('strength', 30);
+    expect(p.outsideMinutesInWeek(_today), 60);
+    expect(p.moveMinutesInWeek(_today), 40 + 40 + 30);
+  });
 }

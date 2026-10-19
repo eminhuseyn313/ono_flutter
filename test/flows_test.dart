@@ -571,4 +571,15 @@ void main() {
     expect(l.str('kind'), 'You were stretched thin; ask for a day.');
     expect(system.journalText(), contains('Was on my own side about: I missed the deadline'));
   });
+
+  testWidgets('after a focus block: a walk break, logged as movement',
+      (tester) async {
+    final system = await _start(tester);
+    await _go(tester, '/focus');
+    await _tap(tester, find.textContaining('Already did a'));
+    await _reach(tester, find.byKey(const Key('focus-break')));
+    await _tap(tester, find.text('I walked'));
+    expect(system.movesInWeek(DateTime.now()).single.number('minutes'), 3);
+    expect(find.byKey(const Key('focus-break')), findsNothing);
+  });
 }

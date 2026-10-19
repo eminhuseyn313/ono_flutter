@@ -3583,12 +3583,23 @@ class PersonalSystemProvider extends ChangeNotifier {
   static const weeklyMoveTarget = 150;
   static const weeklyStrengthDays = 2;
 
-  LogEntry? logMove(String kind, int minutes, {bool vigorous = false, DateTime? day}) =>
+  LogEntry? logMove(String kind, int minutes,
+          {bool vigorous = false, bool outside = false, DateTime? day}) =>
       minutes <= 0
           ? null
-          : addLog('move',
-              date: day == null ? null : dayOnly(day),
-              data: {'kind': kind, 'minutes': minutes, 'vigorous': vigorous});
+          : addLog('move', date: day == null ? null : dayOnly(day), data: {
+              'kind': kind,
+              'minutes': minutes,
+              'vigorous': vigorous,
+              if (outside) 'outside': true,
+            });
+
+  /// Minutes moved outside this week (as logged, not doubled). Two hours
+  /// a week in nature goes with better health and wellbeing (White et al.
+  /// 2019 — an association, so it's shown, never set as a target).
+  int outsideMinutesInWeek(DateTime anyDay) => movesInWeek(anyDay)
+      .where((l) => l.data['outside'] == true)
+      .fold<int>(0, (s, l) => s + (l.number('minutes') ?? 0).toInt());
 
   List<LogEntry> movesInWeek(DateTime anyDay) {
     final from = weekStartOf(anyDay), to = from.plusDays(7);

@@ -29,8 +29,14 @@ class _FocusScreenState extends State<FocusScreen> {
     return h == h.roundToDouble() ? '${h.toInt()}' : h.toStringAsFixed(1);
   }
 
+  /// After a block: break the sitting before the next one.
+  bool _breakDue = false;
+
   void _log(PersonalSystemProvider system, {required bool timed}) {
-    setState(() => _toRate = system.logFocus(_minutes, _target!)?.id);
+    setState(() {
+      _toRate = system.logFocus(_minutes, _target!)?.id;
+      _breakDue = _minutes >= 25;
+    });
     toast(context,
         timed ? 'Block done — $_minutes min logged.' : '$_minutes min logged.');
   }
@@ -113,6 +119,39 @@ class _FocusScreenState extends State<FocusScreen> {
                   ),
                 ),
             ],
+          ),
+        ],
+        if (_breakDue) ...[
+          const SizedBox(height: 12),
+          OnoCard(
+            key: const Key('focus-break'),
+            accent: AppColors.body,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Stand up and walk for three minutes',
+                    style: AppText.heading()),
+                Text('Breaking long sitting with a short walk does more than standing (Buffey et al. 2022).',
+                    style: AppText.small()),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => setState(() => _breakDue = false),
+                      child: const Text('Not now'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        system.logMove('walk', 3);
+                        setState(() => _breakDue = false);
+                        toast(context, 'Walked. Back when you\'re ready.');
+                      },
+                      child: const Text('I walked'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
         const SectionHeader('On'),
