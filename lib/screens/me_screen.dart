@@ -150,7 +150,7 @@ class MeScreen extends StatelessWidget {
                             color: heatColor(s),
                             borderRadius: BorderRadius.circular(2)),
                       ),
-                    Text('more · Daily ${system.dailyCount}',
+                    Text('more · your daily list',
                         style: AppText.small().copyWith(fontSize: 11)),
                   ],
                 ),

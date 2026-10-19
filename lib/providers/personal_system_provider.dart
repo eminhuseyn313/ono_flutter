@@ -1111,7 +1111,8 @@ class PersonalSystemProvider extends ChangeNotifier {
         if (!today.minusDays(i).isBefore(journeyStart)) today.minusDays(i)
     ];
     final counted = [for (final d in days) if (!isExcused(d) && !isPaused(d)) d];
-    if (counted.length < 7) return null;
+    // Nothing ticked yet: no verdict on a list they haven't started.
+    if (counted.length < 7 || firstTickDay == null) return null;
     final held = counted.where(isHeld).length;
     final rates = itemRates(counted).entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));

@@ -675,7 +675,9 @@ class _ModeCard extends StatelessWidget {
           title: done ? 'Report sent — read your brief' : 'Five answers',
           body: done
               ? 'Next week\'s plan is pinned to Today from Monday.'
-              : 'Daily 10 average and gym count fill themselves. Your brief for next week comes back immediately.',
+              : system.isBuiltInPerson
+                  ? 'Daily 10 average and gym count fill themselves. Your brief for next week comes back immediately.'
+                  : 'Your daily average fills itself. A short plan for next week comes back straight away.',
           cta: done ? 'Open the brief' : 'Write the report',
           route: '/weekly-coaching',
         );
