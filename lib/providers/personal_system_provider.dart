@@ -1181,19 +1181,33 @@ class PersonalSystemProvider extends ChangeNotifier {
     return l.isEmpty ? null : l.last;
   }
 
-  /// One check-in per day; saving again replaces it.
+  /// Words for a feeling, by how pleasant and how energetic (the mood
+  /// meter): naming a feeling precisely calms it (Lieberman et al. 2007).
+  static const feelingWords = {
+    'Unpleasant, high energy': ['Stressed', 'Anxious', 'Frustrated', 'Angry'],
+    'Unpleasant, low energy': ['Tired', 'Sad', 'Lonely', 'Drained'],
+    'Pleasant, high energy': ['Excited', 'Energised', 'Proud', 'Hopeful'],
+    'Pleasant, low energy': ['Calm', 'Content', 'Grateful', 'Relaxed'],
+  };
+
+  static const maxFeelings = 2;
+
+  /// One check-in per day; saving again replaces it. [feelings] are up to
+  /// [maxFeelings] words, optional.
   void saveCheckin(DateTime date,
       {required int energy,
       required int mood,
       required double sleep,
       required int pain,
-      required int stiffness}) {
+      required int stiffness,
+      List<String> feelings = const []}) {
     final data = {
       'energy': energy,
       'mood': mood,
       'sleep': sleep,
       'pain': pain,
       'stiffness': stiffness,
+      if (feelings.isNotEmpty) 'feelings': feelings.take(maxFeelings).toList(),
     };
     final existing = checkinFor(date);
     if (existing != null) {
@@ -1209,6 +1223,21 @@ class PersonalSystemProvider extends ChangeNotifier {
       addLog('checkin', date: date, data: data);
     }
     if (dateKey(date) == dateKey(_now)) _syncReminders();
+  }
+
+  /// The feeling words named in check-ins over the last [days], most
+  /// named first.
+  List<(String, int)> feelingsNamed({int days = 30}) {
+    final from = dayOnly(_now).minusDays(days - 1);
+    final count = <String, int>{};
+    for (final c in logsOf('checkin')) {
+      if (c.date.isBefore(from)) continue;
+      for (final f in (c.data['feelings'] as List? ?? const [])) {
+        count['$f'] = (count['$f'] ?? 0) + 1;
+      }
+    }
+    return [for (final e in count.entries) (e.key, e.value)]
+      ..sort((a, b) => b.$2.compareTo(a.$2));
   }
 
   /// Shoulders need sparing today: pain ≥ 5/10 or morning stiffness of

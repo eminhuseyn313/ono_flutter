@@ -3584,4 +3584,16 @@ void main() {
     expect(p.upkeep.single.data.keys.toSet(), containsAll({'expires', 'kind'}));
     expect(p.addUpkeep('Haircut', 0, kind: 'grooming'), isNull, reason: 'non-documents need an interval');
   });
+
+  test('check-in feelings: up to two words, counted over the month', () async {
+    final p = await _commissioned();
+    p.saveCheckin(dayOnly(_today), energy: 2, mood: -1, sleep: 6, pain: 0, stiffness: 0,
+        feelings: const ['Tired', 'Stressed', 'Sad']);
+    expect((p.checkinFor(dayOnly(_today))!.data['feelings'] as List).length, 2);
+    p.saveCheckin(dayOnly(_today).minusDays(1), energy: 4, mood: 1, sleep: 8, pain: 0, stiffness: 0,
+        feelings: const ['Tired']);
+    expect(p.feelingsNamed().first, ('Tired', 2));
+    p.saveCheckin(dayOnly(_today).minusDays(2), energy: 4, mood: 1, sleep: 8, pain: 0, stiffness: 0);
+    expect(p.checkinFor(dayOnly(_today).minusDays(2))!.data.containsKey('feelings'), isFalse);
+  });
 }

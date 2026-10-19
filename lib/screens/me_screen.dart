@@ -1310,6 +1310,13 @@ class _Mornings extends StatelessWidget {
           const SizedBox(height: 4),
           Text('Averages of the last ${week.length} check-ins',
               style: AppText.small().copyWith(fontSize: 11.5)),
+          if (system.feelingsNamed().isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text(
+                'Named this month: ${system.feelingsNamed().take(4).map((f) => f.$2 > 1 ? '${f.$1} ×${f.$2}' : f.$1).join(' · ')}',
+                key: const Key('feelings-named'),
+                style: AppText.small(color: AppColors.white)),
+          ],
           if (month.length >= 2 && system.isBuiltInPerson) ...[
             const SizedBox(height: 14),
             Text('SHOULDER PAIN · 30 DAYS', style: AppText.eyebrow()),

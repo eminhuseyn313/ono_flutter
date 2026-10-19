@@ -37,6 +37,7 @@ class _CheckinScreenState extends State<CheckinScreen> {
   int _stiffness = 0; // bucket 0–4
   bool _loaded = false;
   bool _sleepFromHealth = false;
+  final _feelings = <String>[];
 
   @override
   void didChangeDependencies() {
@@ -56,6 +57,7 @@ class _CheckinScreenState extends State<CheckinScreen> {
       _sleep = (c.number('sleep')?.toDouble() ?? _sleep).clamp(0, 14);
       _pain = c.number('pain')?.toInt() ?? _pain;
       _stiffness = c.number('stiffness')?.toInt() ?? _stiffness;
+      _feelings.addAll([for (final f in (c.data['feelings'] as List? ?? const [])) '$f']);
     }
   }
 
@@ -67,7 +69,8 @@ class _CheckinScreenState extends State<CheckinScreen> {
         mood: _mood,
         sleep: _sleep,
         pain: _pain,
-        stiffness: _stiffness);
+        stiffness: _stiffness,
+        feelings: _feelings);
     HapticFeedback.mediumImpact();
     final gym = system.gymDayOn(today);
     toast(
@@ -108,6 +111,44 @@ class _CheckinScreenState extends State<CheckinScreen> {
             labels: moodLabels,
             selected: _mood + 2,
             onSelected: (i) => setState(() => _mood = i - 2),
+          ),
+        ),
+        _Section(
+          label: 'Name it (optional, up to two)',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (final group in PersonalSystemProvider.feelingWords.entries)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      for (final w in group.value)
+                        FilterChip(
+                          key: Key('feeling-$w'),
+                          label: Text(w),
+                          tooltip: group.key,
+                          selected: _feelings.contains(w),
+                          showCheckmark: false,
+                          visualDensity: VisualDensity.compact,
+                          onSelected: (on) => setState(() {
+                            if (!on) {
+                              _feelings.remove(w);
+                            } else if (_feelings.length < PersonalSystemProvider.maxFeelings) {
+                              _feelings.add(w);
+                            } else {
+                              _feelings
+                                ..removeAt(0)
+                                ..add(w);
+                            }
+                          }),
+                        ),
+                    ],
+                  ),
+                ),
+            ],
           ),
         ),
         _Section(

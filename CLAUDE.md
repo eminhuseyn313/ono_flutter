@@ -146,7 +146,7 @@ Flow:
 - **If-then plans**: `defaultCues` in `emin_system.dart`, with overrides in `PersonalSystemState.cues` (`cueFor` / `setCue`).
   - Cues show under unticked Daily 10 items and in the caffeine/bed reminders, and are edited on `/plans`.
   - `setCue` takes `reschedule: false` while typing; call `resyncReminders` afterwards.
-- **Morning check-in** (`/checkin`): a `checkin` log, one per day, holding energy 1–5, mood −2…2, sleep h, shoulder pain 0–10 and stiffness bucket 0–4.
+- **Morning check-in** (`/checkin`): a `checkin` log, one per day, holding energy 1–5, mood −2…2, sleep h, shoulder pain 0–10 and stiffness bucket 0–4. Optionally up to `maxFeelings` (2) words from `feelingWords` (pleasant/unpleasant × energy, the mood meter; affect labelling, Lieberman 2007) as `feelings`; `feelingsNamed()` (30 days) shows on Me → Mornings. Feelings are not sent to the coach.
   - `shoulderFlag` = pain ≥ 5 or stiffness ≥ 3 (30+ min).
   - A flagged morning makes the gym screen shoulder-sparing: it skips `Exercise.shoulder` and adds `shoulderSparingAddOns`, with a switch back to the normal plan.
   - Me → Mornings shows the averages, the pain trend and a rheumatologist note at 3+ flagged days.
