@@ -2995,6 +2995,8 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   /// A real meeting overlaps the 12:00 lunch read.
   bool lunchReadAtRisk(DateTime day) {
+    // The 12:00 read is the built-in plan's, nobody else's.
+    if (!isBuiltInPerson) return false;
     final d = dayOnly(day);
     final from = d.add(const Duration(hours: 12));
     final to = d.add(const Duration(hours: 12, minutes: 20));
@@ -3023,8 +3025,8 @@ class PersonalSystemProvider extends ChangeNotifier {
       await r.notifyOnce(_nudgeBase + i, at,
           title: 'In 10 min: ${m.title}',
           body: key
-              ? 'Six questions ready? Decision first, then three reasons. Sigh ×3 before you go in.'
-              : 'Sigh ×3 before you go in. One breath before every answer.',
+              ? 'Six questions ready? Decision first, then three reasons. Three slow breaths before you go in.'
+              : 'Three slow breaths before you go in. One breath before every answer.',
           route: key ? '/tool/sixq' : '/tool/sigh');
       i++;
     }
@@ -3054,26 +3056,27 @@ class PersonalSystemProvider extends ChangeNotifier {
     ];
   }
 
-  /// Gaps of [minMinutes]+ between 09:00 and 18:00 still ahead on [day],
-  /// around every calendar event and the 12:00–12:30 lunch read.
+  /// Gaps of [minMinutes]+ in the working day still ahead on [day] (your
+  /// day's work hours, else 09:00–18:00), around every calendar event —
+  /// and, on the built-in plan, the 12:00–12:30 lunch read.
   List<({DateTime start, DateTime end})> freeBlocks(DateTime day,
       {int minMinutes = 60}) {
     if (!calendarConnected || _meetingsDay != dayOnly(day)) return const [];
     final d = dayOnly(day);
-    var cursor = d.add(const Duration(hours: 9));
+    final shape = isBuiltInPerson ? null : dayShape;
+    final hasHours = shape != null && shape.workEnd > shape.workStart;
+    DateTime at(int minute) => DateTime(d.year, d.month, d.day, minute ~/ 60, minute % 60);
+    var cursor = at(hasHours ? shape.workStart : 9 * 60);
     if (_now.isAfter(cursor)) {
       // Round up to the next quarter hour.
       final q = (_now.minute / 15).ceil() * 15;
       cursor = DateTime(_now.year, _now.month, _now.day, _now.hour)
           .add(Duration(minutes: q));
     }
-    final close = d.add(const Duration(hours: 18));
+    final close = at(hasHours ? shape.workEnd : 18 * 60);
     final busy = [
       for (final m in _meetings) (start: m.start, end: m.end),
-      (
-        start: d.add(const Duration(hours: 12)),
-        end: d.add(const Duration(hours: 12, minutes: 30))
-      ),
+      if (isBuiltInPerson) (start: at(12 * 60), end: at(12 * 60 + 30)),
     ]..sort((a, b) => a.start.compareTo(b.start));
     final out = <({DateTime start, DateTime end})>[];
     void gap(DateTime to) {
@@ -4702,6 +4705,8 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// Friday to Sunday, with something to report and no note sent yet.
   bool noteDue(DateTime day) =>
       day.weekday >= DateTime.friday &&
+      // Not about a week that barely started.
+      weekWorthReviewing(day) &&
       !noteSentInWeek(day) &&
       (activeGoals.isNotEmpty || hasWeekPlan(day));
 
@@ -7189,12 +7194,12 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// (Fogg 2019; choice overload: Iyengar & Lepper 2000).
   static const firstWeekSteps = [
     ('items', 'Tick one daily item', 'Tick one in your list below. Small is the point.', ''),
-    ('checkin', 'Do the morning check-in', 'Thirty seconds that tell you what today can ask of you.', '/checkin'),
+    ('checkin', 'Check in on how you are', 'Thirty seconds that tell you what today can ask of you.', '/checkin'),
     ('week', 'Set this week\'s three outcomes', 'Three things that would make the week a win.', '/week'),
     ('shutdown', 'Close one evening with the shutdown', 'Tomorrow\'s three on paper, then let the day go.', '/shutdown'),
     ('people', 'Add two people who matter', 'Who you want to stay close to, and how often.', '/people'),
-    ('rep', 'Practise once in your growth area', 'One real rep, then write what you noticed.', '/growth'),
-    ('review', 'Look back at your first week', 'Five answers; next week\'s brief comes back.', '/weekly-coaching'),
+    ('rep', 'Practise once in your growth area', 'Try it once for real, then write what you noticed.', '/growth'),
+    ('review', 'Look back at your first week', 'Five answers; you get a short plan for next week.', '/weekly-coaching'),
   ];
 
   static const firstWeekOffKey = 'firstweek:off';
@@ -7290,8 +7295,12 @@ class PersonalSystemProvider extends ChangeNotifier {
   LogEntry? yearReviewFor(int year) =>
       logsOf('year_review').where((l) => l.number('year') == year).firstOrNull;
 
+  /// Not for someone who started in the last month: a "year in review"
+  /// of two weeks is no review.
   bool get yearReviewDue =>
-      yearToReview != null && yearReviewFor(yearToReview!) == null;
+      yearToReview != null &&
+      yearReviewFor(yearToReview!) == null &&
+      dayOnly(_now).daysSince(dayOnly(journeyStart)) >= 30;
 
   /// The word chosen for this year in last year's review.
   String? get wordForTheYear {

@@ -238,13 +238,13 @@ class _HomeScreenState extends State<HomeScreen> {
               if (!_yesterday && system.hasStarted) ...[
                 // A new brief stays in view until it has been opened once.
                 if (brief != null &&
-                    !system.isDone(_planOpenKey) &&
+                    !_planOpen(system) &&
                     !system.isDone('brief:seen:${brief.id}')) ...[
                   const SizedBox(height: 12),
                   _BriefCard(brief: brief),
                 ],
                 _PlanToggle(now: _now),
-                if (system.isDone(_planOpenKey)) ...[
+                if (_planOpen(system)) ...[
                   const _GoalsCard(),
                   _GrowthCard(now: _now),
                   _WeekCard(now: _now),
@@ -934,6 +934,19 @@ class _RestCard extends StatelessWidget {
 }
 
 const _planOpenKey = 'today:plan_open';
+const _planFoldedKey = 'today:plan_folded';
+
+/// Open when chosen — and in the first week, until folded once, so the
+/// goal they just wrote isn't hidden.
+bool _planOpen(PersonalSystemProvider system) =>
+    system.isDone(_planOpenKey) ||
+    (system.programDay <= 7 && !system.isDone(_planFoldedKey));
+
+void _togglePlan(PersonalSystemProvider system) {
+  final open = _planOpen(system);
+  system.setDone(_planOpenKey, !open);
+  if (open) system.setDone(_planFoldedKey, true);
+}
 
 /// "Your plan": goals, growth, the week, meetings and inputs, collapsed to
 /// one summary line until opened. Today remembers the choice.
@@ -944,7 +957,7 @@ class _PlanToggle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
-    final open = system.isDone(_planOpenKey);
+    final open = _planOpen(system);
     final (done, set) = system.weekOutcomeScore(now);
     final meetings = system
         .meetingsFor(now)
@@ -982,7 +995,7 @@ class _PlanToggle extends StatelessWidget {
       child: OnoCard(
         key: const Key('plan-toggle'),
         padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
-        onTap: () => system.setDone(_planOpenKey, !open),
+        onTap: () => _togglePlan(system),
         child: Row(
           children: [
             Expanded(
@@ -1244,7 +1257,7 @@ class _MeetingRow extends StatelessWidget {
         TextButton(
           onPressed: () =>
               context.push(route ?? (keyMeeting ? '/tool/sixq' : '/tool/sigh')),
-          child: Text(action ?? (keyMeeting ? '6 Qs' : 'Sigh')),
+          child: Text(action ?? (keyMeeting ? '6 Qs' : 'Breathe')),
         ),
       ],
     );
@@ -1355,10 +1368,16 @@ class _PromptsState extends State<_Prompts> {
       // The first week: one small step a day, ahead of everything else.
       // Not when the card above already asks for the same thing.
       if (first != null &&
+          // The mode card (before 10:30) and the check-in card (until
+          // 14:00) already ask for today's check-in.
           !(first.id == 'checkin' &&
-              !system.isBuiltInPerson &&
-              now.hour * 60 + now.minute < 10 * 60 + 30) &&
-          !(first.id == 'shutdown' && now.hour >= 18))
+              system.checkinFor(dayOnly(now)) == null &&
+              now.hour < 14) &&
+          !(first.id == 'shutdown' && now.hour >= 18) &&
+          // Sunday afternoon's card already asks for the review.
+          !(first.id == 'review' &&
+              now.weekday == DateTime.sunday &&
+              now.hour >= 16))
         Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
