@@ -105,6 +105,15 @@ class _ThoughtScreenState extends State<ThoughtScreen> {
       }),
       children: [
         const SupportLink(),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton(
+            key: const Key('to-compassion'),
+            style: TextButton.styleFrom(padding: EdgeInsets.zero),
+            onPressed: () => context.push('/compassion'),
+            child: const Text('Being hard on yourself? Two minutes on your own side first →'),
+          ),
+        ),
         _field(_situation, 'What happened?', 'Where, when, who — just the facts'),
         _field(_thought, 'What went through your mind?',
             'e.g. "They think I\'m not good enough"'),

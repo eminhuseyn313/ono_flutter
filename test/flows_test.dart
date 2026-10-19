@@ -555,4 +555,20 @@ void main() {
     await _tap(tester, find.text('I told them'));
     expect(system.adviceToReport, isEmpty);
   });
+
+  testWidgets('self-compassion break: name it, be kind, it is kept',
+      (tester) async {
+    final system = await _start(tester);
+    await _go(tester, '/compassion');
+    await tester.enterText(find.byKey(const Key('compassion-hard')), 'I missed the deadline');
+    await _reach(tester, find.byKey(const Key('compassion-kind')));
+    await tester.enterText(find.byKey(const Key('compassion-kind')), 'You were stretched thin; ask for a day.');
+    await tester.pump();
+    await tester.tap(find.text('Done'));
+    await _pumpFor(tester, const Duration(milliseconds: 800));
+    final l = system.logsOf('compassion').single;
+    expect(l.text, 'I missed the deadline');
+    expect(l.str('kind'), 'You were stretched thin; ask for a day.');
+    expect(system.journalText(), contains('Was on my own side about: I missed the deadline'));
+  });
 }

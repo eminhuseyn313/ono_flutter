@@ -1495,6 +1495,18 @@ class PersonalSystemProvider extends ChangeNotifier {
     });
   }
 
+  /// A self-compassion break (Neff): what's hard, that others feel it
+  /// too, and the kind words you'd give a friend. [heavyBefore] and
+  /// [heavyAfter] (1–5) are optional: how heavy it felt.
+  LogEntry? logCompassion({required String hard, String kindWords = '', int? heavyBefore, int? heavyAfter}) =>
+      hard.trim().isEmpty
+          ? null
+          : addLog('compassion', text: hard.trim(), data: {
+              'kind': kindWords.trim(),
+              'before': heavyBefore,
+              'after': heavyAfter,
+            });
+
   /// Decisions whose review date has come and that aren't reviewed yet.
   List<LogEntry> dueDecisionReviews(DateTime day) {
     final d = dateKey(dayOnly(day));
@@ -6727,6 +6739,9 @@ class PersonalSystemProvider extends ChangeNotifier {
         'shutdown' => f('open').isEmpty ? '' : 'Evening, on my mind: ${f('open')}',
         'thought' => 'Checked a thought: ${l.text}${f('balanced').isEmpty ? '' : '\n  More balanced: ${f('balanced')}'}',
         'kindness' => 'Kindness: ${l.text}',
+        'compassion' => 'Was on my own side about: ${l.text}${f('kind').isEmpty ? '' : '\n  I told myself: ${f('kind')}'}',
+        'courage' => f('status') == 'done' ? 'Did what I had avoided: ${l.text} (feared ${l.number('fear')}, felt ${l.number('felt')})${f('happened').isEmpty ? '' : '\n  What happened: ${f('happened')}'}' : '',
+        'advice' => f('status') == 'tried' ? 'Tried advice${f('from').isEmpty ? '' : ' from ${f('from')}'}: ${l.text}${f('result').isEmpty ? '' : ' — ${f('result')}'}' : '',
         'strength_use' => 'Used ${f('strength')}: ${l.text}',
         'year_review' => 'Looked back at ${l.number('year')}:${[for (final q in yearQuestions) if (f(q.$1).isNotEmpty) '\n  ${q.$2} ${f(q.$1)}'].join()}${l.text.isEmpty ? '' : '\n  Word for next year: ${l.text}'}',
         'ask' => 'Asked ${f('of').isEmpty ? '' : '${f('of')} '}for help: ${l.text}${f('status') == 'asked' ? '' : ' — ${askOutcomes[f('status')] ?? f('status')}'}',

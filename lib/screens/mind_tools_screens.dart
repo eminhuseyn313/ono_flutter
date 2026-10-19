@@ -90,6 +90,100 @@ class _StepBackScreenState extends State<StepBackScreen> {
   }
 }
 
+/// A self-compassion break (Neff): notice it's hard, remember that others
+/// feel this too, and speak to yourself as you would to a friend.
+class CompassionScreen extends StatefulWidget {
+  const CompassionScreen({super.key});
+
+  @override
+  State<CompassionScreen> createState() => _CompassionScreenState();
+}
+
+class _CompassionScreenState extends State<CompassionScreen> {
+  final _hard = TextEditingController();
+  final _kind = TextEditingController();
+  int? _before;
+  int? _after;
+
+  @override
+  void dispose() {
+    _hard.dispose();
+    _kind.dispose();
+    super.dispose();
+  }
+
+  Widget _heavy(String label, int? value, ValueChanged<int> onChanged) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 12),
+          Text(label, style: AppText.small()),
+          const SizedBox(height: 6),
+          Segmented(
+            labels: const ['1', '2', '3', '4', '5'],
+            index: value == null ? -1 : value - 1,
+            onChanged: (i) => onChanged(i + 1),
+          ),
+        ],
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    final system = context.read<PersonalSystemProvider>();
+    return UnsavedGuard(
+        fields: [_hard, _kind],
+        child: OnoPage(
+      showBack: true,
+      eyebrow: 'Self-compassion · 2 minutes',
+      title: 'Be on your own side',
+      subtitle:
+          'Being hard on yourself doesn\'t make you better; being kind does — people who treat their mistakes kindly try again sooner.',
+      bottomBar: PrimaryButton('Done', icon: Icons.check_rounded, onPressed: () {
+        if (system.logCompassion(
+                hard: _hard.text, kindWords: _kind.text, heavyBefore: _before, heavyAfter: _after) ==
+            null) {
+          toast(context, 'Start with what\'s hard.');
+          return;
+        }
+        toast(context, 'Kept. Come back whenever you need it.');
+        context.canPop() ? context.pop() : context.go('/home');
+      }),
+      children: [
+        const SupportLink(),
+        _heavy('How heavy does it feel? (optional)', _before, (v) => setState(() => _before = v)),
+        const SectionHeader('1 · This is hard'),
+        Text('Name it plainly, without judging it.', style: AppText.small()),
+        const SizedBox(height: 6),
+        TextField(
+          key: const Key('compassion-hard'),
+          controller: _hard,
+          minLines: 2,
+          maxLines: 5,
+          style: AppText.body(color: AppColors.white),
+          decoration: const InputDecoration(hintText: 'This is a hard moment because…'),
+        ),
+        const SectionHeader('2 · You are not alone in this'),
+        Text(
+            'Everyone fails, doubts and struggles. Somewhere right now, many people feel exactly this. It is part of being human, not a sign that something is wrong with you.',
+            style: AppText.body(color: AppColors.white)),
+        const SectionHeader('3 · What would you say to a friend?'),
+        Text('If someone you love were here, what would you tell them? Now say it to yourself.',
+            style: AppText.small()),
+        const SizedBox(height: 6),
+        TextField(
+          key: const Key('compassion-kind'),
+          controller: _kind,
+          minLines: 2,
+          maxLines: 5,
+          style: AppText.body(color: AppColors.white),
+          decoration: const InputDecoration(hintText: 'It makes sense that… You can…'),
+        ),
+        _heavy('And now? (optional)', _after, (v) => setState(() => _after = v)),
+        const SizedBox(height: 16),
+      ],
+    ));
+  }
+}
+
 /// Decide with your values: options against what matters, the 10/10/10
 /// view, a premortem — then into the decision journal for review.
 class DecideScreen extends StatefulWidget {

@@ -77,6 +77,15 @@ class _SetbackScreenState extends State<SetbackScreen> {
         context.canPop() ? context.pop() : context.go('/home');
       }),
       children: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton(
+            key: const Key('to-compassion'),
+            style: TextButton.styleFrom(padding: EdgeInsets.zero),
+            onPressed: () => context.push('/compassion'),
+            child: const Text('Being hard on yourself? Two minutes on your own side first →'),
+          ),
+        ),
         if (system.bestSelfPortrait case final portrait?) ...[
           const SizedBox(height: 14),
           OnoCard(

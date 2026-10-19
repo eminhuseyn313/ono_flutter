@@ -54,6 +54,7 @@ const _filters = <String, Set<String>?>{
     'month_review',
     'shutdown',
     'stepback',
+    'compassion',
     'thought'
   },
   'Protocols': {
@@ -143,6 +144,7 @@ const _ownerRoute = {
   'courage': '/courage',
   'thought': '/thought',
   'stepback': '/stepback',
+  'compassion': '/compassion',
 };
 
 /// Records other features rely on (the week's three, the month's area, a
@@ -573,6 +575,7 @@ class _EntryRow extends StatelessWidget {
       'Helped someone grow'
     ),
     'stepback': (Icons.zoom_out_map_rounded, 'mind', 'Stepped back'),
+    'compassion': (Icons.favorite_border_rounded, 'mind', 'Self-compassion'),
     'thought': (Icons.psychology_outlined, 'mind', 'Thought check'),
     'aar': (Icons.flag_outlined, 'skill', 'After-action review'),
     'courage': (Icons.stairs_outlined, 'skill', 'Courage ladder'),
