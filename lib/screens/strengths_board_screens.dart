@@ -595,3 +595,119 @@ class _CourageScreenState extends State<CourageScreen> {
     );
   }
 }
+
+// ── Visibility ─────────────────────────────────────────────────────────
+
+/// What the people who decide your next step have seen of your work.
+/// Not self-promotion: share the work and ask for their input.
+class VisibilityScreen extends StatelessWidget {
+  const VisibilityScreen({super.key});
+
+  void _share(BuildContext context, PersonalSystemProvider system, LogEntry p) {
+    final what = TextEditingController();
+    var how = 'showed';
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.card,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheet) => Padding(
+          padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + MediaQuery.of(ctx).viewInsets.bottom),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('What did ${p.text.split(' ').first} see?', style: AppText.title()),
+                const SizedBox(height: 10),
+                TextField(
+                  key: const Key('visible-what'),
+                  controller: what,
+                  minLines: 1,
+                  maxLines: 3,
+                  style: AppText.body(color: AppColors.white),
+                  decoration: const InputDecoration(hintText: 'e.g. The onboarding results, the pricing proposal'),
+                ),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    for (final w in PersonalSystemProvider.visibilityWays.entries)
+                      ChoiceChip(
+                        label: Text(w.value),
+                        selected: how == w.key,
+                        onSelected: (_) => setSheet(() => how = w.key),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                PrimaryButton('Save', icon: Icons.check_rounded, onPressed: () {
+                  if (system.logVisible(p, what: what.text, how: how) == null) return;
+                  Navigator.of(ctx).pop();
+                }),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final system = context.watch<PersonalSystemProvider>();
+    final deciders = system.deciders;
+    final (seen, total) = system.decidersSeen;
+    return OnoPage(
+      showBack: true,
+      eyebrow: 'People · visibility',
+      title: 'Seen by the people who decide',
+      subtitle:
+          'Good work that nobody sees doesn\'t move you. Every few weeks, show each person who decides your next step something real — and ask for their input.',
+      children: [
+        const SizedBox(height: 14),
+        if (deciders.isEmpty) ...[
+          const EmptyNote(
+              'Who decides your next step? Mark them as "decider" on your personal board.',
+              icon: Icons.groups_2_outlined),
+          const SizedBox(height: 8),
+          GhostButton('Open your personal board',
+              icon: Icons.groups_2_outlined, onPressed: () => context.push('/board')),
+        ] else ...[
+          Text('$seen of $total saw something of your work in the last 90 days.',
+              style: AppText.body(color: AppColors.white)),
+          for (final p in deciders) ...[
+            SectionHeader(p.text),
+            OnoCard(
+              padding: const EdgeInsets.fromLTRB(14, 12, 8, 6),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (system.seenBy(p).isEmpty)
+                    Text('Nothing in the last 90 days.', style: AppText.small(color: AppColors.warning))
+                  else
+                    for (final l in system.seenBy(p).take(3))
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: Text('${shortDate(l.date)} · ${l.text}',
+                            style: AppText.small(color: AppColors.white)),
+                      ),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      key: Key('visible-${p.id}'),
+                      onPressed: () => _share(context, system, p),
+                      child: const Text('They saw something'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+}

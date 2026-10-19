@@ -2395,6 +2395,7 @@ class PersonalSystemProvider extends ChangeNotifier {
             : drillFor(focusArea()!, report.weekStart.plusDays(7)).title,
         repsThisWeek: repsInWeek(report.weekStart),
         repsWithoutFeedback: repsWithoutFeedback(programMonth),
+        decidersSeen: decidersSeen,
         valueGap: valueGap(report.weekStart),
         openCommitments: [
           for (final c in commitmentsDue(report.weekStart.plusDays(6)))
@@ -7459,7 +7460,44 @@ class PersonalSystemProvider extends ChangeNotifier {
     'challenger': 'Tells you the hard truth',
     'supporter': 'Believes in you on bad days',
     'connector': 'Opens doors to new people',
+    'decider': 'Decides your next step — a manager, a client, a committee',
   };
+
+  // ── Visibility: what the people who decide have seen ─────────────────
+
+  /// How work was made visible: shown, written up, or put to them for
+  /// their input (rational persuasion — the upward-influence tactic linked
+  /// to better ratings, Higgins et al. 2003).
+  static const visibilityWays = {
+    'showed': 'Showed it (a demo, a walkthrough)',
+    'wrote': 'Wrote it up',
+    'asked': 'Asked for their input',
+  };
+
+  /// People on your board who decide your next step.
+  List<LogEntry> get deciders => [for (final p in people) if (boardRolesOf(p).contains('decider')) p];
+
+  LogEntry? logVisible(LogEntry person, {required String what, String how = 'showed'}) =>
+      what.trim().isEmpty
+          ? null
+          : addLog('visible', text: what.trim(), data: {
+              'person': person.id,
+              'name': person.text,
+              'how': visibilityWays.containsKey(how) ? how : 'showed',
+            });
+
+  /// What [person] has seen of your work in the last [days], newest first.
+  List<LogEntry> seenBy(LogEntry person, {int days = 90}) {
+    final from = dayOnly(_now).minusDays(days - 1);
+    return [
+      for (final l in logsOf('visible'))
+        if (l.str('person') == person.id && !l.date.isBefore(from)) l
+    ];
+  }
+
+  /// (deciders who saw something in 90 days, deciders).
+  (int, int) get decidersSeen =>
+      (deciders.where((p) => seenBy(p).isNotEmpty).length, deciders.length);
 
   List<String> boardRolesOf(LogEntry person) =>
       [for (final r in (person.data['board'] as List?) ?? const []) '$r'];
@@ -7483,7 +7521,8 @@ class PersonalSystemProvider extends ChangeNotifier {
   List<String> get boardGaps {
     final b = board;
     if (b.values.every((v) => v.isEmpty)) return const [];
-    return [for (final e in b.entries) if (e.value.isEmpty) e.key];
+    // Deciders aren't a development role: no gap when there are none.
+    return [for (final e in b.entries) if (e.value.isEmpty && e.key != 'decider') e.key];
   }
 
   // ── After-action review (Ellis & Davidi 2005) ────────────────────────

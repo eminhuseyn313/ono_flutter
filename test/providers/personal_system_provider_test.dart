@@ -3748,4 +3748,17 @@ void main() {
     expect(p.sleepRules.last.cue, contains('15:00'));
     expect(p.sleepRules.first.cue, contains('07:00'));
   });
+
+  test('visibility: what deciders saw in 90 days', () async {
+    final p = await _commissioned();
+    expect(p.decidersSeen, (0, 0));
+    final boss = p.addPerson('Farid', role: 'Manager', every: 7);
+    p.setBoardRoles(boss, ['decider']);
+    final cfo = p.addPerson('Nigar', role: 'CFO', every: 30);
+    p.setBoardRoles(cfo, ['decider', 'sponsor']);
+    p.logVisible(p.personById(boss.id)!, what: 'Onboarding results', how: 'showed');
+    expect(p.decidersSeen, (1, 2));
+    p.clock = () => _today.plusDays(95);
+    expect(p.decidersSeen, (0, 2));
+  });
 }

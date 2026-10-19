@@ -677,6 +677,16 @@ class MeScreen extends StatelessWidget {
               ),
               const Divider(indent: 66),
               LinkRow(
+                icon: Icons.visibility_outlined,
+                color: AppColors.social,
+                title: 'Seen by the people who decide',
+                subtitle: system.deciders.isEmpty
+                    ? 'Mark who decides your next step on your board'
+                    : '${system.decidersSeen.$1} of ${system.decidersSeen.$2} saw your work in 90 days',
+                onTap: () => context.push('/visibility'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
                 icon: Icons.handshake_outlined,
                 color: AppColors.social,
                 title: 'Negotiation planner',

@@ -48,6 +48,9 @@ class BriefInput {
   final String? growthDrill;
   final int repsThisWeek;
 
+  /// Deciders who saw your work in 90 days: (saw, deciders).
+  final (int, int) decidersSeen;
+
   /// This month's reps with a feedback source noted: (none, noted).
   final (int, int) repsWithoutFeedback;
   final int feedbackThisMonth;
@@ -203,6 +206,7 @@ class BriefInput {
     this.growthDrill,
     this.repsThisWeek = 0,
     this.repsWithoutFeedback = (0, 0),
+    this.decidersSeen = (0, 0),
     this.feedbackThisMonth = 0,
     this.valueGap,
     this.openCommitments = const [],
@@ -323,6 +327,7 @@ class BriefInput {
         'growth_focus': growthFocus,
         'next_drill': growthDrill,
         'practice_reps_this_week': repsThisWeek,
+        if (decidersSeen.$2 > 0) 'deciders_who_saw_your_work_90_days': '${decidersSeen.$1} of ${decidersSeen.$2}',
         if (repsWithoutFeedback.$2 > 0)
           'reps_this_month_without_feedback': '${repsWithoutFeedback.$1} of ${repsWithoutFeedback.$2}',
         'feedback_this_month': feedbackThisMonth,
@@ -476,6 +481,8 @@ class DeviceBriefGenerator implements BriefGenerator {
         '${(input.hardDays['pass'] ?? 0) + (input.hardDays['minimum'] ?? 0)} hard days this week. Look at what kept happening — if it will happen again, change the plan, not your opinion of yourself.',
     ];
     final personal = <String>[
+      if (input.decidersSeen.$2 > 0 && input.decidersSeen.$1 < input.decidersSeen.$2)
+        '${input.decidersSeen.$2 - input.decidersSeen.$1} of the people who decide your next step haven\'t seen your work in 90 days. Show one of them something real this week — and ask for their input.',
       if (input.repsWithoutFeedback.$2 >= 3 && input.repsWithoutFeedback.$1 * 2 >= input.repsWithoutFeedback.$2)
         'Most of this month\'s reps had no feedback. Next rep, add one source: record it, ask someone, or check the result — feedback is what turns practice into progress.',
       if (input.patterns.isNotEmpty)

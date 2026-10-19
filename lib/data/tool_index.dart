@@ -132,6 +132,8 @@ const List<ToolEntry> toolIndex = [
       words: ['mentor', 'sponsor', 'network']),
   ToolEntry('Hard conversations', 'Prepare what you want, the facts and your first sentence', '/conversations', 'People',
       words: ['conflict', 'feedback', 'difficult', 'talk']),
+  ToolEntry('Seen by the people who decide', 'What your deciders saw of your work in 90 days', '/visibility', 'People',
+      words: ['visibility', 'promotion', 'sponsor', 'manager', 'managing up', 'recognition']),
   ToolEntry('Negotiation planner', 'Your alternative, bottom line and first offer', '/negotiate', 'People',
       words: ['negotiate', 'salary', 'raise', 'pay', 'offer', 'deal', 'rent', 'price']),
   ToolEntry('Rehearse a big moment', 'An interview question, two minutes, out loud', '/rehearse', 'Practice',
