@@ -2002,6 +2002,36 @@ class PersonalSystemProvider extends ChangeNotifier {
     return list;
   }
 
+  /// The screen each kind of record comes from, so Me can keep the tools
+  /// someone actually uses in view and fold the rest away.
+  static const toolRouteOfLog = {
+    'goal': '/goals', 'goal_value': '/goals', 'growth_focus': '/growth', 'rep': '/growth',
+    'odyssey': '/odyssey', 'best_future': '/best-future', 'strengths': '/strengths',
+    'strength_use': '/strengths', 'life_story': '/chapters', 'values': '/values',
+    'values_check': '/values', 'value_act': '/values', 'money_check': '/money',
+    'quarterly_review': '/quarter', 'story': '/stories', 'year_review': '/year',
+    'letter': '/letters', 'learning': '/learning', 'feynman': '/learning', 'aar': '/aar',
+    'courage': '/courage', 'focus': '/focus', 'anki': '/review', 'automaticity': '/habits',
+    'energy': '/energy', 'energy_audit': '/crafting', 'stop': '/stop', 'experiment': '/experiments',
+    'person': '/people', 'touch': '/people', 'help': '/people', 'progress_note': '/note',
+    'us_checkin': '/us', 'manual': '/manual', 'conversation': '/conversations',
+    'partner': '/partner', 'partner_checkin': '/partner', 'feedback_round': '/360',
+    'best_self': '/best-self', 'role_model': '/models', 'ask': '/asks', 'advice': '/advice',
+    'visible': '/visibility', 'negotiation': '/negotiate', 'promise': '/promises',
+    'kindness': '/kindness', 'kindness_plan': '/kindness', 'gratitude': '/gratitude',
+    'setback': '/setback', 'stepback': '/stepback', 'thought': '/thought', 'worry': '/worry',
+    'coaching': '/coach', 'rest': '/rest',
+  };
+
+  /// Routes of the tools used in the last [days] days.
+  Set<String> recentToolRoutes({int days = 30}) {
+    final since = logicalToday.minusDays(days);
+    return {
+      for (final l in _state?.logs ?? const <LogEntry>[])
+        if (toolRouteOfLog[l.type] case final r? when !dayOnly(l.createdAt).isBefore(since)) r
+    };
+  }
+
   /// Newest first.
   List<LogEntry> logsOf(String type) {
     final list = (_state?.logs ?? const <LogEntry>[])

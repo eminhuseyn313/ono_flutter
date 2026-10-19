@@ -637,4 +637,19 @@ void main() {
     final l = system.logsOf('rehearsal').single;
     expect((l.data['star'] as List).toSet(), {'Situation', 'Result'});
   });
+
+  testWidgets('Me: core tools and recently used ones show, the rest fold away',
+      (tester) async {
+    final system = await _start(tester);
+    await _go(tester, '/profile');
+    await _reach(tester, find.text('Goals'));
+    expect(find.text('Courage ladder'), findsNothing);
+    system.addCourageStep('Speak first in the meeting', fear: 6);
+    await tester.pump(const Duration(milliseconds: 300));
+    await _reach(tester, find.text('Courage ladder'));
+    expect(find.text('Gratitude letter'), findsNothing);
+    await _tap(tester, find.byKey(const Key('me-more-people')));
+    await _reach(tester, find.text('Gratitude letter'));
+    expect(system.isDone('me:more:people'), isTrue);
+  });
 }

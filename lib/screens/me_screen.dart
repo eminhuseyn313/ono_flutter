@@ -305,11 +305,12 @@ class MeScreen extends StatelessWidget {
             ),
           ),
         const SectionHeader('Direction'),
-        OnoCard(
-          padding: EdgeInsets.zero,
-          child: Column(
-            children: [
+        _LinkGroup(
+          id: 'direction',
+          core: const {'/goals', '/growth', '/values'},
+          rows: [
               LinkRow(
+                route: '/goals',
                 icon: Icons.flag_circle_outlined,
                 color: AppColors.accent,
                 title: 'Goals',
@@ -318,8 +319,8 @@ class MeScreen extends StatelessWidget {
                     : system.activeGoals.map((g) => g.text).join(' · '),
                 onTap: () => context.push('/goals'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/growth',
                 icon: Icons.trending_up_rounded,
                 color: AppColors.accent,
                 title: 'Growth plan',
@@ -328,8 +329,8 @@ class MeScreen extends StatelessWidget {
                     : '${system.focusArea()!.name} · ${system.repsIn(system.focusArea()!.id, system.programMonth).length} reps this month',
                 onTap: () => context.push('/growth'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/odyssey',
                 icon: Icons.explore_outlined,
                 color: AppColors.skill,
                 title: 'Three possible lives',
@@ -338,8 +339,8 @@ class MeScreen extends StatelessWidget {
                     : 'Leaning towards: ${system.odysseyLeaning}',
                 onTap: () => context.push('/odyssey'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/best-future',
                 icon: Icons.wb_sunny_outlined,
                 color: AppColors.skill,
                 title: 'Your best possible future',
@@ -348,8 +349,8 @@ class MeScreen extends StatelessWidget {
                     : 'Last written ${shortDate(system.bestFuture!.date)}',
                 onTap: () => context.push('/best-future'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/strengths',
                 icon: Icons.bolt_outlined,
                 color: AppColors.skill,
                 title: 'Signature strengths',
@@ -358,8 +359,8 @@ class MeScreen extends StatelessWidget {
                     : system.signatureStrengths.join(' · '),
                 onTap: () => context.push('/strengths'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/chapters',
                 icon: Icons.auto_stories_outlined,
                 color: AppColors.mind,
                 title: 'Life chapters',
@@ -368,8 +369,8 @@ class MeScreen extends StatelessWidget {
                     : '${system.lifeChapters.length} chapters${(system.lifeStory?.str('next') ?? '').isEmpty ? '' : ' · next: ${system.lifeStory!.str('next')}'}',
                 onTap: () => context.push('/chapters'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/values',
                 icon: Icons.diamond_outlined,
                 color: AppColors.mind,
                 title: 'Your values',
@@ -378,9 +379,9 @@ class MeScreen extends StatelessWidget {
                     : system.values.map((v) => v.name).join(' · '),
                 onTap: () => context.push('/values'),
               ),
-              if (system.isBuiltInPerson) const Divider(indent: 66),
               if (system.isBuiltInPerson)
                 LinkRow(
+                route: '/cockpit?tab=2',
                   icon: Icons.trending_up_rounded,
                   color: AppColors.skill,
                   title: '${activeProfile.targetRole} readiness',
@@ -391,8 +392,8 @@ class MeScreen extends StatelessWidget {
                           : 'Gap: ${system.readinessGap!.name}',
                   onTap: () => context.push('/cockpit?tab=2'),
                 ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/money',
                 icon: Icons.savings_outlined,
                 color: AppColors.body,
                 title: 'Money check-in',
@@ -405,8 +406,8 @@ class MeScreen extends StatelessWidget {
                   context.push('/money');
                 },
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/quarter',
                 icon: Icons.donut_large_rounded,
                 color: AppColors.accent,
                 title: 'Quarterly review',
@@ -415,8 +416,8 @@ class MeScreen extends StatelessWidget {
                     : 'Lowest last time: ${system.lowestLifeArea!.name}',
                 onTap: () => context.push('/quarter'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/stories',
                 icon: Icons.menu_book_outlined,
                 color: AppColors.accent,
                 title: 'Story bank',
@@ -425,16 +426,16 @@ class MeScreen extends StatelessWidget {
                     : '${system.stories.length} stories${system.storyGaps.isEmpty ? '' : ' · none yet for ${system.storyGaps.first.toLowerCase()}'}',
                 onTap: () => context.push('/stories'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/brag',
                 icon: Icons.workspace_premium_outlined,
                 color: AppColors.accent,
                 title: 'Brag document',
                 subtitle: 'What you\'ve done, ready for a review or a CV',
                 onTap: () => context.push('/brag'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/year',
                 icon: Icons.celebration_outlined,
                 color: AppColors.accent,
                 title: 'Year in review',
@@ -443,8 +444,8 @@ class MeScreen extends StatelessWidget {
                     : 'What the year added up to, and one word for the next',
                 onTap: () => context.push('/year'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/letters',
                 icon: Icons.mail_outline_rounded,
                 color: AppColors.accent,
                 title: 'Letters to future you',
@@ -453,15 +454,15 @@ class MeScreen extends StatelessWidget {
                     : '${system.letters.where((l) => !system.letterIsOpen(l)).length} sealed · ${system.letters.where(system.letterIsOpen).length} opened',
                 onTap: () => context.push('/letters'),
               ),
-            ],
-          ),
+          ],
         ),
         const SectionHeader('Practice'),
-        OnoCard(
-          padding: EdgeInsets.zero,
-          child: Column(
-            children: [
+        _LinkGroup(
+          id: 'practice',
+          core: const {'/learning', '/playbook', '/focus'},
+          rows: [
               LinkRow(
+                route: '/learning',
                 icon: Icons.school_outlined,
                 color: AppColors.skill,
                 title: 'Learning',
@@ -470,8 +471,8 @@ class MeScreen extends StatelessWidget {
                     : 'Now: ${system.learningWith('active').map((l) => l.text).join(' · ')}',
                 onTap: () => context.push('/learning'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/aar',
                 icon: Icons.flag_outlined,
                 color: AppColors.skill,
                 title: 'After-action review',
@@ -480,8 +481,8 @@ class MeScreen extends StatelessWidget {
                     : 'Last: ${system.aars.first.text}',
                 onTap: () => context.push('/aar'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/playbook',
                 icon: Icons.menu_book_outlined,
                 color: AppColors.skill,
                 title: 'Your playbook',
@@ -490,8 +491,8 @@ class MeScreen extends StatelessWidget {
                     : '${system.playbook().length} lessons in your own words',
                 onTap: () => context.push('/playbook'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/courage',
                 icon: Icons.stairs_outlined,
                 color: AppColors.skill,
                 title: 'Courage ladder',
@@ -500,8 +501,8 @@ class MeScreen extends StatelessWidget {
                     : 'Next rung: ${system.nextCourageStep!.text}',
                 onTap: () => context.push('/courage'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/focus',
                 icon: Icons.center_focus_strong_rounded,
                 color: AppColors.skill,
                 title: 'Deep work',
@@ -510,8 +511,8 @@ class MeScreen extends StatelessWidget {
                     : '${(system.focusMinutesInWeek(DateTime.now()) / 60).toStringAsFixed(1)} h this week · one block, one thing',
                 onTap: () => context.push('/focus'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/review',
                 icon: Icons.style_rounded,
                 color: AppColors.mind,
                 title: 'Review deck',
@@ -519,8 +520,8 @@ class MeScreen extends StatelessWidget {
                     '${system.deckStats.total} cards · ${system.deckStats.mature} mature',
                 onTap: () => context.push('/review'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/habits',
                 icon: Icons.autorenew_rounded,
                 color: AppColors.body,
                 title: 'Is it a habit yet?',
@@ -528,8 +529,8 @@ class MeScreen extends StatelessWidget {
                     '${system.automaticItems.length} of ${system.dailyCount} automatic',
                 onTap: () => context.push('/habits'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/energy',
                 icon: Icons.bolt_outlined,
                 color: AppColors.mind,
                 title: 'Energy map',
@@ -538,8 +539,8 @@ class MeScreen extends StatelessWidget {
                     : 'Peak: ${system.energyPeak!.label.toLowerCase()}',
                 onTap: () => context.push('/energy'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/crafting',
                 icon: Icons.battery_charging_full_rounded,
                 color: AppColors.skill,
                 title: 'What gives and drains you',
@@ -547,8 +548,8 @@ class MeScreen extends StatelessWidget {
                     'Rate a normal week, then change one thing',
                 onTap: () => context.push('/crafting'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/stop',
                 icon: Icons.do_not_disturb_on_outlined,
                 color: AppColors.warning,
                 title: 'Stop doing',
@@ -557,15 +558,15 @@ class MeScreen extends StatelessWidget {
                     : '${system.stopList.length} given up',
                 onTap: () => context.push('/stop'),
               ),
-            ],
-          ),
+          ],
         ),
         const SectionHeader('People'),
-        OnoCard(
-          padding: EdgeInsets.zero,
-          child: Column(
-            children: [
+        _LinkGroup(
+          id: 'people',
+          core: const {'/people', '/promises', '/conversations'},
+          rows: [
               LinkRow(
+                route: '/people',
                 icon: Icons.group_outlined,
                 color: AppColors.social,
                 title: 'People',
@@ -574,8 +575,8 @@ class MeScreen extends StatelessWidget {
                     : '${system.people.length} people · ${system.peopleDue.length} due${system.peopleGrowing.isEmpty ? '' : ' · helping ${system.peopleGrowing.length} grow'}',
                 onTap: () => context.push('/people'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/note',
                 icon: Icons.send_rounded,
                 color: AppColors.social,
                 title: 'Progress note',
@@ -584,8 +585,8 @@ class MeScreen extends StatelessWidget {
                     : 'Tell one person how the week went',
                 onTap: () => context.push('/note'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/us',
                 icon: Icons.favorite_outline_rounded,
                 color: AppColors.social,
                 title: 'A check-in for two',
@@ -594,8 +595,8 @@ class MeScreen extends StatelessWidget {
                     : '${system.usStreak} week${system.usStreak == 1 ? '' : 's'} in a row',
                 onTap: () => context.push('/us'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/manual',
                 icon: Icons.menu_book_rounded,
                 color: AppColors.social,
                 title: 'How to work with me',
@@ -604,8 +605,8 @@ class MeScreen extends StatelessWidget {
                     : 'Updated ${shortDate(system.manual!.date)}',
                 onTap: () => context.push('/manual'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/conversations',
                 icon: Icons.forum_outlined,
                 color: AppColors.social,
                 title: 'Hard conversations',
@@ -614,8 +615,8 @@ class MeScreen extends StatelessWidget {
                     : '${system.plannedConversations.length} ahead · with ${system.plannedConversations.map((c) => c.str('with')).join(', ')}',
                 onTap: () => context.push('/conversations'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/partner',
                 icon: Icons.handshake_outlined,
                 color: AppColors.social,
                 title: 'Accountability partner',
@@ -624,8 +625,8 @@ class MeScreen extends StatelessWidget {
                     : 'With ${system.partner!.text}',
                 onTap: () => context.push('/partner'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/360',
                 icon: Icons.groups_2_outlined,
                 color: AppColors.social,
                 title: 'Feedback round',
@@ -634,8 +635,8 @@ class MeScreen extends StatelessWidget {
                     : 'Quarter ${system.programQuarter}: ${system.roundAnswers(system.roundFor(system.programQuarter)!).length} answers',
                 onTap: () => context.push('/360'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/best-self',
                 icon: Icons.auto_awesome_outlined,
                 color: AppColors.skill,
                 title: 'You, at your best',
@@ -643,8 +644,8 @@ class MeScreen extends StatelessWidget {
                     'Stories from people who have seen it',
                 onTap: () => context.push('/best-self'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/models',
                 icon: Icons.emoji_people_outlined,
                 color: AppColors.skill,
                 title: 'Role models',
@@ -653,8 +654,8 @@ class MeScreen extends StatelessWidget {
                     : system.roleModels.map((m) => m.text).join(' · '),
                 onTap: () => context.push('/models'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/asks',
                 icon: Icons.pan_tool_alt_outlined,
                 color: AppColors.social,
                 title: 'Ask for help',
@@ -665,8 +666,8 @@ class MeScreen extends StatelessWidget {
                         : '${system.openAsks.length} waiting for an answer',
                 onTap: () => context.push('/asks'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/advice',
                 icon: Icons.tips_and_updates_outlined,
                 color: AppColors.social,
                 title: 'Advice',
@@ -675,8 +676,8 @@ class MeScreen extends StatelessWidget {
                     : 'Write it down, try it, tell them how it went',
                 onTap: () => context.push('/advice'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/visibility',
                 icon: Icons.visibility_outlined,
                 color: AppColors.social,
                 title: 'Seen by the people who decide',
@@ -685,16 +686,16 @@ class MeScreen extends StatelessWidget {
                     : '${system.decidersSeen.$1} of ${system.decidersSeen.$2} saw your work in 90 days',
                 onTap: () => context.push('/visibility'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/negotiate',
                 icon: Icons.handshake_outlined,
                 color: AppColors.social,
                 title: 'Negotiation planner',
                 subtitle: 'A raise, a scope, rent: prepare in 15 minutes',
                 onTap: () => context.push('/negotiate'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/promises',
                 icon: Icons.handshake_outlined,
                 color: AppColors.social,
                 title: 'Promises',
@@ -705,8 +706,8 @@ class MeScreen extends StatelessWidget {
                         : '${system.openPromises.length} open',
                 onTap: () => context.push('/promises'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/board',
                 icon: Icons.groups_outlined,
                 color: AppColors.social,
                 title: 'Your personal board',
@@ -717,8 +718,8 @@ class MeScreen extends StatelessWidget {
                         : 'Every role has someone',
                 onTap: () => context.push('/board'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/kindness',
                 icon: Icons.volunteer_activism_outlined,
                 color: AppColors.social,
                 title: 'Kindness day',
@@ -727,47 +728,47 @@ class MeScreen extends StatelessWidget {
                     : '${weekdayName(system.kindnessDay!)}s · ${system.kindnessInWeek(DateTime.now())} this week',
                 onTap: () => context.push('/kindness'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/gratitude',
                 icon: Icons.favorite_outline_rounded,
                 color: AppColors.social,
                 title: 'Gratitude letter',
                 subtitle: 'To someone who changed your life',
                 onTap: () => context.push('/gratitude'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/coach-report',
                 icon: Icons.assignment_outlined,
                 color: AppColors.social,
                 title: 'Report for your coach',
                 subtitle: 'This month or quarter, ready to copy',
                 onTap: () => context.push('/coach-report'),
               ),
-            ],
-          ),
+          ],
         ),
         const SectionHeader('Hard days'),
-        OnoCard(
-          padding: EdgeInsets.zero,
-          child: Column(
-            children: [
+        _LinkGroup(
+          id: 'hard_days',
+          core: const {'/setback', '/thought', '/worry', '/rest'},
+          rows: [
               LinkRow(
+                route: '/setback',
                 icon: Icons.replay_rounded,
                 color: AppColors.warning,
                 title: 'It slipped — reset',
                 subtitle: 'Kindness, facts, the smallest next step',
                 onTap: () => context.push('/setback'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/stepback',
                 icon: Icons.zoom_out_map_rounded,
                 color: AppColors.mind,
                 title: 'Step back',
                 subtitle: 'Talk to yourself by name when it all feels close',
                 onTap: () => context.push('/stepback'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/thought',
                 icon: Icons.psychology_outlined,
                 color: AppColors.mind,
                 title: 'Thought check',
@@ -776,8 +777,8 @@ class MeScreen extends StatelessWidget {
                     : 'Takes the feeling down ${system.thoughtRelief!.round()} points on average',
                 onTap: () => context.push('/thought'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/worry',
                 icon: Icons.local_parking_rounded,
                 color: AppColors.mind,
                 title: 'Worry time',
@@ -786,24 +787,24 @@ class MeScreen extends StatelessWidget {
                     : '${system.parkedWorries.length} parked',
                 onTap: () => context.push('/worry'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/decide',
                 icon: Icons.alt_route_rounded,
                 color: AppColors.mind,
                 title: 'Decide with your values',
                 subtitle: 'Options, what matters, 10/10/10, a premortem',
                 onTap: () => context.push('/decide'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/coach',
                 icon: Icons.psychology_alt_outlined,
                 color: AppColors.mind,
                 title: 'Think it through',
                 subtitle: 'Coach yourself on a problem that keeps circling',
                 onTap: () => context.push('/coach'),
               ),
-              const Divider(indent: 66),
               LinkRow(
+                route: '/rest',
                 icon: Icons.beach_access_outlined,
                 color: AppColors.body,
                 title: 'Plan your rest',
@@ -812,8 +813,7 @@ class MeScreen extends StatelessWidget {
                     : 'Nothing planned in the next 8 weeks',
                 onTap: () => context.push('/rest'),
               ),
-            ],
-          ),
+          ],
         ),
         const SectionHeader('Settings'),
         OnoCard(
@@ -1245,6 +1245,61 @@ class MeScreen extends StatelessWidget {
 /// Last 7 days of check-ins: energy, sleep and shoulders, plus the pain
 /// trend for 30 days — the log to bring to the rheumatologist.
 /// Personal patterns from his own logs: days with a habit vs without.
+/// A section of links: its core tools and the ones used in the last 30
+/// days stay in view, the rest fold behind "N more" (remembered).
+class _LinkGroup extends StatelessWidget {
+  final String id;
+  final Set<String> core;
+  final List<LinkRow> rows;
+  const _LinkGroup({required this.id, required this.core, required this.rows});
+
+  @override
+  Widget build(BuildContext context) {
+    final system = context.watch<PersonalSystemProvider>();
+    final recent = system.recentToolRoutes();
+    final openKey = 'me:more:$id';
+    final open = system.isDone(openKey);
+    bool inView(LinkRow r) {
+      final path = (r.route ?? '').split('?').first;
+      return core.contains(path) || recent.contains(path);
+    }
+
+    final shown = open ? rows : rows.where(inView).toList();
+    final hidden = rows.length - rows.where(inView).length;
+    return OnoCard(
+      padding: EdgeInsets.zero,
+      child: Column(
+        children: [
+          for (var i = 0; i < shown.length; i++) ...[
+            if (i > 0) const Divider(indent: 66),
+            shown[i],
+          ],
+          if (hidden > 0) ...[
+            const Divider(height: 1),
+            InkWell(
+              key: Key('me-more-$id'),
+              onTap: () => system.setDone(openKey, !open),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(open ? 'Show fewer' : '$hidden more',
+                          style: AppText.small(color: AppColors.grey)),
+                    ),
+                    Icon(open ? Icons.expand_less_rounded : Icons.expand_more_rounded,
+                        color: AppColors.faint, size: 20),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
 class _Patterns extends StatelessWidget {
   const _Patterns();
 

@@ -785,8 +785,12 @@ class LinkRow extends StatelessWidget {
   final String? trailing;
   final VoidCallback onTap;
 
+  /// Where it leads, so a group of links can tell which were used lately.
+  final String? route;
+
   const LinkRow({
     super.key,
+    this.route,
     required this.icon,
     required this.title,
     required this.onTap,

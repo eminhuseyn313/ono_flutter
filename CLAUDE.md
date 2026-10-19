@@ -90,7 +90,7 @@ Shared widgets:
 
 ## Routes
 
-Me starts with "Find a tool" (`/tools`: every tool in `toolIndex`, `lib/data/tool_index.dart`, searchable by title, purpose and keywords (a word also matches by its stem, so "anxious" finds "anxiety"); built-in-only tools hidden for anyone else; general content, tested), then groups its links as Direction, Practice, People, Hard days, then Settings. A new tool gets a `ToolEntry` (its route must exist — tested).
+Me starts with "Find a tool" (`/tools`: every tool in `toolIndex`, `lib/data/tool_index.dart`, searchable by title, purpose and keywords (a word also matches by its stem, so "anxious" finds "anxiety"); built-in-only tools hidden for anyone else; general content, tested), then groups its links as Direction, Practice, People, Hard days, then Settings. Each group (`_LinkGroup`) shows its core tools plus any used in the last 30 days (`recentToolRoutes`, from `toolRouteOfLog`; `LinkRow.route`) and folds the rest behind "N more" (`me:more:<group>`, remembered). A new tool gets a `ToolEntry` (its route must exist — tested).
 
 Bottom tabs: **Today** `/home` · **Program** `/program?tab=0..3` (Journey/Schedule/Body/Reference) · **Log** `/log?add=weight|protein|win|note|blood` · **Me** `/profile`.
 
