@@ -625,4 +625,16 @@ void main() {
     system.closeNegotiation(l.id, outcome: 'better', lesson: 'Ask for the range first');
     expect(system.playbook().any((e) => e.text == 'Ask for the range first'), isTrue);
   });
+
+  testWidgets('rehearse: tick the parts that landed, it is saved',
+      (tester) async {
+    final system = await _start(tester);
+    await _go(tester, '/rehearse');
+    expect(find.byKey(const Key('rehearse-question')), findsOneWidget);
+    await _tap(tester, find.byKey(const Key('star-Situation')));
+    await _tap(tester, find.byKey(const Key('star-Result')));
+    await _tap(tester, find.text('Save the rehearsal'));
+    final l = system.logsOf('rehearsal').single;
+    expect((l.data['star'] as List).toSet(), {'Situation', 'Result'});
+  });
 }

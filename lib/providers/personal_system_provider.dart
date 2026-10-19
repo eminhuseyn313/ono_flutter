@@ -7740,6 +7740,26 @@ class PersonalSystemProvider extends ChangeNotifier {
   // ── Story bank (STAR) ────────────────────────────────────────────────
 
   /// The skills interviewers, promotion panels and reviews ask about.
+  /// One interview question per story skill, for rehearsing out loud.
+  static const rehearsalQuestions = {
+    'Leading people': 'Tell me about a time you led a team through something hard.',
+    'Influence without authority': 'Tell me about a time you changed someone\'s mind without authority over them.',
+    'Conflict': 'Tell me about a disagreement with a colleague and how you handled it.',
+    'A failure and what I learned': 'Tell me about a time you failed. What did you learn?',
+    'Delivering under pressure': 'Tell me about a time you delivered under real pressure.',
+    'Ownership': 'Tell me about a time you took ownership of something nobody owned.',
+    'A hard decision': 'Tell me about a hard decision you made with incomplete information.',
+    'Learning fast': 'Tell me about a time you had to learn something new quickly.',
+    'Customer focus': 'Tell me about a time you changed course because of a customer.',
+    'Creativity': 'Tell me about an idea of yours that made something better.',
+  };
+
+  static const starParts = ['Situation', 'Task', 'Action', 'Result'];
+
+  /// A question rehearsed out loud, and which parts of the answer landed.
+  LogEntry? logRehearsal({required String question, String skill = '', List<String> star = const []}) =>
+      addLog('rehearsal', text: question.trim(), data: {'skill': skill, 'star': star});
+
   static const storySkills = [
     'Leading people',
     'Influence without authority',

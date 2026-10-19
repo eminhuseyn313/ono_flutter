@@ -40,6 +40,7 @@ const _filters = <String, Set<String>?>{
     'wheel',
     'aar',
     'courage',
+    'rehearsal',
     'strength_use',
     'program_cycle',
     'story',
@@ -581,6 +582,7 @@ class _EntryRow extends StatelessWidget {
     'thought': (Icons.psychology_outlined, 'mind', 'Thought check'),
     'aar': (Icons.flag_outlined, 'skill', 'After-action review'),
     'courage': (Icons.stairs_outlined, 'skill', 'Courage ladder'),
+    'rehearsal': (Icons.record_voice_over_outlined, 'skill', 'Rehearsed'),
     'promise': (Icons.handshake_outlined, 'social', 'Promise'),
     'ask': (Icons.pan_tool_alt_outlined, 'social', 'Asked for help'),
     'advice': (Icons.tips_and_updates_outlined, 'social', 'Advice'),
@@ -662,6 +664,9 @@ class _EntryRow extends StatelessWidget {
         return st == 'done'
             ? '${e.text} · feared ${e.number('fear')}, felt ${e.number('felt')}'
             : '${e.text} · ${st == 'planned' ? 'on the ladder, ${e.number('fear')}/10' : 'taken off'}';
+      case 'rehearsal':
+        final star = (e.data['star'] as List? ?? const []).length;
+        return '${e.text} · $star of 4 parts';
       case 'aar':
         final next = e.str('improve') ?? '';
         return '${e.text}${next.isEmpty ? '' : ' · next time: $next'}';

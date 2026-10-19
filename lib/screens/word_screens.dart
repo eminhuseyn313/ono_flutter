@@ -6,6 +6,7 @@ import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
 import 'people_screen.dart';
+import 'tool_screens.dart' show CountdownTimer;
 
 // ── Promises ───────────────────────────────────────────────────────────
 
@@ -222,6 +223,11 @@ class StoriesScreen extends StatelessWidget {
             ),
           ],
         ),
+        const SizedBox(height: 8),
+        GhostButton('Rehearse a question out loud',
+            icon: Icons.record_voice_over_outlined,
+            onPressed: () => Navigator.of(context)
+                .push(MaterialPageRoute(builder: (_) => const RehearseScreen()))),
         if (ideas.isNotEmpty) ...[
           const SectionHeader('From your wins and reviews'),
           OnoCard(
@@ -588,6 +594,96 @@ class _AdviceScreenState extends State<AdviceScreen> {
                   style: AppText.small(color: AppColors.white)),
             ),
         ],
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+}
+
+// ── Rehearse a big moment ─────────────────────────────────────────────
+
+/// A question, two minutes, out loud — then which parts of the answer
+/// landed (situation, task, action, result).
+class RehearseScreen extends StatefulWidget {
+  const RehearseScreen({super.key});
+
+  @override
+  State<RehearseScreen> createState() => _RehearseScreenState();
+}
+
+class _RehearseScreenState extends State<RehearseScreen> {
+  final _skills = PersonalSystemProvider.rehearsalQuestions.keys.toList();
+  late int _i = DateTime.now().millisecondsSinceEpoch % _skills.length;
+  final _star = <String>{};
+  int _round = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final system = context.read<PersonalSystemProvider>();
+    final skill = _skills[_i];
+    final question = PersonalSystemProvider.rehearsalQuestions[skill]!;
+    final stories = [for (final s in system.stories) if (system.skillsOf(s).contains(skill)) s];
+    return OnoPage(
+      showBack: true,
+      eyebrow: 'Rehearse · 2 minutes',
+      title: 'Say it out loud',
+      subtitle: 'Answer as if they were asking now. Then tick what your answer had.',
+      bottomBar: PrimaryButton('Save the rehearsal', icon: Icons.check_rounded, onPressed: () {
+        system.logRehearsal(question: question, skill: skill, star: _star.toList());
+        toast(context, _star.length == 4 ? 'All four parts. Ready.' : 'Saved. Missing parts are the ones to practise.');
+        setState(() {
+          _star.clear();
+          _round++;
+          _i = (_i + 1) % _skills.length;
+        });
+      }),
+      children: [
+        const SizedBox(height: 14),
+        OnoCard(
+          accent: AppColors.skill,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(skill.toUpperCase(), style: AppText.eyebrow()),
+              const SizedBox(height: 6),
+              Text(question, key: const Key('rehearse-question'), style: AppText.serif(size: 22)),
+              if (stories.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text('Your story for it: ${stories.first.text}', style: AppText.small()),
+              ],
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => setState(() {
+                    _star.clear();
+                    _i = (_i + 1) % _skills.length;
+                  }),
+                  child: const Text('Another question'),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+        CountdownTimer(key: ValueKey('rehearse-$_round-$_i'), minutes: 2, label: 'Answer'),
+        const SectionHeader('Your answer had…'),
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            for (final p in PersonalSystemProvider.starParts)
+              FilterChip(
+                key: Key('star-$p'),
+                label: Text(p),
+                selected: _star.contains(p),
+                showCheckmark: false,
+                onSelected: (on) => setState(() => on ? _star.add(p) : _star.remove(p)),
+              ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text('Most answers lose the result. Say what changed, with a number if there is one.',
+            style: AppText.small()),
         const SizedBox(height: 16),
       ],
     );
