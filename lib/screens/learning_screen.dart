@@ -29,6 +29,44 @@ class _LearningScreenState extends State<LearningScreen> {
     super.dispose();
   }
 
+  void _guesses(PersonalSystemProvider system, LogEntry l) {
+    final c = TextEditingController();
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.card,
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + MediaQuery.of(ctx).viewInsets.bottom),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Three guesses', style: AppText.title()),
+              Text('Before you read ${l.text}: what do you think it will say? Wrong guesses help too — you\'ll remember the answer better.',
+                  style: AppText.small()),
+              const SizedBox(height: 10),
+              TextField(
+                key: const Key('guesses-text'),
+                controller: c,
+                minLines: 3,
+                maxLines: 6,
+                style: AppText.body(color: AppColors.white),
+                decoration: const InputDecoration(hintText: '1. …\n2. …\n3. …'),
+              ),
+              const SizedBox(height: 12),
+              PrimaryButton('Save', icon: Icons.check_rounded, onPressed: () {
+                system.setLearningGuesses(l.id, c.text);
+                Navigator.of(ctx).pop();
+                toast(context, 'Kept. They come back when you finish.');
+              }),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   void _apply(PersonalSystemProvider system, LogEntry l) {
     final principle = TextEditingController();
     final experiment = TextEditingController();
@@ -46,6 +84,12 @@ class _LearningScreenState extends State<LearningScreen> {
             children: [
               Text('Apply it', style: AppText.title()),
               Text(l.text, style: AppText.small()),
+              if ((l.str('guesses') ?? '').isNotEmpty) ...[
+                const SizedBox(height: 10),
+                Text('Before you started, you guessed:', style: AppText.small()),
+                Text(l.str('guesses')!, style: AppText.body(color: AppColors.white)),
+                Text('What turned out true — and what surprised you?', style: AppText.small()),
+              ],
               const SizedBox(height: 12),
               Text('The one principle, in your words', style: AppText.small(color: AppColors.white)),
               const SizedBox(height: 4),
@@ -224,6 +268,11 @@ class _LearningScreenState extends State<LearningScreen> {
                     child: const Text('Start')),
                 'active' => Wrap(
                     children: [
+                      if ((l.str('guesses') ?? '').isEmpty)
+                        TextButton(
+                            key: Key('guesses-${l.id}'),
+                            onPressed: () => _guesses(system, l),
+                            child: const Text('Before you read: three guesses')),
                       TextButton(
                           key: Key('from-memory-${l.id}'),
                           onPressed: () => _fromMemory(system, l),

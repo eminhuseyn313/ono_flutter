@@ -3723,4 +3723,16 @@ void main() {
     p.setDone(p.reconnectSeenKey(p.now), true);
     expect(p.reconnectSuggestion(p.now), isNull);
   });
+
+  test('learning: guesses before reading; the deck mixes sources', () async {
+    final p = await _commissioned();
+    final book = p.addLearning('Thinking in Systems', kind: 'Book')!;
+    p.startLearning(book.id);
+    p.setLearningGuesses(book.id, ' Stocks and flows ');
+    expect(p.learningById(book.id)!.str('guesses'), 'Stocks and flows');
+    expect(p.learningById(book.id)!.str('status'), 'active');
+    // Interleaving keeps every due card, alternating sources.
+    final due = p.dueCards(_today);
+    expect(due.length, due.map((c) => c.id).toSet().length);
+  });
 }

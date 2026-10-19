@@ -1405,7 +1405,25 @@ class PersonalSystemProvider extends ChangeNotifier {
         .where((s) => dateKey(s.firstSeen) == dateKey(d))
         .length;
     final room = (newCardsPerDay - introducedToday).clamp(0, newCardsPerDay);
-    return [...due, ...fresh.take(room)];
+    return [..._interleave(due), ...fresh.take(room)];
+  }
+
+  /// Mixes cards from different sources (lessons, books, values…) in turn,
+  /// most overdue first within each: mixing categories helps them stick
+  /// (interleaving, Brunmair & Richter 2019).
+  static List<StudyCard> _interleave(List<StudyCard> cards) {
+    final bySource = <String, List<StudyCard>>{};
+    for (final c in cards) {
+      bySource.putIfAbsent(c.source, () => []).add(c);
+    }
+    final queues = bySource.values.toList();
+    final out = <StudyCard>[];
+    for (var i = 0; out.length < cards.length; i++) {
+      for (final q in queues) {
+        if (i < q.length) out.add(q[i]);
+      }
+    }
+    return out;
   }
 
   /// Grade 0 again · 3 hard · 4 good · 5 easy.
@@ -4449,6 +4467,12 @@ class PersonalSystemProvider extends ChangeNotifier {
     if (l == null) return;
     updateLog(l.copyWith(data: {...l.data, ...changes}));
   }
+
+  /// Three guesses about what it will say, before reading: guessing
+  /// first makes the answer stick (Metcalfe 2024), and comparing at the
+  /// end shows what you learned.
+  void setLearningGuesses(String id, String guesses) =>
+      _setLearning(id, {'guesses': guesses.trim()});
 
   void startLearning(String id) =>
       _setLearning(id, {'status': 'active', 'started': dateKey(_now)});
