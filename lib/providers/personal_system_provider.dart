@@ -5007,7 +5007,7 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   /// What an experiment can watch, from data already logged.
   static const experimentMeasures = {
-    'score': 'Daily items (of 10)',
+    'score': 'Daily items done',
     'energy': 'Morning energy',
     'sleep': 'Sleep (h)',
     'mood': 'Mood',
@@ -5029,6 +5029,16 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   /// A small test of a change: [change] for [days] days, watching
   /// [measure]. Personal science beats generic advice.
+  /// Small changes worth testing on yourself: (change, measure, expect).
+  static const experimentIdeas = [
+    ('Phone in another room for the first hour after waking', 'mood', 'A calmer start to the day'),
+    ('The same wake time every day, weekends too', 'energy', 'More even energy'),
+    ('A ten-minute walk outside after lunch', 'energy', 'Fewer afternoon dips'),
+    ('No caffeine after noon', 'sleep', 'Longer sleep'),
+    ('Three good things written before bed', 'mood', 'A lighter mood'),
+    ('Tomorrow\'s three written before closing the laptop', 'score', 'More days held'),
+  ];
+
   LogEntry? startExperiment(
           {required String change,
           required String measure,

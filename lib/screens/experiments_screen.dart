@@ -167,6 +167,28 @@ class _ExperimentsScreenState extends State<ExperimentsScreen> {
           ),
           const SizedBox(height: 10),
         ],
+        Text(ideas.isEmpty ? 'Try one of these, or your own:' : 'Or one of these:', style: AppText.small()),
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            for (final (change, measure, expect) in PersonalSystemProvider.experimentIdeas)
+              if (!running.any((e) => e.text == change))
+                ActionChip(
+                  label: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 260),
+                    child: Text(change, maxLines: 2, overflow: TextOverflow.ellipsis),
+                  ),
+                  onPressed: () => setState(() {
+                    _change.text = change;
+                    _expect.text = expect;
+                    _measure = measure;
+                  }),
+                ),
+          ],
+        ),
+        const SizedBox(height: 10),
         TextField(
           key: const Key('experiment-change'),
           controller: _change,
