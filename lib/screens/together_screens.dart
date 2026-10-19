@@ -243,7 +243,7 @@ class _KnowScreenState extends State<KnowScreen> {
               padding: EdgeInsets.zero,
               child: Column(
                 children: [
-                  for (final x in system.people)
+                  for (final x in system.activePeople)
                     LinkRow(
                       icon: Icons.person_outline_rounded,
                       color: AppColors.social,
@@ -260,15 +260,17 @@ class _KnowScreenState extends State<KnowScreen> {
       );
     }
     final first = p.text.split(' ').first;
-    final next = system.nextQuestionFor(p);
-    final questions = system.knowQuestionsFor(p);
+    // For someone remembered, only their story — no questions about now.
+    final remembered = system.isRemembered(p);
+    final next = remembered ? null : system.nextQuestionFor(p);
+    final questions = remembered ? const <(String, String, String)>[] : system.knowQuestionsFor(p);
     return UnsavedGuard(
       changesOnly: true,
       saves: _saves,
       fields: [..._answers.values, ..._story.values],
       child: OnoPage(
         showBack: true,
-        eyebrow: 'People · ${system.knownCount(p)} of ${questions.length} known',
+        eyebrow: remembered ? 'Remembering' : 'People · ${system.knownCount(p)} of ${questions.length} known',
         title: 'What you know about $first',
         subtitle:
             'Knowing someone\'s world is what closeness is built on. Write what $first told you, in a line. It stays on your devices.',

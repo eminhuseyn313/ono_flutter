@@ -653,7 +653,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   int targetFor(DateTime date) {
     final n = itemIdsOn(date).length;
     if (n == 0) return 1;
-    return isMinimumDay(date) ? (n / 2).ceil() : targetOf(n);
+    return isMinimumDay(date) ? minTargetOf(n) : targetOf(n);
   }
 
   // ── The daily list over time ─────────────────────────────────────────
@@ -723,8 +723,12 @@ class PersonalSystemProvider extends ChangeNotifier {
     return out;
   }
 
-  /// Half the items, rounded up: the minimum day's bar.
-  int get minimumTarget => dailyCount == 0 ? 1 : (dailyCount / 2).ceil();
+  /// Half the items, rounded up: the minimum day's bar — always below the
+  /// usual one, so a minimum day lowers it even on a short list.
+  int get minimumTarget => minTargetOf(dailyCount);
+
+  static int minTargetOf(int n) =>
+      n == 0 ? 1 : max(1, min((n / 2).ceil(), targetOf(n) - 1));
 
   // ── Hard days ────────────────────────────────────────────────────────
 
@@ -1059,7 +1063,11 @@ class PersonalSystemProvider extends ChangeNotifier {
     if (yesterday.isBefore(programStart)) return false;
     // Nothing to recover yet: the first day, or nothing ever ticked.
     final first = firstTickDay;
-    if (first == null || !yesterday.isAfter(dayOnly(journeyStart))) return false;
+    if (first == null ||
+        yesterday.isBefore(dayOnly(first)) ||
+        !yesterday.isAfter(dayOnly(journeyStart))) {
+      return false;
+    }
     return !isHeld(yesterday) &&
         !isExcused(yesterday) &&
         !isHeld(today) &&
@@ -3099,16 +3107,20 @@ class PersonalSystemProvider extends ChangeNotifier {
     if (!calendarConnected || _meetingsDay != dayOnly(day)) return const [];
     final d = dayOnly(day);
     final shape = isBuiltInPerson ? null : dayShape;
+    // Night shifts (work ending after midnight) get no daytime suggestions.
+    if (shape != null && shape.workEnd < shape.workStart) return const [];
     final hasHours = shape != null && shape.workEnd > shape.workStart;
+    // No fixed hours: the waking day, up to 90 minutes before bed.
+    final open = !hasHours && shape != null && shape.bed > shape.wake;
     DateTime at(int minute) => DateTime(d.year, d.month, d.day, minute ~/ 60, minute % 60);
-    var cursor = at(hasHours ? shape.workStart : 9 * 60);
+    var cursor = at(hasHours ? shape.workStart : open ? shape.wake : 9 * 60);
     if (_now.isAfter(cursor)) {
       // Round up to the next quarter hour.
       final q = (_now.minute / 15).ceil() * 15;
       cursor = DateTime(_now.year, _now.month, _now.day, _now.hour)
           .add(Duration(minutes: q));
     }
-    final close = at(hasHours ? shape.workEnd : 18 * 60);
+    final close = at(hasHours ? shape.workEnd : open ? max(shape.wake, shape.bed - 90) : 18 * 60);
     final busy = [
       for (final m in _meetings) (start: m.start, end: m.end),
       if (isBuiltInPerson) (start: at(12 * 60), end: at(12 * 60 + 30)),
@@ -5602,14 +5614,15 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// Where the load comes from (in words) when the last two months that were rated
   /// in a row were both heavy (4+); null otherwise.
   List<String>? get heavyLoad {
-    for (var m = programMonth; m >= 2; m--) {
-      final now = loadLevelOf(m);
-      if (now == null) continue;
-      final before = loadLevelOf(m - 1);
-      if (now < 4 || before == null || before < 4) return null;
-      return [for (final f in {...loadFromOf(m), ...loadFromOf(m - 1)}) loadSources[f]!.toLowerCase()];
-    }
-    return null;
+    // Only the month just reviewed (this one, or last month early on) and
+    // the one before it: an old heavy pair is not news.
+    final m = loadLevelOf(programMonth) != null ? programMonth : programMonth - 1;
+    if (m < 2) return null;
+    final now = loadLevelOf(m), before = loadLevelOf(m - 1);
+    if (now == null || before == null || now < 4 || before < 4) return null;
+    return [
+      for (final f in {...loadFromOf(m), ...loadFromOf(m - 1)}) (loadSources[f] ?? f).toLowerCase()
+    ];
   }
 
   /// What last month's review said to carry into this one, or null.
@@ -7580,7 +7593,7 @@ class PersonalSystemProvider extends ChangeNotifier {
         'shutdown' => f('open').isEmpty ? '' : 'Evening, on my mind: ${f('open')}',
         'thought' => 'Checked a thought: ${l.text}${f('balanced').isEmpty ? '' : '\n  More balanced: ${f('balanced')}'}',
         'kindness' => 'Kindness: ${l.text}',
-        'giving' => 'Gave ${l.number('hours')} h to ${l.text}',
+        'giving' => 'Gave ${(l.number('hours') ?? 0) % 1 == 0 ? (l.number('hours') ?? 0).toInt() : l.number('hours')} h to ${l.text}',
         'transition' => '${transitionKinds[f('kind')] ?? 'Something changed'}${l.text.isEmpty ? '' : ': ${l.text}'}${f('keep').isEmpty ? '' : '\n  What stays: ${f('keep')}'}',
         'lesson' => 'Learned this week: ${l.text}',
         'remembrance' => 'Remembering ${f('name')}:${[for (final q in remembranceQuestions) if (f(q.$1).isNotEmpty) '\n  ${q.$2}: ${f(q.$1)}'].join()}',

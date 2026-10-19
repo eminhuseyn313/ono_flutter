@@ -693,7 +693,7 @@ void main() {
     await _tap(tester, find.byKey(const Key('giving-2')));
     expect(system.givingThisYear.$1, 2);
     expect(system.yearSummary(DateTime.now().year).hoursGiven, 2);
-    expect(system.journalText(), contains('Gave 2.0 h to Food bank'));
+    expect(system.journalText(), contains('Gave 2 h to Food bank'));
   });
 
   testWidgets('when life changes: start it, steps on Today, what stays', (tester) async {

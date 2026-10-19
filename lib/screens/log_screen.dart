@@ -694,7 +694,7 @@ class _EntryRow extends StatelessWidget {
       case 'help':
         return '${e.str('name')}: ${e.text}';
       case 'giving':
-        return '${e.text} · ${e.number('hours')} h';
+        return '${e.text} · ${_hours(e.number('hours'))} h';
       case 'move':
         return '${PersonalSystemProvider.moveKinds[e.str('kind')] ?? e.str('kind')} · ${e.number('minutes')} min${e.data['vigorous'] == true ? ' · vigorous' : ''}${e.data['outside'] == true ? ' · outside' : ''}';
       case 'hard_day':
@@ -1022,3 +1022,6 @@ class _EditTextSheetState extends State<_EditTextSheet> {
         ),
       );
 }
+
+/// 1.0 → "1", 1.5 → "1.5".
+String _hours(num? h) => h == null ? '0' : (h % 1 == 0 ? '${h.toInt()}' : h.toStringAsFixed(1));

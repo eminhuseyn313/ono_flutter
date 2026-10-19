@@ -569,7 +569,7 @@ class MeScreen extends StatelessWidget {
                 icon: Icons.group_outlined,
                 color: AppColors.social,
                 title: 'People',
-                subtitle: system.people.isEmpty
+                subtitle: system.activePeople.isEmpty
                     ? 'Who you invest in, and how often'
                     : '${system.activePeople.length} people · ${system.peopleDue.length} due${system.peopleGrowing.isEmpty ? '' : ' · helping ${system.peopleGrowing.length} grow'}',
                 onTap: () => context.push('/people'),

@@ -691,6 +691,10 @@ void main() {
       expect(p.heavyLoad, containsAll(['work', 'caring for someone']));
       p.setMonthLoad(m, level: 2);
       expect(p.heavyLoad, isNull);
+      // An old heavy pair isn't news once later months are rated lighter
+      // or the current month is rated at all.
+      p.setMonthLoad(m, level: 4);
+      expect(p.heavyLoad, isNotNull);
     }
   });
 
@@ -739,6 +743,15 @@ void main() {
     expect(PersonalSystemProvider.targetOf(5), 4);
     expect(PersonalSystemProvider.targetOf(10), 7);
     expect(PersonalSystemProvider.targetOf(1), 1);
+  });
+
+  test('a minimum day always lowers the bar, even on a short list', () {
+    for (final n in [1, 2, 3, 4, 5, 10, 15]) {
+      final min = PersonalSystemProvider.minTargetOf(n);
+      expect(min, greaterThanOrEqualTo(1));
+      if (n > 1) expect(min, lessThan(PersonalSystemProvider.targetOf(n)), reason: '$n items');
+    }
+    expect(PersonalSystemProvider.minTargetOf(10), 5);
   });
 
   test('no recovery card before anything was ever ticked', () async {

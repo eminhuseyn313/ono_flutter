@@ -1306,7 +1306,10 @@ class _PromptsState extends State<_Prompts> {
             '',
             onTap: () async {
               system.setDone('notify:asked', true);
-              await system.requestReminderPermission();
+              final ok = await system.requestReminderPermission();
+              if (!ok && context.mounted) {
+                toast(context, 'Notifications are off for ONO. Switch them on in Settings → ONO → Notifications.');
+              }
             }),
       if (system.planBuildSuggested &&
           !_snoozed(system, 'plan'))
@@ -1350,6 +1353,9 @@ class _PromptsState extends State<_Prompts> {
                 ? 'Wake, work, bed — your dial and reminders follow it'
                 : 'Wake, work, bed — your day dial follows it',
             '/day'),
+      if (system.nextTransitionStep != null && !_snoozed(system, 'change'))
+        _setupRow(context, system, 'change', Icons.swap_horiz_rounded, AppColors.mind,
+            'Settling into the change', system.nextTransitionStep!.$2, '/change'),
       if (system.values.isEmpty &&
           system.programDay >= 7 &&
           system.programDay <= 30 &&
@@ -1420,14 +1426,12 @@ class _PromptsState extends State<_Prompts> {
                 ? 'A message in your own words beats a reminder app\'s'
                 : 'Ask about ${system.askAboutOf(b)}',
             '/people?id=${b.id}'),
-      if (system.nextTransitionStep case final step?)
-        _row(context, Icons.swap_horiz_rounded, AppColors.mind, 'Settling into the change', step.$2, '/change'),
-      for (final r in system.remembranceDays(now).take(1))
+      for (final r in system.remembranceDays(system.logicalToday).take(1))
         _row(
             context,
             Icons.local_florist_outlined,
             AppColors.mind,
-            system.birthdayOf(r) == (now.month, now.day)
+            system.birthdayOf(r) == (system.logicalToday.month, system.logicalToday.day)
                 ? '${r.text}\'s birthday'
                 : 'Remembering ${r.text} today',
             'A moment for them, if you want one',

@@ -87,8 +87,9 @@ struct OnoProvider: TimelineProvider {
     return OnoEntry(
       date: date,
       score: isToday ? (d?.integer(forKey: "score") ?? 0) : 0,
-      total: max(d?.integer(forKey: "total") ?? 10, 1),
-      target: max(d?.integer(forKey: "target") ?? 7, 1),
+      // integer(forKey:) is 0 for a missing key (signed out): fall back.
+      total: max((d?.object(forKey: "total") as? Int) ?? 10, 1),
+      target: max((d?.object(forKey: "target") as? Int) ?? 7, 1),
       streak: d?.integer(forKey: "streak") ?? 0,
       day: d?.integer(forKey: "day") ?? 0,
       protein: isToday ? (d?.integer(forKey: "protein") ?? 0) : 0,
