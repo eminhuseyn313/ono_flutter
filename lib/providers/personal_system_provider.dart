@@ -2025,10 +2025,19 @@ class PersonalSystemProvider extends ChangeNotifier {
     'coaching': '/coach', 'rest': '/rest',
   };
 
-  /// Routes of the tools used in the last [days] days.
+  PersonalSystemState? _recentState;
+  String _recentKey = '';
+  Set<String> _recentCache = const {};
+
+  /// Routes of the tools used in the last [days] days. Cached per state
+  /// and day: Me asks once per group on every build.
   Set<String> recentToolRoutes({int days = 30}) {
     final since = logicalToday.minusDays(days);
-    return {
+    final key = '${dateKey(since)}|$days';
+    if (identical(_recentState, _state) && _recentKey == key) return _recentCache;
+    _recentState = _state;
+    _recentKey = key;
+    return _recentCache = {
       for (final l in _state?.logs ?? const <LogEntry>[])
         if (toolRouteOfLog[l.type] case final r? when !dayOnly(l.createdAt).isBefore(since)) r
     };
