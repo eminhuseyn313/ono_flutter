@@ -5676,7 +5676,22 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   // ── People ───────────────────────────────────────────────────────────
 
-  static const contactCadences = [7, 14, 30, 90];
+  static const contactCadences = [7, 14, 30, 90, 365];
+
+  /// Someone you've lost touch with — six months or more and not already
+  /// overdue — at most one a week. People enjoy hearing from an old
+  /// friend far more than we expect (Liu et al. 2022). Null once seen.
+  LogEntry? reconnectSuggestion(DateTime day) {
+    if (isDone(reconnectSeenKey(day))) return null;
+    final due = {for (final p in peopleDue) p.id};
+    final quiet = [
+      for (final p in people)
+        if (!due.contains(p.id) && daysSinceContact(p) >= 180) p
+    ]..sort((a, b) => daysSinceContact(b).compareTo(daysSinceContact(a)));
+    return quiet.firstOrNull;
+  }
+
+  String reconnectSeenKey(DateTime day) => 'reconnect:${dateKey(weekStartOf(day))}';
 
   /// The people he invests in, oldest first. A `person` log holds the
   /// name, role and how often (days) he wants contact.

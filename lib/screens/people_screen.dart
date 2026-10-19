@@ -19,7 +19,7 @@ class PeopleScreen extends StatefulWidget {
   State<PeopleScreen> createState() => _PeopleScreenState();
 }
 
-const _cadenceLabels = {7: 'Weekly', 14: 'Every 2 weeks', 30: 'Monthly', 90: 'Quarterly'};
+const _cadenceLabels = {7: 'Weekly', 14: 'Every 2 weeks', 30: 'Monthly', 90: 'Quarterly', 365: 'Now and then'};
 
 class _PeopleScreenState extends State<PeopleScreen> {
   final _name = TextEditingController();

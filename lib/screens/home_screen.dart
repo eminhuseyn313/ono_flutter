@@ -1620,6 +1620,29 @@ class _PromptsState extends State<_Prompts> {
             '${activeProfile.targetRole} readiness',
             'Rate this month against the bar',
             '/cockpit?tab=2'),
+      // Someone you've lost touch with, at most once a week.
+      if (system.reconnectSuggestion(now) case final p?)
+        Column(
+          key: const Key('reconnect'),
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            _row(
+                context,
+                Icons.waving_hand_outlined,
+                AppColors.social,
+                'Reconnect with ${p.text}?',
+                'It\'s been ${system.daysSinceContact(p) ~/ 30} months. A two-line message is enough — people enjoy hearing from old friends more than we expect.',
+                '/people?id=${p.id}'),
+            TextButton(
+              onPressed: () => system.setDone(system.reconnectSeenKey(now), true),
+              style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  minimumSize: const Size(0, 32),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+              child: Text('Not this week', style: AppText.small()),
+            ),
+          ],
+        ),
       // Last: a look back, at most once a week.
       if (system.onThisDay(now) case final o?)
         Column(

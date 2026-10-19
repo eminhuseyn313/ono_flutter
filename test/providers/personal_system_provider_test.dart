@@ -3712,4 +3712,15 @@ void main() {
     expect(p.allCards.firstWhere((c) => c.id.startsWith('aar:')).back, contains('What you\'d tell a friend'));
     expect(p.playbook().any((e) => e.from == 'Advice to a friend · The demo'), isTrue);
   });
+
+  test('reconnect: someone quiet for six months, at most weekly', () async {
+    final p = await _commissioned();
+    final old = p.addPerson('Kamran', role: 'Old friend', every: 365);
+    p.logTouch(old, date: dayOnly(_today).minusDays(10));
+    expect(p.reconnectSuggestion(_today), isNull);
+    p.clock = () => _today.plusDays(200);
+    expect(p.reconnectSuggestion(p.now)!.id, old.id);
+    p.setDone(p.reconnectSeenKey(p.now), true);
+    expect(p.reconnectSuggestion(p.now), isNull);
+  });
 }
