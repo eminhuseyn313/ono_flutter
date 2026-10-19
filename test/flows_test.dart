@@ -538,4 +538,21 @@ void main() {
     expect(find.text('Send the memo a day early'), findsNothing);
     expect(find.text('Rehearse the demo twice'), findsOneWidget);
   });
+
+  testWidgets('advice: save it, say how it went, then that you told them',
+      (tester) async {
+    final system = await _start(tester);
+    await _go(tester, '/advice');
+    await tester.enterText(find.byKey(const Key('advice-text')), 'Send the agenda the day before');
+    await _type(tester, 'From', 'Rashad');
+    await _tap(tester, find.text('Save the advice'));
+    final a = system.adviceLog.single;
+    await _tap(tester, find.byKey(Key('advice-close-${a.id}')));
+    await tester.enterText(find.byKey(const Key('advice-result')), 'Shorter meetings');
+    await tester.tap(find.text('I tried it'));
+    await _pumpFor(tester, const Duration(milliseconds: 800));
+    expect(system.adviceToReport.single.str('result'), 'Shorter meetings');
+    await _tap(tester, find.text('I told them'));
+    expect(system.adviceToReport, isEmpty);
+  });
 }

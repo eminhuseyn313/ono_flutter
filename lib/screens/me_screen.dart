@@ -653,6 +653,16 @@ class MeScreen extends StatelessWidget {
               ),
               const Divider(indent: 66),
               LinkRow(
+                icon: Icons.tips_and_updates_outlined,
+                color: AppColors.social,
+                title: 'Advice',
+                subtitle: system.adviceToReport.isNotEmpty
+                    ? '${system.adviceToReport.length} to report back on'
+                    : 'Write it down, try it, tell them how it went',
+                onTap: () => context.push('/advice'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
                 icon: Icons.handshake_outlined,
                 color: AppColors.social,
                 title: 'Promises',

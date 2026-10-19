@@ -89,7 +89,8 @@ const _filters = <String, Set<String>?>{
     'feedback_round',
     'kindness',
     'promise',
-    'ask'
+    'ask',
+    'advice'
   },
   'Career': {
     'linkedin',
@@ -117,6 +118,7 @@ const _ownerRoute = {
   'rest': '/rest',
   'detach': '/rest',
   'ask': '/asks',
+  'advice': '/advice',
   'story': '/stories',
   'kindness': '/kindness',
   'touch': '/people',
@@ -576,6 +578,7 @@ class _EntryRow extends StatelessWidget {
     'courage': (Icons.stairs_outlined, 'skill', 'Courage ladder'),
     'promise': (Icons.handshake_outlined, 'social', 'Promise'),
     'ask': (Icons.pan_tool_alt_outlined, 'social', 'Asked for help'),
+    'advice': (Icons.tips_and_updates_outlined, 'social', 'Advice'),
     'story': (Icons.menu_book_outlined, 'skill', 'Story'),
     'program_cycle': (Icons.flag_circle_rounded, 'mind', 'Program closed'),
     'strength_use': (Icons.bolt_outlined, 'mind', 'Strength used'),
@@ -641,6 +644,9 @@ class _EntryRow extends StatelessWidget {
       case 'promise':
         final st = e.str('status') ?? 'open';
         return '${e.text}${(e.str('to') ?? '').isEmpty ? '' : ' · to ${e.str('to')}'} · ${st == 'open' ? 'by ${e.str('by')}' : st}';
+      case 'advice':
+        final st = e.str('status') ?? 'new';
+        return '${e.text}${(e.str('from') ?? '').isEmpty ? '' : ' · from ${e.str('from')}'} · ${PersonalSystemProvider.adviceStatuses[st] ?? st}';
       case 'ask':
         final st = e.str('status') ?? 'asked';
         return '${e.text}${(e.str('of') ?? '').isEmpty ? '' : ' · ${e.str('of')}'} · ${st == 'asked' ? 'waiting' : st}';

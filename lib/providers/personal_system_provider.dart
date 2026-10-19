@@ -5470,6 +5470,9 @@ class PersonalSystemProvider extends ChangeNotifier {
                 ),
         if (helpsFor(person).firstOrNull case final h?)
           ('Last help', h.text, h.date),
+        for (final a in adviceToReport)
+          if (names(person, a.str('from')))
+            ('Tell them how their advice went', '${a.text} — ${a.str('result') ?? ''}', null),
       ];
 
   /// Due people first (most overdue first), then the rest as added.
@@ -6472,6 +6475,66 @@ class PersonalSystemProvider extends ChangeNotifier {
     });
   }
 
+  // ── Advice: ask, try, report back ────────────────────────────────────
+
+  /// Advice someone gave you, and what became of it. Asking for advice
+  /// makes people see you as more competent, not less (Brooks et al.
+  /// 2015); telling them later how it worked is what turns advice into a
+  /// relationship.
+  static const adviceStatuses = {
+    'new': 'To try',
+    'trying': 'Trying it',
+    'tried': 'Tried',
+    'skipped': 'Not for me',
+  };
+
+  LogEntry? addAdvice({required String advice, String from = '', String about = ''}) =>
+      advice.trim().isEmpty
+          ? null
+          : addLog('advice', text: advice.trim(), data: {
+              'from': from.trim(),
+              'about': about.trim(),
+              'status': 'new',
+            });
+
+  List<LogEntry> get adviceLog => logsOf('advice');
+
+  void setAdviceStatus(String id, String status, {String? result}) {
+    final l = adviceLog.where((x) => x.id == id).firstOrNull;
+    if (l == null || !adviceStatuses.containsKey(status)) return;
+    updateLog(l.copyWith(data: {
+      ...l.data,
+      'status': status,
+      if (result != null) 'result': result.trim(),
+      if (status == 'tried' || status == 'skipped') 'closed_on': dateKey(_now),
+    }));
+  }
+
+  /// You told them how it went.
+  void markAdviceReported(String id, bool reported) {
+    final l = adviceLog.where((x) => x.id == id).firstOrNull;
+    if (l == null) return;
+    updateLog(l.copyWith(data: {...l.data, 'reported': reported}));
+  }
+
+  /// Tried, from someone named, and they haven't heard how it went.
+  List<LogEntry> get adviceToReport => [
+        for (final l in adviceLog)
+          if (l.str('status') == 'tried' &&
+              (l.str('from') ?? '').isNotEmpty &&
+              l.data['reported'] != true)
+            l
+      ];
+
+  /// Advice written down a week ago or more and not yet tried.
+  List<LogEntry> get adviceWaiting {
+    final cutoff = dayOnly(_now).minusDays(7);
+    return [
+      for (final l in adviceLog)
+        if ((l.str('status') ?? 'new') == 'new' && !dayOnly(l.date).isAfter(cutoff)) l
+    ];
+  }
+
   List<LogEntry> get openAsks => [
         for (final a in logsOf('ask'))
           if (a.str('status') == 'asked') a
@@ -7004,6 +7067,12 @@ class PersonalSystemProvider extends ChangeNotifier {
       if (e.str('status') == 'kept') {
         add(e, 'kept', (e.str('result') ?? '').isEmpty ? e.text : '${e.text} — ${e.str('result')}',
             'Experiment kept');
+      }
+    }
+    for (final a in logsOf('advice')) {
+      if (a.str('status') == 'tried' && (a.str('result') ?? '').isNotEmpty) {
+        add(a, 'result', '${a.text} — ${a.str('result')}',
+            'Advice${(a.str('from') ?? '').isEmpty ? '' : ' from ${a.str('from')}'}');
       }
     }
     for (final y in logsOf('year_review')) {

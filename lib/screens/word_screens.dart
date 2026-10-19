@@ -390,3 +390,206 @@ class _StoryEditScreenState extends State<StoryEditScreen> {
     );
   }
 }
+
+// ── Advice: ask, try, report back ──────────────────────────────────────
+
+/// Advice you were given: write it down, try it, note what happened, and
+/// tell the person how it went — the step that turns advice into trust.
+class AdviceScreen extends StatefulWidget {
+  const AdviceScreen({super.key});
+
+  @override
+  State<AdviceScreen> createState() => _AdviceScreenState();
+}
+
+class _AdviceScreenState extends State<AdviceScreen> {
+  final _advice = TextEditingController();
+  final _from = TextEditingController();
+  final _about = TextEditingController();
+
+  @override
+  void dispose() {
+    _advice.dispose();
+    _from.dispose();
+    _about.dispose();
+    super.dispose();
+  }
+
+  void _close(PersonalSystemProvider system, LogEntry a) {
+    final result = TextEditingController(text: a.str('result') ?? '');
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.card,
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + MediaQuery.of(ctx).viewInsets.bottom),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('How did it go?', style: AppText.title()),
+              Text(a.text, style: AppText.small()),
+              const SizedBox(height: 12),
+              TextField(
+                key: const Key('advice-result'),
+                controller: result,
+                minLines: 2,
+                maxLines: 4,
+                style: AppText.body(color: AppColors.white),
+                decoration: const InputDecoration(hintText: 'What happened when you tried it'),
+              ),
+              const SizedBox(height: 12),
+              PrimaryButton('I tried it', icon: Icons.check_rounded, onPressed: () {
+                system.setAdviceStatus(a.id, 'tried', result: result.text);
+                Navigator.of(ctx).pop();
+                if ((a.str('from') ?? '').isNotEmpty) {
+                  toast(context, 'Now tell ${a.str('from')!.split(' ').first} how it went.');
+                }
+              }),
+              const SizedBox(height: 6),
+              GhostButton('Not for me', onPressed: () {
+                system.setAdviceStatus(a.id, 'skipped', result: result.text);
+                Navigator.of(ctx).pop();
+              }),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final system = context.watch<PersonalSystemProvider>();
+    final all = system.adviceLog;
+    final report = system.adviceToReport;
+    final open = [
+      for (final a in all)
+        if (const {'new', 'trying'}.contains(a.str('status') ?? 'new')) a
+    ];
+    final closed = [
+      for (final a in all)
+        if (const {'tried', 'skipped'}.contains(a.str('status'))) a
+    ];
+    return OnoPage(
+      showBack: true,
+      eyebrow: 'People · advice',
+      title: 'Advice',
+      subtitle:
+          'Write down advice when you get it. Try it, note what happened — then tell them how it went. Most people never hear back.',
+      children: [
+        if (report.isNotEmpty) ...[
+          const SectionHeader('Tell them how it went'),
+          for (final a in report)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: OnoCard(
+                key: Key('advice-report-${a.id}'),
+                accent: AppColors.social,
+                padding: const EdgeInsets.fromLTRB(14, 12, 8, 6),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('${a.str('from')}: ${a.text}', style: AppText.heading()),
+                    if ((a.str('result') ?? '').isNotEmpty)
+                      Text('It went: ${a.str('result')}', style: AppText.small()),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () => system.markAdviceReported(a.id, true),
+                        child: const Text('I told them'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+        const SectionHeader('New advice'),
+        TextField(
+          key: const Key('advice-text'),
+          controller: _advice,
+          minLines: 1,
+          maxLines: 3,
+          style: AppText.body(color: AppColors.white),
+          decoration: const InputDecoration(hintText: 'The advice, in a line'),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _from,
+          style: AppText.body(color: AppColors.white),
+          decoration: const InputDecoration(labelText: 'From'),
+        ),
+        PeoplePicker(controller: _from),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _about,
+          style: AppText.body(color: AppColors.white),
+          decoration: const InputDecoration(labelText: 'What you asked about (optional)'),
+        ),
+        const SizedBox(height: 10),
+        GhostButton('Save the advice', icon: Icons.add_rounded, onPressed: () {
+          if (system.addAdvice(advice: _advice.text, from: _from.text, about: _about.text) == null) {
+            toast(context, 'Write the advice first.');
+            return;
+          }
+          _advice.clear();
+          _from.clear();
+          _about.clear();
+          FocusManager.instance.primaryFocus?.unfocus();
+          toast(context, 'Saved. Try it this week.');
+        }),
+        if (open.isNotEmpty) ...[
+          const SectionHeader('To try'),
+          for (final a in open)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: OnoCard(
+                padding: const EdgeInsets.fromLTRB(14, 12, 8, 6),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(a.text, style: AppText.heading()),
+                    Text(
+                        [
+                          if ((a.str('from') ?? '').isNotEmpty) 'from ${a.str('from')}',
+                          if ((a.str('about') ?? '').isNotEmpty) 'about ${a.str('about')}',
+                          PersonalSystemProvider.adviceStatuses[a.str('status') ?? 'new']!,
+                        ].join(' · '),
+                        style: AppText.small()),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        if ((a.str('status') ?? 'new') == 'new')
+                          TextButton(
+                            onPressed: () => system.setAdviceStatus(a.id, 'trying'),
+                            child: const Text('Trying it'),
+                          ),
+                        TextButton(
+                          key: Key('advice-close-${a.id}'),
+                          onPressed: () => _close(system, a),
+                          child: const Text('How it went'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+        if (closed.isNotEmpty) ...[
+          const SectionHeader('Tried'),
+          for (final a in closed.take(12))
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Text(
+                  '${a.text}${(a.str('from') ?? '').isEmpty ? '' : ' (${a.str('from')})'} · ${a.str('status') == 'skipped' ? 'not for me' : (a.str('result') ?? '').isEmpty ? 'tried' : a.str('result')}${a.data['reported'] == true ? ' · told them' : ''}',
+                  style: AppText.small(color: AppColors.white)),
+            ),
+        ],
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+}

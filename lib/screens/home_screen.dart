@@ -1472,6 +1472,14 @@ class _PromptsState extends State<_Prompts> {
             'Did ${(a.str('of') ?? '').isEmpty ? 'they' : a.str('of')} say yes?',
             '${a.text} — note the answer',
             '/asks'),
+      if (system.adviceToReport.firstOrNull case final a?)
+        _row(
+            context,
+            Icons.tips_and_updates_outlined,
+            AppColors.social,
+            'Tell ${a.str('from')!.split(' ').first} how their advice went',
+            a.text,
+            '/advice'),
       if (system.kindnessDue(now))
         _row(
             context,

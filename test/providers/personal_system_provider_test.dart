@@ -3512,4 +3512,23 @@ void main() {
     expect(p.playbook().any((e) => e.key == small.key), isFalse);
     expect(p.playbook(withRetired: true).any((e) => e.key == small.key), isTrue);
   });
+
+  test('advice: try it, note the result, tell them', () async {
+    final p = await _commissioned();
+    final rashad = p.addPerson('Rashad Aliyev', role: 'Mentor', every: 30);
+    expect(p.addAdvice(advice: ' '), isNull);
+    final a = p.addAdvice(advice: 'Send the agenda the day before', from: 'Rashad Aliyev', about: 'Meetings')!;
+    expect(p.adviceToReport, isEmpty);
+    p.setAdviceStatus(a.id, 'trying');
+    p.setAdviceStatus(a.id, 'tried', result: 'Meetings ran 15 minutes shorter');
+    expect(p.adviceToReport.single.id, a.id);
+    expect(p.betweenYou(p.personById(rashad.id)!).any((b) => b.$1.startsWith('Tell them')), isTrue);
+    expect(p.playbook().any((e) => e.from == 'Advice from Rashad Aliyev'), isTrue);
+    p.markAdviceReported(a.id, true);
+    expect(p.adviceToReport, isEmpty);
+    // Advice from nobody named has no one to report back to.
+    final b = p.addAdvice(advice: 'Walk after lunch')!;
+    p.setAdviceStatus(b.id, 'tried', result: 'Better afternoons');
+    expect(p.adviceToReport, isEmpty);
+  });
 }
