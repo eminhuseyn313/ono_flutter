@@ -64,6 +64,7 @@ class PlanPack {
               'when': d.when,
               'cue': d.cue,
               if (d.minimum.isNotEmpty) 'min': d.minimum,
+              if (d.steps.isNotEmpty) 'steps': d.steps,
             }
         ],
         'stops': stops,
@@ -103,7 +104,11 @@ class PlanPack {
                 const {'morning', 'day', 'evening'}.contains(d['when']) ? '${d['when']}' : 'day',
                 '',
                 _clip(d['cue'], 300),
-                minimum: _clip(d['min'], 120))
+                minimum: _clip(d['min'], 120),
+                steps: [
+                  for (final s in list(d['steps']))
+                    if (_clip(s, 80).isNotEmpty) _clip(s, 80)
+                ].take(12).toList())
       ].take(15).toList(),
       stops: [
         for (final s in list(m['stops']))

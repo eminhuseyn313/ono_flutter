@@ -598,8 +598,32 @@ class PersonalSystemProvider extends ChangeNotifier {
   List<NonNegotiable> get _allCustomItems => [
         for (final l in logsOf('daily_item').reversed)
           NonNegotiable(l.str('id') ?? l.id, l.text, l.str('lane') ?? 'mind',
-              l.str('when') ?? 'day')
+              l.str('when') ?? 'day',
+              // A routine opens its step-through; a plain item is a tick.
+              route: (l.data['steps'] as List? ?? const []).isEmpty
+                  ? null
+                  : '/routine?id=${l.str('id') ?? l.id}')
       ];
+
+  /// A routine's steps (own items only), or empty.
+  List<String> stepsOf(String id) {
+    final l = logsOf('daily_item').where((x) => (x.str('id') ?? x.id) == id).firstOrNull;
+    return [for (final s in (l?.data['steps'] as List? ?? const [])) '$s'];
+  }
+
+  /// Turns an own item into a routine (or back into a tick with none).
+  void setSteps(String id, List<String> steps) {
+    final l = logsOf('daily_item').where((x) => (x.str('id') ?? x.id) == id).firstOrNull;
+    if (l == null) return;
+    final clean = [for (final s in steps) if (s.trim().isNotEmpty) s.trim()].take(12).toList();
+    final data = {...l.data};
+    if (clean.isEmpty) {
+      data.remove('steps');
+    } else {
+      data['steps'] = clean;
+    }
+    updateLog(l.copyWith(data: data));
+  }
 
   /// Their own items they retired, to bring back on /daily.
   List<NonNegotiable> get retiredCustomItems => [
@@ -3012,8 +3036,12 @@ class PersonalSystemProvider extends ChangeNotifier {
       }
       final id = 'd_${_uid()}';
       added++;
-      addLog('daily_item',
-          text: d.title, data: {'id': id, 'lane': d.lane, 'when': d.when});
+      addLog('daily_item', text: d.title, data: {
+        'id': id,
+        'lane': d.lane,
+        'when': d.when,
+        if (d.steps.isNotEmpty) 'steps': d.steps,
+      });
       if (d.cue.trim().isNotEmpty) setCue(id, d.cue, reschedule: false);
       if (d.minimum.trim().isNotEmpty) setMinimum(id, d.minimum);
     }
@@ -3813,7 +3841,8 @@ class PersonalSystemProvider extends ChangeNotifier {
                 obstacle: g.str('obstacle') ?? '', plan: g.str('plan') ?? ''),
         daily: [
           for (final d in dailyItems)
-            DailyIdea(d.title, d.lane, d.when, '', cueFor(d.id), minimum: minimumFor(d.id))
+            DailyIdea(d.title, d.lane, d.when, '', cueFor(d.id),
+                minimum: minimumFor(d.id), steps: stepsOf(d.id))
         ],
         stops: [for (final s in stopList) s.text]);
   }

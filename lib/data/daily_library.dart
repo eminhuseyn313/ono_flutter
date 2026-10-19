@@ -15,8 +15,11 @@ class DailyIdea {
 
   /// The smallest version, for a hard day.
   final String minimum;
+
+  /// A routine's steps, stepped through one at a time (empty = a tick).
+  final List<String> steps;
   const DailyIdea(this.title, this.lane, this.when, this.area, this.cue,
-      {this.minimum = ''});
+      {this.minimum = '', this.steps = const []});
 }
 
 const List<DailyIdea> dailyLibrary = [
@@ -107,6 +110,18 @@ const List<DailyIdea> dailyLibrary = [
   DailyIdea('One kind thing for someone', 'social', 'day', 'meaning',
       'When I notice someone struggling, I do one small kind thing.',
       minimum: 'A kind word'),
+  DailyIdea('Morning care', 'body', 'morning', 'health',
+      'When I step out of bed, I go straight to the sink and start.',
+      minimum: 'Water and sunscreen',
+      steps: ['A glass of water', 'Wash your face', 'Sunscreen on face and neck', 'Make the bed']),
+  DailyIdea('Evening care', 'body', 'evening', 'health',
+      'When I switch the main light off in the evening, I start evening care.',
+      minimum: 'Brush your teeth',
+      steps: ['Brush your teeth', 'Clean between your teeth', 'Wash your face and moisturise', 'Lay out tomorrow\'s clothes']),
+  DailyIdea('Close the workday', 'skill', 'day', 'career',
+      'When I send my last work message, I close the workday.',
+      minimum: 'Write tomorrow\'s first task',
+      steps: ['Clear the desk', 'Close every tab and window', 'Write tomorrow\'s first task', 'Say it out loud: done for today']),
   DailyIdea('Floss before bed', 'body', 'evening', 'health',
       'When I put the toothbrush down at night, I floss.',
       minimum: 'Floss two teeth'),

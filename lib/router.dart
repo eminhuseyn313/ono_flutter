@@ -51,6 +51,7 @@ import 'screens/upkeep_screen.dart';
 import 'screens/inner_tools_screens.dart';
 import 'screens/next_program_screen.dart';
 import 'screens/playbook_screen.dart';
+import 'screens/routine_screen.dart';
 import 'screens/strengths_board_screens.dart';
 import 'screens/word_screens.dart';
 import 'screens/year_ask_screens.dart';
@@ -154,6 +155,7 @@ const appRoutes = [
   '/playbook',
   '/advice',
   '/compassion',
+  '/routine',
   '/brag',
   '/need',
   '/thought',
@@ -273,6 +275,7 @@ GoRouter createRouter(AuthProvider authProvider,
       _slide('/playbook', (_) => const PlaybookScreen()),
       _slide('/advice', (_) => const AdviceScreen()),
       _slide('/compassion', (_) => const CompassionScreen()),
+      _slide('/routine', (s) => RoutineScreen(itemId: s.uri.queryParameters['id'])),
       _slide('/know', (s) => KnowScreen(personId: s.uri.queryParameters['id'])),
       _slide('/brag', (_) => const BragScreen()),
       _slide('/need', (_) => const NeedScreen()),

@@ -3628,4 +3628,19 @@ void main() {
     p.logTouch(mum);
     expect(p.hoursTogether(mum), 4);
   });
+
+  test('routines: an item with steps opens its step-through; packs carry steps', () async {
+    final p = await _commissioned();
+    final evening = dailyLibrary.firstWhere((d) => d.title == 'Evening care');
+    p.applyPack(PlanPack('Care', daily: [evening]));
+    final item = p.dailyItems.firstWhere((n) => n.title == 'Evening care');
+    expect(p.stepsOf(item.id), evening.steps);
+    expect(item.route, '/routine?id=${item.id}');
+    expect(p.myPack().daily.firstWhere((d) => d.title == 'Evening care').steps, evening.steps);
+    final pasted = PlanPack.fromText(p.myPack().toText())!;
+    expect(pasted.daily.firstWhere((d) => d.title == 'Evening care').steps, evening.steps);
+    p.setSteps(item.id, const ['', ' ']);
+    expect(p.stepsOf(item.id), isEmpty);
+    expect(p.dailyItems.firstWhere((n) => n.id == item.id).route, isNull);
+  });
 }

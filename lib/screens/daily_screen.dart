@@ -6,6 +6,7 @@ import '../data/emin_system.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
+import 'routine_screen.dart';
 
 /// The daily items: retire what has done its job, add what the next stage
 /// needs. Holding the day stays at 70% of whatever the list is.
@@ -68,6 +69,15 @@ class _DailyScreenState extends State<DailyScreen> {
                           child: Text(n.title,
                               style: AppText.body(color: AppColors.white)),
                         ),
+                        if (n.id.startsWith('d_'))
+                          IconButton(
+                            key: Key('daily-steps-${n.id}'),
+                            tooltip: system.stepsOf(n.id).isEmpty ? 'Add steps' : 'Edit steps',
+                            onPressed: () => editSteps(context, system, n),
+                            icon: Icon(Icons.format_list_numbered_rounded,
+                                size: 20,
+                                color: system.stepsOf(n.id).isEmpty ? AppColors.faint : AppColors.accent),
+                          ),
                         IconButton(
                           key: Key('daily-off-${n.id}'),
                           tooltip: n.id.startsWith('d_') ? 'Remove' : 'Retire',

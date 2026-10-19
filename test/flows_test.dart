@@ -582,4 +582,16 @@ void main() {
     expect(system.movesInWeek(DateTime.now()).single.number('minutes'), 3);
     expect(find.byKey(const Key('focus-break')), findsNothing);
   });
+
+  testWidgets('a routine: step through it, finishing ticks the item',
+      (tester) async {
+    final system = await _start(tester);
+    final id = system.addDailyItem('Evening care', lane: 'body', when: 'evening')!.id;
+    system.setSteps(id, const ['Brush your teeth', 'Wash your face']);
+    await _go(tester, '/routine?id=$id');
+    expect(find.text('Brush your teeth'), findsWidgets);
+    await _tap(tester, find.byKey(const Key('routine-next')));
+    await _tap(tester, find.byKey(const Key('routine-next')));
+    expect(system.isChecked(system.logicalToday, id), isTrue);
+  });
 }
