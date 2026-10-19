@@ -287,7 +287,97 @@ class _WeekCheck extends StatelessWidget {
             ],
           ),
         ),
+        // Last week's act: did it happen?
+        if (system.valueAct(weekStartOf(now).minusDays(7)) case final last?
+            when last.done == null) ...[
+          const SizedBox(height: 12),
+          OnoCard(
+            key: const Key('value-act-last'),
+            accent: AppColors.mind,
+            padding: const EdgeInsets.fromLTRB(16, 12, 8, 6),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Last week: ${last.act}', style: AppText.heading()),
+                if (last.value.isNotEmpty) Text('An act of ${last.value}', style: AppText.small()),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => system.markValueAct(weekStartOf(now).minusDays(7), false),
+                      child: const Text('Not this time'),
+                    ),
+                    TextButton(
+                      onPressed: () => system.markValueAct(weekStartOf(now).minusDays(7), true),
+                      child: const Text('It happened'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+        const SizedBox(height: 12),
+        if (system.valueAct(now) case final act?)
+          Text('This week: ${act.act}${act.value.isEmpty ? '' : ' — an act of ${act.value}'}',
+              style: AppText.body(color: AppColors.white))
+        else
+          GhostButton('Plan one small act of a value this week',
+              key: const Key('value-act-plan'),
+              icon: Icons.add_rounded,
+              onPressed: () => _planAct(context, system, now)),
       ],
+    );
+  }
+
+  /// One small, concrete act of one value, for this week.
+  void _planAct(BuildContext context, PersonalSystemProvider system, DateTime now) {
+    final act = TextEditingController();
+    var value = system.valueGap(now) ?? system.values.first.name;
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.card,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheet) => Padding(
+          padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + MediaQuery.of(ctx).viewInsets.bottom),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('One small act this week', style: AppText.title()),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    for (final v in system.values)
+                      ChoiceChip(
+                        label: Text(v.name),
+                        selected: value == v.name,
+                        onSelected: (_) => setSheet(() => value = v.name),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  key: const Key('value-act-text'),
+                  controller: act,
+                  style: AppText.body(color: AppColors.white),
+                  decoration: const InputDecoration(hintText: 'Small and concrete — e.g. call Dad on Wednesday'),
+                ),
+                const SizedBox(height: 12),
+                PrimaryButton('Save', icon: Icons.check_rounded, onPressed: () {
+                  if (act.text.trim().isEmpty) return;
+                  system.setValueAct(now, value: value, act: act.text);
+                  Navigator.of(ctx).pop();
+                }),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

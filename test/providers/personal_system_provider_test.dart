@@ -3690,4 +3690,26 @@ void main() {
     p.removePerson(dad.id);
     expect(p.upkeep.any((u) => u.id == dentist.id), isFalse);
   });
+
+  test('values in action: a small act this week, asked about next week', () async {
+    final p = await _commissioned();
+    p.setValues([(name: 'Family', meaning: ''), (name: 'Courage', meaning: ''), (name: 'Growth', meaning: '')]);
+    p.saveValuesCheck(_today, {'Family': 2});
+    p.setValueAct(_today, value: 'Family', act: 'Call Dad on Wednesday');
+    expect(p.valuesCheck(_today), {'Family': 2}, reason: 'the act keeps the ratings');
+    p.saveValuesCheck(_today, {'Family': 3});
+    expect(p.valueAct(_today)!.act, 'Call Dad on Wednesday', reason: 'ratings keep the act');
+    p.clock = () => _today.plusDays(7);
+    final lastWeek = weekStartOf(p.now).minusDays(7);
+    expect(p.valueAct(lastWeek)!.done, isNull);
+    p.markValueAct(lastWeek, true);
+    expect(p.valueAct(lastWeek)!.done, isTrue);
+  });
+
+  test('after-action review: advice to a friend joins the card and playbook', () async {
+    final p = await _commissioned();
+    p.logAar(event: 'The demo', improve: 'Rehearse twice', friend: 'Nobody remembers the stumble, only the point');
+    expect(p.allCards.firstWhere((c) => c.id.startsWith('aar:')).back, contains('What you\'d tell a friend'));
+    expect(p.playbook().any((e) => e.from == 'Advice to a friend · The demo'), isTrue);
+  });
 }

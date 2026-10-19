@@ -286,11 +286,12 @@ class _AarScreenState extends State<AarScreen> {
   final _why = TextEditingController();
   final _sustain = TextEditingController();
   final _improve = TextEditingController();
+  final _friend = TextEditingController();
   bool _wentWell = true;
 
   @override
   void dispose() {
-    for (final c in [_event, _intended, _happened, _why, _sustain, _improve]) {
+    for (final c in [_event, _intended, _happened, _why, _sustain, _improve, _friend]) {
       c.dispose();
     }
     super.dispose();
@@ -329,6 +330,7 @@ class _AarScreenState extends State<AarScreen> {
           why: _why.text,
           sustain: _sustain.text,
           improve: _improve.text,
+          friend: _friend.text,
           wentWell: _wentWell,
         );
         toast(
@@ -351,6 +353,9 @@ class _AarScreenState extends State<AarScreen> {
         _field(_why, 'Why the difference?', 'What caused it — including what you did'),
         _field(_sustain, 'Keep: what worked that you\'ll do again', ''),
         _field(_improve, 'Change: one thing you\'ll do differently next time', ''),
+        // Lessons from our own misses are easier to take as advice to
+        // someone else (Eskreis-Winkler & Fishbach 2019).
+        _field(_friend, 'What would you tell a friend who just did this?', 'Optional — often the clearest lesson'),
         if (past.isNotEmpty) ...[
           const SectionHeader('Earlier reviews'),
           for (final a in past)

@@ -1349,7 +1349,7 @@ class PersonalSystemProvider extends ChangeNotifier {
             StudyCard(
               'aar:${a.id}',
               'Next time — ${a.text}: what will you do differently?',
-              a.str('improve')!.trim(),
+              '${a.str('improve')!.trim()}${(a.str('friend') ?? '').trim().isEmpty ? '' : '\n\nWhat you\'d tell a friend: ${a.str('friend')!.trim()}'}',
               source: 'aar',
             ),
         for (final v in values)
@@ -5340,7 +5340,34 @@ class PersonalSystemProvider extends ChangeNotifier {
   }
 
   void saveValuesCheck(DateTime anyDay, Map<String, int> ratings) =>
-      _upsertDayLog('values_check', weekStartOf(anyDay), {'ratings': ratings});
+      _upsertDayLog('values_check', weekStartOf(anyDay), {..._weekValues(anyDay), 'ratings': ratings});
+
+  Map<String, dynamic> _weekValues(DateTime anyDay) {
+    final l = logsOn(weekStartOf(anyDay), 'values_check');
+    return l.isEmpty ? {} : {...l.last.data};
+  }
+
+  /// One small act of a value planned for the week of [anyDay]: living by
+  /// what you value, not only naming it (values-consistent action, Tunç
+  /// et al. 2023). (value, act, done — null until asked).
+  ({String value, String act, bool? done})? valueAct(DateTime anyDay) {
+    final d = _weekValues(anyDay);
+    final act = '${d['act'] ?? ''}'.trim();
+    if (act.isEmpty) return null;
+    return (value: '${d['act_value'] ?? ''}', act: act, done: d['act_done'] as bool?);
+  }
+
+  void setValueAct(DateTime anyDay, {required String value, required String act}) =>
+      _upsertDayLog('values_check', weekStartOf(anyDay), {
+        ..._weekValues(anyDay),
+        'act_value': value,
+        'act': act.trim(),
+      });
+
+  void markValueAct(DateTime anyDay, bool done) {
+    if (valueAct(anyDay) == null) return;
+    _upsertDayLog('values_check', weekStartOf(anyDay), {..._weekValues(anyDay), 'act_done': done});
+  }
 
   /// The value this week reflected least, if checked and below 4.
   String? valueGap(DateTime anyDay) {
@@ -6912,7 +6939,7 @@ class PersonalSystemProvider extends ChangeNotifier {
         'ask' => 'Asked ${f('of').isEmpty ? '' : '${f('of')} '}for help: ${l.text}${f('status') == 'asked' ? '' : ' — ${askOutcomes[f('status')] ?? f('status')}'}',
         'story' => 'Story: ${l.text}${f('result').isEmpty ? '' : '\n  Result: ${f('result')}'}',
         'program_cycle' => 'Closed program ${l.number('number')} (${l.number('held')} of ${l.number('counted')} days held)${l.text.isEmpty ? '' : '\n  What changed: ${l.text}'}${f('carry').isEmpty ? '' : '\n  Taking with me: ${f('carry')}'}',
-        'aar' => 'Looked back at ${l.text}${f('sustain').isEmpty ? '' : '\n  Keep: ${f('sustain')}'}${f('improve').isEmpty ? '' : '\n  Change: ${f('improve')}'}',
+        'aar' => 'Looked back at ${l.text}${f('sustain').isEmpty ? '' : '\n  Keep: ${f('sustain')}'}${f('improve').isEmpty ? '' : '\n  Change: ${f('improve')}'}${f('friend').isEmpty ? '' : '\n  To a friend: ${f('friend')}'}',
         'best_future' => 'My best possible future in ${l.number('years')} years:${[for (final a in bestFutureAreas) if ((l.data['areas'] as Map?)?[a.$1] != null) '\n  ${a.$2}: ${(l.data['areas'] as Map)[a.$1]}'].join()}${l.text.isEmpty ? '' : '\n  This week: ${l.text}'}',
         'life_story' => 'My life in chapters:${[for (final c in lifeChapters) '\n  ${c['title']}${(c['years'] ?? '').isEmpty ? '' : ' (${c['years']})'}${(c['taught'] ?? '').isEmpty ? '' : ' — taught me: ${c['taught']}'}'].join()}${f('next').isEmpty ? '' : '\n  Next chapter: ${f('next')}'}',
         _ => '',
@@ -7310,6 +7337,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     String why = '',
     String sustain = '',
     String improve = '',
+    String friend = '',
     bool wentWell = true,
   }) {
     if (event.trim().isEmpty) return null;
@@ -7319,6 +7347,7 @@ class PersonalSystemProvider extends ChangeNotifier {
       'why': why.trim(),
       'sustain': sustain.trim(),
       'improve': improve.trim(),
+      'friend': friend.trim(),
       'went_well': wentWell,
     });
   }
@@ -7347,6 +7376,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     }
     for (final a in logsOf('aar')) {
       add(a, 'improve', a.str('improve') ?? '', 'After-action review · ${a.text}');
+      add(a, 'friend', a.str('friend') ?? '', 'Advice to a friend · ${a.text}');
     }
     for (final m in logsOf('month_review')) {
       add(m, 'lesson', m.str('lesson') ?? '', 'Month ${m.number('month')} review');

@@ -174,6 +174,24 @@ Asked by Emin: "the care part — healthcare, nails, the barber". Researched aga
 
 Placed lower: appearance-for-confidence claims (no peer-reviewed support; power posing didn't replicate), hydration/posture reminders (weak evidence, nagging), proprietary readiness scores (would be fake numbers), pets and points (gamification).
 
+### N. Ninth pass: beyond care (19 Oct 2026)
+| # | Feature | Extends | Evidence | Effort | Status |
+|---|---|---|---|---|---|
+| N1 | **Steady sleep**: one wake time, wake-time spread from real data, if-then rules; never time-in-bed limits | `/day`, Health sleep, plans | dCBT-I (29 RCTs); sleep regularity (Windred 2024); caffeine (Drake 2013) | M | Built (no restriction) |
+| N2 | **Recall before you review**: guesses before reading, one principle recalled a day, mixed deck | Review deck, learning | Testing effect (Adesope 2017, Dunlosky 2013); interleaving (Brunmair 2019) | S | Built |
+| N3 | **Visibility and deciders**: what the people who decide your next step have seen in 90 days; 1:1 agenda | Board, brag, cockpit | Upward influence (Higgins 2003); self-assessment gap (Exley & Kessler) | M | Built (private) |
+| N4 | **Negotiation planner** (want, walk-away, bottom line, first offer and why) | New, like conversations | First-offer meta-analysis (OBHDP 2025) | S | Built |
+| N5 | **Values in action**: one small act of a value each week, checked next Sunday | `/values` | Values-consistent living (Tunç 2023) | S | Built |
+| N6 | **Reconnect**: one lost-touch person a week; the liking gap | People | Liu et al. 2022; Boothby 2018 | S | Built |
+| N7 | **Advice to a friend after a miss** | After-action review | Eskreis-Winkler & Fishbach 2019; PNAS 2019 | S | Built |
+| N8 | **Your phone, on your terms** (batched checks, weekly typed Screen Time) | Daily items, patterns | Fitz 2019; Burnell 2025 | S–M | Needs Emin |
+| N9 | **Practice design for drills** (sub-skill, feedback source, beyond comfort) | Growth drills | Debriefs (Tannenbaum 2013) | S–M | Built |
+| N10 | **Money over time** (net worth, true costs, giving) | Money check-in | Vanguard 2025; prosocial spending | M | Needs Emin |
+| N11 | **Rehearse a big moment** (random question, 2-minute timer, STAR check) | Story bank | Weak | S | Built |
+| N12 | **Make and play** (weekly line, template) | Daily library, growth | Conner 2018; Proyer 2020 | S | Built |
+
+Rejected: brain games (no transfer), readiness scores and energy curves (invented numbers), app blocking (phone plumbing). Nutrition only as a plan pack, if at all (Emin to decide).
+
 ### E. Relationships
 | # | Feature | For Emin now | For anyone | Evidence | Effort |
 |---|---|---|---|---|---|
