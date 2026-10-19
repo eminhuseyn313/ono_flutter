@@ -5929,7 +5929,9 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// The case as plain text, to share or prepare a career conversation.
   String caseText() {
     final b = StringBuffer()
-      ..writeln('${activeProfile.name} — towards ${activeProfile.targetRole}')
+      ..writeln(activeProfile.targetRole.trim().isEmpty
+          ? activeProfile.name
+          : '${activeProfile.name} — towards ${activeProfile.targetRole}')
       ..writeln('Day $programDay of $programDays · ${phase.name}')
       ..writeln();
     for (final a in growthAreas.where((a) => !a.personal)) {

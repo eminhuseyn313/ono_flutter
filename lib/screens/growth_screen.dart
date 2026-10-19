@@ -259,7 +259,7 @@ class _Plan extends StatelessWidget {
                         : 'began → now, of 5')),
           ],
         ),
-        const SectionHeader('This week\'s drill'),
+        const SectionHeader('This week\'s practice'),
         OnoCard(
           accent: AppColors.accent,
           padding: const EdgeInsets.all(16),
@@ -279,7 +279,7 @@ class _Plan extends StatelessWidget {
               ],
               const SizedBox(height: 8),
               Text(
-                  '${system.drillRepsThisWeek(area, drill, DateTime.now())} of ${PersonalSystemProvider.repsPerDrill} reps this week',
+                  'Practised ${system.drillRepsThisWeek(area, drill, DateTime.now())} of ${PersonalSystemProvider.repsPerDrill} times this week',
                   style: AppText.eyebrow(color: AppColors.accent)),
               const SizedBox(height: 12),
               PrimaryButton('I did it — reflect',
@@ -351,7 +351,7 @@ class _Plan extends StatelessWidget {
             ],
           ),
         ),
-        const SectionHeader('All drills'),
+        const SectionHeader('All ways to practise'),
         OnoCard(
           padding: const EdgeInsets.fromLTRB(16, 4, 8, 4),
           child: Column(
@@ -391,7 +391,7 @@ class _Plan extends StatelessWidget {
             TextButton.icon(
               onPressed: () => _addDrillSheet(context, system),
               icon: const Icon(Icons.add_rounded, size: 18),
-              label: const Text('Add your own drill'),
+              label: const Text('Add your own practice'),
             ),
             const Spacer(),
             if (area.custom)
@@ -409,8 +409,8 @@ class _Plan extends StatelessWidget {
             children: [
               Text(
                   system.dayOfMonth < 22 && end == null
-                      ? 'From day 22: rate yourself again against the bar, after a few weeks of reps. The gap is what you grew.'
-                      : 'Rate yourself again against the bar. The gap is what you grew.',
+                      ? 'From day 22: rate yourself again against where you want to be, after a few weeks of practice. The gap is what you grew.'
+                      : 'Rate yourself again against where you want to be. The gap is what you grew.',
                   style: AppText.small()),
               if (start != null) ...[
                 const SizedBox(height: 6),
@@ -467,7 +467,7 @@ class _Plan extends StatelessWidget {
               child: Text(
                   'Month ${h.number('month')} · ${system.areaById(h.str('area') ?? '').name} · '
                   '${h.number('start') ?? '–'} → ${h.number('end') ?? '–'} · '
-                  '${system.repsIn(h.str('area') ?? '', h.number('month')?.toInt() ?? 0).length} reps',
+                  '${system.repsIn(h.str('area') ?? '', h.number('month')?.toInt() ?? 0).length} times practised',
                   style: AppText.small(color: AppColors.greyLight)),
             ),
         ],
@@ -494,7 +494,7 @@ class _Plan extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Your own drill', style: AppText.title()),
+            Text('Your own practice', style: AppText.title()),
             for (var i = 0; i < 3; i++) ...[
               const SizedBox(height: 8),
               TextField(
@@ -506,10 +506,10 @@ class _Plan extends StatelessWidget {
               ),
             ],
             const SizedBox(height: 12),
-            PrimaryButton('Add drill', icon: Icons.check_rounded,
+            PrimaryButton('Add it', icon: Icons.check_rounded,
                 onPressed: () {
               if (c[0].text.trim().isEmpty) {
-                toast(ctx, 'Name the drill first.');
+                toast(ctx, 'Name it first.');
                 return;
               }
               system.addDrill(area,
@@ -635,7 +635,7 @@ class _Plan extends StatelessWidget {
                             stretch: stretch);
                         Navigator.of(ctx).pop();
                         HapticFeedback.mediumImpact();
-                        toast(context, 'Rep saved. That\'s how the bar moves.');
+                        toast(context, 'Saved. That\'s how you grow.');
                       }),
                     ],
                   ),

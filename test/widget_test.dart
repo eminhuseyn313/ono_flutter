@@ -574,7 +574,7 @@ void main() {
             said: 'Lead with the decision you need from me, not the history',
             action: 'First line of every update is the ask');
         await _go(tester, '/growth');
-        if (find.text('This week\'s drill').evaluate().isEmpty) {
+        if (find.text('This week\'s practice').evaluate().isEmpty) {
           errors.add('plan view did not render');
         }
         await _go(tester, '/home');

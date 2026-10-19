@@ -375,7 +375,7 @@ class _LogScreenState extends State<LogScreen> {
                 icon: Icons.style_rounded,
                 color: AppColors.mind,
                 title: 'Review deck',
-                subtitle: 'Spaced repetition',
+                subtitle: 'Your lessons, a few minutes a day',
                 trailing: '${system.dueCards(DateTime.now()).length}',
                 onTap: () => context.push('/review'),
               ),

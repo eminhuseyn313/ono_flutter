@@ -294,7 +294,11 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
         _field(_name, 'Your name', 'First and last'),
         _field(_current, 'What you do now', 'e.g. Team lead, nurse, student, runner'),
         _field(_target, 'Who you want to become', 'e.g. Director, sub-4 marathoner, a calmer parent'),
-        if (_newPerson)
+        Text('Rough is fine: a role, a level, a kind of person. You can change it any time.',
+            style: AppText.small()),
+        // Only someone rebuilding needs to know their old profile won't
+        // carry over; on first run there is none.
+        if (_newPerson && context.read<PersonalSystemProvider>().isCommissioned)
           Text('A new name starts a fresh profile: your organisation, people and coach notes start empty.',
               style: AppText.small()),
       ];
@@ -391,7 +395,7 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
         _field(_goal, 'Your goal, in a few words', 'e.g. Promoted to director · run a marathon · 3 months saved'),
         _field(_why, 'Why it matters to you', 'What would reaching it give you?'),
         _field(_obstacle, 'The obstacle in you', 'What in you is most likely to stop it?'),
-        _field(_plan, 'If–then plan', 'When that happens, I will…'),
+        _field(_plan, 'When it gets in the way, I will…', 'e.g. When I\'m too tired, I do ten minutes instead'),
         _field(_milestone, 'A first milestone', 'The first point that shows it\'s moving, e.g. run 10 km'),
         const SectionHeader('By when'),
         Segmented(
@@ -425,7 +429,7 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
         Padding(
           padding: const EdgeInsets.only(top: 8),
           child: Text(
-              'It moves from building habits, to practising, to showing your work, to using what you\'ve built. At the end you look back and start the next.',
+              'It moves from building habits, to practising, to showing your work, to using what you\'ve built. At the end you look back and start the next. New here? 90 days is a good first program — you can lengthen it any time.',
               style: AppText.small()),
         ),
       ];

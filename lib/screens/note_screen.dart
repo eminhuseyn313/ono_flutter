@@ -119,7 +119,7 @@ class _NoteScreenState extends State<NoteScreen> {
         Text(
             _edited
                 ? 'Your edits are kept. Changing who it\'s to or the ask won\'t rewrite it.'
-                : 'Built from your goals, Big 3, growth reps and wins. Edit freely.',
+                : 'Built from your goals, the week\'s three, your practice and wins. Edit freely.',
             style: AppText.small()),
         if (_edited)
           Align(

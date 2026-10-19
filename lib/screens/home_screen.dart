@@ -486,7 +486,7 @@ class _DialCenter extends StatelessWidget {
             style: AppText.eyebrow(color: AppColors.accent)),
         const SizedBox(height: 4),
         Text(label?.title ?? block.title,
-            textAlign: TextAlign.center, maxLines: 2, style: AppText.heading()),
+            textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: AppText.heading()),
         const SizedBox(height: 6),
         Row(
           mainAxisSize: MainAxisSize.min,
@@ -986,7 +986,7 @@ class _PlanToggle extends StatelessWidget {
         final drill = system.drillFor(area, now);
         final reps = system.drillRepsThisWeek(area, drill, now);
         if (reps < PersonalSystemProvider.repsPerDrill) {
-          next = 'Practice: ${drill.title} · $reps of ${PersonalSystemProvider.repsPerDrill} this week';
+          next = 'Practise ${PersonalSystemProvider.repsPerDrill == 2 ? 'twice' : '${PersonalSystemProvider.repsPerDrill} times'} this week: ${drill.title}${reps == 0 ? '' : ' · $reps done'}';
         }
       }
     }
@@ -1089,7 +1089,7 @@ class _GrowthCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
                 reps == 0
-                    ? 'No reps yet this month — do it once, then reflect.'
+                    ? 'Not practised yet this month — try it once, then note what happened.'
                     : '$reps rep${reps == 1 ? '' : 's'} this month',
                 style: AppText.small(color: AppColors.body)),
           ],
@@ -1117,7 +1117,7 @@ class _WeekCard extends StatelessWidget {
           child: LinkRow(
             icon: Icons.flag_rounded,
             color: AppColors.accent,
-            title: 'Set this week\'s Big 3',
+            title: 'Set this week\'s three outcomes',
             subtitle: 'Three outcomes that would make the week a win',
             onTap: () => context.push('/week'),
           ),
@@ -2496,7 +2496,7 @@ class _InputsStrip extends StatelessWidget {
         AppColors.mind,
         'Review',
         due == 0 ? 'All caught up' : '$due cards due',
-        'Spaced repetition · 5 min',
+        'Your lessons, a few minutes a day',
         '/review' as String?
       ),
       (

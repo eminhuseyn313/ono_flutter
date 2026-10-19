@@ -36,7 +36,7 @@ class MeScreen extends StatelessWidget {
     ];
 
     return OnoPage(
-      eyebrow: activeProfile.archetype,
+      eyebrow: activeProfile.archetype.trim().isEmpty ? null : activeProfile.archetype,
       title: activeProfile.name,
       subtitle: [activeProfile.roleLine, activeProfile.organisation]
           .where((s) => s.trim().isNotEmpty)
