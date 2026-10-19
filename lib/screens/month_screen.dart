@@ -7,6 +7,7 @@ import '../data/emin_system.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
+import 'month_review_screen.dart' show LoadCheck;
 
 /// One month of the 18: what it unlocks, its milestones, and — once it has
 /// begun — an honest review against the month before.
@@ -196,6 +197,7 @@ class _MonthScreenState extends State<MonthScreen> {
             decoration: const InputDecoration(
                 hintText: 'What this month taught you, in one sentence.'),
           ),
+          LoadCheck(month: m),
           const SectionHeader('Carry into next month'),
           TextField(
             controller: _carry,

@@ -287,6 +287,7 @@ class _LogScreenState extends State<LogScreen> {
                   'best_future',
                   'life_story',
                   'remembrance',
+                  'load_check',
                   'kindness_plan',
                   'worry',
                   'worry_plan',

@@ -677,6 +677,23 @@ void main() {
     expect(p.logsOf('remembrance'), isEmpty);
   });
 
+  test('load check: heavy two months running reaches the brief', () async {
+    final p = await _commissioned();
+    final m = p.programMonth;
+    expect(p.heavyLoad, isNull);
+    p.setMonthLoad(m, level: 5);
+    p.setMonthLoad(m, from: ['work', 'nonsense']);
+    expect(p.loadFromOf(m), ['work']);
+    expect(p.loadLevelOf(m), 5);
+    if (m >= 2) {
+      expect(p.heavyLoad, isNull, reason: 'one heavy month is not a pattern');
+      p.setMonthLoad(m - 1, level: 4, from: ['care']);
+      expect(p.heavyLoad, containsAll(['work', 'caring for someone']));
+      p.setMonthLoad(m, level: 2);
+      expect(p.heavyLoad, isNull);
+    }
+  });
+
   test('rest timer: notifies at the end, cancelled on skip', () async {
     final r = _RecordingReminders();
     final p = await _commissioned(reminders: r);

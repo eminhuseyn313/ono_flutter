@@ -77,6 +77,10 @@ class BriefInput {
   /// Rungs of the courage ladder taken this week (a count).
   final int courageSteps;
 
+  /// Where the load comes from when two months running felt heavy; null
+  /// otherwise.
+  final List<String>? heavyLoad;
+
   /// Signature strengths, uses of them this week, and roles nobody fills
   /// on their personal board.
   final List<String> strengths;
@@ -217,6 +221,7 @@ class BriefInput {
     this.kindnessActs = 0,
     this.thoughtsChecked = 0,
     this.courageSteps = 0,
+    this.heavyLoad,
     this.strengths = const [],
     this.strengthUses = 0,
     this.boardGaps = const [],
@@ -264,6 +269,7 @@ class BriefInput {
         'kindness_acts_this_week': kindnessActs,
         'thoughts_checked_this_week': thoughtsChecked,
         if (courageSteps > 0) 'courage_steps_this_week': courageSteps,
+        if (heavyLoad != null) 'heavy_load_two_months': heavyLoad,
         if (strengths.isNotEmpty) 'signature_strengths': strengths,
         if (strengths.isNotEmpty) 'strength_uses_this_week': strengthUses,
         if (boardGaps.isNotEmpty) 'personal_board_gaps': boardGaps,
@@ -480,6 +486,10 @@ class DeviceBriefGenerator implements BriefGenerator {
       else if ((input.hardDays['pass'] ?? 0) + (input.hardDays['minimum'] ?? 0) >= 3)
         '${(input.hardDays['pass'] ?? 0) + (input.hardDays['minimum'] ?? 0)} hard days this week. Look at what kept happening — if it will happen again, change the plan, not your opinion of yourself.',
     ];
+    if (input.heavyLoad case final from?) {
+      health.add(
+          'The load has felt heavy two months running${from.isEmpty ? '' : ' (${from.join(', ')})'}. Before it costs you: plan some rest, stop one thing, or ask someone to share it.');
+    }
     final personal = <String>[
       if (input.decidersSeen.$2 > 0 && input.decidersSeen.$1 < input.decidersSeen.$2)
         '${input.decidersSeen.$2 - input.decidersSeen.$1} of the people who decide your next step haven\'t seen your work in 90 days. Show one of them something real this week — and ask for their input.',

@@ -2474,6 +2474,7 @@ class PersonalSystemProvider extends ChangeNotifier {
         promisesOverdue: promisesDue(_now.minusDays(1)).length,
         thoughtsChecked: thoughtsInWeek(report.weekStart),
         courageSteps: courageStepsInWeek(report.weekStart),
+        heavyLoad: heavyLoad,
         asksThisWeek: asksInWeek(report.weekStart),
         proposedOutcomes: [for (final p in proposedOutcomes(forWeek)) p.text],
         askRecord: askRecord() == null
@@ -5359,6 +5360,58 @@ class PersonalSystemProvider extends ChangeNotifier {
     } else {
       updateLog(existing.copyWith(text: carry.trim(), data: {...existing.data, ...data}));
     }
+  }
+
+  // ── Load check ───────────────────────────────────────────────────────
+
+  /// How heavy the month felt, 1–5. One question a month is a fair early
+  /// sign of burnout (single-item measure: Dolan et al. 2015).
+  static const loadLevels = ['Light', 'Manageable', 'Full', 'Heavy', 'Too much'];
+
+  static const loadSources = {
+    'work': 'Work',
+    'care': 'Caring for someone',
+    'parenting': 'Parenting',
+    'study': 'Study',
+    'money': 'Money',
+    'health': 'Health',
+    'other': 'Something else',
+  };
+
+  LogEntry? loadFor(int month) =>
+      logsOf('load_check').where((l) => atMonth(l, month)).firstOrNull;
+
+  void setMonthLoad(int month, {int? level, List<String>? from}) {
+    final existing = loadFor(month);
+    final data = {
+      ...?existing?.data,
+      'month': month,
+      if (level != null) 'level': level.clamp(1, 5),
+      if (from != null) 'from': [for (final f in from) if (loadSources.containsKey(f)) f],
+    };
+    if (existing == null) {
+      addLog('load_check', date: monthStart(month), data: data);
+    } else {
+      updateLog(existing.copyWith(data: data));
+    }
+  }
+
+  int? loadLevelOf(int month) => loadFor(month)?.number('level')?.toInt();
+
+  List<String> loadFromOf(int month) =>
+      [for (final f in (loadFor(month)?.data['from'] as List?) ?? const []) '$f'];
+
+  /// Where the load comes from (in words) when the last two months that were rated
+  /// in a row were both heavy (4+); null otherwise.
+  List<String>? get heavyLoad {
+    for (var m = programMonth; m >= 2; m--) {
+      final now = loadLevelOf(m);
+      if (now == null) continue;
+      final before = loadLevelOf(m - 1);
+      if (now < 4 || before == null || before < 4) return null;
+      return [for (final f in {...loadFromOf(m), ...loadFromOf(m - 1)}) loadSources[f]!.toLowerCase()];
+    }
+    return null;
   }
 
   /// What last month's review said to carry into this one, or null.

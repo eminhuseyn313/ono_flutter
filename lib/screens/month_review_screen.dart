@@ -113,6 +113,7 @@ class _MonthReviewScreenState extends State<MonthReviewScreen> {
               child: Text(levels[end - 1], style: AppText.small()),
             ),
         ],
+        LoadCheck(month: m),
         if (wins.isNotEmpty) ...[
           const SectionHeader('Wins'),
           for (final w in wins.take(5))
@@ -155,6 +156,64 @@ class _MonthReviewScreenState extends State<MonthReviewScreen> {
             onPressed: () => context.push(
                 m == system.programMonth ? '/growth?next=1' : '/growth')),
         const SizedBox(height: 16),
+      ],
+    );
+  }
+}
+
+/// One question for the month: how heavy has life felt, and where from.
+/// Saved as you tap.
+class LoadCheck extends StatelessWidget {
+  final int month;
+  const LoadCheck({super.key, required this.month});
+
+  @override
+  Widget build(BuildContext context) {
+    final system = context.watch<PersonalSystemProvider>();
+    final level = system.loadLevelOf(month);
+    final from = system.loadFromOf(month);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SectionHeader('How heavy has life felt?'),
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            for (final (i, l) in PersonalSystemProvider.loadLevels.indexed)
+              ChoiceChip(
+                key: Key('load-${i + 1}'),
+                label: Text(l),
+                selected: level == i + 1,
+                showCheckmark: false,
+                onSelected: (_) => system.setMonthLoad(month, level: i + 1),
+              ),
+          ],
+        ),
+        if (level != null) ...[
+          const SizedBox(height: 10),
+          Text('Mostly from', style: AppText.small()),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              for (final s in PersonalSystemProvider.loadSources.entries)
+                FilterChip(
+                  label: Text(s.value),
+                  selected: from.contains(s.key),
+                  onSelected: (on) => system.setMonthLoad(month,
+                      from: on ? [...from, s.key] : [for (final f in from) if (f != s.key) f]),
+                ),
+            ],
+          ),
+          if (level >= 4) ...[
+            const SizedBox(height: 8),
+            Text(
+                'Heavy months add up. Rest, one thing stopped, or one ask for help are worth planning now, not after.',
+                style: AppText.small(color: AppColors.warning)),
+          ],
+        ],
       ],
     );
   }

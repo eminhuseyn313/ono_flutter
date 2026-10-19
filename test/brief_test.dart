@@ -12,6 +12,7 @@ BriefInput _input({
   String hardest = '',
   int excused = 0,
   int week = 1,
+  List<String>? heavyLoad,
 }) =>
     BriefInput(
       report: WeeklyReport(
@@ -38,6 +39,7 @@ BriefInput _input({
       gymDays: const [],
       openUnlocks: const [],
       builtInPlan: false,
+      heavyLoad: heavyLoad,
     );
 
 void main() {
@@ -147,5 +149,12 @@ void main() {
     ));
     expect(b.adjustments.join(' '), contains('no feedback'));
     expect(input.toJson().containsKey('reps_this_month_without_feedback'), isFalse);
+  });
+
+  test('two heavy months reach the brief, with where the load comes from', () async {
+    final b = await DeviceBriefGenerator().generate(_input(heavyLoad: const ['work', 'parenting']));
+    expect(b.adjustments.join(' '), contains('heavy two months running (work, parenting)'));
+    expect(_input(heavyLoad: const ['work']).toJson()['heavy_load_two_months'], ['work']);
+    expect(_input().toJson().containsKey('heavy_load_two_months'), isFalse);
   });
 }
