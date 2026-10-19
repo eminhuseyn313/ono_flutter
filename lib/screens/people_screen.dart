@@ -112,6 +112,22 @@ class _PeopleScreenState extends State<PeopleScreen> {
                   label: Text(
                       'What you know about ${p.text.split(' ').first} · ${system.knownCount(p)} of ${PersonalSystemProvider.knowQuestions.length}'),
                 ),
+                SwitchListTile(
+                  key: const Key('person-in-care'),
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                  value: system.inMyCare(p),
+                  onChanged: (v) {
+                    system.setInMyCare(p, v);
+                    setSheet(() {});
+                  },
+                  title: Text('In my care', style: AppText.body(color: AppColors.white)),
+                  subtitle: Text(
+                      system.inMyCare(p)
+                          ? 'Their check-ups are under Care; their story under What you know.'
+                          : 'A parent, a child, someone who is ill',
+                      style: AppText.small()),
+                ),
                 if (system.askAboutOf(p).isEmpty)
                   if (system.nextQuestionFor(p) case final q?)
                     Text(

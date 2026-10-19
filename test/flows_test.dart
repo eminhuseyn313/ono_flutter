@@ -594,4 +594,20 @@ void main() {
     await _tap(tester, find.byKey(const Key('routine-next')));
     expect(system.isChecked(system.logicalToday, id), isTrue);
   });
+
+  testWidgets('in my care: their story on the know screen, care under their name',
+      (tester) async {
+    final system = await _start(tester);
+    final mum = system.addPerson('Leyla Huseynova', role: 'Mother', every: 7);
+    system.setInMyCare(mum, true);
+    await _go(tester, '/know?id=${mum.id}');
+    await _reach(tester, find.byKey(const Key('story-grew_up')));
+    await tester.enterText(find.byKey(const Key('story-grew_up')), 'Sheki');
+    await tester.pump();
+    await _tap(tester, find.text('Save'));
+    expect(system.storyAnswer(system.personById(mum.id)!, 'grew_up'), 'Sheki');
+    await _go(tester, '/upkeep');
+    await _tap(tester, find.byKey(Key('care-for-${mum.id}-Eye test')));
+    expect(system.careFor(system.personById(mum.id)!).single.text, 'Leyla: Eye test');
+  });
 }

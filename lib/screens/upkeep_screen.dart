@@ -30,6 +30,8 @@ class _UpkeepScreenState extends State<UpkeepScreen> {
     (730, 'Every 2 years'),
   ];
 
+  static const _ownKinds = ['health', 'grooming', 'home', 'documents'];
+
   @override
   void dispose() {
     _name.dispose();
@@ -242,7 +244,7 @@ class _UpkeepScreenState extends State<UpkeepScreen> {
           'The things that slip when life is busy — check-ups, the barber, nails, the car. You choose how often (health ones with your doctor); ONO only remembers the dates.',
       children: [
         for (final kind in PersonalSystemProvider.careKinds.entries) ...[
-          if (items.any((u) => system.careKindOf(u) == kind.key)) ...[
+          if (kind.key != 'for' && items.any((u) => system.careKindOf(u) == kind.key)) ...[
             SectionHeader(kind.value),
             OnoCard(
               padding: const EdgeInsets.fromLTRB(16, 6, 8, 6),
@@ -254,6 +256,30 @@ class _UpkeepScreenState extends State<UpkeepScreen> {
               ),
             ),
           ],
+        ],
+        // Someone in your care: their check-ups, under their name.
+        for (final p in system.peopleInCare) ...[
+          SectionHeader('For ${p.text}'),
+          if (system.careFor(p).isNotEmpty)
+            OnoCard(
+              padding: const EdgeInsets.fromLTRB(16, 6, 8, 6),
+              child: Column(children: [for (final u in system.careFor(p)) _row(system, u)]),
+            ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              for (final s in const [('Check-up', 365), ('Dentist', 180), ('Eye test', 365), ('Hearing test', 730)])
+                if (!system.careFor(p).any((u) => u.text.endsWith(s.$1)))
+                  ActionChip(
+                    key: Key('care-for-${p.id}-${s.$1}'),
+                    label: Text(s.$1),
+                    onPressed: () => system.addUpkeep('${p.text.split(' ').first}: ${s.$1}', s.$2,
+                        forPerson: p.id),
+                  ),
+            ],
+          ),
         ],
         if (items.isEmpty) ...[
           const SizedBox(height: 14),
@@ -298,9 +324,9 @@ class _UpkeepScreenState extends State<UpkeepScreen> {
         ),
         const SizedBox(height: 8),
         Segmented(
-          labels: [for (final k in PersonalSystemProvider.careKinds.values) k],
-          index: PersonalSystemProvider.careKinds.keys.toList().indexOf(_kind),
-          onChanged: (i) => setState(() => _kind = PersonalSystemProvider.careKinds.keys.elementAt(i)),
+          labels: [for (final k in _ownKinds) PersonalSystemProvider.careKinds[k]!],
+          index: _ownKinds.indexOf(_kind),
+          onChanged: (i) => setState(() => _kind = _ownKinds[i]),
         ),
         const SizedBox(height: 8),
         if (_kind == 'documents')

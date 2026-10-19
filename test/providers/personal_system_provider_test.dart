@@ -3643,4 +3643,33 @@ void main() {
     expect(p.stepsOf(item.id), isEmpty);
     expect(p.dailyItems.firstWhere((n) => n.id == item.id).route, isNull);
   });
+
+  test('in my care: their care items, their story, a monthly caregiver check', () async {
+    final sent = _CapturingBriefs();
+    final p = await _commissioned(briefs: sent);
+    final mum = p.addPerson('Leyla Huseynova', role: 'Mother', every: 7);
+    expect(p.caregiverCheckDue, isFalse);
+    p.setInMyCare(mum, true);
+    expect(p.peopleInCare.single.id, mum.id);
+    final eyes = p.addUpkeep('Leyla: Eye test', 365, forPerson: mum.id)!;
+    expect(p.careKindOf(eyes), 'for');
+    expect(p.careFor(p.personById(mum.id)!).single.id, eyes.id);
+    p.setStoryAnswer(p.personById(mum.id)!, 'grew_up', 'Sheki, by the river');
+    expect(p.storyAnswer(p.personById(mum.id)!, 'grew_up'), 'Sheki, by the river');
+    p.clock = () => _start.plusDays(55);
+    expect(p.caregiverCheckDue, isTrue);
+    p.saveCaregiverCheck(heavy: 4, share: 'My brother');
+    expect(p.caregiverCheckDue, isFalse);
+    await p.submitReport(WeeklyReport(
+      id: 'r',
+      weekStart: weekStartOf(p.now),
+      nonNegotiableAverage: 7,
+      gymSessions: 3,
+      bestMoment: '',
+      hardestMoment: '',
+      workSituation: '',
+      createdAt: p.now,
+    ));
+    expect(jsonEncode(sent.last!.toJson()), isNot(contains('Sheki')));
+  });
 }

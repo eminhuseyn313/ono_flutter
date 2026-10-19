@@ -188,6 +188,10 @@ class _KnowScreenState extends State<KnowScreen> {
     for (final q in PersonalSystemProvider.knowQuestions)
       q.$1: TextEditingController(),
   };
+  final _story = {
+    for (final q in PersonalSystemProvider.storyQuestions)
+      q.$1: TextEditingController(),
+  };
   bool _loaded = false;
   int _saves = 0;
 
@@ -202,11 +206,14 @@ class _KnowScreenState extends State<KnowScreen> {
     for (final q in PersonalSystemProvider.knowQuestions) {
       _answers[q.$1]!.text = system.knowAnswer(p, q.$1);
     }
+    for (final q in PersonalSystemProvider.storyQuestions) {
+      _story[q.$1]!.text = system.storyAnswer(p, q.$1);
+    }
   }
 
   @override
   void dispose() {
-    for (final c in _answers.values) {
+    for (final c in [..._answers.values, ..._story.values]) {
       c.dispose();
     }
     super.dispose();
@@ -253,7 +260,7 @@ class _KnowScreenState extends State<KnowScreen> {
     return UnsavedGuard(
       changesOnly: true,
       saves: _saves,
-      fields: _answers.values.toList(),
+      fields: [..._answers.values, ..._story.values],
       child: OnoPage(
         showBack: true,
         eyebrow: 'People · ${system.knownCount(p)} of ${PersonalSystemProvider.knowQuestions.length} known',
@@ -263,6 +270,9 @@ class _KnowScreenState extends State<KnowScreen> {
         bottomBar: PrimaryButton('Save', icon: Icons.check_rounded, onPressed: () {
           for (final q in PersonalSystemProvider.knowQuestions) {
             system.setKnow(p, q.$1, _answers[q.$1]!.text);
+          }
+          for (final q in PersonalSystemProvider.storyQuestions) {
+            system.setStoryAnswer(system.personById(p.id)!, q.$1, _story[q.$1]!.text);
           }
           setState(() => _saves++);
           FocusManager.instance.primaryFocus?.unfocus();
@@ -302,9 +312,125 @@ class _KnowScreenState extends State<KnowScreen> {
                         color: system.knowStale(p, q.$1) ? AppColors.warning : AppColors.grey)),
               ),
           ],
+          // For someone in your care: their story, asked while you can.
+          if (system.inMyCare(p)) ...[
+            const SectionHeader('Their story'),
+            Text('Questions to ask while you can — in their words, kept only for you.',
+                style: AppText.small()),
+            for (final q in PersonalSystemProvider.storyQuestions) ...[
+              const SizedBox(height: 12),
+              Text(q.$2, style: AppText.body(color: AppColors.white)),
+              const SizedBox(height: 4),
+              TextField(
+                key: Key('story-${q.$1}'),
+                controller: _story[q.$1],
+                minLines: 1,
+                maxLines: 6,
+                style: AppText.body(color: AppColors.white),
+                decoration: const InputDecoration(hintText: 'Ask them next time'),
+              ),
+            ],
+          ],
           const SizedBox(height: 16),
         ],
       ),
+    );
+  }
+}
+
+/// Once a month, for anyone caring for someone: how heavy it has felt
+/// and who could share it. Caregiver strain grows unseen.
+class CarerScreen extends StatefulWidget {
+  const CarerScreen({super.key});
+
+  @override
+  State<CarerScreen> createState() => _CarerScreenState();
+}
+
+class _CarerScreenState extends State<CarerScreen> {
+  final _share = TextEditingController();
+  int? _heavy;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final system = context.read<PersonalSystemProvider>();
+    final c = system.caregiverCheckFor(system.programMonth);
+    if (c != null && _heavy == null) {
+      _heavy = c.number('heavy')?.toInt();
+      _share.text = c.str('share') ?? '';
+    }
+  }
+
+  @override
+  void dispose() {
+    _share.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final system = context.watch<PersonalSystemProvider>();
+    final names = system.peopleInCare.map((p) => p.text.split(' ').first).join(' and ');
+    return OnoPage(
+      showBack: true,
+      eyebrow: 'Care · once a month',
+      title: 'And how are you?',
+      subtitle: names.isEmpty
+          ? 'For anyone looking after someone.'
+          : 'Looking after $names matters. So do you.',
+      bottomBar: PrimaryButton('Save', icon: Icons.check_rounded, onPressed: () {
+        if (_heavy == null) {
+          toast(context, 'Choose how heavy it has felt.');
+          return;
+        }
+        system.saveCaregiverCheck(heavy: _heavy!, share: _share.text);
+        toast(context, 'Saved.');
+        context.canPop() ? context.pop() : context.go('/home');
+      }),
+      children: [
+        const SectionHeader('How heavy has caring felt this month?'),
+        Segmented(
+          labels: const ['Light', '2', '3', '4', 'Heavy'],
+          index: _heavy == null ? -1 : _heavy! - 1,
+          onChanged: (i) => setState(() => _heavy = i + 1),
+        ),
+        const SectionHeader('Who could share some of it?'),
+        TextField(
+          controller: _share,
+          minLines: 1,
+          maxLines: 3,
+          style: AppText.body(color: AppColors.white),
+          decoration: const InputDecoration(hintText: 'A sibling, a friend, a neighbour, a service'),
+        ),
+        if ((_heavy ?? 0) >= 4) ...[
+          const SizedBox(height: 14),
+          OnoCard(
+            accent: AppColors.social,
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: [
+                LinkRow(
+                  icon: Icons.pan_tool_alt_outlined,
+                  color: AppColors.social,
+                  title: 'Ask for help',
+                  subtitle: 'Most people say yes more often than you\'d guess',
+                  onTap: () => context.push('/asks'),
+                ),
+                const Divider(indent: 66),
+                LinkRow(
+                  icon: Icons.beach_access_outlined,
+                  color: AppColors.body,
+                  title: 'Plan some rest',
+                  subtitle: 'A day, or a lighter week',
+                  onTap: () => context.push('/rest'),
+                ),
+              ],
+            ),
+          ),
+        ],
+        const SizedBox(height: 16),
+      ],
     );
   }
 }

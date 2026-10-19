@@ -1448,6 +1448,9 @@ class _PromptsState extends State<_Prompts> {
             '${u.text} is due',
             'Book it — then note the day so it reminds you',
             '/upkeep'),
+      if (system.caregiverCheckDue)
+        _row(context, Icons.volunteer_activism_outlined, AppColors.social,
+            'And how are you?', 'Once a month: how heavy caring has felt', '/carer'),
       if (system.moneyCheckDue)
         _row(context, Icons.savings_outlined, AppColors.body, 'Money check-in',
             'Ten minutes: in, out, set aside, one decision', '/money'),

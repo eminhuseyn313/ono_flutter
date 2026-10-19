@@ -3268,6 +3268,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     'grooming': 'Grooming',
     'home': 'Home & things',
     'documents': 'Documents',
+    'for': 'For someone in your care',
   };
 
   /// Documents are asked about this long before they expire: renewals
@@ -3303,17 +3304,83 @@ class PersonalSystemProvider extends ChangeNotifier {
   String careKindOf(LogEntry u) => u.str('kind') ?? 'health';
 
   /// A document has no interval, only an [expires] date (never its
-  /// number: ONO keeps the date, nothing else).
+  /// number: ONO keeps the date, nothing else). Care for someone else
+  /// ([forPerson], kind 'for') belongs to that person.
   LogEntry? addUpkeep(String name, int everyDays,
-          {DateTime? lastDone, String kind = 'health', DateTime? expires}) =>
+          {DateTime? lastDone, String kind = 'health', DateTime? expires, String? forPerson}) =>
       name.trim().isEmpty || (everyDays <= 0 && kind != 'documents')
           ? null
           : addLog('upkeep', text: name.trim(), data: {
               'every': kind == 'documents' ? 0 : everyDays,
-              'kind': careKinds.containsKey(kind) ? kind : 'health',
+              'kind': forPerson != null ? 'for' : careKinds.containsKey(kind) ? kind : 'health',
               'last': lastDone == null ? null : dateKey(lastDone),
               if (expires != null) 'expires': dateKey(expires),
+              if (forPerson != null) 'for': forPerson,
             });
+
+  /// Care items for someone in your care.
+  List<LogEntry> careFor(LogEntry person) =>
+      [for (final u in upkeep) if (u.str('for') == person.id) u];
+
+  // ── In my care ───────────────────────────────────────────────────────
+
+  /// Someone you look after: a parent, a child, a partner who is ill.
+  bool inMyCare(LogEntry person) => person.data['in_care'] == true;
+
+  void setInMyCare(LogEntry person, bool on) {
+    final p = personById(person.id);
+    if (p == null) return;
+    updateLog(p.copyWith(data: {...p.data, 'in_care': on}));
+  }
+
+  List<LogEntry> get peopleInCare => [for (final p in people) if (inMyCare(p)) p];
+
+  /// Questions to ask while you can — their story, in their words.
+  static const storyQuestions = [
+    ('grew_up', 'Where did they grow up, and what was it like?'),
+    ('proud', 'What are they proudest of?'),
+    ('met', 'How did they meet the people they love most?'),
+    ('hardest', 'What was their hardest time, and how did they get through it?'),
+    ('remember', 'What do they want you to know, or to remember?'),
+  ];
+
+  String storyAnswer(LogEntry person, String key) => person.str('story:$key') ?? '';
+
+  void setStoryAnswer(LogEntry person, String key, String answer) {
+    final p = personById(person.id);
+    if (p == null) return;
+    final a = answer.trim();
+    if (a == storyAnswer(p, key)) return;
+    final data = {...p.data};
+    if (a.isEmpty) {
+      data.remove('story:$key');
+    } else {
+      data['story:$key'] = a;
+    }
+    updateLog(p.copyWith(data: data));
+  }
+
+  /// Once a month, for anyone caring for someone: how heavy it has felt
+  /// (1–5) and who could share it. Caregiver strain grows unseen.
+  LogEntry? caregiverCheckFor(int month) {
+    for (final l in logsOf('caregiver_check')) {
+      if (atMonth(l, month)) return l;
+    }
+    return null;
+  }
+
+  void saveCaregiverCheck({required int heavy, String share = ''}) {
+    final data = {'month': programMonth, 'heavy': heavy.clamp(1, 5), 'share': share.trim()};
+    final e = caregiverCheckFor(programMonth);
+    if (e == null) {
+      addLog('caregiver_check', data: data);
+    } else {
+      updateLog(e.copyWith(data: data));
+    }
+  }
+
+  bool get caregiverCheckDue =>
+      hasStarted && peopleInCare.isNotEmpty && dayOfMonth >= 25 && caregiverCheckFor(programMonth) == null;
 
   DateTime? upkeepExpires(LogEntry u) => DateTime.tryParse(u.str('expires') ?? '');
 
