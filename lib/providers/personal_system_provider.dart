@@ -5669,17 +5669,40 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   /// Contact with someone; [quality] 1 = distracted, 2 = okay, 3 = fully
   /// present. Presence, not just frequency, is what keeps people close.
-  void logTouch(LogEntry person, {String note = '', int? quality, DateTime? date}) {
+  /// How long a contact lasted, in minutes: a call, an hour, an evening,
+  /// a day. Closeness grows with time together — about 50 hours to a
+  /// casual friend, 90 to a friend, 200+ to a close friend (Hall 2018).
+  static const touchLengths = {
+    15: 'A quick call',
+    60: 'An hour',
+    180: 'An evening',
+    480: 'A day',
+  };
+
+  void logTouch(LogEntry person, {String note = '', int? quality, int? minutes, DateTime? date}) {
     addLog('touch', text: note.trim(), date: date, data: {
       'person': person.id,
       'name': person.text,
       if (quality != null) 'quality': quality,
+      if (minutes != null && minutes > 0) 'minutes': minutes,
     });
     // The question was for this contact; it's asked now.
     final p = personById(person.id);
     if (p != null && askAboutOf(p).isNotEmpty) {
       updateLog(p.copyWith(data: {...p.data, 'ask_about': ''}));
     }
+  }
+
+  /// Hours together over the last [days] (90), from touches with a length.
+  double hoursTogether(LogEntry person, {int days = 90}) {
+    final from = dayOnly(_now).minusDays(days - 1);
+    var minutes = 0;
+    for (final t in logsOf('touch')) {
+      if (t.str('person') == person.id && !t.date.isBefore(from)) {
+        minutes += (t.number('minutes') ?? 0).toInt();
+      }
+    }
+    return minutes / 60;
   }
 
   /// A ritual with this person ("Friday dinner, phones away"), or ''.

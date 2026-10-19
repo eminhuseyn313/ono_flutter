@@ -3618,4 +3618,14 @@ void main() {
     expect(p.outsideMinutesInWeek(_today), 60);
     expect(p.moveMinutesInWeek(_today), 40 + 40 + 30);
   });
+
+  test('time together: hours from touches with a length, last 90 days', () async {
+    final p = await _commissioned();
+    final mum = p.addPerson('Mum', role: 'Family', every: 7);
+    p.logTouch(mum, minutes: 180);
+    p.logTouch(mum, minutes: 60, date: dayOnly(_today).minusDays(10));
+    p.logTouch(mum, minutes: 480, date: dayOnly(_today).minusDays(120));
+    p.logTouch(mum);
+    expect(p.hoursTogether(mum), 4);
+  });
 }

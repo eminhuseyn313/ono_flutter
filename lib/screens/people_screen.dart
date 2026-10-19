@@ -60,6 +60,7 @@ class _PeopleScreenState extends State<PeopleScreen> {
     final nextHelp = TextEditingController(text: p.str('next_help') ?? '');
     var every = system.cadenceOf(p);
     int? quality;
+    int? minutes;
     var yesterday = false;
     var details = false;
     final between = system.betweenYou(p);
@@ -140,6 +141,29 @@ class _PeopleScreenState extends State<PeopleScreen> {
                   ],
                 ),
                 const SizedBox(height: 10),
+                Text('How long? (optional)', style: AppText.small()),
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    for (final l in PersonalSystemProvider.touchLengths.entries)
+                      ChoiceChip(
+                        key: Key('touch-${l.key}'),
+                        label: Text(l.value),
+                        selected: minutes == l.key,
+                        showCheckmark: false,
+                        onSelected: (on) => setSheet(() => minutes = on ? l.key : null),
+                      ),
+                  ],
+                ),
+                if (system.hoursTogether(p) >= 1) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                      'About ${system.hoursTogether(p).round()} hours together in the last three months',
+                      style: AppText.small()),
+                ],
+                const SizedBox(height: 10),
                 Segmented(
                   labels: const ['Today', 'Yesterday'],
                   index: yesterday ? 1 : 0,
@@ -151,6 +175,7 @@ class _PeopleScreenState extends State<PeopleScreen> {
                   system.logTouch(p,
                       note: note.text,
                       quality: quality,
+                      minutes: minutes,
                       date: yesterday
                           ? dayOnly(DateTime.now()).minusDays(1)
                           : null);

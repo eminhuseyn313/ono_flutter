@@ -114,6 +114,19 @@ class _WeeklyCoachingScreenState extends State<WeeklyCoachingScreen> {
               'What was hard, and what it revealed.'),
           _field(_situation, '5 · One situation to coach through',
               'At work or at home: people, stakes, what you\'re unsure of.'),
+          const SizedBox(height: 10),
+          // A fresh space for a fresh week: optional, a tick and nothing more.
+          CheckRow(
+            key: const Key('space-reset'),
+            checked: system.isDone('reset:${dateKey(week)}'),
+            title: '15 minutes to reset your space',
+            subtitle: [
+              'Desk, bag, one room',
+              for (final u in system.upkeepDue)
+                if (system.careKindOf(u) == 'home') u.text,
+            ].join(' · '),
+            onChanged: (v) => system.setDone('reset:${dateKey(week)}', v),
+          ),
           const SizedBox(height: 6),
           PrimaryButton(
             system.isGeneratingBrief ? 'Writing your brief…' : 'Send report → get brief',
