@@ -3570,4 +3570,18 @@ void main() {
     p.editUpkeep(hair.id, every: 25);
     expect(p.upkeep.firstWhere((u) => u.id == hair.id).number('every'), 25);
   });
+
+  test('care: a document asks 90 days before it expires, never its number', () async {
+    final p = await _commissioned();
+    final today = dayOnly(_today);
+    final passport = p.addUpkeep('Passport', 0, kind: 'documents', expires: today.plusDays(200))!;
+    expect(p.upkeepNextDue(passport), today.plusDays(110));
+    expect(p.upkeepDue.any((u) => u.id == passport.id), isFalse);
+    p.clock = () => _today.plusDays(100);
+    expect(p.upkeepDue.any((u) => u.id == passport.id), isTrue);
+    p.setUpkeepExpires(passport.id, today.plusDays(3750));
+    expect(p.upkeepDue.any((u) => u.id == passport.id), isFalse);
+    expect(p.upkeep.single.data.keys.toSet(), containsAll({'expires', 'kind'}));
+    expect(p.addUpkeep('Haircut', 0, kind: 'grooming'), isNull, reason: 'non-documents need an interval');
+  });
 }

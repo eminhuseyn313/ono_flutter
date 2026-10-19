@@ -3198,7 +3198,12 @@ class PersonalSystemProvider extends ChangeNotifier {
     'health': 'Health',
     'grooming': 'Grooming',
     'home': 'Home & things',
+    'documents': 'Documents',
   };
+
+  /// Documents are asked about this long before they expire: renewals
+  /// take time.
+  static const renewLeadDays = 90;
 
   /// One-tap suggestions per kind: (name, every days, kind).
   static const upkeepSuggestions = [
@@ -3217,6 +3222,10 @@ class PersonalSystemProvider extends ChangeNotifier {
     ('Back up photos and files', 30, 'home'),
     ('Sort the wardrobe', 180, 'home'),
     ('Test the smoke alarm', 180, 'home'),
+    ('Passport', 0, 'documents'),
+    ('ID card', 0, 'documents'),
+    ('Driving licence', 0, 'documents'),
+    ('Insurance renewal', 0, 'documents'),
   ];
 
   List<LogEntry> get upkeep => logsOf('upkeep');
@@ -3224,14 +3233,29 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// Health, grooming or home — older entries without one are health.
   String careKindOf(LogEntry u) => u.str('kind') ?? 'health';
 
-  LogEntry? addUpkeep(String name, int everyDays, {DateTime? lastDone, String kind = 'health'}) =>
-      name.trim().isEmpty || everyDays <= 0
+  /// A document has no interval, only an [expires] date (never its
+  /// number: ONO keeps the date, nothing else).
+  LogEntry? addUpkeep(String name, int everyDays,
+          {DateTime? lastDone, String kind = 'health', DateTime? expires}) =>
+      name.trim().isEmpty || (everyDays <= 0 && kind != 'documents')
           ? null
           : addLog('upkeep', text: name.trim(), data: {
-              'every': everyDays,
+              'every': kind == 'documents' ? 0 : everyDays,
               'kind': careKinds.containsKey(kind) ? kind : 'health',
               'last': lastDone == null ? null : dateKey(lastDone),
+              if (expires != null) 'expires': dateKey(expires),
             });
+
+  DateTime? upkeepExpires(LogEntry u) => DateTime.tryParse(u.str('expires') ?? '');
+
+  /// Renewed: the new expiry date.
+  void setUpkeepExpires(String id, DateTime expires) {
+    final l = upkeep.where((u) => u.id == id).firstOrNull;
+    if (l == null) return;
+    final data = {...l.data, 'expires': dateKey(expires), 'last': dateKey(_now)};
+    data.remove('booked');
+    updateLog(l.copyWith(data: data));
+  }
 
   /// Done on [on] (today by default): it becomes the last time, joins the
   /// history (the last 8) and clears a booking.
@@ -3295,6 +3319,9 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   /// When it's next due; null if never done (due now).
   DateTime? upkeepNextDue(LogEntry u) {
+    if (careKindOf(u) == 'documents') {
+      return upkeepExpires(u)?.minusDays(renewLeadDays);
+    }
     final last = DateTime.tryParse(u.str('last') ?? '');
     if (last == null) return null;
     return last.plusDays((u.number('every') ?? 365).toInt());
@@ -3302,8 +3329,9 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   /// How early it comes due: two weeks for a yearly check, a few days for
   /// nails — never a permanent nag for things done every fortnight.
-  int upkeepLead(LogEntry u) =>
-      ((u.number('every') ?? 365).toInt() ~/ 4).clamp(2, 14);
+  int upkeepLead(LogEntry u) => careKindOf(u) == 'documents'
+      ? 14
+      : ((u.number('every') ?? 365).toInt() ~/ 4).clamp(2, 14);
 
   /// Due soon (within its lead time), overdue first; never-done items
   /// count as due. Booked ones aren't due: they're planned.

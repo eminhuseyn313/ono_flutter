@@ -154,6 +154,26 @@ Emin's answers (12 Oct 2026): at the end, a closing review and a new program tha
 | L1 | **Year in review** (the year's numbers first, then six questions and a word for the next) | Closing 2026 with real data, not memory | The ritual many people already do at New Year | Recall is biased to recent and negative events (peak–end, Kahneman et al. 1993); structured reflection beats unstructured (Di Stefano et al. 2016) | ✅ |
 | L2 | **Ask for help** (guess the chance of a yes, ask, note the answer) | Asking stakeholders and peers sooner | Anyone who'd rather struggle than ask | People underestimate compliance by about half (Flynn & Lake 2008; Bohns 2016) | ✅ |
 
+### M. Eighth pass: care, and the whole person (19 Oct 2026)
+Asked by Emin: "the care part — healthcare, nails, the barber". Researched against Finch, Routinery, Tiimo, How We Feel, Paired, Day One, Oura/Whoop and the evidence. Most of it extends what exists rather than adding screens.
+
+| # | Feature | Extends | Evidence | Effort | Status |
+|---|---|---|---|---|---|
+| M1 | **Care**: health, grooming, home & things — booking, your real rhythm, documents with expiry dates | `/upkeep` | Reminders raise preventive uptake modestly (meta-analysis of 25 RCTs, RR 1.09 vaccination; SMS +5 pts breast screening) | S–M | Built |
+| M2 | **Checkups to ask your doctor about by age and sex** (USPSTF A/B, vaccine schedules; questions, never "you are due") | M1 | USPSTF; CDC adult schedule; national schedules differ | M | Needs Emin: store sex and birth year? Review for Azerbaijan |
+| M3 | **Care routines with steps** (one daily item, stepped through calmly; e.g. evening care) | Daily items, ritual flow | Daily sunscreen RCT (Hughes 2013); interdental cleaning, low certainty (Cochrane CD012018); implementation intentions | M | Built |
+| M4 | **In my care** (a parent, a child, an ill partner: their care items, questions to ask while you can, a caregiver check) | People, M1 | Caregiver-app scoping reviews (small studies, burden ↓) | M | Built |
+| M5 | **Self-compassion break** (notice, common humanity, kindness) | `/need`, setback | Ferrari et al. 2019, 27 RCTs | S | Built |
+| M6 | **Name the feeling** (feeling words after the check-in mood) | Check-in, patterns | Affect labelling (Lieberman et al. 2007) | S | Built |
+| M7 | **On this day** (one past entry from 1, 6 or 12 months ago, at most weekly) | Logs, review cards | Rediscovery underestimated (Zhang et al. 2014) | S | Built |
+| M8 | **Time outside** (outdoor movement, minutes a week; optional awe walk) | `/move` | White et al. 2019 (120 min/week, association); Sturm et al. 2020 awe walks | S | Built |
+| M9 | **Break the sitting after focus** (stand and walk at the end of a block) | `/focus` | Buffey et al. 2022 meta-analysis | S | Built |
+| M10 | **Time together** (how long a contact lasted; hours with the closest people) | People touches | Hall 2018 (≈50/90/200 hours to casual/friend/close friend) | S | Built |
+| M11 | **A daily question for two** (answers revealed after both answer) | `/us` | Paired observational study 2025; Gottman rituals | M–L | Needs the shared cloud |
+| M12 | **Space reset with the Sunday review** | Sunday report, M1 | Saxbe & Repetti 2010 (weak) | S | Built |
+
+Placed lower: appearance-for-confidence claims (no peer-reviewed support; power posing didn't replicate), hydration/posture reminders (weak evidence, nagging), proprietary readiness scores (would be fake numbers), pets and points (gamification).
+
 ### E. Relationships
 | # | Feature | For Emin now | For anyone | Evidence | Effort |
 |---|---|---|---|---|---|

@@ -40,6 +40,16 @@ class _UpkeepScreenState extends State<UpkeepScreen> {
       _intervals.where((i) => i.$1 == days).firstOrNull?.$2.toLowerCase() ?? 'every $days days';
 
   String _due(PersonalSystemProvider system, LogEntry u) {
+    if (system.careKindOf(u) == 'documents') {
+      final exp = system.upkeepExpires(u);
+      if (exp == null) return 'Add the expiry date';
+      final left = exp.daysSince(dayOnly(DateTime.now()));
+      if (left < 0) return 'Expired ${shortDate(exp)}';
+      if (left <= PersonalSystemProvider.renewLeadDays) {
+        return 'Expires ${shortDate(exp)} — time to renew';
+      }
+      return 'Expires ${shortDate(exp)} ${exp.year}';
+    }
     if (system.upkeepBooked(u) case final b?) {
       final days = b.daysSince(dayOnly(DateTime.now()));
       return days == 0
@@ -58,7 +68,26 @@ class _UpkeepScreenState extends State<UpkeepScreen> {
     return days < 60 ? 'Due in $days d' : 'Next ${shortDate(next)}';
   }
 
+  /// The expiry date of a document: after adding it, or once renewed.
+  Future<DateTime?> _pickExpiry(DateTime? current) {
+    final now = DateTime.now();
+    return showDatePicker(
+      context: context,
+      initialDate: current != null && current.isAfter(now) ? current : DateTime(now.year + 1, now.month, now.day),
+      firstDate: DateTime(now.year - 2),
+      lastDate: DateTime(now.year + 20),
+      helpText: 'When does it expire?',
+    );
+  }
+
   Future<void> _done(PersonalSystemProvider system, LogEntry u) async {
+    if (system.careKindOf(u) == 'documents') {
+      final exp = await _pickExpiry(system.upkeepExpires(u));
+      if (exp == null || !mounted) return;
+      system.setUpkeepExpires(u.id, exp);
+      toast(context, 'Noted. ONO asks again ${PersonalSystemProvider.renewLeadDays} days before it expires.');
+      return;
+    }
     final now = DateTime.now();
     // A date, not just today: the last visit may have been months ago.
     final on = await showDatePicker(
@@ -92,6 +121,7 @@ class _UpkeepScreenState extends State<UpkeepScreen> {
                   Text(u.text, style: AppText.title()),
                   Text(_due(system, u), style: AppText.small()),
                   const SizedBox(height: 14),
+                  if (system.careKindOf(u) != 'documents') ...[
                   Text('How often', style: AppText.small()),
                   const SizedBox(height: 6),
                   Wrap(
@@ -120,6 +150,7 @@ class _UpkeepScreenState extends State<UpkeepScreen> {
                       },
                       child: Text('You actually go about every $usual days — use that'),
                     ),
+                  ],
                   ],
                   const SizedBox(height: 14),
                   GhostButton(
@@ -179,14 +210,19 @@ class _UpkeepScreenState extends State<UpkeepScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(u.text, style: AppText.heading()),
-                  Text('${_due(system, u)} · ${_every2((u.number('every') ?? 365).toInt())}',
+                  Text(
+                      system.careKindOf(u) == 'documents'
+                          ? _due(system, u)
+                          : '${_due(system, u)} · ${_every2((u.number('every') ?? 365).toInt())}',
                       style: AppText.small(color: due ? AppColors.warning : AppColors.grey)),
                 ],
               ),
             ),
             TextButton(
               onPressed: () => _done(system, u),
-              child: const Text('Done…'),
+              child: Text(system.careKindOf(u) == 'documents'
+                  ? (system.upkeepExpires(u) == null ? 'Date…' : 'Renewed…')
+                  : 'Done…'),
             ),
           ],
         ),
@@ -240,7 +276,16 @@ class _UpkeepScreenState extends State<UpkeepScreen> {
                   if (s.$3 == kind.key && !items.any((u) => u.text == s.$1))
                     ActionChip(
                       label: Text(s.$1),
-                      onPressed: () => system.addUpkeep(s.$1, s.$2, kind: s.$3),
+                      onPressed: () async {
+                        if (s.$3 != 'documents') {
+                          system.addUpkeep(s.$1, s.$2, kind: s.$3);
+                          return;
+                        }
+                        // Only the date it expires — never its number.
+                        final exp = await _pickExpiry(null);
+                        if (exp == null) return;
+                        system.addUpkeep(s.$1, 0, kind: s.$3, expires: exp);
+                      },
                     ),
               ],
             ),
@@ -258,6 +303,9 @@ class _UpkeepScreenState extends State<UpkeepScreen> {
           onChanged: (i) => setState(() => _kind = PersonalSystemProvider.careKinds.keys.elementAt(i)),
         ),
         const SizedBox(height: 8),
+        if (_kind == 'documents')
+          Text('Only its expiry date is kept — never its number.', style: AppText.small())
+        else
         Wrap(
           spacing: 6,
           runSpacing: 6,
@@ -271,12 +319,19 @@ class _UpkeepScreenState extends State<UpkeepScreen> {
           ],
         ),
         const SizedBox(height: 10),
-        GhostButton('Add', icon: Icons.add_rounded, onPressed: () {
-          if (system.addUpkeep(_name.text, _every, kind: _kind) != null) {
+        GhostButton('Add', icon: Icons.add_rounded, onPressed: () async {
+          if (_name.text.trim().isEmpty) {
+            toast(context, 'Give it a name first.');
+            return;
+          }
+          DateTime? exp;
+          if (_kind == 'documents') {
+            exp = await _pickExpiry(null);
+            if (exp == null) return;
+          }
+          if (system.addUpkeep(_name.text, _every, kind: _kind, expires: exp) != null) {
             _name.clear();
             FocusManager.instance.primaryFocus?.unfocus();
-          } else {
-            toast(context, 'Give it a name first.');
           }
         }),
         const SizedBox(height: 16),
