@@ -572,7 +572,7 @@ class MeScreen extends StatelessWidget {
                 title: 'People',
                 subtitle: system.people.isEmpty
                     ? 'Who you invest in, and how often'
-                    : '${system.people.length} people · ${system.peopleDue.length} due${system.peopleGrowing.isEmpty ? '' : ' · helping ${system.peopleGrowing.length} grow'}',
+                    : '${system.activePeople.length} people · ${system.peopleDue.length} due${system.peopleGrowing.isEmpty ? '' : ' · helping ${system.peopleGrowing.length} grow'}',
                 onTap: () => context.push('/people'),
               ),
               LinkRow(

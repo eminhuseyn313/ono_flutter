@@ -655,4 +655,19 @@ void main() {
     expect(find.text('Used lately'), findsOneWidget);
     expect(find.text('Courage ladder'), findsWidgets);
   });
+
+  testWidgets('remember someone: the switch, then writing about them', (tester) async {
+    final system = await _start(tester);
+    final p = system.addPerson('Ana Silva', role: 'Grandmother', every: 14);
+    await _go(tester, '/people');
+    await _tap(tester, find.text('Ana Silva'));
+    await _tap(tester, find.byKey(const Key('person-remembered')));
+    expect(system.isRemembered(system.personById(p.id)!), isTrue);
+    expect(find.text('What I miss'), findsOneWidget);
+    await tester.enterText(find.byKey(const Key('remember-carry')), 'Her patience');
+    await _tap(tester, find.byKey(const Key('remember-save')));
+    expect(system.remembrancesOf(p).single.str('carry'), 'Her patience');
+    await _go(tester, '/people');
+    await _reach(tester, find.text('Remembered'));
+  });
 }

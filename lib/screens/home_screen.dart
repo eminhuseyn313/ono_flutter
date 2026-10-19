@@ -1382,6 +1382,16 @@ class _PromptsState extends State<_Prompts> {
                 ? 'A message in your own words beats a reminder app\'s'
                 : 'Ask about ${system.askAboutOf(b)}',
             '/people?id=${b.id}'),
+      for (final r in system.remembranceDays(now).take(1))
+        _row(
+            context,
+            Icons.local_florist_outlined,
+            AppColors.mind,
+            system.birthdayOf(r) == (now.month, now.day)
+                ? '${r.text}\'s birthday'
+                : 'Remembering ${r.text} today',
+            'A moment for them, if you want one',
+            '/remember?id=${r.id}'),
       if (system.conversationsDue(now).firstOrNull case final c?)
         _row(
             context,

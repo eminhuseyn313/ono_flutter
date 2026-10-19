@@ -7,6 +7,7 @@ import '../data/emin_system.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
+import '../widgets/support_sheet.dart';
 
 /// How to work with me: a personal user manual, drafted from your data.
 class ManualScreen extends StatefulWidget {
@@ -431,6 +432,197 @@ class _CarerScreenState extends State<CarerScreen> {
         ],
         const SizedBox(height: 16),
       ],
+    );
+  }
+}
+
+// ── Someone you lost ──────────────────────────────────────────────────
+
+/// A quiet place to remember someone who has died: what you miss, what
+/// they taught you, what you carry forward. No stages, no timelines.
+class RememberScreen extends StatefulWidget {
+  final String? personId;
+  const RememberScreen({super.key, this.personId});
+
+  @override
+  State<RememberScreen> createState() => _RememberScreenState();
+}
+
+class _RememberScreenState extends State<RememberScreen> {
+  late final _answers = {
+    for (final q in PersonalSystemProvider.remembranceQuestions) q.$1: TextEditingController()
+  };
+  final _died = TextEditingController();
+  int _saves = 0;
+  bool _dateSet = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Opening it is enough: today's quiet line on Today goes.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || widget.personId == null) return;
+      final system = context.read<PersonalSystemProvider>();
+      final p = system.personById(widget.personId!);
+      if (p != null && system.isRemembered(p)) {
+        system.setDone(system.remembranceSeenKey(p, system.logicalToday), true);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    for (final c in [..._answers.values, _died]) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  /// "d.MM.yyyy" → a date, or null.
+  static DateTime? _parse(String s) {
+    final p = s.trim().split(RegExp(r'[./-]'));
+    if (p.length != 3) return null;
+    final d = int.tryParse(p[0]), m = int.tryParse(p[1]), y = int.tryParse(p[2]);
+    if (d == null || m == null || y == null || m < 1 || m > 12 || d < 1 || d > 31 || y < 1900) {
+      return null;
+    }
+    final date = DateTime(y, m, d);
+    return date.month == m ? date : null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final system = context.watch<PersonalSystemProvider>();
+    final p = widget.personId == null ? null : system.personById(widget.personId!);
+    if (p == null) {
+      final remembered = system.rememberedPeople;
+      return OnoPage(
+        showBack: true,
+        eyebrow: 'People',
+        title: 'Remembering',
+        subtitle:
+            'When someone on your list has died, open them under People and choose Remember them. Their history stays; ONO stops asking you to reach out.',
+        children: [
+          const SizedBox(height: 14),
+          if (remembered.isEmpty)
+            const EmptyNote('No one here.', icon: Icons.local_florist_outlined)
+          else
+            OnoCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  for (final (i, r) in remembered.indexed) ...[
+                    if (i > 0) const Divider(indent: 16),
+                    ListTile(
+                      title: Text(r.text, style: AppText.heading()),
+                      trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.faint),
+                      onTap: () => context.push('/remember?id=${r.id}'),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+        ],
+      );
+    }
+    final died = system.diedOn(p);
+    if (!_dateSet) {
+      _dateSet = true;
+      if (died != null) _died.text = '${died.day}.${died.month.toString().padLeft(2, '0')}.${died.year}';
+    }
+    final first = p.text.split(' ').first;
+    final past = system.remembrancesOf(p);
+    final story = [
+      for (final q in PersonalSystemProvider.storyQuestions)
+        if (system.storyAnswer(p, q.$1).isNotEmpty) (q.$2, system.storyAnswer(p, q.$1))
+    ];
+    return UnsavedGuard(
+      fields: _answers.values.toList(),
+      saves: _saves,
+      child: OnoPage(
+        showBack: true,
+        eyebrow: 'Remembering',
+        title: p.text,
+        subtitle: 'Write when you want to, as much or as little as you like. It stays on this phone and in your journal.',
+        bottomBar: PrimaryButton('Keep this', key: const Key('remember-save'), icon: Icons.check_rounded,
+            onPressed: () {
+          final saved = system.saveRemembrance(p, {
+            for (final e in _answers.entries) e.key: e.value.text,
+          });
+          if (saved == null) {
+            toast(context, 'Write a line first.');
+            return;
+          }
+          for (final c in _answers.values) {
+            c.clear();
+          }
+          setState(() => _saves++);
+          FocusScope.of(context).unfocus();
+          toast(context, 'Kept.');
+        }),
+        children: [
+          for (final q in PersonalSystemProvider.remembranceQuestions)
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: TextField(
+                key: Key('remember-${q.$1}'),
+                controller: _answers[q.$1],
+                minLines: 2,
+                maxLines: 6,
+                style: AppText.body(color: AppColors.white),
+                decoration: InputDecoration(labelText: q.$2),
+              ),
+            ),
+          const SizedBox(height: 14),
+          TextField(
+            controller: _died,
+            keyboardType: TextInputType.datetime,
+            style: AppText.body(color: AppColors.white),
+            decoration: const InputDecoration(
+                labelText: 'The day they died (optional)', hintText: 'd.mm.yyyy'),
+            onChanged: (v) {
+              if (v.trim().isEmpty) {
+                system.setDiedOn(p, null);
+              } else if (_parse(v) case final d?) {
+                system.setDiedOn(p, d);
+              }
+            },
+          ),
+          Text('ONO will quietly mark the day each year, and their birthday.', style: AppText.small()),
+          if (story.isNotEmpty) ...[
+            SectionHeader('$first\'s story'),
+            for (final (q, a) in story)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text('$q\n$a', style: AppText.small(color: AppColors.white)),
+              ),
+          ],
+          if (past.isNotEmpty) ...[
+            const SectionHeader('What you wrote'),
+            for (final l in past)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: OnoCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(shortDate(l.date), style: AppText.eyebrow()),
+                      for (final q in PersonalSystemProvider.remembranceQuestions)
+                        if ((l.str(q.$1) ?? '').isNotEmpty) ...[
+                          const SizedBox(height: 6),
+                          Text(q.$2, style: AppText.small()),
+                          Text(l.str(q.$1)!, style: AppText.body(color: AppColors.white)),
+                        ],
+                    ],
+                  ),
+                ),
+              ),
+          ],
+          const SizedBox(height: 10),
+          const SupportLink(),
+          const SizedBox(height: 16),
+        ],
+      ),
     );
   }
 }

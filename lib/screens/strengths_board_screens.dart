@@ -165,7 +165,7 @@ class BoardScreen extends StatelessWidget {
 
   Future<void> _pick(BuildContext context, PersonalSystemProvider system,
       String role) async {
-    final people = system.people;
+    final people = system.activePeople;
     if (people.isEmpty) {
       toast(context, 'Add people first under People.');
       context.push('/people');

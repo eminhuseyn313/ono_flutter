@@ -84,7 +84,7 @@ class _RoundScreenState extends State<RoundScreen> {
     final round = system.roundFor(system.programQuarter);
     final names = <String>{
       for (final p in activeProfile.keyPeople) p.name,
-      for (final p in system.people) p.text,
+      for (final p in system.activePeople) p.text,
       ..._people,
     }.where((n) => n.isNotEmpty).toList();
     final answers = round == null ? const <({String from, String said})>[] : system.roundAnswers(round);

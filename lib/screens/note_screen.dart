@@ -56,7 +56,7 @@ class _NoteScreenState extends State<NoteScreen> {
     final system = context.watch<PersonalSystemProvider>();
     final names = <String>{
       for (final p in activeProfile.keyPeople) p.name,
-      for (final p in system.people) p.text,
+      for (final p in system.activePeople) p.text,
     }.where((n) => n.isNotEmpty).toList();
     final sent = system.noteSentInWeek(DateTime.now());
     return OnoPage(

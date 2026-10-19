@@ -48,6 +48,10 @@ class _PeopleScreenState extends State<PeopleScreen> {
   }
 
   void _sheet(PersonalSystemProvider system, LogEntry p) {
+    if (system.isRemembered(p)) {
+      _rememberedSheet(system, p);
+      return;
+    }
     final note = TextEditingController();
     final name = TextEditingController(text: p.text);
     final role = TextEditingController(text: p.str('role') ?? '');
@@ -126,6 +130,20 @@ class _PeopleScreenState extends State<PeopleScreen> {
                       system.inMyCare(p)
                           ? 'Their check-ups are under Care; their story under What you know.'
                           : 'A parent, a child, someone who is ill',
+                      style: AppText.small()),
+                ),
+                SwitchListTile(
+                  key: const Key('person-remembered'),
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                  value: false,
+                  onChanged: (_) {
+                    system.setRemembered(p, true);
+                    Navigator.of(ctx).pop();
+                    context.push('/remember?id=${p.id}');
+                  },
+                  title: Text('Remember them', style: AppText.body(color: AppColors.white)),
+                  subtitle: Text('If they have died: no more reminders to reach out. Everything stays.',
                       style: AppText.small()),
                 ),
                 if (system.askAboutOf(p).isEmpty)
@@ -361,7 +379,7 @@ class _PeopleScreenState extends State<PeopleScreen> {
     final system = context.watch<PersonalSystemProvider>();
     final people = system.peopleByDue;
     final missing = activeProfile.keyPeople
-        .where((k) => !people.any((p) => p.text.split(' ').first == k.name))
+        .where((k) => !system.people.any((p) => p.text.split(' ').first == k.name))
         .toList();
     return OnoPage(
       showBack: true,
@@ -394,6 +412,29 @@ class _PeopleScreenState extends State<PeopleScreen> {
           const EmptyNote(
               'Add the people you don\'t want to drift from: family and friends, a mentor, people one step ahead, the people you work with.',
               icon: Icons.group_outlined),
+        if (system.rememberedPeople.isNotEmpty) ...[
+          const SectionHeader('Remembered'),
+          OnoCard(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+            child: Column(
+              children: [
+                for (final p in system.rememberedPeople)
+                  InkWell(
+                    onTap: () => _sheet(system, p),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: Row(
+                        children: [
+                          Expanded(child: Text(p.text, style: AppText.heading())),
+                          const Icon(Icons.local_florist_outlined, size: 18, color: AppColors.faint),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
         const SectionHeader('Add someone'),
         TextField(
           controller: _name,
@@ -432,6 +473,45 @@ class _PeopleScreenState extends State<PeopleScreen> {
         }),
         const SizedBox(height: 16),
       ],
+    );
+  }
+
+  void _rememberedSheet(PersonalSystemProvider system, LogEntry p) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.card,
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(p.text, style: AppText.title()),
+              Text('Remembered', style: AppText.small()),
+              const SizedBox(height: 14),
+              PrimaryButton('Write to remember them', icon: Icons.edit_outlined, onPressed: () {
+                Navigator.of(ctx).pop();
+                context.push('/remember?id=${p.id}');
+              }),
+              const SizedBox(height: 8),
+              GhostButton('Their story', icon: Icons.auto_stories_outlined, onPressed: () {
+                Navigator.of(ctx).pop();
+                context.push('/know?id=${p.id}');
+              }),
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: () {
+                  system.setRemembered(p, false);
+                  Navigator.of(ctx).pop();
+                },
+                child: const Text('Back among your people'),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

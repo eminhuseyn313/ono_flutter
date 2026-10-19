@@ -647,6 +647,36 @@ void main() {
     expect(sync.last, isNull);
   });
 
+  test('remembered: no more nudges, history kept, a quiet day each year', () async {
+    final p = await _commissioned();
+    final mum = p.addPerson('Maria Lopez', role: 'Mum', every: 7);
+    p.updatePerson(mum, birthday: '${_today.month.toString().padLeft(2, '0')}-${_today.day.toString().padLeft(2, '0')}');
+    p.logTouch(p.personById(mum.id)!, note: 'Sunday lunch', date: _today.minusDays(30));
+    expect(p.peopleDue.map((x) => x.id), contains(mum.id));
+    expect(p.birthdaysSoon(_today), hasLength(1));
+    p.setRemembered(p.personById(mum.id)!, true);
+    expect(p.peopleDue, isEmpty);
+    expect(p.birthdaysSoon(_today), isEmpty);
+    expect(p.activePeople, isEmpty);
+    expect(p.people, hasLength(1), reason: 'they stay, with their history');
+    expect(p.lastContact(p.personById(mum.id)!), isNotNull);
+    // Their birthday is a quiet line instead, until opened.
+    expect(p.remembranceDays(_today).single.id, mum.id);
+    p.setDone(p.remembranceSeenKey(p.personById(mum.id)!, _today), true);
+    expect(p.remembranceDays(_today), isEmpty);
+    // The anniversary, from the next year on.
+    p.setDiedOn(p.personById(mum.id)!, _today.minusDays(400));
+    final anniversary = DateTime(_today.year, p.diedOn(p.personById(mum.id)!)!.month,
+        p.diedOn(p.personById(mum.id)!)!.day);
+    expect(p.remembranceDays(anniversary).map((x) => x.id), contains(mum.id));
+    expect(p.saveRemembrance(p.personById(mum.id)!, {'miss': '  '}), isNull);
+    p.saveRemembrance(p.personById(mum.id)!, {'taught': 'Feed people first', 'carry': 'Sunday lunch'});
+    expect(p.remembrancesOf(p.personById(mum.id)!).single.text, 'Sunday lunch');
+    expect(p.journalText(), contains('Remembering Maria Lopez'));
+    p.removePerson(mum.id);
+    expect(p.logsOf('remembrance'), isEmpty);
+  });
+
   test('rest timer: notifies at the end, cancelled on skip', () async {
     final r = _RecordingReminders();
     final p = await _commissioned(reminders: r);

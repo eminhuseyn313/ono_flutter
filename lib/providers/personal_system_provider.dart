@@ -2358,8 +2358,8 @@ class PersonalSystemProvider extends ChangeNotifier {
                 w.date.isBefore(report.weekStart.plusDays(7)))
               w.text
         ],
-        peopleCount: people.length,
-        peopleReached: people
+        peopleCount: activePeople.length,
+        peopleReached: activePeople
             .where((p) =>
                 !(lastContact(p)?.isBefore(report.weekStart) ?? true))
             .length,
@@ -3477,7 +3477,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     updateLog(p.copyWith(data: {...p.data, 'in_care': on}));
   }
 
-  List<LogEntry> get peopleInCare => [for (final p in people) if (inMyCare(p)) p];
+  List<LogEntry> get peopleInCare => [for (final p in activePeople) if (inMyCare(p)) p];
 
   /// Questions to ask while you can — their story, in their words.
   static const storyQuestions = [
@@ -5934,7 +5934,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     if (isDone(reconnectSeenKey(day))) return null;
     final due = {for (final p in peopleDue) p.id};
     final quiet = [
-      for (final p in people)
+      for (final p in activePeople)
         if (!due.contains(p.id) && daysSinceContact(p) >= 180) p
     ]..sort((a, b) => daysSinceContact(b).compareTo(daysSinceContact(a)));
     return quiet.firstOrNull;
@@ -5945,6 +5945,74 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// The people he invests in, oldest first. A `person` log holds the
   /// name, role and how often (days) he wants contact.
   List<LogEntry> get people => logsOf('person').reversed.toList();
+
+  /// Everyone but those you remember: the people nudges, the board and
+  /// the brief are about.
+  List<LogEntry> get activePeople => [for (final p in people) if (!isRemembered(p)) p];
+
+  // ── Someone you lost ────────────────────────────────────────────────
+
+  /// Someone who has died. Their history stays; ONO stops asking you to
+  /// reach out, and offers a place to remember them instead.
+  bool isRemembered(LogEntry person) => person.data['remembered'] == true;
+
+  void setRemembered(LogEntry person, bool on) {
+    final p = personById(person.id);
+    if (p == null) return;
+    updateLog(p.copyWith(data: {...p.data, 'remembered': on}));
+  }
+
+  /// The day they died, if you chose to note it.
+  DateTime? diedOn(LogEntry person) => DateTime.tryParse(person.str('died') ?? '');
+
+  void setDiedOn(LogEntry person, DateTime? day) {
+    final p = personById(person.id);
+    if (p == null) return;
+    updateLog(p.copyWith(data: {...p.data, 'died': day == null ? '' : dateKey(day)}));
+  }
+
+  List<LogEntry> get rememberedPeople => [for (final p in people) if (isRemembered(p)) p];
+
+  /// Writing prompts for remembering someone (continuing bonds; grief
+  /// writing helps most when it is structured — Wagner et al. 2020).
+  static const remembranceQuestions = [
+    ('miss', 'What I miss'),
+    ('taught', 'What they taught me'),
+    ('carry', 'What I carry forward'),
+  ];
+
+  List<LogEntry> remembrancesOf(LogEntry person) =>
+      [for (final l in logsOf('remembrance')) if (l.str('person') == person.id) l];
+
+  LogEntry? saveRemembrance(LogEntry person, Map<String, String> answers) {
+    final clean = {
+      for (final q in remembranceQuestions)
+        if ((answers[q.$1] ?? '').trim().isNotEmpty) q.$1: answers[q.$1]!.trim()
+    };
+    if (clean.isEmpty) return null;
+    return addLog('remembrance',
+        text: clean['carry'] ?? clean['taught'] ?? clean['miss']!,
+        data: {'person': person.id, 'name': person.text, ...clean});
+  }
+
+  /// People remembered whose birthday, or the anniversary of whose death,
+  /// is [day] and not yet marked seen — a quiet line on Today.
+  List<LogEntry> remembranceDays(DateTime day) {
+    final d = dayOnly(day);
+    bool marks(LogEntry p) {
+      final b = birthdayOf(p), x = diedOn(p);
+      return (b != null && b.$1 == d.month && b.$2 == d.day) ||
+          (x != null && x.month == d.month && x.day == d.day && x.year < d.year);
+    }
+
+    return [
+      for (final p in rememberedPeople)
+        if (!isDone(remembranceSeenKey(p, d)) && marks(p)) p
+    ];
+  }
+
+  String remembranceSeenKey(LogEntry person, DateTime day) =>
+      'remember:${person.id}:${dateKey(day)}';
 
   LogEntry addPerson(String name, {String role = '', int every = 30}) =>
       addLog('person',
@@ -5989,7 +6057,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     final today = dayOnly(day), tomorrow = today.plusDays(1);
     bool on(DateTime d, (int, int) b) => d.month == b.$1 && d.day == b.$2;
     return [
-      for (final p in people)
+      for (final p in activePeople)
         if (birthdayOf(p) case final b?)
           if (on(today, b) || on(tomorrow, b)) p
     ];
@@ -6044,7 +6112,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   List<LogEntry> get peopleByDue {
     final due = peopleDue;
     final ids = {for (final p in due) p.id};
-    return [...due, for (final p in people) if (!ids.contains(p.id)) p];
+    return [...due, for (final p in activePeople) if (!ids.contains(p.id)) p];
   }
 
   void removePerson(String id) {
@@ -6057,7 +6125,8 @@ class PersonalSystemProvider extends ChangeNotifier {
                 !((l.type == 'touch' || l.type == 'help') && l.str('person') == id) &&
                 // Care you kept for them goes with them.
                 !(l.type == 'upkeep' && l.str('for') == id) &&
-                !(l.type == 'visible' && l.str('person') == id))
+                !(l.type == 'visible' && l.str('person') == id) &&
+                !(l.type == 'remembrance' && l.str('person') == id))
             .toList()));
   }
 
@@ -6118,7 +6187,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   }
 
   List<LogEntry> get peopleGrowing => [
-        for (final p in people)
+        for (final p in activePeople)
           if ((p.str('growing') ?? '').isNotEmpty) p
       ];
 
@@ -6297,7 +6366,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// Overdue people, most overdue (relative to their cadence) first.
   List<LogEntry> get peopleDue {
     final late = {
-      for (final p in people)
+      for (final p in activePeople)
         if (daysSinceContact(p) >= cadenceOf(p))
           p: daysSinceContact(p) / cadenceOf(p)
     };
@@ -7197,6 +7266,7 @@ class PersonalSystemProvider extends ChangeNotifier {
         'shutdown' => f('open').isEmpty ? '' : 'Evening, on my mind: ${f('open')}',
         'thought' => 'Checked a thought: ${l.text}${f('balanced').isEmpty ? '' : '\n  More balanced: ${f('balanced')}'}',
         'kindness' => 'Kindness: ${l.text}',
+        'remembrance' => 'Remembering ${f('name')}:${[for (final q in remembranceQuestions) if (f(q.$1).isNotEmpty) '\n  ${q.$2}: ${f(q.$1)}'].join()}',
         'compassion' => 'Was on my own side about: ${l.text}${f('kind').isEmpty ? '' : '\n  I told myself: ${f('kind')}'}',
         'courage' => f('status') == 'done' ? 'Did what I had avoided: ${l.text} (feared ${l.number('fear')}, felt ${l.number('felt')})${f('happened').isEmpty ? '' : '\n  What happened: ${f('happened')}'}' : '',
         'advice' => f('status') == 'tried' ? 'Tried advice${f('from').isEmpty ? '' : ' from ${f('from')}'}: ${l.text}${f('result').isEmpty ? '' : ' — ${f('result')}'}' : '',
@@ -7578,7 +7648,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   };
 
   /// People on your board who decide your next step.
-  List<LogEntry> get deciders => [for (final p in people) if (boardRolesOf(p).contains('decider')) p];
+  List<LogEntry> get deciders => [for (final p in activePeople) if (boardRolesOf(p).contains('decider')) p];
 
   LogEntry? logVisible(LogEntry person, {required String what, String how = 'showed'}) =>
       what.trim().isEmpty
@@ -7617,7 +7687,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// role → the people who fill it.
   Map<String, List<LogEntry>> get board => {
         for (final r in boardRoles.keys)
-          r: [for (final p in people) if (boardRolesOf(p).contains(r)) p],
+          r: [for (final p in activePeople) if (boardRolesOf(p).contains(r)) p],
       };
 
   /// Roles nobody fills yet (empty until someone is on the board).

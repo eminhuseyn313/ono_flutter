@@ -192,6 +192,24 @@ Placed lower: appearance-for-confidence claims (no peer-reviewed support; power 
 
 Rejected: brain games (no transfer), readiness scores and energy curves (invented numbers), app blocking (phone plumbing). Nutrition only as a plan pack, if at all (Emin to decide).
 
+### O. Tenth pass: the whole of life (19 Oct 2026)
+Ranked by value for effort. Effect sizes marked (abstract) were read from abstracts only.
+
+| # | Idea | Evidence | Status |
+|---|---|---|---|
+| O1 | **Someone you lost**: stop nudging about a person who has died; a place to remember them | Web grief interventions, meta-analysis 2025: grief SMD −0.30 (abstract); structured writing works best (Wagner et al. 2020) | Built: `/remember`, "Remember them" |
+| O2 | **Load check** (burnout before the crash): one item a month, where the load comes from | Single-item burnout measure r ≈ 0.8 with exhaustion (Dolan et al. 2015; Hansen & Pit 2016); prevention evidence mixed | Proposed |
+| O3 | **Savour a good thing**: once a week, stay with one win; who you told | Savouring RCTs meta-analysis 2026, g = 0.51 (abstract); capitalization (Gable et al. 2004) | Proposed |
+| O4 | **Your tools first**: fight tool overload | App engagement meta-analysis (JAMA Psychiatry 2025): retention, not uptake, is the failure | Built: Me groups fold, "Used lately" |
+| O5 | **Something changed** (moving, new job, baby, breakup): 90 days of re-cueing | Habit discontinuity (Verplanken & Roy 2016) | Proposed |
+| O6 | **Giving time**: contribution beyond your circle, inside kindness | Volunteering and mortality in cohorts (Okun et al. 2013; Jenkinson et al. 2013); RCT in teens (Schreier et al. 2013) | Proposed |
+| O7 | **A practice of your own**: prayer, meditation, a day of rest — named in your words; loving-kindness timer | Loving-kindness meta-analysis (Zeng et al. 2015); meaning interventions (Manco & Hamby 2021) | Proposed |
+| O8 | **Parent and child**: child-appropriate questions, "10 minutes they lead" ritual | Parenting programme components (Leijten et al. 2018/2019) | Proposed |
+| O9 | Phone on your terms (= N8) | Mixed (Radtke et al. 2022) | Waiting on Emin |
+| O10 | Two more portions of fruit and vegetables, one daily idea | Conner et al. 2017 (proof of concept) | Proposed, low value |
+
+To reduce load: merge brag document, the case for the target role and the coach report into one "Your record"; fold role models into the personal board; keep rehearse inside the story bank only. These remove tools people may use, so they wait for Emin's decision.
+
 ### E. Relationships
 | # | Feature | For Emin now | For anyone | Evidence | Effort |
 |---|---|---|---|---|---|
