@@ -2845,7 +2845,7 @@ void main() {
     ));
     final a = brief!.adjustments;
     expect(a.length, lessThanOrEqualTo(DeviceBriefGenerator.maxAdjustments + 1));
-    const setup = ['No growth area', 'No goals set', 'No rest planned', 'No Big 3', 'Evidence Archive'];
+    const setup = ['No growth area', 'No goals set', 'No rest planned', 'No three outcomes', 'Evidence Archive'];
     expect(a.where((l) => setup.any(l.startsWith)).length, lessThanOrEqualTo(2));
     const praise = ['kind acts this week', 'to the test this week', 'met with a next step'];
     expect(a.where((l) => praise.any(l.contains)).length, 1);
@@ -2892,7 +2892,7 @@ void main() {
     final a = brief.adjustments;
     expect(a.length, lessThanOrEqualTo(DeviceBriefGenerator.maxAdjustments + 1));
     expect(a.first, startsWith('From your own last 60 days'));
-    expect(a.any((l) => l.startsWith('No Big 3') || l.startsWith('Deep work') || l.startsWith('Overdue')), isTrue);
+    expect(a.any((l) => l.startsWith('No three outcomes') || l.startsWith('Deep work') || l.startsWith('No deep work') || l.startsWith('Overdue')), isTrue);
     expect(brief.headline, endsWith('Your word for the year: Steady.'));
   });
 

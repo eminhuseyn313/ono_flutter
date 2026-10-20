@@ -554,7 +554,7 @@ class DeviceBriefGenerator implements BriefGenerator {
     ];
     final week = <String>[
       if (input.weekOutcomes.isEmpty)
-        'No Big 3 for the week. Sunday night: three outcomes that would make next week a win, ${input.builtInPlan ? 'one tied to the artifact' : 'one tied to your goal'}.',
+        'No three outcomes set for the week. Sunday night: three outcomes that would make next week a win, ${input.builtInPlan ? 'one tied to the artifact' : 'one tied to your goal'}.',
       if (input.builtInPlan && r.gymSessions < 2)
         'If a weekday slips, move the session to Saturday morning rather than skipping it.',
       if (input.goals.isNotEmpty && !input.noteSent && !early)
@@ -638,8 +638,12 @@ class DeviceBriefGenerator implements BriefGenerator {
         'Sunday'
       ][weekday - 1];
 
-  static String _clip(String s, int n) =>
-      s.length <= n ? s : '${s.substring(0, n).trimRight()}…';
+  /// Shortened to [n] characters, without a final full stop (it is
+  /// quoted inside a sentence).
+  static String _clip(String s, int n) {
+    final t = s.trim().replaceFirst(RegExp(r'[.!]+$'), '');
+    return t.length <= n ? t : '${t.substring(0, n).trimRight()}…';
+  }
 }
 
 /// Asks the `weekly-brief` Supabase function (Claude) for the brief and
