@@ -322,7 +322,7 @@ Flow:
 - Sign-up returns "Check your email…" when the project requires confirmation. Google/Apple buttons hide unless `AuthGateway.offersSocialSignIn` (false for Supabase until client IDs exist).
 
 ## Supabase (project `kkgkbfxvovrtmnoezcha`)
-Live: `personal_system` (+ `version`, `generation`) with owner-only RLS, legacy functions locked (`20261012121000`), `weekly-brief` deployed. The function answers only signed-in users (checks the bearer token with Supabase Auth) and refuses input over 64 KB — redeploy it (`supabase functions deploy weekly-brief`) after changes. The brief uses the device generator until the `ANTHROPIC_API_KEY` secret is set. To redo it from scratch:
+Live: `personal_system` (+ `version`, `generation`) with owner-only RLS, legacy functions locked (`20261012121000`), `weekly-brief` deployed. Free projects pause after a quiet spell: while paused, sign-in, sync and the brief are down (the app falls back to offline data and the device brief). It was found paused and restored on 20 Oct 2026, when `weekly-brief` version 2 (life change, heavy load) was deployed. The function answers only signed-in users (checks the bearer token with Supabase Auth) and refuses input over 64 KB — redeploy it (`supabase functions deploy weekly-brief`) after changes. The brief uses the device generator until the `ANTHROPIC_API_KEY` secret is set. To redo it from scratch:
 ```bash
 supabase link --project-ref kkgkbfxvovrtmnoezcha
 supabase db push                                   # creates personal_system + RLS
