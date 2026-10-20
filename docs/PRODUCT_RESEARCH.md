@@ -160,7 +160,7 @@ Asked by Emin: "the care part — healthcare, nails, the barber". Researched aga
 | # | Feature | Extends | Evidence | Effort | Status |
 |---|---|---|---|---|---|
 | M1 | **Care**: health, grooming, home & things — booking, your real rhythm, documents with expiry dates | `/upkeep` | Reminders raise preventive uptake modestly (meta-analysis of 25 RCTs, RR 1.09 vaccination; SMS +5 pts breast screening) | S–M | Built |
-| M2 | **Checkups to ask your doctor about by age and sex** (USPSTF A/B, vaccine schedules; questions, never "you are due") | M1 | USPSTF; CDC adult schedule; national schedules differ | M | Needs Emin: store sex and birth year? Review for Azerbaijan |
+| M2 | **Checkups to ask your doctor about by age and sex** (USPSTF A/B, vaccine schedules; questions, never "you are due") | M1 | USPSTF; CDC adult schedule; national schedules differ | M | Built (Emin's yes, 20 Oct): Care → "To ask your doctor about" |
 | M3 | **Care routines with steps** (one daily item, stepped through calmly; e.g. evening care) | Daily items, ritual flow | Daily sunscreen RCT (Hughes 2013); interdental cleaning, low certainty (Cochrane CD012018); implementation intentions | M | Built |
 | M4 | **In my care** (a parent, a child, an ill partner: their care items, questions to ask while you can, a caregiver check) | People, M1 | Caregiver-app scoping reviews (small studies, burden ↓) | M | Built |
 | M5 | **Self-compassion break** (notice, common humanity, kindness) | `/need`, setback | Ferrari et al. 2019, 27 RCTs | S | Built |

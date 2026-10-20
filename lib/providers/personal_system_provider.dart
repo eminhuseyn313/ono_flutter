@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show IconData, Icons;
 
+import '../data/checkups.dart';
 import '../data/daily_library.dart';
 import '../data/emin_system.dart';
 import '../data/general_program.dart';
@@ -3689,6 +3690,58 @@ class PersonalSystemProvider extends ChangeNotifier {
   static const renewLeadDays = 90;
 
   /// One-tap suggestions per kind: (name, every days, kind).
+  // ── Check-ups to ask about ──────────────────────────────────────────
+
+  /// Sex and birth year, only for check-ups to ask about: one private
+  /// `care_details` log, never sent anywhere and never in the profile.
+  LogEntry? get careDetails => logsOf('care_details').firstOrNull;
+
+  String? get careSex => careDetails?.str('sex');
+  int? get careBirthYear => careDetails?.number('birth_year')?.toInt();
+
+  void setCareDetails({String? sex, int? birthYear}) {
+    final c = careDetails;
+    final data = {
+      ...?c?.data,
+      if (sex != null) 'sex': sexOptions.containsKey(sex) ? sex : '',
+      if (birthYear != null) 'birth_year': birthYear >= 1900 && birthYear <= _now.year ? birthYear : null,
+    };
+    if (c == null) {
+      addLog('care_details', data: data);
+    } else {
+      updateLog(c.copyWith(data: data));
+    }
+  }
+
+  /// Check-ups and vaccines for this age and sex that aren't already on
+  /// Care or set aside ("Asked" / "Not for me"). Empty without a birth year.
+  List<Checkup> get checkupsToAsk {
+    final y = careBirthYear;
+    if (y == null) return const [];
+    final age = _now.year - y;
+    final sex = careSex ?? '';
+    final names = {for (final u in upkeep) u.text.toLowerCase()};
+    return [
+      for (final c in checkups)
+        if (age >= c.minAge &&
+            age <= c.maxAge &&
+            (c.sex == 'any' || c.sex == sex) &&
+            !names.contains(c.name.toLowerCase()) &&
+            !isDone('checkup:off:${c.id}'))
+          c
+    ];
+  }
+
+  /// Puts a recurring check-up on Care with its usual interval (change it
+  /// with your doctor); a once-only one is just set aside as asked.
+  void takeCheckup(Checkup c) {
+    if (c.every > 0) {
+      addUpkeep(c.name, c.every, kind: 'health');
+    } else {
+      setDone('checkup:off:${c.id}', true);
+    }
+  }
+
   static const upkeepSuggestions = [
     ('Dentist check-up', 180, 'health'),
     ('General check-up', 365, 'health'),

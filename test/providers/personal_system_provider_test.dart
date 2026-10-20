@@ -769,6 +769,28 @@ void main() {
     expect(p.allCards.any((c) => c.id.startsWith('aar:')), isTrue);
   });
 
+  test('check-ups to ask about follow age and sex, never without a birth year', () async {
+    final p = await _commissioned();
+    expect(p.checkupsToAsk, isEmpty);
+    final year = DateTime.now().year;
+    p.setCareDetails(sex: 'female', birthYear: year - 45);
+    final ids = p.checkupsToAsk.map((c) => c.id).toSet();
+    expect(ids, containsAll(['bp', 'lipids', 'bowel', 'cervical', 'breast']));
+    expect(ids, isNot(contains('prostate')));
+    expect(ids, isNot(contains('shingles')), reason: 'from 50');
+    final bp = p.checkupsToAsk.firstWhere((c) => c.id == 'bp');
+    p.takeCheckup(bp);
+    expect(p.upkeep.single.text, 'Blood pressure check');
+    expect(p.checkupsToAsk.any((c) => c.id == 'bp'), isFalse);
+    final hepc = p.checkupsToAsk.firstWhere((c) => c.id == 'hepc');
+    p.takeCheckup(hepc);
+    expect(p.checkupsToAsk.any((c) => c.id == 'hepc'), isFalse, reason: 'asked once');
+    p.setCareDetails(sex: 'male');
+    expect(p.checkupsToAsk.any((c) => c.id == 'breast'), isFalse);
+    p.setCareDetails(birthYear: 1800);
+    expect(p.careBirthYear, isNull, reason: 'a typo is refused');
+  });
+
   test('rest timer: notifies at the end, cancelled on skip', () async {
     final r = _RecordingReminders();
     final p = await _commissioned(reminders: r);

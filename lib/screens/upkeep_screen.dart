@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../data/checkups.dart';
 import '../models/personal_system.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
@@ -293,6 +294,7 @@ class _UpkeepScreenState extends State<UpkeepScreen> {
           const EmptyNote('Add what you want to keep up with — a few taps below.',
               icon: Icons.spa_outlined),
         ],
+        _AskYourDoctor(system: system),
         const SectionHeader('Common ones'),
         for (final kind in PersonalSystemProvider.careKinds.entries)
           if (PersonalSystemProvider.upkeepSuggestions
@@ -368,6 +370,135 @@ class _UpkeepScreenState extends State<UpkeepScreen> {
           }
         }),
         const SizedBox(height: 16),
+      ],
+    );
+  }
+}
+
+/// Check-ups and vaccines worth asking about at this age — questions for
+/// a doctor, never "you are due". Needs only a birth year (and sex for
+/// some), kept private on this device and your synced copy.
+class _AskYourDoctor extends StatefulWidget {
+  final PersonalSystemProvider system;
+  const _AskYourDoctor({required this.system});
+
+  @override
+  State<_AskYourDoctor> createState() => _AskYourDoctorState();
+}
+
+class _AskYourDoctorState extends State<_AskYourDoctor> {
+  late final _year = TextEditingController(text: widget.system.careBirthYear?.toString() ?? '');
+  bool _editing = false;
+
+  @override
+  void dispose() {
+    _year.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final system = widget.system;
+    final set = system.careBirthYear != null && !_editing;
+    final list = system.checkupsToAsk;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SectionHeader('To ask your doctor about'),
+        if (!set) ...[
+          Text(
+              'Your birth year (and sex, for a few) is enough to list check-ups and vaccines worth asking about. It stays private — never sent anywhere.',
+              style: AppText.small()),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 6,
+            children: [
+              for (final s in sexOptions.entries)
+                ChoiceChip(
+                  label: Text(s.value),
+                  selected: system.careSex == s.key,
+                  showCheckmark: false,
+                  onSelected: (on) => system.setCareDetails(sex: on ? s.key : ''),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  key: const Key('care-birth-year'),
+                  controller: _year,
+                  keyboardType: TextInputType.number,
+                  style: AppText.body(color: AppColors.white),
+                  decoration: const InputDecoration(hintText: 'Birth year, e.g. 1990'),
+                ),
+              ),
+              TextButton(
+                key: const Key('care-details-save'),
+                onPressed: () {
+                  final y = int.tryParse(_year.text.trim());
+                  if (y == null || y < 1900 || y > DateTime.now().year) {
+                    toast(context, 'Enter a four-digit year.');
+                    return;
+                  }
+                  system.setCareDetails(birthYear: y);
+                  FocusManager.instance.primaryFocus?.unfocus();
+                  setState(() => _editing = false);
+                },
+                child: const Text('Show'),
+              ),
+            ],
+          ),
+        ] else ...[
+          Text('Guidelines differ by country and by your history — take this list to your doctor, not as a schedule.',
+              style: AppText.small()),
+          const SizedBox(height: 8),
+          if (list.isEmpty)
+            Text('Nothing more for now — what fits is already on your list.', style: AppText.small(color: AppColors.body))
+          else
+            OnoCard(
+              padding: const EdgeInsets.fromLTRB(16, 6, 8, 6),
+              child: Column(
+                children: [
+                  for (final c in list)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(c.name, style: AppText.body(color: AppColors.white)),
+                                Text(c.only.isEmpty ? c.why : '${c.why} (${c.only})', style: AppText.small()),
+                              ],
+                            ),
+                          ),
+                          TextButton(
+                            key: Key('checkup-${c.id}'),
+                            onPressed: () => system.takeCheckup(c),
+                            child: Text(c.every > 0 ? 'Add' : 'Asked'),
+                          ),
+                          IconButton(
+                            tooltip: 'Not for me',
+                            icon: const Icon(Icons.close_rounded, size: 18),
+                            color: AppColors.faint,
+                            onPressed: () => system.setDone('checkup:off:${c.id}', true),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          TextButton(
+            onPressed: () => setState(() => _editing = true),
+            style: TextButton.styleFrom(padding: EdgeInsets.zero),
+            child: Text(
+                'Born ${system.careBirthYear}${(system.careSex ?? '').isEmpty ? '' : ' · ${sexOptions[system.careSex]}'} — change'),
+          ),
+        ],
       ],
     );
   }
