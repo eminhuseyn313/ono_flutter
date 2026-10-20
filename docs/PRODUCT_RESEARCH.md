@@ -184,7 +184,7 @@ Placed lower: appearance-for-confidence claims (no peer-reviewed support; power 
 | N5 | **Values in action**: one small act of a value each week, checked next Sunday | `/values` | Values-consistent living (Tunç 2023) | S | Built |
 | N6 | **Reconnect**: one lost-touch person a week; the liking gap | People | Liu et al. 2022; Boothby 2018 | S | Built |
 | N7 | **Advice to a friend after a miss** | After-action review | Eskreis-Winkler & Fishbach 2019; PNAS 2019 | S | Built |
-| N8 | **Your phone, on your terms** (batched checks, weekly typed Screen Time) | Daily items, patterns | Fitz 2019; Burnell 2025 | S–M | Needs Emin |
+| N8 | **Your phone, on your terms** (batched checks, weekly typed Screen Time) | Daily items, patterns | Fitz 2019; Burnell 2025 | S–M | Decided (Emin left it to Claude, 20 Oct): no Screen Time numbers; phone habits as daily ideas (phone outside the bedroom, first hour without it) and the phone-free-first-hour experiment |
 | N9 | **Practice design for drills** (sub-skill, feedback source, beyond comfort) | Growth drills | Debriefs (Tannenbaum 2013) | S–M | Built |
 | N10 | **Money over time** (net worth, true costs, giving) | Money check-in | Vanguard 2025; prosocial spending | M | Needs Emin |
 | N11 | **Rehearse a big moment** (random question, 2-minute timer, STAR check) | Story bank | Weak | S | Built |
@@ -205,7 +205,7 @@ Ranked by value for effort. Effect sizes marked (abstract) were read from abstra
 | O6 | **Giving time**: contribution beyond your circle, inside kindness | Volunteering and mortality in cohorts (Okun et al. 2013; Jenkinson et al. 2013); RCT in teens (Schreier et al. 2013) | Built: giving time on Kindness, Contribution area |
 | O7 | **A practice of your own**: prayer, meditation, a day of rest — named in your words; loving-kindness timer | Loving-kindness meta-analysis (Zeng et al. 2015); meaning interventions (Manco & Hamby 2021) | Partly built: "Wish three people well" daily idea (a practice is named in your own words as a daily item) |
 | O8 | **Parent and child**: child-appropriate questions, "10 minutes they lead" ritual | Parenting programme components (Leijten et al. 2018/2019) | Partly built: "Ten minutes they lead" daily idea |
-| O9 | Phone on your terms (= N8) | Mixed (Radtke et al. 2022) | Waiting on Emin |
+| O9 | Phone on your terms (= N8) | Mixed (Radtke et al. 2022) | Decided: daily ideas + experiment, no tracking |
 | O10 | Two more portions of fruit and vegetables, one daily idea | Conner et al. 2017 (proof of concept) | Built: daily idea |
 
 To reduce load: merge brag document, the case for the target role and the coach report into one "Your record"; fold role models into the personal board; keep rehearse inside the story bank only. Done with Emin's yes (20 Oct 2026): `/record`, role models on the board, rehearse from the story bank.
