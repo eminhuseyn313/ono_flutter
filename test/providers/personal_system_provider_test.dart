@@ -791,6 +791,36 @@ void main() {
     expect(p.careBirthYear, isNull, reason: 'a typo is refused');
   });
 
+  test('hand-offs: postpone, and one help however often it is closed', () async {
+    final p = await _commissioned();
+    final ana = p.addPerson('Ana Lima', role: 'Analyst', every: 14);
+    final h = p.addHandoff(what: 'The weekly report', to: 'Ana Lima', weeks: 1)!;
+    p.postponeHandoff(h.id, 2);
+    expect(p.openHandoffs.single.str('check_on'), dateKey(p.logicalToday.plusDays(14)));
+    p.closeHandoff(h.id, 'well');
+    p.closeHandoff(h.id, 'helped');
+    expect(p.helpsFor(p.personById(ana.id)!), hasLength(1));
+    expect(p.logsOf('help').single.id, 'help_${h.id}');
+  });
+
+  test('care details: one record, forgettable, and care for others stays separate', () async {
+    final p = await _commissioned();
+    p.setCareDetails(sex: 'female');
+    p.setCareDetails(birthYear: DateTime.now().year - 45);
+    expect(p.logsOf('care_details').single.id, 'care_details');
+    final mum = p.addPerson('Mum', every: 7);
+    p.setInMyCare(mum, true);
+    p.addUpkeep('Blood pressure check', 365, forPerson: mum.id);
+    expect(p.checkupsToAsk.any((c) => c.id == 'bp'), isTrue, reason: 'her check is not yours');
+    final bp = p.checkupsToAsk.firstWhere((c) => c.id == 'bp');
+    p.takeCheckup(bp, lastDone: DateTime.now().subtract(const Duration(days: 30)));
+    p.takeCheckup(bp);
+    expect(p.upkeep.where((u) => p.careKindOf(u) == 'health'), hasLength(1));
+    p.forgetCareDetails();
+    expect(p.careBirthYear, isNull);
+    expect(p.logsOf('care_details'), isEmpty);
+  });
+
   test('rest timer: notifies at the end, cancelled on skip', () async {
     final r = _RecordingReminders();
     final p = await _commissioned(reminders: r);

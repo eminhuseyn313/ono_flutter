@@ -1438,7 +1438,7 @@ class _PromptsState extends State<_Prompts> {
                 : 'Remembering ${r.text} today',
             'A moment for them, if you want one',
             '/remember?id=${r.id}'),
-      if (system.handoffsDue(now).firstOrNull case final h?)
+      if (system.handoffsDue(system.logicalToday).firstOrNull case final h?)
         _row(context, Icons.call_made_rounded, AppColors.skill, 'Check in: ${h.text}',
             'You handed it to ${h.str('to')}. How is it going?', '/cockpit'),
       if (system.conversationsDue(now).firstOrNull case final c?)

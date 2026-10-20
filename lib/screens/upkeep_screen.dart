@@ -407,7 +407,7 @@ class _AskYourDoctorState extends State<_AskYourDoctor> {
         const SectionHeader('To ask your doctor about'),
         if (!set) ...[
           Text(
-              'Your birth year (and sex, for a few) is enough to list check-ups and vaccines worth asking about. It stays private — never sent anywhere.',
+              'Your birth year (and sex, for a few) is enough to list check-ups and vaccines worth asking about. Kept with your private data, never sent to the coach.',
               style: AppText.small()),
           const SizedBox(height: 8),
           Wrap(
@@ -450,6 +450,26 @@ class _AskYourDoctorState extends State<_AskYourDoctor> {
               ),
             ],
           ),
+          if (_editing)
+            Wrap(
+              spacing: 8,
+              children: [
+                TextButton(
+                  onPressed: () => setState(() => _editing = false),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  key: const Key('care-details-forget'),
+                  onPressed: () {
+                    system.forgetCareDetails();
+                    _year.clear();
+                    setState(() => _editing = false);
+                    toast(context, 'Forgotten.');
+                  },
+                  child: const Text('Forget these'),
+                ),
+              ],
+            ),
         ] else ...[
           Text('Guidelines differ by country and by your history — take this list to your doctor, not as a schedule.',
               style: AppText.small()),
@@ -477,7 +497,22 @@ class _AskYourDoctorState extends State<_AskYourDoctor> {
                           ),
                           TextButton(
                             key: Key('checkup-${c.id}'),
-                            onPressed: () => system.takeCheckup(c),
+                            onPressed: () async {
+                              if (c.every == 0) {
+                                system.takeCheckup(c);
+                                return;
+                              }
+                              // A recent one shouldn't show as due at once.
+                              final now = DateTime.now();
+                              final last = await showDatePicker(
+                                context: context,
+                                helpText: 'When did you last have it? (Cancel if never or not sure)',
+                                initialDate: now,
+                                firstDate: DateTime(now.year - 15),
+                                lastDate: now,
+                              );
+                              system.takeCheckup(c, lastDone: last);
+                            },
                             child: Text(c.every > 0 ? 'Add' : 'Asked'),
                           ),
                           IconButton(
@@ -493,7 +528,10 @@ class _AskYourDoctorState extends State<_AskYourDoctor> {
               ),
             ),
           TextButton(
-            onPressed: () => setState(() => _editing = true),
+            onPressed: () => setState(() {
+              _editing = true;
+              _year.text = system.careBirthYear?.toString() ?? '';
+            }),
             style: TextButton.styleFrom(padding: EdgeInsets.zero),
             child: Text(
                 'Born ${system.careBirthYear}${(system.careSex ?? '').isEmpty ? '' : ' · ${sexOptions[system.careSex]}'} — change'),

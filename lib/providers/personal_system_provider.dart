@@ -1699,7 +1699,7 @@ class PersonalSystemProvider extends ChangeNotifier {
           : addLog('handoff', text: what.trim(), data: {
               'to': to.trim(),
               'result': result.trim(),
-              'check_on': dateKey(dayOnly(_now).plusDays(7 * weeks)),
+              'check_on': dateKey(logicalToday.plusDays(7 * weeks)),
               'status': 'open',
             });
 
@@ -1713,6 +1713,13 @@ class PersonalSystemProvider extends ChangeNotifier {
       for (final h in openHandoffs)
         if ((h.str('check_on') ?? '9999').compareTo(d) <= 0) h
     ];
+  }
+
+  /// Still going: check in again in [weeks].
+  void postponeHandoff(String id, int weeks) {
+    final h = logsOf('handoff').where((l) => l.id == id).firstOrNull;
+    if (h == null) return;
+    updateLog(h.copyWith(data: {...h.data, 'check_on': dateKey(logicalToday.plusDays(7 * weeks))}));
   }
 
   /// How it went, and one lesson for the playbook. Going well with someone
@@ -1729,7 +1736,13 @@ class PersonalSystemProvider extends ChangeNotifier {
     }));
     if (wasOpen && outcome != 'took_back') {
       final p = activePeople.where((p) => names(p, h.str('to'))).firstOrNull;
-      if (p != null) logHelp(p, 'Trusted with: ${h.text}');
+      // One help per hand-off, even if two devices close it offline.
+      if (p != null && !logsOf('help').any((x) => x.str('handoff') == h.id)) {
+        addLog('help',
+            id: 'help_${h.id}',
+            text: 'Trusted with: ${h.text}',
+            data: {'person': p.id, 'name': p.text, 'handoff': h.id});
+      }
     }
   }
 
@@ -2071,13 +2084,17 @@ class PersonalSystemProvider extends ChangeNotifier {
             : data,
       );
 
+  /// [id] fixes the id of a one-of-a-kind record, so two devices that
+  /// both create it merge into one instead of keeping two.
   LogEntry? addLog(String type,
       {DateTime? date,
       String text = '',
-      Map<String, dynamic> data = const {}}) {
+      Map<String, dynamic> data = const {},
+      String? id}) {
     final s = _state;
     if (s == null) return null;
-    final e = _entry(type, date ?? _now, text: text, data: data);
+    var e = _entry(type, date ?? _now, text: text, data: data);
+    if (id != null) e = e.copyWith(id: id);
     _update(s.copyWith(logs: [...s.logs, e]), reschedule: type == 'pennebaker');
     return e;
   }
@@ -3694,7 +3711,9 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   /// Sex and birth year, only for check-ups to ask about: one private
   /// `care_details` log, never sent anywhere and never in the profile.
-  LogEntry? get careDetails => logsOf('care_details').firstOrNull;
+  LogEntry? get careDetails =>
+      logsOf('care_details').where((l) => l.id == 'care_details').firstOrNull ??
+      logsOf('care_details').firstOrNull;
 
   String? get careSex => careDetails?.str('sex');
   int? get careBirthYear => careDetails?.number('birth_year')?.toInt();
@@ -3707,9 +3726,16 @@ class PersonalSystemProvider extends ChangeNotifier {
       if (birthYear != null) 'birth_year': birthYear >= 1900 && birthYear <= _now.year ? birthYear : null,
     };
     if (c == null) {
-      addLog('care_details', data: data);
+      addLog('care_details', data: data, id: 'care_details');
     } else {
       updateLog(c.copyWith(data: data));
+    }
+  }
+
+  /// Removes birth year and sex entirely.
+  void forgetCareDetails() {
+    for (final c in logsOf('care_details')) {
+      removeLog(c.id);
     }
   }
 
@@ -3720,7 +3746,8 @@ class PersonalSystemProvider extends ChangeNotifier {
     if (y == null) return const [];
     final age = _now.year - y;
     final sex = careSex ?? '';
-    final names = {for (final u in upkeep) u.text.toLowerCase()};
+    // Only your own care counts — not items kept for someone in your care.
+    final names = {for (final u in upkeep) if (careKindOf(u) != 'for') u.text.toLowerCase()};
     return [
       for (final c in checkups)
         if (age >= c.minAge &&
@@ -3734,9 +3761,12 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   /// Puts a recurring check-up on Care with its usual interval (change it
   /// with your doctor); a once-only one is just set aside as asked.
-  void takeCheckup(Checkup c) {
+  /// [lastDone]: when you last had it, so a recent one isn't due at once.
+  void takeCheckup(Checkup c, {DateTime? lastDone}) {
+    final have = upkeep.any((u) => careKindOf(u) != 'for' && u.text.toLowerCase() == c.name.toLowerCase());
+    if (have) return;
     if (c.every > 0) {
-      addUpkeep(c.name, c.every, kind: 'health');
+      addUpkeep(c.name, c.every, kind: 'health', lastDone: lastDone);
     } else {
       setDone('checkup:off:${c.id}', true);
     }

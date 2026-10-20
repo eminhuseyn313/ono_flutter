@@ -189,7 +189,7 @@ class _CockpitScreenState extends State<CockpitScreen> {
 
   List<Widget> _handoffs(BuildContext context, PersonalSystemProvider system) {
     final open = system.openHandoffs;
-    final due = {for (final h in system.handoffsDue(DateTime.now())) h.id};
+    final due = {for (final h in system.handoffsDue(system.logicalToday)) h.id};
     final record = system.handoffRecord;
     return [
       SectionHeader('Handed off · ${open.length}'),
@@ -287,6 +287,14 @@ class _CockpitScreenState extends State<CockpitScreen> {
                 showCheckmark: false,
                 onSelected: (_) => outcome.value = e.key,
               ),
+            for (final w in PersonalSystemProvider.handoffCheckInWeeks)
+              ChoiceChip(
+                key: Key('handoff-later-$w'),
+                label: Text('Still going — again in ${w == 1 ? '1 week' : '$w weeks'}'),
+                selected: o == 'later:$w',
+                showCheckmark: false,
+                onSelected: (_) => outcome.value = 'later:$w',
+              ),
           ],
         ),
       ),
@@ -296,6 +304,12 @@ class _CockpitScreenState extends State<CockpitScreen> {
     if (ok != true || !context.mounted) return;
     if (outcome.value == null) {
       toast(context, 'Choose how it went — or keep it open.');
+      return;
+    }
+    if (outcome.value!.startsWith('later:')) {
+      final w = int.parse(outcome.value!.split(':').last);
+      system.postponeHandoff(h.id, w);
+      toast(context, 'ONO asks again in ${w == 1 ? 'a week' : '$w weeks'}.');
       return;
     }
     system.closeHandoff(h.id, outcome.value!, lesson: lesson.text);
