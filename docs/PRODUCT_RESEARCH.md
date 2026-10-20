@@ -218,7 +218,7 @@ To reduce load: merge brag document, the case for the target role and the coach 
 | P3 | **Teach it** when you finish learning something | Learning by teaching, g 0.35–0.56 (Kobayashi) | Built |
 | P4 | **Someone else's miss** in the after-action review | Eskreis-Winkler & Fishbach 2019 | Built: `/aar` "Someone else's" |
 | P5 | **Shipped and learned** lines in the Sunday report | Di Stefano et al. 2014 (+23%) | Built: Sunday report |
-| P6 | **What you've handed off** (delegation with a check-in) | Lee, Willis & Tian 2018 (correlational) | Waiting on Emin |
+| P6 | **What you've handed off** (delegation with a check-in) | Lee, Willis & Tian 2018 (correlational) | Built: cockpit 1:1s (Emin's yes, 20 Oct) |
 | P7 | Meeting audit | Weak (Laker et al. 2022) | Not now |
 
 Rejected: "sleep on it" (no effect, Nieuwenstein et al. 2015), network-diversity tags, a career capital map (duplicates the record tools).

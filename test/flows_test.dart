@@ -758,4 +758,22 @@ void main() {
     expect(system.logsOf('win'), isEmpty);
     expect(system.logsOf('lesson'), isEmpty);
   });
+
+  testWidgets('hand something off, then check in on the day', (tester) async {
+    final system = await _start(tester);
+    final ana = system.addPerson('Ana Lima', role: 'Analyst', every: 14);
+    await _go(tester, '/cockpit');
+    await _tap(tester, find.byKey(const Key('handoff-new')));
+    await tester.enterText(find.widgetWithText(TextField, 'What you\'re handing off'), 'The weekly metrics report');
+    await tester.enterText(find.widgetWithText(TextField, 'To whom'), 'Ana Lima');
+    await _tap(tester, find.text('Save'));
+    final h = system.openHandoffs.single;
+    expect(h.str('to'), 'Ana Lima');
+    expect(system.handoffsDue(DateTime.now()), isEmpty);
+    expect(system.handoffsDue(DateTime.now().add(const Duration(days: 15))), hasLength(1));
+    system.closeHandoff(h.id, 'well', lesson: 'Say what done looks like');
+    expect(system.openHandoffs, isEmpty);
+    expect(system.helpsFor(system.personById(ana.id)!).single.text, 'Trusted with: The weekly metrics report');
+    expect(system.playbook().any((e) => e.text == 'Say what done looks like'), isTrue);
+  });
 }

@@ -95,7 +95,7 @@ const List<ToolEntry> toolIndex = [
       builtInOnly: true, words: ['promotion', 'milestones']),
   ToolEntry('1:1s and decisions', 'Follow-ups you own, decisions reviewed in 90 days',
       '/cockpit', 'Direction',
-      words: ['one on one', 'manager', 'decisions', 'readiness', 'career cockpit']),
+      words: ['one on one', 'manager', 'decisions', 'readiness', 'career cockpit', 'delegate', 'hand off', 'handover']),
 
   // Practice
   ToolEntry('Your playbook', 'Every lesson you wrote, in one place — pin the ones to live by', '/playbook', 'Practice',

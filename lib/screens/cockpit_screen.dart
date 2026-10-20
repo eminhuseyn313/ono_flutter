@@ -7,6 +7,7 @@ import '../models/personal_system.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
+import 'people_screen.dart' show PeoplePicker;
 
 /// Career cockpit: the record that turns daily work into a target-role
 /// case. 1:1s with follow-ups you own, a decision journal that comes back
@@ -160,6 +161,7 @@ class _CockpitScreenState extends State<CockpitScreen> {
             ],
           ),
         ),
+      ..._handoffs(context, system),
       if (logs.isNotEmpty) ...[
         const SectionHeader('History'),
         for (final l in logs.take(12))
@@ -181,6 +183,123 @@ class _CockpitScreenState extends State<CockpitScreen> {
           ),
       ],
     ];
+  }
+
+  // ── Handed off ─────────────────────────────────────────────────────────
+
+  List<Widget> _handoffs(BuildContext context, PersonalSystemProvider system) {
+    final open = system.openHandoffs;
+    final due = {for (final h in system.handoffsDue(DateTime.now())) h.id};
+    final record = system.handoffRecord;
+    return [
+      SectionHeader('Handed off · ${open.length}'),
+      Text('Hand over the result, not the steps — then check in on the day you said.',
+          style: AppText.small()),
+      const SizedBox(height: 8),
+      for (final h in open)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: OnoCard(
+            accent: due.contains(h.id) ? AppColors.accent : null,
+            onTap: () => _closeHandoff(context, system, h),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(h.text, style: AppText.heading()),
+                Text(
+                    [
+                      'To ${h.str('to')}',
+                      if ((h.str('result') ?? '').isNotEmpty) 'done when: ${h.str('result')}',
+                      due.contains(h.id)
+                          ? 'check in now'
+                          : 'check in ${shortDate(DateTime.tryParse(h.str('check_on') ?? '') ?? DateTime.now())}',
+                    ].join(' · '),
+                    style: AppText.small()),
+              ],
+            ),
+          ),
+        ),
+      GhostButton('Hand something off',
+          key: const Key('handoff-new'), icon: Icons.call_made_rounded, onPressed: () => _newHandoff(context, system)),
+      if (record != null) ...[
+        const SizedBox(height: 6),
+        Text('Last six months: ${record.$1} stayed handed off, you took back ${record.$2}.',
+            style: AppText.small(color: AppColors.white)),
+      ],
+    ];
+  }
+
+  Future<void> _newHandoff(BuildContext context, PersonalSystemProvider system) async {
+    final what = TextEditingController();
+    final to = TextEditingController();
+    final result = TextEditingController();
+    final weeks = ValueNotifier<int>(2);
+    final ok = await _sheet(context, 'Hand something off', [
+      _field(what, 'What you\'re handing off'),
+      _field(to, 'To whom'),
+      PeoplePicker(controller: to),
+      const SizedBox(height: 10),
+      _field(result, 'Done when… (the result, not the steps)', lines: 2),
+      Text('Check in after', style: AppText.small()),
+      const SizedBox(height: 6),
+      ValueListenableBuilder<int>(
+        valueListenable: weeks,
+        builder: (_, w, __) => Wrap(
+          spacing: 6,
+          children: [
+            for (final n in PersonalSystemProvider.handoffCheckInWeeks)
+              ChoiceChip(
+                label: Text(n == 1 ? '1 week' : '$n weeks'),
+                selected: w == n,
+                showCheckmark: false,
+                onSelected: (_) => weeks.value = n,
+              ),
+          ],
+        ),
+      ),
+      const SizedBox(height: 10),
+    ]);
+    if (ok != true || !context.mounted) return;
+    if (system.addHandoff(what: what.text, to: to.text, result: result.text, weeks: weeks.value) == null) {
+      toast(context, 'Say what and to whom.');
+      return;
+    }
+    toast(context, 'Handed off. ONO asks how it went on the day.');
+  }
+
+  Future<void> _closeHandoff(BuildContext context, PersonalSystemProvider system, LogEntry h) async {
+    final lesson = TextEditingController();
+    final outcome = ValueNotifier<String?>(null);
+    final ok = await _sheet(context, 'How did it go?', [
+      Text('${h.text} · ${h.str('to')}', style: AppText.small()),
+      const SizedBox(height: 10),
+      ValueListenableBuilder<String?>(
+        valueListenable: outcome,
+        builder: (_, o, __) => Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            for (final e in PersonalSystemProvider.handoffOutcomes.entries)
+              ChoiceChip(
+                key: Key('handoff-${e.key}'),
+                label: Text(e.value),
+                selected: o == e.key,
+                showCheckmark: false,
+                onSelected: (_) => outcome.value = e.key,
+              ),
+          ],
+        ),
+      ),
+      const SizedBox(height: 10),
+      _field(lesson, 'One lesson about handing things off (optional)', lines: 2),
+    ]);
+    if (ok != true || !context.mounted) return;
+    if (outcome.value == null) {
+      toast(context, 'Choose how it went — or keep it open.');
+      return;
+    }
+    system.closeHandoff(h.id, outcome.value!, lesson: lesson.text);
+    toast(context, outcome.value == 'took_back' ? 'Noted. Next time, hand over a smaller piece.' : 'Closed.');
   }
 
   Future<void> _logOneOnOne(BuildContext context) async {

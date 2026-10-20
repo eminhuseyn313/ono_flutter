@@ -1678,6 +1678,74 @@ class PersonalSystemProvider extends ChangeNotifier {
               'after': heavyAfter,
             });
 
+  // ── Handed off ───────────────────────────────────────────────────────
+
+  /// Delegation: what you handed off, to whom, the result you want (not
+  /// the steps) and when you'll check in. Letting go of doing it yourself
+  /// is the step from doing the work to leading it (empowering leadership,
+  /// Lee, Willis & Tian 2018).
+  static const handoffOutcomes = {
+    'well': 'Went well',
+    'helped': 'Needed some help',
+    'took_back': 'I took it back',
+  };
+
+  static const handoffCheckInWeeks = [1, 2, 4];
+
+  LogEntry? addHandoff({required String what, required String to, String result = '', int weeks = 2}) =>
+      what.trim().isEmpty || to.trim().isEmpty
+          ? null
+          : addLog('handoff', text: what.trim(), data: {
+              'to': to.trim(),
+              'result': result.trim(),
+              'check_on': dateKey(dayOnly(_now).plusDays(7 * weeks)),
+              'status': 'open',
+            });
+
+  List<LogEntry> get openHandoffs =>
+      [for (final h in logsOf('handoff')) if (h.str('status') == 'open') h];
+
+  /// Open hand-offs whose check-in day has come.
+  List<LogEntry> handoffsDue(DateTime day) {
+    final d = dateKey(dayOnly(day));
+    return [
+      for (final h in openHandoffs)
+        if ((h.str('check_on') ?? '9999').compareTo(d) <= 0) h
+    ];
+  }
+
+  /// How it went, and one lesson for the playbook. Going well with someone
+  /// on your People list counts as help given — they grew.
+  void closeHandoff(String id, String outcome, {String lesson = ''}) {
+    final h = logsOf('handoff').where((l) => l.id == id).firstOrNull;
+    if (h == null || !handoffOutcomes.containsKey(outcome)) return;
+    final wasOpen = h.str('status') == 'open';
+    updateLog(h.copyWith(data: {
+      ...h.data,
+      'status': outcome,
+      'lesson': lesson.trim(),
+      'closed_on': dateKey(dayOnly(_now)),
+    }));
+    if (wasOpen && outcome != 'took_back') {
+      final p = activePeople.where((p) => names(p, h.str('to'))).firstOrNull;
+      if (p != null) logHelp(p, 'Trusted with: ${h.text}');
+    }
+  }
+
+  /// (went well or with help, taken back) of those closed in 180 days.
+  (int, int)? get handoffRecord {
+    final from = dayOnly(_now).minusDays(180);
+    final closed = [
+      for (final h in logsOf('handoff'))
+        if (h.str('status') != 'open' &&
+            !(DateTime.tryParse(h.str('closed_on') ?? '')?.isBefore(from) ?? true))
+          h
+    ];
+    if (closed.length < 3) return null;
+    final back = closed.where((h) => h.str('status') == 'took_back').length;
+    return (closed.length - back, back);
+  }
+
   /// Decisions whose review date has come and that aren't reviewed yet.
   List<LogEntry> dueDecisionReviews(DateTime day) {
     final d = dateKey(dayOnly(day));
@@ -2075,7 +2143,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     'partner': '/partner', 'partner_checkin': '/partner', 'feedback_round': '/360',
     'best_self': '/best-self', 'role_model': '/models', 'ask': '/asks', 'advice': '/advice',
     'visible': '/visibility', 'negotiation': '/negotiate', 'promise': '/promises',
-    'kindness': '/kindness', 'kindness_plan': '/kindness', 'giving': '/kindness', 'transition': '/change', 'metta': '/tool/metta', 'gratitude': '/gratitude',
+    'kindness': '/kindness', 'kindness_plan': '/kindness', 'giving': '/kindness', 'transition': '/change', 'metta': '/tool/metta', 'handoff': '/cockpit', 'gratitude': '/gratitude',
     'setback': '/setback', 'stepback': '/stepback', 'thought': '/thought', 'worry': '/worry',
     'coaching': '/coach', 'rest': '/rest',
   };
@@ -7597,6 +7665,7 @@ class PersonalSystemProvider extends ChangeNotifier {
         'giving' => 'Gave ${(l.number('hours') ?? 0) % 1 == 0 ? (l.number('hours') ?? 0).toInt() : l.number('hours')} h to ${l.text}',
         'transition' => '${transitionKinds[f('kind')] ?? 'Something changed'}${l.text.isEmpty ? '' : ': ${l.text}'}${f('keep').isEmpty ? '' : '\n  What stays: ${f('keep')}'}',
         'lesson' => 'Learned this week: ${l.text}',
+        'handoff' => 'Handed off to ${f('to')}: ${l.text}${f('status') == 'open' ? '' : ' — ${handoffOutcomes[f('status')] ?? ''}'}${f('lesson').isEmpty ? '' : '\n  Lesson: ${f('lesson')}'}',
         'remembrance' => 'Remembering ${f('name')}:${[for (final q in remembranceQuestions) if (f(q.$1).isNotEmpty) '\n  ${q.$2}: ${f(q.$1)}'].join()}',
         'compassion' => 'Was on my own side about: ${l.text}${f('kind').isEmpty ? '' : '\n  I told myself: ${f('kind')}'}',
         'courage' => f('status') == 'done' ? 'Did what I had avoided: ${l.text} (feared ${l.number('fear')}, felt ${l.number('felt')})${f('happened').isEmpty ? '' : '\n  What happened: ${f('happened')}'}' : '',
@@ -8113,6 +8182,9 @@ class PersonalSystemProvider extends ChangeNotifier {
     }
     for (final m in logsOf('month_review')) {
       add(m, 'lesson', m.str('lesson') ?? '', 'Month ${m.number('month')} review');
+    }
+    for (final h in logsOf('handoff')) {
+      add(h, 'lesson', h.str('lesson') ?? '', 'Handed off · ${h.text}');
     }
     for (final q in logsOf('quarterly_review')) {
       add(q, 'lessons', q.str('lessons') ?? '', 'Quarter ${q.number('quarter')} review');
