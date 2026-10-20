@@ -89,11 +89,14 @@ class MeScreen extends StatelessWidget {
                       ? (system.programDay / system.programDays).clamp(0.0, 1.0)
                       : 0),
               const SizedBox(height: 6),
-              Text(
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
                   system.daysHeld == 0
                       ? 'Hold your daily list once and it counts here. One slip is always forgiven.'
                       : '${system.daysHeldThisMonth} held this month · one slip is forgiven',
                   style: AppText.small().copyWith(fontSize: 11.5)),
+              ),
               if (system.latelyLine case final l?) ...[
                 const SizedBox(height: 6),
                 Align(
