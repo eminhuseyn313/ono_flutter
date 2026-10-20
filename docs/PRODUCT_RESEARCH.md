@@ -208,7 +208,7 @@ Ranked by value for effort. Effect sizes marked (abstract) were read from abstra
 | O9 | Phone on your terms (= N8) | Mixed (Radtke et al. 2022) | Waiting on Emin |
 | O10 | Two more portions of fruit and vegetables, one daily idea | Conner et al. 2017 (proof of concept) | Built: daily idea |
 
-To reduce load: merge brag document, the case for the target role and the coach report into one "Your record"; fold role models into the personal board; keep rehearse inside the story bank only. These remove tools people may use, so they wait for Emin's decision.
+To reduce load: merge brag document, the case for the target role and the coach report into one "Your record"; fold role models into the personal board; keep rehearse inside the story bank only. Done with Emin's yes (20 Oct 2026): `/record`, role models on the board, rehearse from the story bank.
 
 ### P. Eleventh pass: craft and career (19 Oct 2026)
 | # | Idea | Evidence | Status |

@@ -2142,7 +2142,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     'person': '/people', 'touch': '/people', 'help': '/people', 'progress_note': '/note',
     'us_checkin': '/us', 'manual': '/manual', 'conversation': '/conversations',
     'partner': '/partner', 'partner_checkin': '/partner', 'feedback_round': '/360',
-    'best_self': '/best-self', 'role_model': '/models', 'ask': '/asks', 'advice': '/advice',
+    'best_self': '/best-self', 'role_model': '/board', 'ask': '/asks', 'advice': '/advice',
     'visible': '/visibility', 'negotiation': '/negotiate', 'promise': '/promises',
     'kindness': '/kindness', 'kindness_plan': '/kindness', 'giving': '/kindness', 'transition': '/change', 'metta': '/tool/metta', 'handoff': '/cockpit', 'gratitude': '/gratitude',
     'setback': '/setback', 'stepback': '/stepback', 'thought': '/thought', 'worry': '/worry',

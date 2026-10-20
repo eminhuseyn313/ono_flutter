@@ -426,12 +426,12 @@ class MeScreen extends StatelessWidget {
                 onTap: () => context.push('/stories'),
               ),
               LinkRow(
-                route: '/brag',
+                route: '/record',
                 icon: Icons.workspace_premium_outlined,
                 color: AppColors.accent,
-                title: 'Brag document',
-                subtitle: 'What you\'ve done, ready for a review or a CV',
-                onTap: () => context.push('/brag'),
+                title: 'Your record',
+                subtitle: 'What you\'ve done, for a review, a CV or your coach',
+                onTap: () => context.push('/record'),
               ),
               LinkRow(
                 route: '/year',
@@ -644,16 +644,6 @@ class MeScreen extends StatelessWidget {
                 onTap: () => context.push('/best-self'),
               ),
               LinkRow(
-                route: '/models',
-                icon: Icons.emoji_people_outlined,
-                color: AppColors.skill,
-                title: 'Role models',
-                subtitle: system.roleModels.isEmpty
-                    ? 'People one step ahead, and what to ask them'
-                    : system.roleModels.map((m) => m.text).join(' · '),
-                onTap: () => context.push('/models'),
-              ),
-              LinkRow(
                 route: '/asks',
                 icon: Icons.pan_tool_alt_outlined,
                 color: AppColors.social,
@@ -734,14 +724,6 @@ class MeScreen extends StatelessWidget {
                 title: 'Gratitude letter',
                 subtitle: 'To someone who changed your life',
                 onTap: () => context.push('/gratitude'),
-              ),
-              LinkRow(
-                route: '/coach-report',
-                icon: Icons.assignment_outlined,
-                color: AppColors.social,
-                title: 'Report for your coach',
-                subtitle: 'This month or quarter, ready to copy',
-                onTap: () => context.push('/coach-report'),
               ),
           ],
         ),

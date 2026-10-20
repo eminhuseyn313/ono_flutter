@@ -6,6 +6,7 @@ import '../models/personal_system.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
+import 'small_tools_screens.dart' show RoleModelsSection;
 
 // ── Signature strengths ────────────────────────────────────────────────
 
@@ -262,6 +263,7 @@ class BoardScreen extends StatelessWidget {
             ),
           ),
         ],
+        const RoleModelsSection(),
         const SizedBox(height: 16),
       ],
     );

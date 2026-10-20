@@ -250,14 +250,16 @@ class _GratitudeScreenState extends State<GratitudeScreen> {
 
 /// People one step ahead: what to learn from each, and the one question
 /// you'd ask them.
-class RoleModelsScreen extends StatefulWidget {
-  const RoleModelsScreen({super.key});
+/// People one step ahead — what to learn from them and one question to
+/// ask. A section of the personal board.
+class RoleModelsSection extends StatefulWidget {
+  const RoleModelsSection({super.key});
 
   @override
-  State<RoleModelsScreen> createState() => _RoleModelsScreenState();
+  State<RoleModelsSection> createState() => _RoleModelsSectionState();
 }
 
-class _RoleModelsScreenState extends State<RoleModelsScreen> {
+class _RoleModelsSectionState extends State<RoleModelsSection> {
   final _name = TextEditingController();
   final _learn = TextEditingController();
   final _question = TextEditingController();
@@ -301,13 +303,13 @@ class _RoleModelsScreenState extends State<RoleModelsScreen> {
   @override
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
-    return OnoPage(
-      showBack: true,
-      eyebrow: 'Skill · learning by watching',
-      title: 'Role models',
-      subtitle:
-          'People one step ahead of you — at work, in sport, in life. What exactly do they do that you want to learn? Then ask them one good question.',
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const SectionHeader('One step ahead'),
+        Text(
+            'Role models — at work, in sport, in life. What exactly do they do that you want to learn? Then ask them one good question.',
+            style: AppText.small()),
         for (final m in system.roleModels)
           Padding(
             padding: const EdgeInsets.only(top: 10),
@@ -349,14 +351,14 @@ class _RoleModelsScreenState extends State<RoleModelsScreen> {
         if (system.roleModels.isEmpty)
           const EmptyNote('Who is one step ahead of where you want to be?',
               icon: Icons.emoji_people_outlined),
-        const SectionHeader('Add'),
+        const SizedBox(height: 12),
         _input(_name, 'Name', key: const Key('model-name')),
         const SizedBox(height: 8),
         _input(_learn, 'What exactly do they do that you want to learn?'),
         const SizedBox(height: 8),
         _input(_question, 'The one question you\'d ask them'),
         const SizedBox(height: 12),
-        PrimaryButton('Add', icon: Icons.add_rounded, onPressed: () {
+        GhostButton('Add a role model', icon: Icons.add_rounded, onPressed: () {
           if (system.addRoleModel(_name.text,
                   learn: _learn.text, question: _question.text) ==
               null) {

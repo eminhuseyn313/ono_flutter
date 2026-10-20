@@ -776,4 +776,17 @@ void main() {
     expect(system.helpsFor(system.personById(ana.id)!).single.text, 'Trusted with: The weekly metrics report');
     expect(system.playbook().any((e) => e.text == 'Say what done looks like'), isTrue);
   });
+
+  testWidgets('your record: for a review, then for a coach', (tester) async {
+    final system = await _start(tester);
+    system.addLog('win', text: 'Shipped the new onboarding');
+    await _go(tester, '/record');
+    expect(find.textContaining('Shipped the new onboarding'), findsWidgets);
+    await _tap(tester, find.text('For a coach'));
+    expect(find.text('Include energy and sleep'), findsOneWidget);
+    await _go(tester, '/coach-report');
+    expect(find.text('Include energy and sleep'), findsOneWidget, reason: 'the old link opens the coach view');
+    await _go(tester, '/models');
+    await _reach(tester, find.text('One step ahead'));
+  });
 }
