@@ -413,6 +413,8 @@ class DeviceBriefGenerator implements BriefGenerator {
       // The week's three first: the same ones /week offers in one tap.
       for (final o in input.proposedOutcomes) 'One of the week\'s three: $o',
       for (final id in weakest)
+        // Already one of the proposed three: don't say it twice.
+        if (!input.proposedOutcomes.any((o) => (input.itemTitles[id] ?? '\u0000').isNotEmpty && o.contains(input.itemTitles[id] ?? '\u0000')))
         _taskFor[id] ??
             ((input.itemCues[id] ?? '').trim().isEmpty
                 ? 'Protect "${title(id)}": tie it to one fixed moment in your day, and make it smaller if it keeps slipping.'
@@ -562,7 +564,7 @@ class DeviceBriefGenerator implements BriefGenerator {
       if (input.peopleOverdue.isNotEmpty)
         'Overdue to reach out: ${input.peopleOverdue.join(', ')}. One message each this week — ask about something they care about, not just "how are you".',
       if (input.deepWorkHours < 3 && !early)
-        'Deep work: ${input.deepWorkHours.toStringAsFixed(1)} h this week. Book two 90-minute blocks for ${input.builtInPlan ? 'the artifact' : 'what matters most'}${input.energyPeak == null ? '' : ' in your ${input.energyPeak}'} before Monday fills up.',
+        '${input.deepWorkHours == 0 ? 'No deep work logged this week.' : 'Deep work: ${input.deepWorkHours.toStringAsFixed(1)} h this week.'} Book two 90-minute blocks for ${input.builtInPlan && input.artifactsThisMonth > 0 ? 'the artifact' : 'what matters most'}${input.energyPeak == null ? '' : ' in your ${input.energyPeak}'} before Monday fills up.',
       if (input.shutdowns < 4 && !early)
         'Evening shutdown on ${input.shutdowns} of 7 nights. Three minutes ${input.builtInPlan ? 'at 21:30' : 'before bed'}: tomorrow\'s three on paper, head empty, then bed.',
     ];

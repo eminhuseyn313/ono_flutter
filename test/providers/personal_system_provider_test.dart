@@ -1562,7 +1562,9 @@ void main() {
       workSituation: '',
       createdAt: _today,
     ));
-    expect(brief!.tasks.join(' '), contains('Protect "10 minutes of Spanish"'));
+    // The new weak item reaches the brief — as one of the week's three, not twice.
+    expect(brief!.tasks.join(' '), contains('10 minutes of Spanish'));
+    expect(brief.tasks.where((t) => t.contains('10 minutes of Spanish')), hasLength(1));
 
     // Limits: never below 3 items.
     for (final n in nonNegotiables.skip(1)) {

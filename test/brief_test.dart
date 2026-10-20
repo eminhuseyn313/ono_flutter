@@ -165,4 +165,27 @@ void main() {
     expect(b.adjustments.join(' '), contains('Life changed recently (A new baby, 20 days ago)'));
     expect(_input(lifeChange: 'x').toJson()['life_change'], 'x');
   });
+
+  test('a weak item already among the proposed three is not repeated as a task', () async {
+    final b = await DeviceBriefGenerator().generate(BriefInput(
+      report: WeeklyReport(
+          id: 'r', weekStart: DateTime(2026, 10, 5), nonNegotiableAverage: 2, gymSessions: 0,
+          bestMoment: '', hardestMoment: '', workSituation: '', createdAt: DateTime(2026, 10, 11)),
+      forWeek: DateTime(2026, 10, 12),
+      programMonth: 1,
+      programWeek: 3,
+      itemRates: const {'d_walk': 0.2, 'd_read': 0.4, 'd_water': 0.9},
+      itemTitles: const {'d_walk': 'Walk', 'd_read': 'Read', 'd_water': 'Water'},
+      itemCount: 3,
+      daysCounted: 7,
+      evidenceAddedThisWeek: 0,
+      artifactsThisMonth: 0,
+      postsThisWeek: 0,
+      gymDays: const [],
+      openUnlocks: const [],
+      builtInPlan: false,
+      proposedOutcomes: const ['Walk on 5 of 7 days'],
+    ));
+    expect(b.tasks.where((t) => t.contains('Walk')), hasLength(1));
+  });
 }
