@@ -2,6 +2,7 @@ import 'dart:io' show Platform;
 
 import 'package:device_calendar/device_calendar.dart';
 
+import '../models/personal_system.dart';
 import 'calendar_service.dart';
 
 CalendarService createCalendarService() =>
@@ -30,7 +31,7 @@ class DeviceCalendarService implements CalendarService {
   @override
   Future<List<Meeting>> meetingsOn(DateTime day) async {
     final from = DateTime(day.year, day.month, day.day);
-    final to = from.add(const Duration(days: 1));
+    final to = from.plusDays(1);
     final out = <String, Meeting>{};
     try {
       final calendars = (await _plugin.retrieveCalendars()).data ?? const [];
