@@ -170,6 +170,25 @@ void main() {
     expect(system.boardGaps, contains('sponsor'));
   });
 
+  testWidgets('/models opens the board at the role models, not the top',
+      (tester) async {
+    final system = await _start(tester, size: const Size(1125, 2001));
+    system.addPerson('Aysel', role: 'Former manager');
+    system.setRemembered(system.addPerson('Grandfather'), true);
+    await _go(tester, '/models');
+    final header = find.text('One step ahead');
+    expect(header, findsOneWidget);
+    final y = tester.getTopLeft(header).dy;
+    expect(y, inInclusiveRange(0, 667 * 0.6), reason: 'section header on screen');
+    // Someone remembered isn't offered for a role.
+    await _go(tester, '/home');
+    await _go(tester, '/board');
+    await tester.tap(find.text('+ Add').first);
+    await _pumpFor(tester, const Duration(milliseconds: 800));
+    expect(find.text('Aysel'), findsOneWidget);
+    expect(find.text('Grandfather'), findsNothing);
+  });
+
   testWidgets('after-action review: "change" becomes a review card',
       (tester) async {
     final system = await _start(tester);

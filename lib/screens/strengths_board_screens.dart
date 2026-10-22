@@ -162,7 +162,9 @@ class _StrengthsScreenState extends State<StrengthsScreen> {
 
 /// The people who help you grow, by the role they play — and the gaps.
 class BoardScreen extends StatelessWidget {
-  const BoardScreen({super.key});
+  /// Opened as /models: scroll to the role models at the end.
+  final bool toModels;
+  const BoardScreen({super.key, this.toModels = false});
 
   Future<void> _pick(BuildContext context, PersonalSystemProvider system,
       String role) async {
@@ -191,7 +193,7 @@ class BoardScreen extends StatelessWidget {
                   Text(PersonalSystemProvider.boardRoles[role]!,
                       style: AppText.small()),
                   const SizedBox(height: 8),
-                  for (final p in s.people)
+                  for (final p in s.activePeople)
                     CheckboxListTile(
                       contentPadding: EdgeInsets.zero,
                       value: s.boardRolesOf(p).contains(role),
@@ -234,6 +236,9 @@ class BoardScreen extends StatelessWidget {
       subtitle:
           'No one person can be everything. People who grow fastest have several: someone who has walked the road, someone who speaks for them, someone who tells them the truth.',
       children: [
+        // The list builds lazily: go to the end first so the role models
+        // are built, then they scroll their top into view.
+        if (toModels) const _ShowOnOpen(enabled: true, toEnd: true, child: SizedBox.shrink()),
         if (gaps.isNotEmpty) ...[
           const SizedBox(height: 12),
           Text('Missing: ${gaps.map(_title).join(', ')}.',
@@ -263,11 +268,42 @@ class BoardScreen extends StatelessWidget {
             ),
           ),
         ],
-        const RoleModelsSection(),
+        _ShowOnOpen(enabled: toModels, child: const RoleModelsSection()),
         const SizedBox(height: 16),
       ],
     );
   }
+}
+
+/// Scrolls its child into view once, after the first frame.
+class _ShowOnOpen extends StatefulWidget {
+  final bool enabled;
+  final bool toEnd;
+  final Widget child;
+  const _ShowOnOpen({required this.enabled, required this.child, this.toEnd = false});
+
+  @override
+  State<_ShowOnOpen> createState() => _ShowOnOpenState();
+}
+
+class _ShowOnOpenState extends State<_ShowOnOpen> {
+  @override
+  void initState() {
+    super.initState();
+    if (!widget.enabled) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (widget.toEnd) {
+        final position = Scrollable.maybeOf(context)?.position;
+        position?.jumpTo(position.maxScrollExtent);
+      } else {
+        Scrollable.ensureVisible(context, alignment: 0.05);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }
 
 // ── After-action review ────────────────────────────────────────────────
