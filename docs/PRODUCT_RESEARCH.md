@@ -223,6 +223,14 @@ To reduce load: merge brag document, the case for the target role and the coach 
 
 Rejected: "sleep on it" (no effect, Nieuwenstein et al. 2015), network-diversity tags, a career capital map (duplicates the record tools).
 
+### Q. Twelfth pass: what the wheel left out (22 Oct 2026)
+| # | Idea | Evidence | Status |
+|---|---|---|---|
+| Q1 | **Drinking less** growth area (count first, a weekly limit with drink-free days, plan the hard evening, a swap, tell one person) and a daily idea | Drink Less RCT, 5,602 drinkers: about 2 units a week more reduction than NHS advice at 6 months (Oldham et al. 2024, eClinicalMedicine; small but real) | Built: template `t_drink`, daily idea |
+| Q2 | **Stopping smoking** growth area (support first, triggers, one plan per trigger, a quit date, not one puff) | Text-message support works; apps alone low-certainty (Cochrane, via a 2022 review); quit dates and planning are standard in trials | Built: template `t_smoke` |
+
+Never: drink or cigarette counters with streak badges, medication advice. ONO points to a doctor or stop-smoking service.
+
 ### E. Relationships
 | # | Feature | For Emin now | For anyone | Evidence | Effort |
 |---|---|---|---|---|---|

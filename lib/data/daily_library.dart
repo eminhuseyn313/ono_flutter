@@ -158,4 +158,7 @@ const List<DailyIdea> dailyLibrary = [
   DailyIdea('Lights out at the same time', 'body', 'evening', 'health',
       'When my bedtime alarm rings, I stop what I\'m doing and go to bed.',
       minimum: 'In bed within 30 minutes of it'),
+  DailyIdea('A drink-free day, or the number I chose', 'body', 'evening', 'health',
+      'When I\'m offered a drink, I say the number I chose for today out loud to myself first.',
+      minimum: 'Note every drink I have'),
 ];
