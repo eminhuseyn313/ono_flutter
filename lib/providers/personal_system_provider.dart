@@ -1711,7 +1711,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     final d = dateKey(dayOnly(day));
     return [
       for (final h in openHandoffs)
-        if ((h.str('check_on') ?? '9999').compareTo(d) <= 0) h
+        if ((h.str('check_on') ?? '9999').compareTo(d) <= 0 && !_isGone(h.str('to'))) h
     ];
   }
 
@@ -6422,6 +6422,13 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   List<LogEntry> get rememberedPeople => [for (final p in people) if (isRemembered(p)) p];
 
+  /// A name that belongs to someone remembered: Today stops asking you to
+  /// tell them something, follow up with them or answer their ask.
+  bool _isGone(String? name) {
+    final n = (name ?? '').trim().toLowerCase();
+    return n.isNotEmpty && rememberedPeople.any((p) => p.text.trim().toLowerCase() == n);
+  }
+
   /// Writing prompts for remembering someone (continuing bonds; grief
   /// writing helps most when it is structured — Wagner et al. 2020).
   static const remembranceQuestions = [
@@ -7665,6 +7672,7 @@ class PersonalSystemProvider extends ChangeNotifier {
         for (final l in adviceLog)
           if (l.str('status') == 'tried' &&
               (l.str('from') ?? '').isNotEmpty &&
+              !_isGone(l.str('from')) &&
               l.data['reported'] != true)
             l
       ];
@@ -7686,7 +7694,10 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// Asks made two or more days ago with no answer noted.
   List<LogEntry> get asksToClose {
     final cutoff = dayOnly(_now).minusDays(2);
-    return [for (final a in openAsks) if (!dayOnly(a.date).isAfter(cutoff)) a];
+    return [
+      for (final a in openAsks)
+        if (!dayOnly(a.date).isAfter(cutoff) && !_isGone(a.str('of'))) a
+    ];
   }
 
   void closeAsk(String id, String outcome) {
@@ -8465,7 +8476,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// Open promises due on or before [day].
   List<LogEntry> promisesDue(DateTime day) => [
         for (final p in openPromises)
-          if ((p.str('by') ?? '9999').compareTo(dateKey(dayOnly(day))) <= 0) p
+          if ((p.str('by') ?? '9999').compareTo(dateKey(dayOnly(day))) <= 0 && !_isGone(p.str('to'))) p
       ];
 
   /// [outcome] from [promiseOutcomes]; renegotiating moves the date to

@@ -3995,4 +3995,19 @@ void main() {
     expect(p.peopleInCare, isEmpty);
     expect(p.upkeepDue.map((u) => u.text), isNot(contains('Leyla: Dentist')));
   });
+
+  test('Today stops nudging about someone remembered', () async {
+    final p = await _commissioned();
+    p.addPerson('Rauf');
+    p.addPromise(what: 'Fix the gate', to: 'Rauf', by: p.logicalToday);
+    p.addAsk(what: 'Lend the drill', of: 'Rauf', guess: 50);
+    final a = p.addAdvice(advice: 'Measure twice', from: 'Rauf');
+    p.setAdviceStatus(a!.id, 'tried', result: 'Fewer mistakes');
+    expect(p.promisesDue(p.logicalToday), hasLength(1));
+    expect(p.adviceToReport, hasLength(1));
+    p.setRemembered(p.people.single, true);
+    expect(p.promisesDue(p.logicalToday), isEmpty);
+    expect(p.adviceToReport, isEmpty);
+    expect(p.asksToClose, isEmpty);
+  });
 }
