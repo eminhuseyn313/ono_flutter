@@ -3821,7 +3821,10 @@ class PersonalSystemProvider extends ChangeNotifier {
   // ── In my care ───────────────────────────────────────────────────────
 
   /// Someone you look after: a parent, a child, a partner who is ill.
-  bool inMyCare(LogEntry person) => person.data['in_care'] == true;
+  /// Someone remembered is no longer in your care: Care shows what was kept
+  /// for them as "no longer in your care", so it can go.
+  bool inMyCare(LogEntry person) =>
+      person.data['in_care'] == true && person.data['remembered'] != true;
 
   void setInMyCare(LogEntry person, bool on) {
     final p = personById(person.id);

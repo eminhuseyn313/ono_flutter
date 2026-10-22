@@ -235,7 +235,7 @@ class _KnowScreenState extends State<KnowScreen> {
         subtitle: 'Open someone on People, then "What you know about them".',
         children: [
           const SizedBox(height: 14),
-          if (system.people.isEmpty)
+          if (system.activePeople.isEmpty)
             const EmptyNote('Add the people who matter on People first.',
                 icon: Icons.group_outlined)
           else

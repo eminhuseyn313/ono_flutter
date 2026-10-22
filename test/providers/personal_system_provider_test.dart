@@ -3982,4 +3982,17 @@ void main() {
     expect(p.valueAct(_today), isNull);
     expect(p.valuesCheck(_today), {'Family': 3});
   });
+
+  test('someone remembered is no longer in your care', () async {
+    final p = await _commissioned();
+    final mother = p.addPerson('Leyla');
+    p.setInMyCare(mother, true);
+    p.addUpkeep('Leyla: Dentist', 180, forPerson: mother.id);
+    expect(p.upkeepDue.map((u) => u.text), contains('Leyla: Dentist'));
+    p.setRemembered(p.people.single, true);
+    final now = p.people.single;
+    expect(p.inMyCare(now), isFalse);
+    expect(p.peopleInCare, isEmpty);
+    expect(p.upkeepDue.map((u) => u.text), isNot(contains('Leyla: Dentist')));
+  });
 }
