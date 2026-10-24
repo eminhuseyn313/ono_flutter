@@ -406,6 +406,11 @@ void main() {
 
   testWidgets('a low morning offers a minimum day; a set priority shows on Today',
       (tester) async {
+    // A morning: the check-in card (and its offer) belongs to the morning.
+    final shift = timeShift;
+    final now = timeNow();
+    timeShift += DateTime(now.year, now.month, now.day, 9).difference(now);
+    addTearDown(() => timeShift = shift);
     final system = await _start(tester);
     final today = system.logicalToday;
     system.saveCheckin(today, energy: 2, mood: 0, sleep: 7, pain: 0, stiffness: 0);

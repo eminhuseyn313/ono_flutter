@@ -1870,9 +1870,10 @@ class _RecoveryCard extends StatelessWidget {
           const SizedBox(height: 6),
           Builder(builder: (context) {
             final system = context.read<PersonalSystemProvider>();
-            final now = timeNow();
-            final was = system.itemIdsOn(dayOnly(now).minusDays(1)).length;
-            final hold = system.targetFor(now);
+            // The open day: before 04:00 that is still the night before.
+            final today = system.logicalToday;
+            final was = system.itemIdsOn(today.minusDays(1)).length;
+            final hold = system.targetFor(today);
             return Text(
                 streak > 0
                     ? 'Yesterday slipped ($yesterdayScore/$was). Hold $hold today and your $streak-day streak carries on.'
