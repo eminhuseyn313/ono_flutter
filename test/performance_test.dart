@@ -19,6 +19,7 @@ import 'package:ono/providers/personal_system_provider.dart';
 import 'package:ono/services/reminder_service.dart';
 
 import 'support/fake_health.dart';
+import 'package:ono/time.dart';
 
 /// A full program's worth of history (500 days, a few thousand logs), the
 /// way a year and a half of daily use looks. Today, Me, Log and the brief
@@ -64,7 +65,7 @@ void main() {
   setUp(() => GoogleFonts.config.allowRuntimeFetching = false);
 
   test('the provider stays quick with 500 days of history', () async {
-    final today = DateTime.now();
+    final today = timeNow();
     final state = _history(today);
     SharedPreferences.setMockInitialValues(
         {'personal_system_t': jsonEncode(state.toJson())});
@@ -105,7 +106,7 @@ void main() {
     tester.view.physicalSize = const Size(1179, 2556);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
-    final today = DateTime.now();
+    final today = timeNow();
     SharedPreferences.setMockInitialValues({
       'mock_auth_email': 'perf@test.dev',
     });

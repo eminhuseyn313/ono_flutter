@@ -9,6 +9,7 @@ import '../data/emin_system.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
+import '../time.dart';
 
 /// Set-by-set logger for Day A / B / C. Pre-fills last session's weights so
 /// progression is visible, flags new bests, and marks the session done.
@@ -67,10 +68,10 @@ class _GymSessionScreenState extends State<GymSessionScreen> {
     final system = context.read<PersonalSystemProvider>();
     _system = system;
     _day = widget.dayId == null
-        ? system.nextGymDay(DateTime.now()).day
+        ? system.nextGymDay(timeNow()).day
         : gymPlan.firstWhere((g) => g.id == widget.dayId,
             orElse: () => gymPlan.first);
-    _sparing = system.shoulderFlag(DateTime.now());
+    _sparing = system.shoulderFlag(timeNow());
     final last = system.lastSessionFor(_day.id);
     final lastByName = <String, List<Map<String, dynamic>>>{};
     for (final e in (last?.data['exercises'] as List? ?? const [])) {
@@ -151,7 +152,7 @@ class _GymSessionScreenState extends State<GymSessionScreen> {
   void _startRest(Duration d, String next) {
     _restTotal = d;
     _restNext = next;
-    _restEnds = DateTime.now().add(d);
+    _restEnds = timeNow().add(d);
     _system.startRest(_restEnds!, next: next);
     _tick?.cancel();
     _tick = Timer.periodic(const Duration(seconds: 1), (_) => _onTick());
@@ -160,7 +161,7 @@ class _GymSessionScreenState extends State<GymSessionScreen> {
 
   void _onTick() {
     if (!mounted || _restEnds == null) return;
-    if (!DateTime.now().isBefore(_restEnds!)) {
+    if (!timeNow().isBefore(_restEnds!)) {
       _tick?.cancel();
       _restEnds = null;
       HapticFeedback.heavyImpact();
@@ -186,9 +187,9 @@ class _GymSessionScreenState extends State<GymSessionScreen> {
   }
 
   Widget _restBar() {
-    final left = _restEnds!.difference(DateTime.now());
+    final left = _restEnds!.difference(timeNow());
     final secs = (left.inMilliseconds / 1000).ceil().clamp(0, 3600);
-    final clock = '${secs ~/ 60}:${(secs % 60).toString().padLeft(2, '0')}';
+    final shown = '${secs ~/ 60}:${(secs % 60).toString().padLeft(2, '0')}';
     final total = _restTotal.inMilliseconds;
     final progress =
         total == 0 ? 1.0 : (1 - left.inMilliseconds / total).clamp(0.0, 1.0);
@@ -204,7 +205,7 @@ class _GymSessionScreenState extends State<GymSessionScreen> {
           children: [
             Row(
               children: [
-                Text(clock, style: AppText.number(size: 22)),
+                Text(shown, style: AppText.number(size: 22)),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text('Rest · next: $_restNext',
@@ -281,14 +282,14 @@ class _GymSessionScreenState extends State<GymSessionScreen> {
       toast(context, 'Tick the sets you did.');
       return;
     }
-    system.saveGymSession(DateTime.now(), _day.id, exercises,
+    system.saveGymSession(timeNow(), _day.id, exercises,
         zone2: _zone2, shoulderSparing: _sparing);
     _skipRest();
     HapticFeedback.heavyImpact();
     toast(
         context,
         prs.isEmpty
-            ? 'Day ${_day.letter} logged. ${system.gymSessionsInWeek(DateTime.now())}/3 this week.'
+            ? 'Day ${_day.letter} logged. ${system.gymSessionsInWeek(timeNow())}/3 this week.'
             : 'Logged — new best: ${prs.join(', ')}');
     context.canPop() ? context.pop() : context.go('/home');
   }
@@ -298,7 +299,7 @@ class _GymSessionScreenState extends State<GymSessionScreen> {
     final system = context.watch<PersonalSystemProvider>();
     final last = system.lastSessionFor(_day.id);
     final loggedToday = system
-        .logsOn(DateTime.now(), 'gym')
+        .logsOn(timeNow(), 'gym')
         .any((l) => l.str('day') == _day.id);
 
     return PopScope(
@@ -356,7 +357,7 @@ class _GymSessionScreenState extends State<GymSessionScreen> {
                 style: AppText.small(color: AppColors.greyLight)),
           ),
         ],
-        if (_sparing || system.shoulderFlag(DateTime.now())) ...[
+        if (_sparing || system.shoulderFlag(timeNow())) ...[
           const SizedBox(height: 12),
           OnoCard(
             accent: AppColors.warning,

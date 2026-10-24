@@ -1,5 +1,6 @@
 import '../data/emin_system.dart';
 import '../models/personal_system.dart';
+import '../time.dart';
 
 /// Everything a coach needs to answer a Sunday report.
 class BriefInput {
@@ -618,7 +619,7 @@ class DeviceBriefGenerator implements BriefGenerator {
     return WeeklyBrief(
       id: 'brief_${dateKey(input.forWeek)}',
       weekStart: input.forWeek,
-      createdAt: DateTime.now(),
+      createdAt: timeNow(),
       source: 'device',
       headline: word == null ? headline : '$headline Your word for the year: $word.',
       tasks: tasks.take(6).toList(),
@@ -664,7 +665,7 @@ class RemoteBriefGenerator implements BriefGenerator {
       return WeeklyBrief(
         id: 'brief_${dateKey(input.forWeek)}',
         weekStart: input.forWeek,
-        createdAt: DateTime.now(),
+        createdAt: timeNow(),
         source: 'ai',
         headline: r['headline'] as String,
         // The same caps as the device's brief: a long list isn't acted on.

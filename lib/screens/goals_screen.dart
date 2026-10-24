@@ -9,6 +9,7 @@ import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_charts.dart';
 import '../widgets/ono_ui.dart';
+import '../time.dart';
 
 String _num(LogEntry goal, double v) =>
     PersonalSystemProvider.formatGoalNumber(goal, v);
@@ -607,7 +608,7 @@ class _GoalEditScreenState extends State<GoalEditScreen> {
 
   DateTime? get _due => _months == null
       ? _deadline
-      : dayOnly(DateTime.now()).plusDays(_months! * 30);
+      : dayOnly(timeNow()).plusDays(_months! * 30);
 
   void _save() {
     final system = context.read<PersonalSystemProvider>();

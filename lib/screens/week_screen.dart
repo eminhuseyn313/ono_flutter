@@ -6,6 +6,7 @@ import '../models/personal_system.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
+import '../time.dart';
 
 /// This week's Big 3: outcomes that would make the week a win. From
 /// Saturday the next week can be planned too.
@@ -15,7 +16,7 @@ class WeekScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
-    final now = DateTime.now();
+    final now = timeNow();
     final week = weekStartOf(now);
     final next = week.plusDays(7);
     final planNext = now.weekday >= DateTime.saturday;

@@ -8,6 +8,7 @@ import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
 import '../widgets/support_sheet.dart';
+import '../time.dart';
 
 /// How to work with me: a personal user manual, drafted from your data.
 class ManualScreen extends StatefulWidget {
@@ -105,7 +106,7 @@ class _UsScreenState extends State<UsScreen> {
         .where((k) => RegExp('wife|husband|partner', caseSensitive: false).hasMatch(k.relation))
         .firstOrNull;
     _with.text = last?.str('with') ?? partner?.name ?? '';
-    final now = system.usCheckinFor(DateTime.now());
+    final now = system.usCheckinFor(timeNow());
     if (now != null) {
       for (final q in PersonalSystemProvider.usQuestions) {
         _c[q.$1]!.text = now.str(q.$1) ?? '';

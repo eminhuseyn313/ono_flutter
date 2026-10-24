@@ -7,6 +7,7 @@ import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
 import '../widgets/support_sheet.dart';
+import '../time.dart';
 
 Widget _field(TextEditingController c, String label, String hint,
         {int minLines = 2, ValueChanged<String>? onChanged}) =>
@@ -240,7 +241,7 @@ class _BestFutureScreenState extends State<BestFutureScreen> {
           onChanged: (i) => setState(() => _years = years[i]),
         ),
         for (final a in PersonalSystemProvider.bestFutureAreas)
-          _field(_areas[a.$1]!, a.$2, 'It is ${DateTime.now().year + _years}. …',
+          _field(_areas[a.$1]!, a.$2, 'It is ${timeNow().year + _years}. …',
               minLines: 3),
         _field(_step, 'One thing that future asks of you this week',
             'Small enough to do by Sunday'),
@@ -310,7 +311,7 @@ class _KindnessScreenState extends State<KindnessScreen> {
   @override
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
-    final now = DateTime.now();
+    final now = timeNow();
     final today = system.kindnessOn(now);
     final day = system.kindnessDay;
     const goal = PersonalSystemProvider.kindnessPerDay;
@@ -513,7 +514,7 @@ class _WorryScreenState extends State<WorryScreen> {
     final system = context.watch<PersonalSystemProvider>();
     final parked = system.parkedWorries;
     final time = system.worryTime;
-    final due = system.worryTimeDue(DateTime.now());
+    final due = system.worryTimeDue(timeNow());
     return OnoPage(
       showBack: true,
       eyebrow: 'Worry time',

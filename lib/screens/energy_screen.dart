@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
+import '../time.dart';
 
 /// When you are sharpest, from your own ratings: quick energy check-ins
 /// and how sharp each focus block felt. The hardest work goes there.
@@ -57,7 +58,7 @@ class EnergyScreen extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(vertical: 12)),
                     onPressed: () {
                       system.logEnergy(i);
-                      toast(context, 'Saved for ${DateTime.now().hour}:00.');
+                      toast(context, 'Saved for ${timeNow().hour}:00.');
                     },
                     child: Text('$i'),
                   ),

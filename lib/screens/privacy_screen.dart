@@ -7,6 +7,7 @@ import '../models/personal_system.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
+import '../time.dart';
 
 /// Your data, in plain words: what ONO keeps, where it lives, what the
 /// coach sees, and how to take it with you or delete it.
@@ -156,7 +157,7 @@ class PrivacyScreen extends StatelessWidget {
                   final json = system.exportJson();
                   try {
                     await Share.share(json,
-                        subject: 'ONO backup ${dateKey(DateTime.now())}');
+                        subject: 'ONO backup ${dateKey(timeNow())}');
                   } catch (_) {
                     if (context.mounted) {
                       await copyText(context, json, message: 'Backup copied to clipboard');

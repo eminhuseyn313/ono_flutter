@@ -8,6 +8,7 @@ import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
 import 'people_screen.dart' show PeoplePicker;
+import '../time.dart';
 
 /// Career cockpit: the record that turns daily work into a target-role
 /// case. 1:1s with follow-ups you own, a decision journal that comes back
@@ -26,7 +27,7 @@ class _CockpitScreenState extends State<CockpitScreen> {
   @override
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
-    final dueReviews = system.dueDecisionReviews(DateTime.now()).length;
+    final dueReviews = system.dueDecisionReviews(timeNow()).length;
     // Readiness is measured against the built-in plan's bar; anyone else
     // keeps their 1:1s and decisions here.
     final builtIn = system.isBuiltInPerson;
@@ -212,7 +213,7 @@ class _CockpitScreenState extends State<CockpitScreen> {
                       if ((h.str('result') ?? '').isNotEmpty) 'done when: ${h.str('result')}',
                       due.contains(h.id)
                           ? 'check in now'
-                          : 'check in ${shortDate(DateTime.tryParse(h.str('check_on') ?? '') ?? DateTime.now())}',
+                          : 'check in ${shortDate(DateTime.tryParse(h.str('check_on') ?? '') ?? timeNow())}',
                     ].join(' · '),
                     style: AppText.small()),
               ],
@@ -344,7 +345,7 @@ class _CockpitScreenState extends State<CockpitScreen> {
   // ── Decisions ──────────────────────────────────────────────────────────
 
   List<Widget> _decisions(BuildContext context, PersonalSystemProvider system) {
-    final due = system.dueDecisionReviews(DateTime.now());
+    final due = system.dueDecisionReviews(timeNow());
     final all = system.logsOf('decision');
     final reviewed = all.where((l) => l.str('verdict') != null).toList();
     final right = reviewed.where((l) => l.str('verdict') == 'right').length;

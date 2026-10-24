@@ -8,6 +8,7 @@ import '../data/growth_templates.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
+import '../time.dart';
 
 /// The growth plan: one area a month, practised on real work, each rep
 /// reflected on, with feedback from someone who sees it.
@@ -233,7 +234,7 @@ class _Plan extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
-    final now = DateTime.now();
+    final now = timeNow();
     final drill = system.drillFor(area, now);
     final reps = system.repsIn(area.id, system.programMonth);
     final feedback = system.feedbackIn(area.id, system.programMonth);
@@ -279,7 +280,7 @@ class _Plan extends StatelessWidget {
               ],
               const SizedBox(height: 8),
               Text(
-                  'Practised ${system.drillRepsThisWeek(area, drill, DateTime.now())} of ${PersonalSystemProvider.repsPerDrill} times this week',
+                  'Practised ${system.drillRepsThisWeek(area, drill, timeNow())} of ${PersonalSystemProvider.repsPerDrill} times this week',
                   style: AppText.eyebrow(color: AppColors.accent)),
               const SizedBox(height: 12),
               PrimaryButton('I did it — reflect',

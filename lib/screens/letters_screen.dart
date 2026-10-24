@@ -6,6 +6,7 @@ import '../models/personal_system.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
+import '../time.dart';
 
 /// Letters to the man he is becoming, sealed until a date he picks.
 class LettersScreen extends StatefulWidget {
@@ -26,7 +27,7 @@ class _LettersScreenState extends State<LettersScreen> {
   }
 
   List<(String, DateTime)> _options(PersonalSystemProvider system) {
-    final today = dayOnly(DateTime.now());
+    final today = dayOnly(timeNow());
     final next = system.nextPhaseStart;
     return [
       ('In 30 days', today.plusDays(30)),

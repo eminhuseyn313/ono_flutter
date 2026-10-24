@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../data/emin_system.dart';
 import '../models/personal_system.dart';
 import 'personal_system_gateway.dart';
+import '../time.dart';
 
 /// Device-local implementation: the whole state is one JSON blob in
 /// SharedPreferences, so check-offs survive restarts in both mock and
@@ -27,7 +28,7 @@ class MockPersonalSystemGateway implements PersonalSystemGateway {
     await Future.delayed(const Duration(milliseconds: 150));
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString(_key(userId));
-    final now = DateTime.now();
+    final now = timeNow();
     if (raw != null) {
       try {
         return PersonalSystemState.fromJson(

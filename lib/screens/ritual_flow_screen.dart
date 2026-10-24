@@ -11,6 +11,7 @@ import '../models/ritual.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
+import '../time.dart';
 
 /// The 06:05 morning ritual: water, manifesto, three priorities, sigh,
 /// statement. Finishing ticks the manifesto and sigh in the Daily 10 and
@@ -28,14 +29,14 @@ class _RitualFlowScreenState extends State<RitualFlowScreen> {
   int _i = 0;
   late int _left = _steps.first.durationSeconds;
   Timer? _t;
-  final _started = DateTime.now();
+  final _started = timeNow();
   bool _finished = false;
   final _priorities = List.generate(3, (_) => TextEditingController());
 
   @override
   void initState() {
     super.initState();
-    final p = context.read<PersonalSystemProvider>().prioritiesFor(DateTime.now());
+    final p = context.read<PersonalSystemProvider>().prioritiesFor(timeNow());
     for (var i = 0; i < 3; i++) {
       _priorities[i].text = p[i];
     }
@@ -77,14 +78,14 @@ class _RitualFlowScreenState extends State<RitualFlowScreen> {
   void _savePriorities() {
     final system = context.read<PersonalSystemProvider>();
     for (var i = 0; i < 3; i++) {
-      system.setPriority(DateTime.now(), i, _priorities[i].text);
+      system.setPriority(timeNow(), i, _priorities[i].text);
     }
   }
 
   void _finish() {
     _t?.cancel();
     final system = context.read<PersonalSystemProvider>();
-    final now = DateTime.now();
+    final now = timeNow();
     system.setCheck(now, 'manifesto', true);
     system.logProtocolUse('sigh', text: 'Morning ritual');
     system.addLog('ritual',
@@ -208,7 +209,7 @@ class _RitualFlowScreenState extends State<RitualFlowScreen> {
   }
 
   Widget _summary(double bottom) {
-    final secs = DateTime.now().difference(_started).inSeconds;
+    final secs = timeNow().difference(_started).inSeconds;
     final system = context.watch<PersonalSystemProvider>();
     return Padding(
       padding: EdgeInsets.fromLTRB(24, 40, 24, bottom + 16),
@@ -229,7 +230,7 @@ class _RitualFlowScreenState extends State<RitualFlowScreen> {
                         '${secs ~/ 60}:${(secs % 60).toString().padLeft(2, '0')}',
                         'minutes')),
                 Expanded(
-                    child: StatTile('${system.scoreFor(DateTime.now())}',
+                    child: StatTile('${system.scoreFor(timeNow())}',
                         'daily items now',
                         unit: '/${system.dailyCount}')),
               ],
@@ -239,7 +240,7 @@ class _RitualFlowScreenState extends State<RitualFlowScreen> {
           Text('Manifesto and sigh are ticked. Your priorities are on Today.',
               style: AppText.small()),
           const Spacer(),
-          if (system.checkinFor(DateTime.now()) == null) ...[
+          if (system.checkinFor(timeNow()) == null) ...[
             PrimaryButton('Morning check-in · 30 s',
                 icon: Icons.arrow_forward_rounded,
                 onPressed: () => context.pushReplacement('/checkin')),

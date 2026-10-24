@@ -8,6 +8,7 @@ import '../models/personal_system.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
+import '../time.dart';
 
 /// Spaced repetition on ONO's own deck: domain facts, the thesis, protocols,
 /// every Feynman note and your own cards, scheduled with SM-2. Spaced
@@ -51,7 +52,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
     if (_started) return;
     _started = true;
     _system = context.read<PersonalSystemProvider>();
-    _queue = _system.dueCards(DateTime.now());
+    _queue = _system.dueCards(timeNow());
   }
 
   void _grade(int grade) {

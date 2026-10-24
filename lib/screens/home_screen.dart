@@ -14,6 +14,7 @@ import '../theme/app_theme.dart';
 import '../widgets/ono_charts.dart';
 import '../widgets/ono_ui.dart';
 import 'goals_screen.dart' show GoalTile;
+import '../time.dart';
 
 /// TODAY — changes with the time of day: ritual first in the morning,
 /// tools for pressure moments at work, closing the day in the evening,
@@ -29,7 +30,7 @@ enum _Mode { morning, work, evening, sunday }
 
 class _HomeScreenState extends State<HomeScreen> {
   Timer? _clock;
-  DateTime _now = DateTime.now();
+  DateTime _now = timeNow();
   bool _yesterday = false;
   int _lastScore = -1;
 
@@ -37,7 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _clock = Timer.periodic(const Duration(minutes: 1), (_) {
-      if (mounted) setState(() => _now = DateTime.now());
+      if (mounted) setState(() => _now = timeNow());
     });
     WidgetsBinding.instance.addPostFrameCallback((_) => _load());
   }
@@ -128,7 +129,7 @@ class _HomeScreenState extends State<HomeScreen> {
           color: AppColors.accent,
           backgroundColor: AppColors.card,
           onRefresh: () async {
-            setState(() => _now = DateTime.now());
+            setState(() => _now = timeNow());
             final system = context.read<PersonalSystemProvider>();
             await system.syncHealth();
             await system.syncCalendar();
@@ -435,7 +436,7 @@ class _DateSwitch extends StatelessWidget {
 /// built-in schedule.
 ({String eyebrow, String title}) _nextUp(
     PersonalSystemProvider system, DateTime date) {
-  final h = DateTime.now().hour;
+  final h = timeNow().hour;
   final part = h < 12 ? 'morning' : (h < 18 ? 'day' : 'evening');
   final open = [
     for (final n in system.itemsOn(date))
@@ -443,7 +444,7 @@ class _DateSwitch extends StatelessWidget {
   ];
   final now = open.where((n) => n.when == part).firstOrNull;
   final next = now ?? open.firstOrNull;
-  final block = system.personalBlockAt(DateTime.now());
+  final block = system.personalBlockAt(timeNow());
   // The label follows the item: one meant for later in the day is "next",
   // not "this morning".
   final when = now != null ? part : next?.when;
@@ -1869,7 +1870,7 @@ class _RecoveryCard extends StatelessWidget {
           const SizedBox(height: 6),
           Builder(builder: (context) {
             final system = context.read<PersonalSystemProvider>();
-            final now = DateTime.now();
+            final now = timeNow();
             final was = system.itemIdsOn(dayOnly(now).minusDays(1)).length;
             final hold = system.targetFor(now);
             return Text(
@@ -2027,7 +2028,7 @@ class _BriefCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (outDone, outSet) =
-        context.watch<PersonalSystemProvider>().weekOutcomeScore(DateTime.now());
+        context.watch<PersonalSystemProvider>().weekOutcomeScore(timeNow());
     return OnoCard(
       color: AppColors.navy,
       padding: const EdgeInsets.fromLTRB(18, 16, 18, 8),
@@ -2159,13 +2160,13 @@ class _DailyTen extends StatelessWidget {
           // Not on the first days: there's nothing to be hard yet.
           if (system.hasStarted &&
               system.hardDayOn(date) == null &&
-              (system.programDay >= 3 || DateTime.now().hour >= 17))
+              (system.programDay >= 3 || timeNow().hour >= 17))
             Align(
               alignment: Alignment.centerLeft,
               child: TextButton(
                 onPressed: () => showHardDaySheet(context, date),
                 style: TextButton.styleFrom(padding: EdgeInsets.zero),
-                child: Text(dayOnly(date) == dayOnly(DateTime.now())
+                child: Text(dayOnly(date) == dayOnly(timeNow())
                     ? 'Hard day? Choose how today counts'
                     : 'Was it a hard day? Choose how it counts'),
               ),

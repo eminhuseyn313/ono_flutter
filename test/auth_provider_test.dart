@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart' show Session, User, Auth
 
 import 'package:ono/gateways/auth_gateway.dart';
 import 'package:ono/providers/auth_provider.dart';
+import 'package:ono/time.dart';
 
 // ---------------------------------------------------------------------------
 // Hand-rolled mock — no codegen needed
@@ -110,7 +111,7 @@ User _fakeUser({String id = 'user-123'}) {
     appMetadata: {},
     userMetadata: {},
     aud: 'authenticated',
-    createdAt: DateTime.now().toIso8601String(),
+    createdAt: timeNow().toIso8601String(),
   );
 }
 

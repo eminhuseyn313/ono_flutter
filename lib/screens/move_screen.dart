@@ -5,6 +5,7 @@ import '../models/personal_system.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
+import '../time.dart';
 
 /// Any movement counts. A week of 150 minutes (vigorous counts double) and
 /// two strength days is the WHO guideline for adults.
@@ -25,7 +26,7 @@ class _MoveScreenState extends State<MoveScreen> {
   @override
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
-    final now = DateTime.now();
+    final now = timeNow();
     final minutes = system.moveMinutesInWeek(now);
     final strength = system.strengthDaysInWeek(now);
     final week = system.movesInWeek(now);

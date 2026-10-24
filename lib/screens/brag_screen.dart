@@ -8,6 +8,7 @@ import '../models/personal_system.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
+import '../time.dart';
 
 /// Your record: what you've done, gathered from what you logged and ready
 /// to copy — for a review or a CV, or for a coach or mentor. One place
@@ -30,7 +31,7 @@ class _RecordScreenState extends State<RecordScreen> {
   @override
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
-    final now = DateTime.now();
+    final now = timeNow();
     final String text;
     if (_for == 0) {
       final since = switch (_range) {

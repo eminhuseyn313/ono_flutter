@@ -12,6 +12,7 @@ import '../data/life_wheel.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
+import '../time.dart';
 
 /// A first plan in five minutes: who you are becoming, how your life is
 /// going, one area to grow this month, one goal, and a few daily actions.
@@ -167,7 +168,7 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
       return;
     }
     _building = true;
-    final now = DateTime.now();
+    final now = timeNow();
     final newPerson = _newPerson;
     final goalAdded = system.buildPlan(
       name: _name.text,
@@ -198,7 +199,7 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
         return;
       }
       await system.commission(
-        start: DateTime.now(),
+        start: timeNow(),
         gymDays: system.gymDays,
         reminders: {for (final r in reminderDefs) r.id: false},
       );

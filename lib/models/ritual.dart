@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../time.dart';
 
 // ---------------------------------------------------------------------------
 // Enums
@@ -305,7 +306,7 @@ class PrebuiltRituals {
         ],
         preferredTime: const TimeOfDay(hour: 7, minute: 0),
         isActive: true,
-        createdAt: DateTime.now(),
+        createdAt: timeNow(),
       );
 
   static Ritual evening(String userId) => Ritual(
@@ -376,6 +377,6 @@ class PrebuiltRituals {
         ],
         preferredTime: const TimeOfDay(hour: 22, minute: 0),
         isActive: true,
-        createdAt: DateTime.now(),
+        createdAt: timeNow(),
       );
 }

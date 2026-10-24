@@ -25,6 +25,7 @@ import 'package:ono/services/reminder_service.dart';
 
 import 'support/fake_calendar.dart';
 import 'support/fake_health.dart';
+import 'package:ono/time.dart';
 
 /// The app has looping animations (dial needle, timers), so these tests
 /// pump fixed durations instead of `pumpAndSettle`.
@@ -46,7 +47,7 @@ Widget _app() => OnoApp(
 /// A long meeting title, a key meeting and one over the 12:00 read, so
 /// Today's Meetings card renders every state.
 FakeCalendarService _calendar() {
-  final now = DateTime.now();
+  final now = timeNow();
   final d = DateTime(now.year, now.month, now.day);
   final soon = now.add(const Duration(minutes: 5));
   return FakeCalendarService(meetings: [
@@ -213,19 +214,19 @@ void main() {
           tester.element(find.byType(Navigator).first),
           listen: false);
       await system.commission(
-        start: dayOnly(DateTime.now()).minusDays(40),
+        start: dayOnly(timeNow()).minusDays(40),
         gymDays: const [1, 3, 5],
         weightKg: 82,
         reminders: const {},
       );
       // A little history so charts and logs have something to draw.
       system.logWeight(81.4);
-      system.addProtein(DateTime.now(), 60);
-      system.toggleCheck(DateTime.now(), 'manifesto');
+      system.addProtein(timeNow(), 60);
+      system.toggleCheck(timeNow(), 'manifesto');
       // Flagged shoulders today and yesterday: Today, the gym screen and
       // Me render their shoulder-sparing / Mornings states. Yesterday is
       // unheld, so Today also shows the recovery card.
-      final today = dayOnly(DateTime.now());
+      final today = dayOnly(timeNow());
       system.saveCheckin(today,
           energy: 2, mood: -1, sleep: 6, pain: 6, stiffness: 3);
       system.saveCheckin(today.minusDays(1),
@@ -256,7 +257,7 @@ void main() {
             'Draft the PR/FAQ for agent permissions and share it with Rustam',
             'Book the review'
           ]);
-      system.clock = () => DateTime.now().minusDays(95);
+      system.clock = () => timeNow().minusDays(95);
       system.addDecision(
           decision: 'Ship KYC v2 without the video step',
           options: 'Ship now / wait for the vendor fix',
@@ -278,7 +279,7 @@ void main() {
       await system.connectCalendar();
       // A letter that opened today and one sealed until day 540, plus a
       // deep-work block, so Today, /letters and /focus render them.
-      system.clock = () => DateTime.now().minusDays(30);
+      system.clock = () => timeNow().minusDays(30);
       system.writeLetter('Remember why you started: the room at PASHA where '
           'you decided to stop waiting to be noticed.', today);
       system.clock = DateTime.now;
@@ -289,7 +290,7 @@ void main() {
           'Opportunity solution tree for entrepreneur integration reviewed by Ali and Rustam');
       system.setWeekOutcome(today, 1, 'KYC v2 scope signed off');
       system.toggleWeekOutcome(today, 1);
-      system.clock = () => DateTime.now().minusDays(40);
+      system.clock = () => timeNow().minusDays(40);
       system.addPerson('Leyla Aliyeva-Huseynova',
           role: 'Head of Product, Kapital Bank — one role ahead', every: 30);
       system.clock = DateTime.now;
@@ -299,7 +300,7 @@ void main() {
       system.logTouch(system.people.firstWhere((x) => x.id == ali.id), quality: 3);
       // Last month's growth area only: this month /growth shows the chooser
       // and Today the "what are you growing" prompt.
-      system.clock = () => DateTime.now().minusDays(35);
+      system.clock = () => timeNow().minusDays(35);
       system.setFocus('self_trust', startRating: 2);
       system.clock = DateTime.now;
       // One area of his own, so the chooser shows "Your own areas" and the
@@ -365,10 +366,10 @@ void main() {
       // Energy ratings: mornings clearly ahead of afternoons.
       for (var i = 0; i < 3; i++) {
         system.addLog('energy',
-            date: DateTime.now().minusDays(i + 1),
+            date: timeNow().minusDays(i + 1),
             data: {'level': 5, 'hour': 10});
         system.addLog('energy',
-            date: DateTime.now().minusDays(i + 1),
+            date: timeNow().minusDays(i + 1),
             data: {'level': 2, 'hour': 15});
       }
       // Direction tools with long text, so their screens render filled.
@@ -391,7 +392,7 @@ void main() {
           nextHelp: 'Rehearse the first three minutes together on Thursday');
       // Health upkeep: one overdue, one never done.
       system.addUpkeep('Dentist check-up and cleaning', 180,
-          lastDone: DateTime.now().minusDays(220));
+          lastDone: timeNow().minusDays(220));
       system.addUpkeep('Blood tests', 180);
       // Inner tools with long text: a thought check, a best future, kindness,
       // parked worries with a slot already passed, and life chapters.
@@ -404,7 +405,7 @@ void main() {
         'work': 'I lead a product group that customers love and my team grows faster than I do.',
         'people': 'Sunday dinners with the whole family, phones away, every week.',
       }, step: 'Ask for the stretch project');
-      system.setKindnessDay(DateTime.now().weekday);
+      system.setKindnessDay(timeNow().weekday);
       system.logKindness('Brought coffee for the whole support team and thanked each of them by name');
       system.setWorryTime(0);
       system.parkWorry('Whether the budget for next year will cover the second hire we promised the team');
@@ -421,10 +422,10 @@ void main() {
       system.logAar(event: 'The quarterly presentation to the whole leadership team',
           sustain: 'The one-page summary', improve: 'Rehearse the Q&A out loud with someone who pushes back');
       // An overdue promise and a story with long text.
-      system.addLog('ask', date: DateTime.now().minusDays(3), text: 'Cover the Thursday stand-up while I am at the clinic', data: {'of': 'A colleague', 'guess': 40, 'status': 'asked'});
+      system.addLog('ask', date: timeNow().minusDays(3), text: 'Cover the Thursday stand-up while I am at the clinic', data: {'of': 'A colleague', 'guess': 40, 'status': 'asked'});
       system.addAsk(what: 'Thirty minutes to rehearse the board presentation with honest questions', of: 'Aysel Rahimova-Guliyeva', guess: 35);
-      system.saveYearReview(DateTime.now().year - 1, answers: {'proud': 'Showing up on the hard mornings'}, word: 'Steady');
-      system.addPromise(what: 'Send the revised pricing proposal with the three options and the risks', to: 'Aysel Rahimova-Guliyeva', by: DateTime.now().minusDays(2));
+      system.saveYearReview(timeNow().year - 1, answers: {'proud': 'Showing up on the hard mornings'}, word: 'Steady');
+      system.addPromise(what: 'Send the revised pricing proposal with the three options and the risks', to: 'Aysel Rahimova-Guliyeva', by: timeNow().minusDays(2));
       system.saveStory(title: 'Turning around a launch that was two weeks late with a team that had lost faith',
           situation: 'Two weeks late', action: 'Cut scope with the team', result: 'Shipped in nine days',
           skills: ['Delivering under pressure', 'Leading people', 'A hard decision']);
@@ -436,15 +437,15 @@ void main() {
           withWhom: 'Samira Abdullayeva-Karimova',
           about: 'The last three missed deadlines on the onboarding project',
           opening: 'I want to talk about the last three deadlines, because I think we see them differently.',
-          by: DateTime.now());
+          by: timeNow());
       // An accountability pact with a long commitment on each side.
       system.setPartner('Samira Abdullayeva-Karimova',
           mine: 'Three strength sessions and one long walk every single week',
           theirs: 'Write five hundred words every morning before work',
-          weekday: DateTime.now().weekday);
+          weekday: timeNow().weekday);
       // Sick the day before yesterday: yesterday is the first day back.
       system.setHardDay(
-          dayOnly(DateTime.now()).minusDays(2), 'sick');
+          dayOnly(timeNow()).minusDays(2), 'sick');
       // One daily item of his own: 11 items, 8 hold the day.
       system.addDailyItem('Ten minutes of Spanish before dinner, with the app',
           lane: 'skill', when: 'evening', cue: 'When I sit down at home → app open');
@@ -753,7 +754,7 @@ void main() {
         await _pumpFor(tester, const Duration(milliseconds: 800));
         await tester.tap(find.text('Minimum day').last);
         await _pumpFor(tester, const Duration(milliseconds: 600));
-        if (system.hardDayOn(DateTime.now()) != 'minimum') {
+        if (system.hardDayOn(timeNow()) != 'minimum') {
           errors.add('minimum day not set from the sheet');
         }
         final card = find.textContaining('smallest version of each item counts');
@@ -762,7 +763,7 @@ void main() {
           await tester.pump(const Duration(milliseconds: 100));
         }
         if (card.evaluate().isEmpty) errors.add('minimum day card not shown');
-        system.setHardDay(DateTime.now(), null);
+        system.setHardDay(timeNow(), null);
       } catch (e) {
         errors.add('$e');
       }

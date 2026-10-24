@@ -10,6 +10,7 @@ import '../models/personal_system.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
+import '../time.dart';
 
 /// Routes /tool/:id to the guided flow for that protocol.
 class ToolScreen extends StatelessWidget {
@@ -130,7 +131,7 @@ class _CountdownTimerState extends State<CountdownTimer> {
       });
       return;
     }
-    _endsAt = DateTime.now().add(Duration(seconds: _left));
+    _endsAt = timeNow().add(Duration(seconds: _left));
     _system.notifyTimerEnd(_endsAt!,
         title: '${widget.minutes} minutes done',
         body: widget.label.isEmpty
@@ -144,7 +145,7 @@ class _CountdownTimerState extends State<CountdownTimer> {
 
   void _tick() {
     if (!mounted || _endsAt == null) return;
-    final ms = _endsAt!.difference(DateTime.now()).inMilliseconds;
+    final ms = _endsAt!.difference(timeNow()).inMilliseconds;
     setState(() => _left = (ms / 1000).ceil().clamp(0, widget.minutes * 60));
     if (_left <= 0) {
       _t?.cancel();
@@ -896,7 +897,7 @@ class _ScanToolState extends State<_ScanTool> {
   @override
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
-    final src = domainScanFor(DateTime.now());
+    final src = domainScanFor(timeNow());
     return OnoPage(
       showBack: true,
       eyebrow: '07:45 · 15 minutes',
@@ -998,7 +999,7 @@ class _AnkiTool extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
-    final today = dayOnly(DateTime.now());
+    final today = dayOnly(timeNow());
     final week = weekStartOf(today);
     final reviewedToday = system
         .logsOn(today, 'anki')
@@ -1193,7 +1194,7 @@ class _LinkedInToolState extends State<_LinkedInTool> {
   @override
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
-    final week = weekStartOf(DateTime.now());
+    final week = weekStartOf(timeNow());
     final thisWeek = system
         .logsOf('linkedin')
         .where((e) => !e.date.isBefore(week))

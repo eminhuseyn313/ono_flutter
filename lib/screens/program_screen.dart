@@ -9,6 +9,7 @@ import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_charts.dart';
 import '../widgets/ono_ui.dart';
+import '../time.dart';
 
 /// PROGRAM — the 18 months and everything the plan contains.
 class ProgramScreen extends StatefulWidget {
@@ -34,7 +35,7 @@ class _ProgramScreenState extends State<ProgramScreen> {
     if (!system.isLoaded) {
       return const Scaffold(backgroundColor: AppColors.background);
     }
-    final now = DateTime.now();
+    final now = timeNow();
     return OnoPage(
       eyebrow: system.hasStarted
           ? 'Month ${system.programMonth} of ${system.programMonths} · ${system.phase.name}'
@@ -80,7 +81,7 @@ class _Journey extends StatelessWidget {
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
     final month = system.programMonth;
-    final today = dayOnly(DateTime.now());
+    final today = dayOnly(timeNow());
     final builtIn = system.isBuiltInPerson;
     final profile = activeProfile;
 

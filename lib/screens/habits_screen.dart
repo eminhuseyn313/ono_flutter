@@ -7,6 +7,7 @@ import '../models/personal_system.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
+import '../time.dart';
 
 /// Monthly automaticity check: "I do it without having to think", per
 /// Daily 10 item. An item counts as automatic when it is rated 4+ *and* was
@@ -35,7 +36,7 @@ class _HabitsScreenState extends State<HabitsScreen> {
   @override
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
-    final today = dayOnly(DateTime.now());
+    final today = dayOnly(timeNow());
     final days = [
       for (var i = 1; i <= 30; i++) today.minusDays(i)
     ].where((d) => !d.isBefore(system.programStart)).toList();

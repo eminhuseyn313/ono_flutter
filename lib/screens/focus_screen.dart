@@ -6,6 +6,7 @@ import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
 import 'tool_screens.dart' show CountdownTimer;
+import '../time.dart';
 
 /// Deep work: one block on one thing, phone away. Logged blocks feed the
 /// week's deep-work hours and the artifact's hours this month.
@@ -44,7 +45,7 @@ class _FocusScreenState extends State<FocusScreen> {
   @override
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
-    final now = DateTime.now();
+    final now = timeNow();
     final builtIn = system.isBuiltInPerson;
     final artifact = artifactFor(system.programMonth);
     final week = system.focusMinutesInWeek(now);

@@ -25,6 +25,7 @@ import 'package:ono/services/widget_sync.dart';
 
 import '../support/fake_calendar.dart';
 import '../support/fake_health.dart';
+import 'package:ono/time.dart';
 
 /// Friday 2 Oct 2026, noon. The program starts Tue 1 Sep → day 32, month 2.
 final _today = DateTime(2026, 10, 2, 12);
@@ -772,7 +773,7 @@ void main() {
   test('check-ups to ask about follow age and sex, never without a birth year', () async {
     final p = await _commissioned();
     expect(p.checkupsToAsk, isEmpty);
-    final year = DateTime.now().year;
+    final year = timeNow().year;
     p.setCareDetails(sex: 'female', birthYear: year - 45);
     final ids = p.checkupsToAsk.map((c) => c.id).toSet();
     expect(ids, containsAll(['bp', 'lipids', 'bowel', 'cervical', 'breast']));
@@ -806,14 +807,14 @@ void main() {
   test('care details: one record, forgettable, and care for others stays separate', () async {
     final p = await _commissioned();
     p.setCareDetails(sex: 'female');
-    p.setCareDetails(birthYear: DateTime.now().year - 45);
+    p.setCareDetails(birthYear: timeNow().year - 45);
     expect(p.logsOf('care_details').single.id, 'care_details');
     final mum = p.addPerson('Mum', every: 7);
     p.setInMyCare(mum, true);
     p.addUpkeep('Blood pressure check', 365, forPerson: mum.id);
     expect(p.checkupsToAsk.any((c) => c.id == 'bp'), isTrue, reason: 'her check is not yours');
     final bp = p.checkupsToAsk.firstWhere((c) => c.id == 'bp');
-    p.takeCheckup(bp, lastDone: DateTime.now().subtract(const Duration(days: 30)));
+    p.takeCheckup(bp, lastDone: timeNow().subtract(const Duration(days: 30)));
     p.takeCheckup(bp);
     expect(p.upkeep.where((u) => p.careKindOf(u) == 'health'), hasLength(1));
     p.forgetCareDetails();

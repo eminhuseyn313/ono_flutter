@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show Session, User, AuthChangeEvent;
 
 import 'auth_gateway.dart';
+import '../time.dart';
 
 /// Offline gateway for development — no Supabase needed. Remembers the
 /// signed-in email on the device so the app reopens signed in.
@@ -29,7 +30,7 @@ class MockAuthGateway implements AuthGateway {
       userMetadata: {'email': email},
       email: email,
       aud: 'authenticated',
-      createdAt: DateTime.now().toIso8601String(),
+      createdAt: timeNow().toIso8601String(),
     );
     _session = Session(
       accessToken: 'mock-token',

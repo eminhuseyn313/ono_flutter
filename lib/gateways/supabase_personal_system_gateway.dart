@@ -7,6 +7,7 @@ import '../models/personal_system.dart';
 import '../models/state_merge.dart';
 import 'mock_personal_system_gateway.dart';
 import 'personal_system_gateway.dart';
+import '../time.dart';
 
 /// Local-first with a cloud copy in `personal_system` (RLS: owner only),
 /// shared by every device signed in to the same account — the iPhone and
@@ -259,7 +260,7 @@ class SupabaseCloud implements PersonalSystemCloud {
         .update({
           'state': state,
           'version': expectedVersion + 1,
-          'updated_at': DateTime.now().toUtc().toIso8601String(),
+          'updated_at': timeNow().toUtc().toIso8601String(),
         })
         .eq('user_id', userId)
         .eq('version', expectedVersion)

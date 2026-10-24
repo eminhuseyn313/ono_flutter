@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../data/emin_system.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
+import '../time.dart';
 
 /// Full-screen reading mode for the manifesto. "I've read it" ticks the
 /// first non-negotiable for today.
@@ -15,7 +16,7 @@ class ManifestoScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
-    final today = DateTime.now();
+    final today = timeNow();
     final read = system.isChecked(today, 'manifesto');
     final bottom = MediaQuery.of(context).padding.bottom;
 

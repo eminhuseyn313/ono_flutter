@@ -20,6 +20,7 @@ import '../services/calendar_service.dart';
 import '../services/health_service.dart';
 import '../services/reminder_service.dart';
 import '../services/widget_sync.dart';
+import '../time.dart';
 
 /// Single source of truth for the program. Every number the app shows is
 /// computed here from real check-offs and logs.
@@ -64,7 +65,7 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   /// Overridable clock for tests.
   @visibleForTesting
-  DateTime Function() clock = DateTime.now;
+  DateTime Function() clock = () => timeNow();
   DateTime get _now => clock();
 
   /// The provider's time (the test clock in tests).

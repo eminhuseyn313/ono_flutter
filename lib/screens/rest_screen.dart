@@ -5,6 +5,7 @@ import '../models/personal_system.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
+import '../time.dart';
 
 /// Rest, planned before the calendar decides. Planned rest days and
 /// holidays never break the streak; a lighter week still counts.
@@ -28,7 +29,7 @@ class _RestScreenState extends State<RestScreen> {
   }
 
   Future<void> _pick(bool from) async {
-    final today = dayOnly(DateTime.now());
+    final today = dayOnly(timeNow());
     final picked = await showDatePicker(
       context: context,
       initialDate: (from ? _from : _to) ?? _from ?? today,
@@ -57,7 +58,7 @@ class _RestScreenState extends State<RestScreen> {
   @override
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
-    final today = dayOnly(DateTime.now());
+    final today = dayOnly(timeNow());
     final upcoming = [
       for (final r in system.restPlans)
         if (!(DateTime.tryParse(r.str('to') ?? '') ?? today).isBefore(today)) r

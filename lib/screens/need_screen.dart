@@ -7,6 +7,7 @@ import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
 import '../widgets/support_sheet.dart';
 import 'home_screen.dart' show showHardDaySheet;
+import '../time.dart';
 
 /// "What do you need right now?" — the moment, then the one tool for it.
 class NeedScreen extends StatelessWidget {
@@ -76,7 +77,7 @@ class NeedScreen extends StatelessWidget {
                   subtitle: n.$3,
                   onTap: () {
                     if (n.$4 == '/home') {
-                      showHardDaySheet(context, DateTime.now());
+                      showHardDaySheet(context, timeNow());
                       return;
                     }
                     context.push(n.$4);

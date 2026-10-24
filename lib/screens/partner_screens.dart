@@ -6,6 +6,7 @@ import '../models/personal_system.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
+import '../time.dart';
 
 /// One accountability partner: a two-way pact and a weekly check-in.
 class PartnerScreen extends StatefulWidget {
@@ -73,7 +74,7 @@ class _PartnerScreenState extends State<PartnerScreen> {
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
     final p = system.partner;
-    final today = DateTime.now();
+    final today = timeNow();
     final checkin = system.partnerCheckinFor(today);
     final record = system.partnerRecord();
     final editing = _editing || p == null;

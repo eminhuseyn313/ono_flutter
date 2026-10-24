@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../models/personal_system.dart';
 import '../data/emin_system.dart';
 import '../theme/app_theme.dart';
+import '../time.dart';
 
 // ═══════════════════════════════════════════════════════════════════════
 // Day Dial — the day 06:00 → 22:30 as a 270° gauge. Outer arcs are the
@@ -428,7 +429,7 @@ class HeatGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final today = DateTime.now();
+    final today = timeNow();
     final scores = [
       for (var i = 0; i < weeks * 7; i++)
         if (!from.plusDays(i).isAfter(today))

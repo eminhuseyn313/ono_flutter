@@ -8,6 +8,7 @@ import '../models/personal_system.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
+import '../time.dart';
 
 /// Commission — the program's opening ceremony. Five short steps that set
 /// up the 18 months: identity, start date, anchors, reminders, signature.
@@ -36,7 +37,7 @@ class _CommissionScreenState extends State<CommissionScreen> {
   @override
   void initState() {
     super.initState();
-    final today = dayOnly(DateTime.now());
+    final today = dayOnly(timeNow());
     final toMonday = (DateTime.monday - today.weekday) % 7;
     _start = toMonday == 0 ? today : today.plusDays(toMonday);
   }
@@ -207,7 +208,7 @@ class _CommissionScreenState extends State<CommissionScreen> {
       );
 
   Widget _startDate() {
-    final today = dayOnly(DateTime.now());
+    final today = dayOnly(timeNow());
     final options = <(String, DateTime)>[
       ('Today', today),
       (

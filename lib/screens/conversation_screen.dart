@@ -7,6 +7,7 @@ import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
 import 'people_screen.dart';
+import '../time.dart';
 
 /// Hard conversations: prepare the one you've been avoiding, then debrief.
 class ConversationsScreen extends StatelessWidget {
@@ -138,7 +139,7 @@ class _ConversationEditScreenState extends State<ConversationEditScreen> {
         ask: _c['ask']!.text,
         by: _byDays == null
             ? (existing == null ? null : DateTime.tryParse(existing.str('by') ?? ''))
-            : dayOnly(DateTime.now()).plusDays(_byDays!),
+            : dayOnly(timeNow()).plusDays(_byDays!),
       );
 
   @override

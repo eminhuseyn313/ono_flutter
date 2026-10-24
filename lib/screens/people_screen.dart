@@ -7,6 +7,7 @@ import '../models/personal_system.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
+import '../time.dart';
 
 /// The people he invests in and how often. Closeness fades without
 /// contact; a rhythm he chose keeps it from fading by accident.
@@ -223,7 +224,7 @@ class _PeopleScreenState extends State<PeopleScreen> {
                       quality: quality,
                       minutes: minutes,
                       date: yesterday
-                          ? dayOnly(DateTime.now()).minusDays(1)
+                          ? dayOnly(timeNow()).minusDays(1)
                           : null);
                   Navigator.of(ctx).pop();
                   toast(context, 'Logged. Next in ${system.cadenceOf(p)} days.');

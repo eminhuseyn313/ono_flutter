@@ -6,6 +6,7 @@ import '../models/personal_system.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
+import '../time.dart';
 
 /// Care: the recurring things that slip when life is busy — check-ups,
 /// the barber, nails, the car — with when each is next due or booked.
@@ -46,7 +47,7 @@ class _UpkeepScreenState extends State<UpkeepScreen> {
     if (system.careKindOf(u) == 'documents') {
       final exp = system.upkeepExpires(u);
       if (exp == null) return 'Add the expiry date';
-      final left = exp.daysSince(dayOnly(DateTime.now()));
+      final left = exp.daysSince(dayOnly(timeNow()));
       if (left < 0) return 'Expired ${shortDate(exp)}';
       if (left <= PersonalSystemProvider.renewLeadDays) {
         return 'Expires ${shortDate(exp)} — time to renew';
@@ -54,7 +55,7 @@ class _UpkeepScreenState extends State<UpkeepScreen> {
       return 'Expires ${shortDate(exp)} ${exp.year}';
     }
     if (system.upkeepBooked(u) case final b?) {
-      final days = b.daysSince(dayOnly(DateTime.now()));
+      final days = b.daysSince(dayOnly(timeNow()));
       return days == 0
           ? 'Booked for today'
           : days == 1
@@ -65,7 +66,7 @@ class _UpkeepScreenState extends State<UpkeepScreen> {
     }
     final next = system.upkeepNextDue(u);
     if (next == null) return 'No date yet — tap Done… to set the last time';
-    final days = next.daysSince(dayOnly(DateTime.now()));
+    final days = next.daysSince(dayOnly(timeNow()));
     if (days < 0) return 'Overdue by ${-days} d';
     if (days == 0) return 'Due today';
     return days < 60 ? 'Due in $days d' : 'Next ${shortDate(next)}';
@@ -73,7 +74,7 @@ class _UpkeepScreenState extends State<UpkeepScreen> {
 
   /// The expiry date of a document: after adding it, or once renewed.
   Future<DateTime?> _pickExpiry(DateTime? current) {
-    final now = DateTime.now();
+    final now = timeNow();
     return showDatePicker(
       context: context,
       initialDate: current != null && current.isAfter(now) ? current : DateTime(now.year + 1, now.month, now.day),
@@ -91,7 +92,7 @@ class _UpkeepScreenState extends State<UpkeepScreen> {
       toast(context, 'Noted. ONO asks again ${PersonalSystemProvider.renewLeadDays} days before it expires.');
       return;
     }
-    final now = DateTime.now();
+    final now = timeNow();
     // A date, not just today: the last visit may have been months ago.
     final on = await showDatePicker(
       context: context,
@@ -161,7 +162,7 @@ class _UpkeepScreenState extends State<UpkeepScreen> {
                   GhostButton(
                       system.upkeepBooked(u) == null ? 'Booked it — pick the day' : 'Change the booked day',
                       icon: Icons.event_outlined, onPressed: () async {
-                    final now = DateTime.now();
+                    final now = timeNow();
                     final booked = system.upkeepBooked(u);
                     final day = await showDatePicker(
                       context: ctx,
@@ -438,7 +439,7 @@ class _AskYourDoctorState extends State<_AskYourDoctor> {
                 key: const Key('care-details-save'),
                 onPressed: () {
                   final y = int.tryParse(_year.text.trim());
-                  if (y == null || y < 1900 || y > DateTime.now().year) {
+                  if (y == null || y < 1900 || y > timeNow().year) {
                     toast(context, 'Enter a four-digit year.');
                     return;
                   }
@@ -503,7 +504,7 @@ class _AskYourDoctorState extends State<_AskYourDoctor> {
                                 return;
                               }
                               // A recent one shouldn't show as due at once.
-                              final now = DateTime.now();
+                              final now = timeNow();
                               final last = await showDatePicker(
                                 context: context,
                                 helpText: 'When did you last have it? (Cancel if never or not sure)',

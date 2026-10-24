@@ -7,6 +7,7 @@ import '../models/personal_system.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
+import '../time.dart';
 
 /// Fifteen-second morning check-in: energy, mood, sleep, shoulder pain and
 /// morning stiffness. A painful or stiff morning turns the day's gym session
@@ -45,8 +46,8 @@ class _CheckinScreenState extends State<CheckinScreen> {
     if (_loaded) return;
     _loaded = true;
     final system = context.read<PersonalSystemProvider>();
-    final c = system.checkinFor(dayOnly(DateTime.now()));
-    final fromHealth = system.sleepHoursFor(dayOnly(DateTime.now()));
+    final c = system.checkinFor(dayOnly(timeNow()));
+    final fromHealth = system.sleepHoursFor(dayOnly(timeNow()));
     if (fromHealth != null) {
       _sleep = ((fromHealth * 2).round() / 2).clamp(0, 14).toDouble();
       _sleepFromHealth = true;
@@ -63,7 +64,7 @@ class _CheckinScreenState extends State<CheckinScreen> {
 
   void _save() {
     final system = context.read<PersonalSystemProvider>();
-    final today = dayOnly(DateTime.now());
+    final today = dayOnly(timeNow());
     system.saveCheckin(today,
         energy: _energy,
         mood: _mood,

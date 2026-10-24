@@ -7,6 +7,7 @@ import '../models/personal_system.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
+import '../time.dart';
 
 Widget _input(TextEditingController c, String hint, {int lines = 1, Key? key}) =>
     TextField(
@@ -42,7 +43,7 @@ class _StopScreenState extends State<StopScreen> {
   @override
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
-    final now = DateTime.now();
+    final now = timeNow();
     return OnoPage(
       showBack: true,
       eyebrow: 'Direction · saying no',

@@ -16,6 +16,7 @@ import 'package:ono/services/reminder_service.dart';
 import 'package:ono/widgets/ono_ui.dart';
 
 import 'support/fake_health.dart';
+import 'package:ono/time.dart';
 
 /// Tapping through the newer tools as a person would, then checking what
 /// was saved. The smoke test (widget_test.dart) only checks that screens
@@ -48,7 +49,7 @@ Future<PersonalSystemProvider> _start(WidgetTester tester,
       tester.element(find.byType(Navigator).first),
       listen: false);
   await system.commission(
-    start: dayOnly(DateTime.now()).minusDays(10),
+    start: dayOnly(timeNow()).minusDays(10),
     gymDays: const [1, 3, 5],
     reminders: const {},
   );
@@ -126,21 +127,21 @@ void main() {
     await tester.tap(find.text('A next step'));
     await _pumpFor(tester, const Duration(seconds: 1));
     expect(system.parkedWorries, isEmpty);
-    expect(system.prioritiesFor(DateTime.now()),
+    expect(system.prioritiesFor(timeNow()),
         contains('Ask finance for last year\'s numbers'));
   });
 
   testWidgets('kindness day: pick today, log an act', (tester) async {
     final system = await _start(tester);
     await _go(tester, '/kindness');
-    final day = DateTime.now().weekday;
+    final day = timeNow().weekday;
     const names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     await _tap(tester, find.text(names[day - 1]));
     expect(system.kindnessDay, day);
     await _type(tester, 'What did you do, for whom?', 'Coffee for the night shift');
     await tester.tap(find.byIcon(Icons.add_circle_rounded));
     await _pumpFor(tester, const Duration(milliseconds: 600));
-    expect(system.kindnessOn(DateTime.now()).single.text, 'Coffee for the night shift');
+    expect(system.kindnessOn(timeNow()).single.text, 'Coffee for the night shift');
   });
 
   testWidgets('strengths: tick two, use one in a new way', (tester) async {
@@ -309,7 +310,7 @@ void main() {
       await _go(tester, '/year');
       expect(find.text('${system.yearOnScreen} so far'), findsOneWidget);
       expect(find.text('Save the review'), findsNothing);
-      final now = DateTime.now();
+      final now = timeNow();
       system.clock = () => DateTime(now.year, 12, 20, 9);
       await _go(tester, '/profile');
     }
@@ -332,7 +333,7 @@ void main() {
     // From Saturday next week is planned on the same page, with its own button.
     final before = find.text('Use these').evaluate().length;
     await _tap(tester, find.text('Use these').first);
-    final week = weekStartOf(DateTime.now());
+    final week = weekStartOf(timeNow());
     expect(system.weekOutcomes(week).first, 'Run 10 km without stopping');
     expect(find.text('Use these'), findsNWidgets(before - 1));
   });
@@ -354,7 +355,7 @@ void main() {
   testWidgets('Today keeps the plan\'s next step in view while folded',
       (tester) async {
     final system = await _start(tester);
-    system.setWeekOutcome(DateTime.now(), 0, 'Send the proposal');
+    system.setWeekOutcome(timeNow(), 0, 'Send the proposal');
     await _go(tester, '/home');
     await _reach(tester, find.byKey(const Key('plan-next')));
     expect(find.text('Next: Send the proposal'), findsOneWidget);
@@ -370,7 +371,7 @@ void main() {
     await _tap(tester, find.text('Yesterday'));
     await _tap(tester, find.text('In touch yesterday'));
     expect(system.lastContact(system.personById(mum.id)!),
-        dayOnly(DateTime.now()).minusDays(1));
+        dayOnly(timeNow()).minusDays(1));
     expect(system.askAboutOf(system.personById(mum.id)!), '');
     await _tap(tester, find.text('Mum'));
     await _tap(tester, find.byKey(const Key('person-details')));
@@ -384,7 +385,7 @@ void main() {
       (tester) async {
     final system = await _start(tester);
     final g = system.saveGoal(
-        title: 'Write a book', deadline: dayOnly(DateTime.now()).minusDays(1))!;
+        title: 'Write a book', deadline: dayOnly(timeNow()).minusDays(1))!;
     await _go(tester, '/goals/view?id=${g.id}');
     // Its date has passed, but with nothing to measure it isn't "past due".
     expect(find.text('How will you know it\'s moving?'), findsOneWidget);
@@ -403,7 +404,7 @@ void main() {
   testWidgets('a low morning offers a minimum day; a set priority shows on Today',
       (tester) async {
     final system = await _start(tester);
-    final today = dayOnly(DateTime.now());
+    final today = dayOnly(timeNow());
     system.saveCheckin(today, energy: 2, mood: 0, sleep: 7, pain: 0, stiffness: 0);
     await _go(tester, '/home');
     await _tap(tester, find.text('Make it a minimum day'));
@@ -456,7 +457,7 @@ void main() {
     expect(system.logsOf('stepback').single.text, 'The review went badly');
     expect(find.text('Leave without saving?'), findsNothing);
     // A setback with all three priorities taken says so.
-    final today = dayOnly(DateTime.now());
+    final today = dayOnly(timeNow());
     for (var i = 0; i < 3; i++) {
       system.setPriority(today, i, 'P$i');
     }
@@ -489,15 +490,15 @@ void main() {
         mine: 'Train three times', theirs: 'Write daily', weekday: 1);
     await _go(tester, '/partner');
     await _tap(tester, find.text('Record the check-in'));
-    expect(system.partnerCheckinFor(DateTime.now()), isNull);
+    expect(system.partnerCheckinFor(timeNow()), isNull);
     await _tap(tester, find.text('Partly').first);
     await _tap(tester, find.text('Kept').last);
     await _tap(tester, find.text('Record the check-in'));
-    expect(system.partnerCheckinFor(DateTime.now())!.str('mine'), 'partly');
+    expect(system.partnerCheckinFor(timeNow())!.str('mine'), 'partly');
     await _tap(tester, find.byKey(const Key('partner-change')));
     await _tap(tester, find.text('Missed').first);
     await _tap(tester, find.text('Record the check-in'));
-    expect(system.partnerCheckinFor(DateTime.now())!.str('mine'), 'missed');
+    expect(system.partnerCheckinFor(timeNow())!.str('mine'), 'missed');
     expect(system.logsOf('partner_checkin').length, 1);
   });
 
@@ -600,7 +601,7 @@ void main() {
     await _tap(tester, find.textContaining('Already did a'));
     await _reach(tester, find.byKey(const Key('focus-break')));
     await _tap(tester, find.text('I walked'));
-    expect(system.movesInWeek(DateTime.now()).single.number('minutes'), 3);
+    expect(system.movesInWeek(timeNow()).single.number('minutes'), 3);
     expect(find.byKey(const Key('focus-break')), findsNothing);
   });
 
@@ -694,7 +695,7 @@ void main() {
 
   testWidgets('savour: stay with one of the week\'s wins in the Sunday report', (tester) async {
     final system = await _start(tester);
-    system.addLog('win', date: system.reportWeekFor(DateTime.now()).plusDays(1), text: 'Finished the hardest chapter of the thesis draft, at last, before the deadline');
+    system.addLog('win', date: system.reportWeekFor(timeNow()).plusDays(1), text: 'Finished the hardest chapter of the thesis draft, at last, before the deadline');
     await _go(tester, '/weekly-coaching');
     await _tap(tester, find.textContaining('Finished the hardest chapter'));
     await _type(tester, 'What made it good?', 'Quiet morning, it finally clicked');
@@ -713,7 +714,7 @@ void main() {
     await _type(tester, 'Where you gave time', 'Food bank');
     await _tap(tester, find.byKey(const Key('giving-2')));
     expect(system.givingThisYear.$1, 2);
-    expect(system.yearSummary(DateTime.now().year).hoursGiven, 2);
+    expect(system.yearSummary(timeNow().year).hoursGiven, 2);
     expect(system.journalText(), contains('Gave 2 h to Food bank'));
   });
 
@@ -770,7 +771,7 @@ void main() {
     await tester.enterText(find.byKey(const Key('week-shipped')), 'The onboarding redesign');
     await tester.enterText(find.byKey(const Key('week-learned')), 'Show the prototype before the deck');
     await tester.pump();
-    final week = system.reportWeekFor(DateTime.now());
+    final week = system.reportWeekFor(timeNow());
     system.saveWeekLines(week, shipped: 'The onboarding redesign', learned: 'Show the prototype before the deck');
     system.saveWeekLines(week, shipped: 'The onboarding redesign v2', learned: 'Show the prototype before the deck');
     expect(system.logsOf('win').single.text, 'The onboarding redesign v2');
@@ -790,8 +791,8 @@ void main() {
     await _tap(tester, find.text('Save'));
     final h = system.openHandoffs.single;
     expect(h.str('to'), 'Ana Lima');
-    expect(system.handoffsDue(DateTime.now()), isEmpty);
-    expect(system.handoffsDue(DateTime.now().add(const Duration(days: 15))), hasLength(1));
+    expect(system.handoffsDue(timeNow()), isEmpty);
+    expect(system.handoffsDue(timeNow().add(const Duration(days: 15))), hasLength(1));
     system.closeHandoff(h.id, 'well', lesson: 'Say what done looks like');
     expect(system.openHandoffs, isEmpty);
     expect(system.helpsFor(system.personById(ana.id)!).single.text, 'Trusted with: The weekly metrics report');

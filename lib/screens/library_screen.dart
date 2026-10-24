@@ -5,6 +5,7 @@ import '../data/emin_system.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
+import '../time.dart';
 
 class LibraryScreen extends StatelessWidget {
   const LibraryScreen({super.key});
@@ -13,7 +14,7 @@ class LibraryScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
     final month = system.programMonth;
-    final now = DateTime.now();
+    final now = timeNow();
     final current = system.planBook;
 
     return OnoPage(

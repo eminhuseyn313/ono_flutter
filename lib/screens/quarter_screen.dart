@@ -9,6 +9,7 @@ import '../data/life_wheel.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
+import '../time.dart';
 
 /// Every 90 days: rate the life wheel, name wins and lessons, decide on
 /// each goal, and choose the next quarter's focus. A fresh start.
@@ -67,7 +68,7 @@ class _QuarterScreenState extends State<QuarterScreen> {
   List<(IconData, String, String, String)> _deeper(PersonalSystemProvider system) {
     final odysseyAge = system.odyssey == null
         ? null
-        : DateTime.now().daysSince(system.odyssey!.date);
+        : timeNow().daysSince(system.odyssey!.date);
     return [
       if (system.roundFor(system.programQuarter) == null)
         (Icons.groups_2_outlined, 'Feedback round', 'One question to three people', '/360'),

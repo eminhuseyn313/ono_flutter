@@ -15,6 +15,7 @@ import 'package:ono/providers/personal_system_provider.dart';
 import 'package:ono/services/reminder_service.dart';
 
 import 'support/fake_health.dart';
+import 'package:ono/time.dart';
 
 /// People type long things: a two-part surname, a goal in a full sentence,
 /// a daily item with its reason. The screens they appear on must still fit
@@ -72,7 +73,7 @@ void main() {
           tester.element(find.byType(Navigator).first),
           listen: false);
       await system.commission(
-        start: dayOnly(DateTime.now()).minusDays(20),
+        start: dayOnly(timeNow()).minusDays(20),
         gymDays: const [1, 3, 5],
         reminders: const {},
       );

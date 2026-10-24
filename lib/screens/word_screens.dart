@@ -7,6 +7,7 @@ import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
 import 'people_screen.dart';
 import 'tool_screens.dart' show CountdownTimer;
+import '../time.dart';
 
 // ── Promises ───────────────────────────────────────────────────────────
 
@@ -38,7 +39,7 @@ class _PromisesScreenState extends State<PromisesScreen> {
     system.addPromise(
         what: _what.text,
         to: _to.text,
-        by: DateTime.now().plusDays(_inDays));
+        by: timeNow().plusDays(_inDays));
     _what.clear();
     _to.clear();
     FocusManager.instance.primaryFocus?.unfocus();
@@ -98,7 +99,7 @@ class _PromisesScreenState extends State<PromisesScreen> {
     final system = context.watch<PersonalSystemProvider>();
     final open = system.openPromises;
     final record = system.sayDo();
-    final today = dateKey(DateTime.now());
+    final today = dateKey(timeNow());
     const days = [1, 3, 7, 14];
     return OnoPage(
       showBack: true,
@@ -613,7 +614,7 @@ class RehearseScreen extends StatefulWidget {
 
 class _RehearseScreenState extends State<RehearseScreen> {
   final _skills = PersonalSystemProvider.rehearsalQuestions.keys.toList();
-  late int _i = DateTime.now().millisecondsSinceEpoch % _skills.length;
+  late int _i = timeNow().millisecondsSinceEpoch % _skills.length;
   final _star = <String>{};
   int _round = 0;
 

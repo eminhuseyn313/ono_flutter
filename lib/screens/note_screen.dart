@@ -7,6 +7,7 @@ import '../data/emin_system.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
+import '../time.dart';
 
 /// The weekly progress note: written from real data, edited by you, sent
 /// by you to one person. ONO never sends anything itself.
@@ -40,7 +41,7 @@ class _NoteScreenState extends State<NoteScreen> {
   void _regenerate(PersonalSystemProvider system, {bool force = false}) {
     if (_edited && !force) return;
     _generated =
-        system.progressNoteText(DateTime.now(), to: _to, ask: _ask.text);
+        system.progressNoteText(timeNow(), to: _to, ask: _ask.text);
     _text.text = _generated;
   }
 
@@ -58,7 +59,7 @@ class _NoteScreenState extends State<NoteScreen> {
       for (final p in activeProfile.keyPeople) p.name,
       for (final p in system.activePeople) p.text,
     }.where((n) => n.isNotEmpty).toList();
-    final sent = system.noteSentInWeek(DateTime.now());
+    final sent = system.noteSentInWeek(timeNow());
     return OnoPage(
       showBack: true,
       eyebrow: sent ? 'Sent this week' : 'Friday · 5 minutes',

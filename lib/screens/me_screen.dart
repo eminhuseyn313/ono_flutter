@@ -11,6 +11,7 @@ import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_charts.dart';
 import '../widgets/ono_ui.dart';
+import '../time.dart';
 
 /// ME — who you are becoming, measured. Every figure comes from your own
 /// check-offs and logs. Settings that actually do something.
@@ -23,7 +24,7 @@ class MeScreen extends StatelessWidget {
     if (!system.isLoaded) {
       return const Scaffold(backgroundColor: AppColors.background);
     }
-    final today = dayOnly(DateTime.now());
+    final today = dayOnly(timeNow());
     final weeks = ((today.daysSince(weekStartOf(system.programStart))) ~/ 7 + 1)
         .clamp(1, 26);
     final heatFrom = weekStartOf(today).minusDays((weeks - 1) * 7);
@@ -116,7 +117,7 @@ class MeScreen extends StatelessWidget {
                     Text('Month ${system.programMonth} · ${system.phase.name}',
                         style: AppText.small()),
                     Text(
-                        'Ends ${shortDate(system.programEnd)}${system.programEnd.year != DateTime.now().year ? ' ${system.programEnd.year}' : ''}${system.pausedDays > 0 ? ' · paused ${system.pausedDays} d' : ''}',
+                        'Ends ${shortDate(system.programEnd)}${system.programEnd.year != timeNow().year ? ' ${system.programEnd.year}' : ''}${system.pausedDays > 0 ? ' · paused ${system.pausedDays} d' : ''}',
                         style: AppText.small()),
                   ],
                 ),
@@ -227,7 +228,7 @@ class MeScreen extends StatelessWidget {
           ),
         ],
         SectionHeader('Body',
-            action: '${system.moveMinutesInWeek(DateTime.now())} min moved',
+            action: '${system.moveMinutesInWeek(timeNow())} min moved',
             onAction: () => context.push('/move')),
         OnoCard(
           padding: EdgeInsets.zero,
@@ -509,8 +510,8 @@ class MeScreen extends StatelessWidget {
                 color: AppColors.skill,
                 title: 'Deep work',
                 subtitle: system.isBuiltInPerson
-                    ? '${(system.focusMinutesInWeek(DateTime.now()) / 60).toStringAsFixed(1)} h this week · ${(system.artifactMinutesThisMonth / 60).toStringAsFixed(1)} h on the artifact this month'
-                    : '${(system.focusMinutesInWeek(DateTime.now()) / 60).toStringAsFixed(1)} h this week · one block, one thing',
+                    ? '${(system.focusMinutesInWeek(timeNow()) / 60).toStringAsFixed(1)} h this week · ${(system.artifactMinutesThisMonth / 60).toStringAsFixed(1)} h on the artifact this month'
+                    : '${(system.focusMinutesInWeek(timeNow()) / 60).toStringAsFixed(1)} h this week · one block, one thing',
                 onTap: () => context.push('/focus'),
               ),
               LinkRow(
@@ -582,7 +583,7 @@ class MeScreen extends StatelessWidget {
                 icon: Icons.send_rounded,
                 color: AppColors.social,
                 title: 'Progress note',
-                subtitle: system.noteSentInWeek(DateTime.now())
+                subtitle: system.noteSentInWeek(timeNow())
                     ? 'Sent this week'
                     : 'Tell one person how the week went',
                 onTap: () => context.push('/note'),
@@ -717,7 +718,7 @@ class MeScreen extends StatelessWidget {
                 title: 'Kindness day',
                 subtitle: system.kindnessDay == null
                     ? 'Five small kind acts, one day a week'
-                    : '${weekdayName(system.kindnessDay!)}s · ${system.kindnessInWeek(DateTime.now())} this week',
+                    : '${weekdayName(system.kindnessDay!)}s · ${system.kindnessInWeek(timeNow())} this week',
                 onTap: () => context.push('/kindness'),
               ),
               LinkRow(
@@ -1360,7 +1361,7 @@ class _Mornings extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
-    final today = DateTime.now();
+    final today = timeNow();
     final week = system.checkinsEnding(today, 7);
     if (week.isEmpty) {
       return const EmptyNote(
@@ -1511,7 +1512,7 @@ class _AppleHealth extends StatelessWidget {
         ),
       );
     }
-    final today = dayOnly(DateTime.now());
+    final today = dayOnly(timeNow());
     final sleep = system.logsOn(today, 'sleep');
     final vitals = system.logsOf('vitals');
     final v = vitals.isEmpty ? null : vitals.first;
@@ -1588,7 +1589,7 @@ class _MoveSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
-    final now = DateTime.now();
+    final now = timeNow();
     return OnoCard(
       onTap: () => context.push('/move'),
       child: Row(

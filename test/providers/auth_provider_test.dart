@@ -1,3 +1,4 @@
+import 'package:ono/time.dart';
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -102,7 +103,7 @@ Session _fakeSession() {
     appMetadata: {},
     userMetadata: {'email': 'ono@example.com'},
     aud: 'authenticated',
-    createdAt: DateTime.now().toIso8601String(),
+    createdAt: timeNow().toIso8601String(),
   );
 
   return Session(

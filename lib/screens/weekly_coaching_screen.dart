@@ -6,6 +6,7 @@ import '../models/personal_system.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
+import '../time.dart';
 
 /// Sunday report → weekly brief. The two numbers fill themselves; three
 /// answers are written; the brief comes back with next week's tasks, a
@@ -33,7 +34,7 @@ class _WeeklyCoachingScreenState extends State<WeeklyCoachingScreen> {
     if (_initialised) return;
     _initialised = true;
     final system = context.read<PersonalSystemProvider>();
-    final week = system.reportWeekFor(DateTime.now());
+    final week = system.reportWeekFor(timeNow());
     _shipped.text = system.shippedInWeek(week)?.text ?? '';
     _learned.text = system.learnedInWeek(week)?.text ?? '';
     final r = system.reportForWeek(week);
@@ -57,7 +58,7 @@ class _WeeklyCoachingScreenState extends State<WeeklyCoachingScreen> {
   @override
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
-    final now = DateTime.now();
+    final now = timeNow();
     // Usually this week; on Monday and Tuesday, last week if it wasn't
     // reported (its brief is then for this week).
     final week = system.reportWeekFor(now);

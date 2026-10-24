@@ -10,6 +10,7 @@ import '../providers/personal_system_provider.dart';
 import 'checkin_screen.dart' show moodLabels;
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
+import '../time.dart';
 
 /// LOG — the record of what actually happened, newest first, plus quick
 /// entry for weight, protein, bloodwork, wins and notes.
@@ -311,7 +312,7 @@ class _LogScreenState extends State<LogScreen> {
         : system.allLogs(_filters[_filter]);
     final matching = entries.where(_matches).toList();
     // The last month by default; searching looks through everything.
-    final cutoff = dayOnly(DateTime.now()).minusDays(_recentDays);
+    final cutoff = dayOnly(timeNow()).minusDays(_recentDays);
     final shown = _all || _query.trim().isNotEmpty
         ? matching
         : [for (final e in matching) if (!e.date.isBefore(cutoff)) e];
@@ -372,7 +373,7 @@ class _LogScreenState extends State<LogScreen> {
                       ? '1:1s · decisions · readiness'
                       : 'follow-ups · decisions to review',
                   trailing:
-                      '${system.openFollowUps.length + system.dueDecisionReviews(DateTime.now()).length}',
+                      '${system.openFollowUps.length + system.dueDecisionReviews(timeNow()).length}',
                   onTap: () => context.push('/cockpit'),
                 ),
                 const Divider(indent: 66),
@@ -382,7 +383,7 @@ class _LogScreenState extends State<LogScreen> {
                 color: AppColors.mind,
                 title: 'Review deck',
                 subtitle: 'Your lessons, a few minutes a day',
-                trailing: '${system.dueCards(DateTime.now()).length}',
+                trailing: '${system.dueCards(timeNow()).length}',
                 onTap: () => context.push('/review'),
               ),
               if (system.isBuiltInPerson || system.evidenceCount > 0) ...[
@@ -527,7 +528,7 @@ class _LogScreenState extends State<LogScreen> {
   }
 
   String _dayLabel(DateTime d) {
-    final today = dayOnly(DateTime.now());
+    final today = dayOnly(timeNow());
     if (dateKey(d) == dateKey(today)) return 'TODAY';
     if (dateKey(d) == dateKey(today.minusDays(1))) {
       return 'YESTERDAY';
@@ -879,7 +880,7 @@ Future<void> _openAdd(BuildContext context, String kind) async {
                 decoration: const InputDecoration(suffixText: 'g'),
               ),
               const SizedBox(height: 8),
-              Text('${system.proteinFor(DateTime.now())} g so far today',
+              Text('${system.proteinFor(timeNow())} g so far today',
                   style: AppText.small()),
             ],
             if (kind == 'blood') ...[
@@ -942,7 +943,7 @@ Future<void> _openAdd(BuildContext context, String kind) async {
             ],
             const SizedBox(height: 18),
             PrimaryButton('Save', onPressed: () {
-              final now = DateTime.now();
+              final now = timeNow();
               final num = double.tryParse(a.text.replaceAll(',', '.'));
               switch (kind) {
                 case 'weight':
