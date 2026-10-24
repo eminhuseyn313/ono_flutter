@@ -238,7 +238,7 @@ class PersonalSystemProvider extends ChangeNotifier {
       protein: proteinFor(today),
       cardsDue: dueCards(today).length,
       phase: phase.name,
-      blocks: [for (final b in dailySchedule) (b.minuteOfDay, b.title)],
+      blocks: [for (final b in scheduleFor(today)) (b.minuteOfDay, b.title)],
     );
   }
 
@@ -2836,8 +2836,32 @@ class PersonalSystemProvider extends ChangeNotifier {
     );
   }
 
-  void saveDayShape({required int wake, required int workStart, required int workEnd, required int bed}) {
-    final data = {'wake': wake, 'work_start': workStart, 'work_end': workEnd, 'bed': bed};
+  /// Weekdays they work (1 = Monday): Monday to Friday until set on /day.
+  /// The work block shows on the dial only then.
+  List<int> get workDays {
+    final l = logsOf('day_shape');
+    final v = l.isEmpty ? null : l.first.data['work_days'];
+    if (v is List && v.isNotEmpty) {
+      return [for (final d in v) if (d is num && d >= 1 && d <= 7) d.toInt()]..sort();
+    }
+    return const [1, 2, 3, 4, 5];
+  }
+
+  bool isWorkDay(DateTime day) => workDays.contains(day.weekday);
+
+  void saveDayShape(
+      {required int wake,
+      required int workStart,
+      required int workEnd,
+      required int bed,
+      List<int>? workDays}) {
+    final data = {
+      'wake': wake,
+      'work_start': workStart,
+      'work_end': workEnd,
+      'bed': bed,
+      'work_days': ([...(workDays ?? this.workDays)]..sort()),
+    };
     final l = logsOf('day_shape');
     if (l.isEmpty) {
       addLog('day_shape', data: data);
@@ -2847,15 +2871,40 @@ class PersonalSystemProvider extends ChangeNotifier {
     _syncReminders();
   }
 
-  /// Their day as schedule blocks (for the dial); empty until shaped.
-  List<ScheduleBlock> get personalSchedule {
+  /// The day's schedule for the dial. The built-in schedule is a working
+  /// day, so on a day off he gets the plain shape from his own wake and
+  /// sleep times; anyone else gets their day shape (empty until shaped),
+  /// without the work block on a day off.
+  List<ScheduleBlock> scheduleFor(DateTime day) {
+    if (isBuiltInPerson) {
+      if (isWorkDay(day)) return dailySchedule;
+      return _shapeBlocks(dailySchedule.first.minuteOfDay, null, dailySchedule.last.minuteOfDay);
+    }
     final d = dayShape;
     if (d == null) return const [];
+    return _shapeBlocks(d.wake,
+        d.workStart < d.workEnd && isWorkDay(day) ? (d.workStart, d.workEnd) : null, d.bed);
+  }
+
+  /// The block of [schedule] that has started by [now] (the last one before
+  /// the first block of the day belongs to the night before).
+  static ScheduleBlock? blockAt(List<ScheduleBlock> schedule, DateTime now) {
+    if (schedule.isEmpty) return null;
+    final m = now.hour * 60 + now.minute;
+    var active = schedule.last;
+    for (final b in schedule) {
+      if (b.minuteOfDay <= m) active = b;
+    }
+    return active;
+  }
+
+  List<ScheduleBlock> _shapeBlocks(int wake, (int, int)? work, int bedAt) {
     ScheduleBlock b(int minute, String title, String detail, String lane, IconData icon) =>
         ScheduleBlock((minute ~/ 60) % 24, minute % 60, title, detail, lane, icon);
-    final hasWork = d.workStart < d.workEnd;
     // Lights out after midnight belongs to the same night.
-    final bed = d.bed < d.wake ? d.bed + 24 * 60 : d.bed;
+    final bed = bedAt < wake ? bedAt + 24 * 60 : bedAt;
+    final hasWork = work != null;
+    final d = (wake: wake, workStart: work?.$1 ?? wake, workEnd: work?.$2 ?? wake);
     return [
       b(d.wake, 'Morning', 'Your first items, before the day takes over', 'body',
           Icons.wb_twilight_rounded),
@@ -2873,16 +2922,8 @@ class PersonalSystemProvider extends ChangeNotifier {
   }
 
   /// The block they're in now, if their day is shaped.
-  ScheduleBlock? personalBlockAt(DateTime now) {
-    final s = personalSchedule;
-    if (s.isEmpty) return null;
-    final m = now.hour * 60 + now.minute;
-    var active = s.last;
-    for (final b in s) {
-      if (b.minuteOfDay <= m) active = b;
-    }
-    return active;
-  }
+  ScheduleBlock? personalBlockAt(DateTime now) =>
+      dayShape == null ? null : blockAt(scheduleFor(now), now);
 
   bool reminderOn(String id) {
     final def = [...reminderDefs, ...generalReminderDefs].firstWhere((d) => d.id == id);
@@ -3195,9 +3236,13 @@ class PersonalSystemProvider extends ChangeNotifier {
     if (!calendarConnected || _meetingsDay != dayOnly(day)) return const [];
     final d = dayOnly(day);
     final shape = isBuiltInPerson ? null : dayShape;
+    // His defaults are office hours: nothing to suggest on a day off.
+    if (isBuiltInPerson && !isWorkDay(d)) return const [];
+    final workDay = isWorkDay(d);
     // Night shifts (work ending after midnight) get no daytime suggestions.
-    if (shape != null && shape.workEnd < shape.workStart) return const [];
-    final hasHours = shape != null && shape.workEnd > shape.workStart;
+    if (shape != null && workDay && shape.workEnd < shape.workStart) return const [];
+    // A day off is like no fixed hours: the waking day.
+    final hasHours = shape != null && workDay && shape.workEnd > shape.workStart;
     // No fixed hours: the waking day, up to 90 minutes before bed.
     final open = !hasHours && shape != null && shape.bed > shape.wake;
     DateTime at(int minute) => DateTime(d.year, d.month, d.day, minute ~/ 60, minute % 60);

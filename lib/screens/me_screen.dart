@@ -6,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../data/emin_system.dart';
 import '../models/personal_system.dart';
+import 'day_screen.dart' show workDaysLabel;
 import '../providers/auth_provider.dart';
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
@@ -885,6 +886,16 @@ class MeScreen extends StatelessWidget {
                   subtitle: system.dayShape == null
                       ? 'Wake, work and bed times'
                       : 'Wake ${(system.dayShape!.wake ~/ 60).toString().padLeft(2, '0')}:${(system.dayShape!.wake % 60).toString().padLeft(2, '0')} · lights out ${(system.dayShape!.bed ~/ 60).toString().padLeft(2, '0')}:${(system.dayShape!.bed % 60).toString().padLeft(2, '0')}',
+                  onTap: () => context.push('/day'),
+                ),
+                const Divider(indent: 66),
+              ] else ...[
+                // His schedule is a working day; days off get a plain one.
+                LinkRow(
+                  icon: Icons.schedule_rounded,
+                  color: AppColors.mind,
+                  title: 'Work days',
+                  subtitle: '${workDaysLabel(system.workDays)} · other days are days off',
                   onTap: () => context.push('/day'),
                 ),
                 const Divider(indent: 66),

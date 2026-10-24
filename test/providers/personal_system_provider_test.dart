@@ -2388,10 +2388,10 @@ void main() {
   test('your day: schedule blocks and reminder times follow it', () async {
     final p = await _commissioned();
     p.saveProfile(activeProfile.copyWith(name: 'Someone Else'));
-    expect(p.personalSchedule, isEmpty);
+    expect(p.scheduleFor(DateTime(2026, 10, 5)), isEmpty);
     expect(p.activeReminderDefs.firstWhere((r) => r.id == 'g_checkin').hour, 7);
     p.saveDayShape(wake: 6 * 60 + 30, workStart: 8 * 60, workEnd: 16 * 60, bed: 22 * 60 + 30);
-    expect(p.personalSchedule.map((b) => b.title), ['Morning', 'Work', 'Evening', 'Wind down', 'Sleep']);
+    expect(p.scheduleFor(DateTime(2026, 10, 5)).map((b) => b.title), ['Morning', 'Work', 'Evening', 'Wind down', 'Sleep']);
     final defs = {for (final r in p.activeReminderDefs) r.id: r.timeLabel};
     expect(defs['g_checkin'], '07:00');
     expect(defs['g_items'], '12:00');
@@ -2399,9 +2399,28 @@ void main() {
     expect(p.personalBlockAt(DateTime(2026, 10, 2, 9))!.title, 'Work');
     // No fixed hours: a day block instead of work and evening.
     p.saveDayShape(wake: 8 * 60, workStart: 8 * 60, workEnd: 8 * 60, bed: 24 * 60 - 15);
-    expect(p.personalSchedule.map((b) => b.title), ['Morning', 'Day', 'Wind down', 'Sleep']);
+    expect(p.scheduleFor(DateTime(2026, 10, 5)).map((b) => b.title), ['Morning', 'Day', 'Wind down', 'Sleep']);
     expect(p.logsOf('day_shape').length, 1);
+    // Work days: the work block only on them (Monday to Friday until set).
+    p.saveDayShape(wake: 7 * 60, workStart: 9 * 60, workEnd: 17 * 60, bed: 23 * 60);
+    final sunday = DateTime(2026, 10, 4);
+    expect(p.scheduleFor(sunday).map((b) => b.title), ['Morning', 'Day', 'Wind down', 'Sleep']);
+    p.saveDayShape(
+        wake: 7 * 60, workStart: 9 * 60, workEnd: 17 * 60, bed: 23 * 60, workDays: const [7, 1, 2, 3, 4]);
+    expect(p.workDays, [1, 2, 3, 4, 7]);
+    expect(p.scheduleFor(sunday).map((b) => b.title), contains('Work'));
+    expect(p.scheduleFor(DateTime(2026, 10, 2)).map((b) => b.title), isNot(contains('Work')),
+        reason: 'Friday is off now');
+    // Saving times again keeps the chosen days.
+    p.saveDayShape(wake: 7 * 60, workStart: 9 * 60, workEnd: 18 * 60, bed: 23 * 60);
+    expect(p.workDays, [1, 2, 3, 4, 7]);
     p.resetProfile();
+    // The built-in schedule is a working day; a day off gets the plain shape.
+    p.saveDayShape(wake: 7 * 60, workStart: 9 * 60, workEnd: 17 * 60, bed: 23 * 60, workDays: const [1, 2, 3, 4, 5]);
+    expect(p.scheduleFor(DateTime(2026, 10, 5)), same(dailySchedule));
+    final off = p.scheduleFor(sunday);
+    expect(off.map((b) => b.title), ['Morning', 'Day', 'Wind down', 'Sleep']);
+    expect((off.first.hour, off.first.minute), (dailySchedule.first.hour, dailySchedule.first.minute));
     expect(p.activeReminderDefs, same(reminderDefs));
   });
 
@@ -2906,7 +2925,7 @@ void main() {
 
     p.saveProfile(builtInProfile.copyWith(name: 'Nigar Aliyeva', firstName: 'Nigar'));
     p.saveDayShape(wake: 420, workStart: 540, workEnd: 1080, bed: 30);
-    final s = p.personalSchedule;
+    final s = p.scheduleFor(DateTime(2026, 10, 5));
     final wind = s.firstWhere((b) => b.title == 'Wind down');
     expect((wind.hour, wind.minute), (23, 30));
     final shut = p.activeReminderDefs.firstWhere((r) => r.id == 'g_shutdown');

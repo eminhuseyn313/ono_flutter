@@ -165,9 +165,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       // A smaller dial on short phones keeps the daily list
                       // closer to the top.
                       size: MediaQuery.sizeOf(context).height < 700 ? 220 : 280,
-                      schedule: system.isBuiltInPerson
-                          ? dailySchedule
-                          : system.personalSchedule,
+                      schedule: system.scheduleFor(date),
                       ticks: [
                         for (final n in system.itemsOn(date))
                           (lane: n.lane, done: system.isChecked(date, n.id))
@@ -479,7 +477,9 @@ class _DialCenter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final block = currentBlock(now);
+    final block = PersonalSystemProvider.blockAt(
+            context.watch<PersonalSystemProvider>().scheduleFor(now), now) ??
+        currentBlock(now);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
