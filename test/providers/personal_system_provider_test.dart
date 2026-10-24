@@ -4030,4 +4030,14 @@ void main() {
     expect(p.adviceToReport, isEmpty);
     expect(p.asksToClose, isEmpty);
   });
+
+  test('workday reminders follow the work days', () async {
+    final p = await _commissioned();
+    Set<int> scanDays() =>
+        {for (final r in p.plannedReminders()) if (r.route == '/tool/scan') r.weekday};
+    expect(scanDays(), {1, 2, 3, 4, 5});
+    p.saveDayShape(wake: 360, workStart: 480, workEnd: 1080, bed: 1350, workDays: const [7, 1, 2, 3, 4]);
+    expect(scanDays(), {7, 1, 2, 3, 4});
+    expect({for (final r in p.plannedReminders()) if (r.route == '/tool/read') r.weekday}, {7, 1, 2, 3, 4});
+  });
 }

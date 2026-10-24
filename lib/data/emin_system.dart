@@ -1270,11 +1270,15 @@ class ReminderDef {
 
   /// null = every day; otherwise the weekdays it fires on.
   final List<int>? weekdays;
+
+  /// Part of the working day: fires on the person's work days (Me → Work
+  /// days), whatever [weekdays] says.
+  final bool workDaysOnly;
   final String route;
   final bool defaultOn;
 
   const ReminderDef(this.id, this.label, this.hour, this.minute,
-      {this.weekdays, required this.route, this.defaultOn = true});
+      {this.weekdays, this.workDaysOnly = false, required this.route, this.defaultOn = true});
 
   String get timeLabel =>
       '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
@@ -1293,12 +1297,13 @@ const List<ReminderDef> reminderDefs = [
   ReminderDef('wake', 'Wake — 500ml water', 6, 0, route: '/home'),
   ReminderDef('ritual', 'Morning ritual', 6, 5,
       route: '/ritual-flow/ritual_morning_default'),
-  ReminderDef('scan', 'Supplements + domain scan', 7, 45, route: '/tool/scan'),
+  ReminderDef('scan', 'Supplements + domain scan', 7, 45,
+      workDaysOnly: true, route: '/tool/scan'),
   ReminderDef('evidence_read', 'Read your evidence before the first meeting',
       7, 55,
       weekdays: [DateTime.monday], route: '/evidence'),
   ReminderDef('read', 'Lunch read + Feynman', 12, 0,
-      weekdays: _weekdays, route: '/tool/read'),
+      workDaysOnly: true, route: '/tool/read'),
   ReminderDef('caffeine', 'Last coffee — nothing after 13:00', 12, 55,
       weekdays: _weekdays, route: '/home', defaultOn: false),
   ReminderDef('gym', 'Gym in 15 minutes', 18, 45, route: '/gym'),

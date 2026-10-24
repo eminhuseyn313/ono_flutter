@@ -2956,7 +2956,9 @@ class PersonalSystemProvider extends ChangeNotifier {
       if (def.id == 'pennebaker' && pennebakerSessions >= 4) continue;
       final days = def.id == 'gym'
           ? gymDays
-          : (def.weekdays ?? List.generate(7, (d) => d + 1));
+          : def.workDaysOnly
+              ? workDays
+              : (def.weekdays ?? List.generate(7, (d) => d + 1));
       for (final wd in days) {
         var body = def.label;
         var title = 'ONO';
