@@ -263,7 +263,7 @@ void main() {
           options: 'Ship now / wait for the vendor fix',
           why: 'Drop-off at the video step is 38%',
           expected: 'Completion up 15 points within a month');
-      system.clock = DateTime.now;
+      system.clock = timeNow;
       system.saveReadiness(
           {for (final d in readinessDimensions) d.id: 4, 'strategy': 2});
       system.logProtocolUse('feynman',
@@ -282,7 +282,7 @@ void main() {
       system.clock = () => timeNow().minusDays(30);
       system.writeLetter('Remember why you started: the room at PASHA where '
           'you decided to stop waiting to be noticed.', today);
-      system.clock = DateTime.now;
+      system.clock = timeNow;
       system.writeLetter('Day 540.', system.programEnd);
       system.logFocus(90, 'artifact');
       // A Big 3 with a long outcome, and people: one due, one fresh.
@@ -293,7 +293,7 @@ void main() {
       system.clock = () => timeNow().minusDays(40);
       system.addPerson('Leyla Aliyeva-Huseynova',
           role: 'Head of Product, Kapital Bank — one role ahead', every: 30);
-      system.clock = DateTime.now;
+      system.clock = timeNow;
       final ali = system.addPerson('Ali', role: 'Manager', every: 7);
       system.setRitual(system.people.firstWhere((x) => x.id == ali.id),
           'Thursday walk-and-talk after the steering meeting, no laptops');
@@ -302,7 +302,7 @@ void main() {
       // and Today the "what are you growing" prompt.
       system.clock = () => timeNow().minusDays(35);
       system.setFocus('self_trust', startRating: 2);
-      system.clock = DateTime.now;
+      system.clock = timeNow;
       // One area of his own, so the chooser shows "Your own areas" and the
       // editor has something to edit.
       system.saveCustomArea(const GrowthArea('', 'Being present at home with my wife',

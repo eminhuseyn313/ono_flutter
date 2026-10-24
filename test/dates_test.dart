@@ -16,6 +16,7 @@ import 'package:ono/models/personal_system.dart';
 import 'package:ono/providers/auth_provider.dart';
 import 'package:ono/providers/personal_system_provider.dart';
 import 'package:ono/services/reminder_service.dart';
+import 'package:ono/time.dart';
 
 import 'support/fake_health.dart';
 
@@ -66,7 +67,7 @@ void main() {
       for (final f in Directory('lib').listSync(recursive: true).whereType<File>())
         if (f.path.endsWith('.dart') &&
             !f.path.endsWith('time.dart') &&
-            RegExp(r'DateTime\.now\(\)|\bclock\.now\(\)').hasMatch(f.readAsStringSync()))
+            RegExp(r'\bDateTime\.now\b|\bclock\.now\(\)').hasMatch(f.readAsStringSync()))
           f.path
     ];
     expect(offenders, isEmpty, reason: 'use timeNow() (lib/time.dart) so tests can pin a moment');
@@ -78,6 +79,10 @@ void main() {
           (tester) {
         // Time still passes inside the test (pumps advance the fake clock),
         // but starting from the chosen moment.
+        // This test chooses its own moments, so no suite-wide shift.
+        final shift = timeShift;
+        timeShift = Duration.zero;
+        addTearDown(() => timeShift = shift);
         final outer = clock;
         final start = outer.now();
         return withClock(Clock(() => m.value.add(outer.now().difference(start))),
@@ -138,9 +143,11 @@ void main() {
           system.addLog('win', date: today.minusDays(2), text: 'Finished the draft');
           system.setWeekOutcome(today, 0, 'Ship the draft');
 
-          expect(system.logicalToday,
-              m.value.hour < 4 ? today.minusDays(1) : today,
-              reason: 'the day ends at 04:00');
+          // Checks record into [errors]: an expect while onError is
+          // replaced would wedge the runner.
+          if (system.logicalToday != (m.value.hour < 4 ? today.minusDays(1) : today)) {
+            errors.add('logicalToday ${system.logicalToday}: the day ends at 04:00');
+          }
 
           for (final r in _routes) {
             route = r;
@@ -148,7 +155,9 @@ void main() {
             await _pumpFor(tester, const Duration(milliseconds: 900));
             if (r == '/home') {
               // The screens read the same clock as the provider.
-              expect(find.textContaining('Day ${system.programDay}'), findsWidgets);
+              if (find.textContaining('Day ${system.programDay}').evaluate().isEmpty) {
+                errors.add('Today does not show day ${system.programDay}');
+              }
             }
             for (var i = 0; i < 4; i++) {
               final s = find.byType(Scrollable);
