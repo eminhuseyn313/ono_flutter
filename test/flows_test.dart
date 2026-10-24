@@ -329,10 +329,12 @@ void main() {
     final system = await _start(tester);
     system.saveGoal(title: 'Run a half marathon', milestones: const ['Run 10 km without stopping']);
     await _go(tester, '/week');
-    await _tap(tester, find.text('Use these'));
+    // From Saturday next week is planned on the same page, with its own button.
+    final before = find.text('Use these').evaluate().length;
+    await _tap(tester, find.text('Use these').first);
     final week = weekStartOf(DateTime.now());
     expect(system.weekOutcomes(week).first, 'Run 10 km without stopping');
-    expect(find.text('Use these'), findsNothing);
+    expect(find.text('Use these'), findsNWidgets(before - 1));
   });
 
   testWidgets('the month-end rating shows the lessons and feedback first',

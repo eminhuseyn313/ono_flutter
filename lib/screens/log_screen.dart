@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../data/emin_system.dart';
 import '../models/personal_system.dart';
 import '../providers/personal_system_provider.dart';
+import 'checkin_screen.dart' show moodLabels;
 import '../theme/app_theme.dart';
 import '../widgets/ono_ui.dart';
 
@@ -767,8 +768,8 @@ class _EntryRow extends StatelessWidget {
       case 'checkin':
         final stiff = (e.number('stiffness') ?? 0).toInt();
         if (!builtIn) {
-          final mood = (e.number('mood') ?? 0).toInt();
-          return 'Energy ${e.number('energy')}/5 · sleep ${e.number('sleep')} h · mood ${mood > 0 ? '+$mood' : '$mood'}';
+          final mood = (e.number('mood') ?? 0).toInt().clamp(-2, 2);
+          return 'Energy ${e.number('energy')}/5 · sleep ${e.number('sleep')} h · ${moodLabels[mood + 2].toLowerCase()}';
         }
         return 'Energy ${e.number('energy')}/5 · sleep ${e.number('sleep')} h · '
             'shoulders ${e.number('pain')}/10'
