@@ -53,7 +53,7 @@ FakeCalendarService _calendar() {
   return FakeCalendarService(meetings: [
     Meeting(
         id: 'noon',
-        title: 'Business ID weekly sync',
+        title: 'Weekly product sync',
         start: d.add(const Duration(hours: 12)),
         end: d.add(const Duration(hours: 13)),
         attendees: const ['Leyla', 'Tural', 'Nigar']),
@@ -639,7 +639,9 @@ void main() {
       // A planned rest day today: Today shows the rest card.
       errors.clear();
       try {
-        final rest = system.planRest('day', today, today,
+        // Before 04:00 Today still shows the night before.
+        final shown = system.logicalToday;
+        final rest = system.planRest('day', shown, shown,
             note: 'Family day — long walk, no laptop, phone in the drawer')!;
         await _go(tester, '/home');
         final card = find.textContaining('Rest is part of the plan');
@@ -754,7 +756,7 @@ void main() {
         await _pumpFor(tester, const Duration(milliseconds: 800));
         await tester.tap(find.text('Minimum day').last);
         await _pumpFor(tester, const Duration(milliseconds: 600));
-        if (system.hardDayOn(timeNow()) != 'minimum') {
+        if (system.hardDayOn(system.logicalToday) != 'minimum') {
           errors.add('minimum day not set from the sheet');
         }
         final card = find.textContaining('smallest version of each item counts');
@@ -763,7 +765,7 @@ void main() {
           await tester.pump(const Duration(milliseconds: 100));
         }
         if (card.evaluate().isEmpty) errors.add('minimum day card not shown');
-        system.setHardDay(timeNow(), null);
+        system.setHardDay(system.logicalToday, null);
       } catch (e) {
         errors.add('$e');
       }

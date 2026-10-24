@@ -2166,7 +2166,8 @@ class _DailyTen extends StatelessWidget {
               child: TextButton(
                 onPressed: () => showHardDaySheet(context, date),
                 style: TextButton.styleFrom(padding: EdgeInsets.zero),
-                child: Text(dayOnly(date) == dayOnly(timeNow())
+                // Before 04:00 the open day is still "today".
+                child: Text(dayOnly(date) == system.logicalToday
                     ? 'Hard day? Choose how today counts'
                     : 'Was it a hard day? Choose how it counts'),
               ),

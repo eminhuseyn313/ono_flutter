@@ -773,7 +773,7 @@ void main() {
   test('check-ups to ask about follow age and sex, never without a birth year', () async {
     final p = await _commissioned();
     expect(p.checkupsToAsk, isEmpty);
-    final year = timeNow().year;
+    final year = p.logicalToday.year;
     p.setCareDetails(sex: 'female', birthYear: year - 45);
     final ids = p.checkupsToAsk.map((c) => c.id).toSet();
     expect(ids, containsAll(['bp', 'lipids', 'bowel', 'cervical', 'breast']));

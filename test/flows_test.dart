@@ -304,7 +304,10 @@ void main() {
 
   testWidgets('year in review: answer, choose a word, save', (tester) async {
     final system = await _start(tester);
-    system.addLog('win', text: 'Ran my first 10k');
+    final y = system.yearToReview;
+    system.addLog('win',
+        text: 'Ran my first 10k',
+        date: y != null && y < timeNow().year ? DateTime(y, 12, 31) : null);
     // Out of season it shows the year so far, with nothing to save.
     if (system.yearToReview == null) {
       await _go(tester, '/year');
@@ -404,7 +407,7 @@ void main() {
   testWidgets('a low morning offers a minimum day; a set priority shows on Today',
       (tester) async {
     final system = await _start(tester);
-    final today = dayOnly(timeNow());
+    final today = system.logicalToday;
     system.saveCheckin(today, energy: 2, mood: 0, sleep: 7, pain: 0, stiffness: 0);
     await _go(tester, '/home');
     await _tap(tester, find.text('Make it a minimum day'));
