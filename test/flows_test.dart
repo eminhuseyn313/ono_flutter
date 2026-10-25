@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show AuthChangeEvent;
 
+import 'package:ono/data/emin_system.dart';
 import 'package:ono/main.dart';
 import 'package:ono/gateways/mock_auth_gateway.dart';
 import 'package:ono/gateways/mock_personal_system_gateway.dart';
@@ -819,4 +820,27 @@ void main() {
     await _go(tester, '/models');
     await _reach(tester, find.text('One step ahead'));
   });
+
+  for (final builtIn in [true, false]) {
+    testWidgets('a day off gets its own card, not the working day\'s (${builtIn ? 'built-in' : 'someone else'})',
+        (tester) async {
+      final shift = timeShift;
+      addTearDown(() => timeShift = shift);
+      Future<void> at(DateTime t) async => timeShift = t.difference(DateTime.now());
+      await at(DateTime(2026, 10, 31, 11)); // a Saturday
+      final system = await _start(tester);
+      if (!builtIn) {
+        system.saveProfile(activeProfile.copyWith(name: 'Sam Rivera', firstName: 'Sam'));
+      }
+      await _go(tester, '/home');
+      expect(find.byKey(const Key('mode-day-off')), findsOneWidget);
+      expect(find.textContaining('A day off,'), findsOneWidget);
+      expect(find.text('6Q prep'), findsNothing);
+      await at(DateTime(2026, 11, 3, 11)); // a Tuesday
+      await _go(tester, '/profile');
+      await _go(tester, '/home');
+      await _pumpFor(tester, const Duration(seconds: 61)); // Today's minute tick
+      expect(find.byKey(const Key('mode-day-off')), findsNothing);
+    });
+  }
 }

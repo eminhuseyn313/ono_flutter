@@ -26,7 +26,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-enum _Mode { morning, work, evening, sunday }
+enum _Mode { morning, work, dayOff, evening, sunday }
 
 class _HomeScreenState extends State<HomeScreen> {
   Timer? _clock;
@@ -72,13 +72,14 @@ class _HomeScreenState extends State<HomeScreen> {
     // After midnight it is still the evening before, not morning.
     if (_now.hour < PersonalSystemProvider.dayEndsAt) return _Mode.evening;
     if (m < 10 * 60 + 30) return _Mode.morning;
-    if (m < 18 * 60) return _Mode.work;
+    if (m < 18 * 60) return system.isWorkDay(_now) ? _Mode.work : _Mode.dayOff;
     return _Mode.evening;
   }
 
   String get _greeting => switch (_mode) {
         _Mode.morning => 'Good morning, ${activeProfile.firstName}.',
         _Mode.work => 'Stay deliberate, ${activeProfile.firstName}.',
+        _Mode.dayOff => 'A day off, ${activeProfile.firstName}.',
         _Mode.evening => 'Good evening, ${activeProfile.firstName}.',
         _Mode.sunday => 'Sunday, ${activeProfile.firstName}. Review the week.',
       };
@@ -589,6 +590,7 @@ class _ModeCard extends StatelessWidget {
             route: '/ritual-flow/ritual_morning_default',
           );
         }
+        if (ritualDone && !system.isWorkDay(today)) return _dayOff(context);
         return ritualDone
             ? _action(
                 context,
@@ -630,6 +632,8 @@ class _ModeCard extends StatelessWidget {
             ],
           ),
         );
+      case _Mode.dayOff:
+        return _dayOff(context);
       case _Mode.evening:
         final gym = system.gymDayOn(today);
         if (gym != null &&
@@ -765,6 +769,8 @@ class _ModeCard extends StatelessWidget {
             ],
           ),
         );
+      case _Mode.dayOff:
+        return _dayOff(context);
       case _Mode.evening:
         if (system.shutdownFor(today) == null) {
           return _action(context,
@@ -796,6 +802,35 @@ class _ModeCard extends StatelessWidget {
             route: '/weekly-coaching');
     }
   }
+
+  /// A day off: rest is part of the plan, so the card offers what restores
+  /// rather than the working day's tools.
+  Widget _dayOff(BuildContext context) => OnoCard(
+        key: const Key('mode-day-off'),
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('A DAY OFF', style: AppText.eyebrow()),
+            const SizedBox(height: 6),
+            Text('People, movement, something just for you. Your list still counts — the smallest versions are fine.',
+                style: AppText.small()),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                _tool(context, Icons.people_outline_rounded, 'Someone', '/people',
+                    AppColors.social),
+                _tool(context, Icons.directions_walk_rounded, 'Move', '/move',
+                    AppColors.body),
+                _tool(context, Icons.menu_book_rounded, 'Read', '/learning',
+                    AppColors.skill),
+                _tool(context, Icons.air_rounded, 'Breathe', '/tool/sigh',
+                    AppColors.mind),
+              ],
+            ),
+          ],
+        ),
+      );
 
   Widget _tool(BuildContext context, IconData icon, String label, String route,
           Color color) =>
