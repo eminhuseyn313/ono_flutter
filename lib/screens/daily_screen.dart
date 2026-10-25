@@ -51,7 +51,7 @@ class _DailyScreenState extends State<DailyScreen> {
       eyebrow: '${active.length} items · ${system.holdTarget} hold the day',
       title: 'Your daily items',
       subtitle:
-          'A few things done every day beat many done sometimes. Retire an item once it runs on its own; add what your next stage needs.',
+          'A few things done every day beat many done sometimes. Retire an item once it runs on its own; add what your next stage needs. The briefcase marks an item of the working day: it rests on days off.',
       children: [
         for (final g in nonNegotiableGroups)
           if (active.any((n) => n.when == g[0])) ...[
@@ -66,8 +66,30 @@ class _DailyScreenState extends State<DailyScreen> {
                         LaneDot(n.lane),
                         const SizedBox(width: 10),
                         Expanded(
-                          child: Text(n.title,
-                              style: AppText.body(color: AppColors.white)),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(n.title, style: AppText.body(color: AppColors.white)),
+                              if (system.isWorkDaysOnly(n.id))
+                                Text('Work days only', style: AppText.small()),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          key: Key('daily-work-${n.id}'),
+                          tooltip: system.isWorkDaysOnly(n.id)
+                              ? 'Count it every day'
+                              : 'Work days only — rests on days off',
+                          onPressed: () {
+                            final on = !system.isWorkDaysOnly(n.id);
+                            system.setWorkDaysOnly(n.id, on);
+                            toast(context, on
+                                ? 'From today it rests on days off.'
+                                : 'From today it counts every day.');
+                          },
+                          icon: Icon(Icons.work_outline_rounded,
+                              size: 20,
+                              color: system.isWorkDaysOnly(n.id) ? AppColors.accent : AppColors.faint),
                         ),
                         if (n.id.startsWith('d_'))
                           IconButton(

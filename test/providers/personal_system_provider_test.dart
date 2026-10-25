@@ -4040,4 +4040,36 @@ void main() {
     expect(scanDays(), {7, 1, 2, 3, 4});
     expect({for (final r in p.plannedReminders()) if (r.route == '/tool/read') r.weekday}, {7, 1, 2, 3, 4});
   });
+
+  test('items of the working day rest on days off, never rewriting the past', () async {
+    final p = await _commissioned(); // Friday 2 Oct
+    final saturday = DateTime(2026, 10, 31), monday = DateTime(2026, 11, 2);
+    // His defaults (desk scan, BLUF, lunch read) count from 25 Oct only.
+    expect(p.itemIdsOn(DateTime(2026, 10, 24)).length, 10, reason: 'before the defaults');
+    expect(p.itemIdsOn(saturday), isNot(contains('scan')));
+    expect(p.itemIdsOn(saturday).length, 7);
+    expect(p.targetFor(saturday), 5);
+    expect(p.itemIdsOn(monday).length, 10);
+    // Marking another item counts from today; last Saturday keeps its list.
+    p.setWorkDaysOnly('sigh', true);
+    expect(p.isWorkDaysOnly('sigh'), isTrue);
+    expect(p.itemIdsOn(DateTime(2026, 10, 3)), isNot(contains('sigh')));
+    expect(p.itemIdsOn(DateTime(2026, 9, 26)), contains('sigh'));
+    // Undone the same day: nothing left behind.
+    p.setWorkDaysOnly('sigh', false);
+    expect(p.isDone('daily:workonly:sigh:2026-10-02'), isFalse);
+    expect(p.itemIdsOn(DateTime(2026, 10, 3)), contains('sigh'));
+    // Work days changed today: a past Friday stays a work day.
+    p.setWorkDaysOnly('pause', true);
+    p.saveDayShape(wake: 420, workStart: 540, workEnd: 1080, bed: 1380, workDays: const [7, 1, 2, 3, 4]);
+    expect(p.isWorkDay(DateTime(2026, 10, 9)), isFalse);
+    expect(p.isWorkDay(DateTime(2026, 9, 25)), isTrue);
+    expect(p.itemIdsOn(DateTime(2026, 10, 4)), contains('pause'), reason: 'Sunday is a work day now');
+    expect(p.itemIdsOn(DateTime(2026, 10, 9)), isNot(contains('pause')));
+    // A resting item doesn't slip on its days off.
+    final days = [DateTime(2026, 10, 9), DateTime(2026, 10, 12)];
+    p.clock = () => DateTime(2026, 10, 13, 12);
+    p.setCheck(DateTime(2026, 10, 12), 'pause', true);
+    expect(p.itemRates(days)['pause'], 1.0);
+  });
 }

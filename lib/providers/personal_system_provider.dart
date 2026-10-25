@@ -694,6 +694,14 @@ class PersonalSystemProvider extends ChangeNotifier {
   }
 
   Set<String> itemIdsOn(DateTime date) {
+    final base = _listIdsOn(date);
+    // A day off: items of the working day rest.
+    if (isWorkDay(date)) return base;
+    final rest = {for (final id in base) if (!workDaysOnlyOn(id, date)) id};
+    return rest.isEmpty ? base : rest;
+  }
+
+  Set<String> _listIdsOn(DateTime date) {
     dailyItems;
     final s = _snapshots;
     final k = dateKey(date);
@@ -707,6 +715,63 @@ class PersonalSystemProvider extends ChangeNotifier {
     }
     // Days before the first change used the first list on record.
     return found ?? s.first.$2;
+  }
+
+  // ── Items of the working day ─────────────────────────────────────────
+
+  // Marking an item "work days only" (or back) takes effect from the day
+  // it's done — done keys `daily:workonly:<id>:<date>` and
+  // `daily:everyday:<id>:<date>` — so days already scored keep their list.
+  PersonalSystemState? _workOnlyState;
+  Map<String, List<(String, bool)>> _workOnlyIndex = const {};
+
+  Map<String, List<(String, bool)>> get _workOnlyChanges {
+    if (!identical(_workOnlyState, _state)) {
+      _workOnlyState = _state;
+      final m = <String, List<(String, bool)>>{};
+      for (final key in _state?.done ?? const <String>{}) {
+        final on = key.startsWith('daily:workonly:');
+        if (!on && !key.startsWith('daily:everyday:')) continue;
+        final rest = key.substring('daily:workonly:'.length);
+        final cut = rest.lastIndexOf(':');
+        if (cut <= 0) continue;
+        (m[rest.substring(0, cut)] ??= []).add((rest.substring(cut + 1), on));
+      }
+      for (final l in m.values) {
+        l.sort((a, b) => a.$1.compareTo(b.$1));
+      }
+      _workOnlyIndex = m;
+    }
+    return _workOnlyIndex;
+  }
+
+  /// Whether [id] rests on days off, as it stood on [date].
+  bool workDaysOnlyOn(String id, DateTime date) {
+    final k = dateKey(date);
+    bool? found;
+    for (final (d, on) in _workOnlyChanges[id] ?? const <(String, bool)>[]) {
+      if (d.compareTo(k) > 0) break;
+      found = on;
+    }
+    return found ??
+        (workDayOnlyItems.contains(id) && k.compareTo(workDayOnlyFrom) >= 0);
+  }
+
+  bool isWorkDaysOnly(String id) => workDaysOnlyOn(id, logicalToday);
+
+  /// From today on, [id] rests on days off (or counts every day again).
+  void setWorkDaysOnly(String id, bool on) {
+    final s = _state;
+    if (s == null || isWorkDaysOnly(id) == on) return;
+    final today = dateKey(logicalToday);
+    final next = Set<String>.from(s.done)
+      ..remove('daily:workonly:$id:$today')
+      ..remove('daily:everyday:$id:$today');
+    // Back to how it stood before today: no mark needed.
+    if (workDaysOnlyOn(id, logicalToday.minusDays(1)) != on) {
+      next.add('daily:${on ? 'workonly' : 'everyday'}:$id:$today');
+    }
+    _update(s.copyWith(done: next));
   }
 
   /// Runs [change] to the daily list and records the list it leaves, so
@@ -1097,9 +1162,14 @@ class PersonalSystemProvider extends ChangeNotifier {
   Map<String, double> itemRates(List<DateTime> all) {
     final days = [for (final d in all) if (!isExcused(d)) d];
     if (days.isEmpty) return {for (final n in dailyItems) n.id: 0};
+    // An item counts on the days it was on that day's list (a workday
+    // item doesn't slip on a day off).
     return {
       for (final n in dailyItems)
-        n.id: days.where((d) => isChecked(d, n.id)).length / days.length,
+        n.id: () {
+          final on = [for (final d in days) if (itemIdsOn(d).contains(n.id)) d];
+          return on.isEmpty ? 0.0 : on.where((d) => isChecked(d, n.id)).length / on.length;
+        }(),
     };
   }
 
@@ -2838,16 +2908,41 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   /// Weekdays they work (1 = Monday): Monday to Friday until set on /day.
   /// The work block shows on the dial only then.
-  List<int> get workDays {
-    final l = logsOf('day_shape');
-    final v = l.isEmpty ? null : l.first.data['work_days'];
-    if (v is List && v.isNotEmpty) {
-      return [for (final d in v) if (d is num && d >= 1 && d <= 7) d.toInt()]..sort();
+  List<int> get workDays => workDaysOn(dayOnly(_now));
+
+  // Work days as they stood on a date: a change counts from the day it's
+  // made (`work_days_from` on the day shape), so past days keep their list.
+  PersonalSystemState? _workDaysState;
+  List<(String, List<int>)> _workDaysIndex = const [];
+
+  static List<int> _days(Object? v) => v is List
+      ? ([for (final d in v) if (d is num && d >= 1 && d <= 7) d.toInt()]..sort())
+      : const [];
+
+  List<int> workDaysOn(DateTime date) {
+    if (!identical(_workDaysState, _state)) {
+      _workDaysState = _state;
+      final l = logsOf('day_shape').firstOrNull;
+      final from = l?.data['work_days_from'];
+      _workDaysIndex = [
+        if (from is Map)
+          for (final e in from.entries)
+            if (_days(e.value).isNotEmpty) ('${e.key}', _days(e.value)),
+      ]..sort((a, b) => a.$1.compareTo(b.$1));
+      // Chosen before the history was kept: from the beginning.
+      final current = _days(l?.data['work_days']);
+      if (_workDaysIndex.isEmpty && current.isNotEmpty) _workDaysIndex = [('', current)];
     }
-    return const [1, 2, 3, 4, 5];
+    final k = dateKey(date);
+    List<int>? found;
+    for (final (d, days) in _workDaysIndex) {
+      if (d.compareTo(k) > 0) break;
+      found = days;
+    }
+    return found ?? const [1, 2, 3, 4, 5];
   }
 
-  bool isWorkDay(DateTime day) => workDays.contains(day.weekday);
+  bool isWorkDay(DateTime day) => workDaysOn(day).contains(day.weekday);
 
   void saveDayShape(
       {required int wake,
@@ -2855,12 +2950,22 @@ class PersonalSystemProvider extends ChangeNotifier {
       required int workEnd,
       required int bed,
       List<int>? workDays}) {
+    final days = [...(workDays ?? this.workDays)]..sort();
+    final old = logsOf('day_shape').firstOrNull;
+    final history = {...(old?.data['work_days_from'] as Map? ?? const {})};
+    if (history.isEmpty && old != null && _days(old.data['work_days']).isNotEmpty) {
+      history[dateKey(journeyStart.minusDays(1))] = _days(old.data['work_days']);
+    }
+    if (days.join(',') != this.workDays.join(',')) {
+      history[dateKey(dayOnly(_now))] = days;
+    }
     final data = {
       'wake': wake,
       'work_start': workStart,
       'work_end': workEnd,
       'bed': bed,
-      'work_days': ([...(workDays ?? this.workDays)]..sort()),
+      'work_days': days,
+      if (history.isNotEmpty) 'work_days_from': history,
     };
     final l = logsOf('day_shape');
     if (l.isEmpty) {

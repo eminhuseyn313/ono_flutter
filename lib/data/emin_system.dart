@@ -1041,6 +1041,13 @@ const List<NonNegotiable> nonNegotiables = [
   NonNegotiable('bed', 'In bed by 10:30pm', 'body', 'evening'),
 ];
 
+/// Items that belong to the working day: they rest on days off (Emin's
+/// choice, 25 Oct 2026), from [workDayOnlyFrom] so earlier days keep the
+/// list they were scored on. Changed per item on /daily.
+const workDayOnlyItems = {'scan', 'bluf', 'read'};
+const workDayOnlyFrom = '2026-10-25';
+
+
 /// Default if-then plans (implementation intentions): the cue that
 /// triggers each Daily 10 item. Editable on /plans.
 const Map<String, String> defaultCues = {
