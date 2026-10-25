@@ -484,7 +484,7 @@ class _DialCenter extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(label?.eyebrow ?? '${block.timeLabel} · NOW',
+        Text(label?.eyebrow ?? 'NOW · SINCE ${block.timeLabel}',
             style: AppText.eyebrow(color: AppColors.accent)),
         const SizedBox(height: 4),
         Text(label?.title ?? block.title,
