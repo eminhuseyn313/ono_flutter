@@ -209,7 +209,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 _RestCard(day: today),
               ],
               if (!_yesterday && system.hasStarted) _Prompts(now: _now),
-              SectionHeader('Daily ${system.dailyCount}',
+              SectionHeader('Daily ${system.itemIdsOn(date).length}',
                   action: 'Edit', onAction: () => context.push('/daily')),
               if (system.hasStarted &&
                   (system.hardDayOn(date) != null ||
