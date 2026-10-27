@@ -7206,8 +7206,17 @@ class PersonalSystemProvider extends ChangeNotifier {
         sleepHoursFor(d) ?? checkinFor(d)?.number('sleep')?.toDouble();
     // A minimum day's lower bar would read as a worse day.
     double? score(DateTime d) => isMinimumDay(d) ? null : scoreShare10(d);
-    double scoreWithout(DateTime d, String id) =>
-        (scoreFor(d) - (isChecked(d, id) ? 1 : 0)).toDouble();
+    // The rest of that day's list, as a share scaled to today's: a short
+    // day off would otherwise read as a worse day.
+    final others = max(1, dailyCount - 1);
+    double? scoreWithout(DateTime d, String id) {
+      final n = itemIdsOn(d).length - 1;
+      if (n <= 0) return null;
+      return (scoreFor(d) - (isChecked(d, id) ? 1 : 0)) / n * others;
+    }
+    // An item's habit only on days it was on that day's list.
+    bool? ticked(DateTime d, String id) =>
+        itemIdsOn(d).contains(id) ? isChecked(d, id) : null;
     bool trained(DateTime d) => logsOn(d, 'gym').isNotEmpty;
 
     final out = <DayPattern>[];
@@ -7261,7 +7270,7 @@ class PersonalSystemProvider extends ChangeNotifier {
         outcome: 'energy next morning',
         unit: '/5',
         threshold: 0.3,
-        when: (d) => isChecked(d, 'bed'),
+        when: (d) => ticked(d, 'bed'),
         measure: (d) => energy(next(d)));
     }
     if (items.contains('caffeine')) {
@@ -7271,7 +7280,7 @@ class PersonalSystemProvider extends ChangeNotifier {
         outcome: 'sleep that night',
         unit: ' h',
         threshold: 0.25,
-        when: (d) => isChecked(d, 'caffeine'),
+        when: (d) => ticked(d, 'caffeine'),
         measure: (d) => sleep(next(d)));
     }
     compare(
@@ -7294,10 +7303,10 @@ class PersonalSystemProvider extends ChangeNotifier {
       compare(
         id: 'ritual_score',
         habit: 'Morning ritual',
-        outcome: 'the other nine items',
-        unit: '/9',
+        outcome: 'the other ${others == 9 ? 'nine' : others} items',
+        unit: '/$others',
         threshold: 0.5,
-        when: (d) => isChecked(d, 'manifesto'),
+        when: (d) => ticked(d, 'manifesto'),
         measure: (d) => scoreWithout(d, 'manifesto'));
     }
     compare(

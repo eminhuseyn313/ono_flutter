@@ -4072,4 +4072,23 @@ void main() {
     p.setCheck(DateTime(2026, 10, 12), 'pause', true);
     expect(p.itemRates(days)['pause'], 1.0);
   });
+
+  test('patterns read a short day off as a share, not as a worse day', () async {
+    final p = await _commissioned(); // started 1 Sep, today 2 Oct
+    p.clock = () => _start;
+    for (final id in ['scan', 'bluf', 'read']) {
+      p.setWorkDaysOnly(id, true);
+    }
+    p.clock = () => _today;
+    // The ritual only on weekends; everything else done every day.
+    for (var d = _start; d.isBefore(dayOnly(_today)); d = d.plusDays(1)) {
+      final off = !p.isWorkDay(d);
+      for (final id in p.itemIdsOn(d)) {
+        if (id == 'manifesto' && !off) continue;
+        p.setCheck(d, id, true);
+      }
+    }
+    expect(p.patterns().where((x) => x.id == 'ritual_score'), isEmpty,
+        reason: 'the rest of the list was fully done either way');
+  });
 }
