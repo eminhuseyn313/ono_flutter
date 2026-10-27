@@ -164,7 +164,9 @@ class _Journey extends StatelessWidget {
                           unit: '/30')),
                   Expanded(
                       child: StatTile(
-                          stats.daily10Average.toStringAsFixed(1), 'Daily avg',
+                          // Kept out of 10; shown on the list's own scale.
+                          (stats.daily10Average * system.dailyCount / 10).toStringAsFixed(1),
+                          'Daily avg',
                           unit: '/${system.dailyCount}')),
                   // Same count as the month review: excused days left out.
                   Expanded(
@@ -591,7 +593,7 @@ class _WeekPlan extends StatelessWidget {
                       Text(
                           d.isAfter(now)
                               ? '—'
-                              : '${system.scoreFor(d)}/${system.dailyCount}',
+                              : '${system.scoreFor(d)}/${system.itemIdsOn(d).length}',
                           style: AppText.small(color: AppColors.white)
                               .copyWith(fontWeight: FontWeight.w700)),
                     ],

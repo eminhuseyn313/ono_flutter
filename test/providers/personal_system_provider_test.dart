@@ -4091,4 +4091,22 @@ void main() {
     expect(p.patterns().where((x) => x.id == 'ritual_score'), isEmpty,
         reason: 'the rest of the list was fully done either way');
   });
+
+  test('the week\'s average counts a full day off as full', () async {
+    final p = await _commissioned(); // today Friday 2 Oct
+    p.clock = () => DateTime(2026, 9, 21, 9); // a Monday
+    p.setWorkDaysOnly('scan', true);
+    p.setWorkDaysOnly('bluf', true);
+    p.setWorkDaysOnly('read', true);
+    p.clock = () => DateTime(2026, 9, 28, 9); // the next Monday
+    final saturday = DateTime(2026, 9, 26), sunday = DateTime(2026, 9, 27);
+    for (final d in [saturday, sunday]) {
+      for (final id in p.itemIdsOn(d)) {
+        p.setCheck(d, id, true);
+      }
+    }
+    expect(p.itemIdsOn(saturday).length, 7);
+    // Monday to Friday untouched (0), the weekend full: 2 of 7 days at 10.
+    expect(p.weekAverage(saturday), closeTo(20 / 7, 0.001));
+  });
 }

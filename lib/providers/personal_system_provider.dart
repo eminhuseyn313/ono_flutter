@@ -1065,7 +1065,11 @@ class PersonalSystemProvider extends ChangeNotifier {
             !isPaused(d))
         .toList();
     if (days.isEmpty) return 0;
-    return days.fold<int>(0, (sum, d) => sum + scoreFor(d)) / days.length;
+    // Each day as a share of its own list (a day off has fewer items),
+    // shown on the scale of today's list.
+    return days.fold<double>(
+            0, (sum, d) => sum + scoreFor(d) / max(1, itemIdsOn(d).length) * dailyCount) /
+        days.length;
   }
 
   int gymSessionsInWeek(DateTime anyDay) =>

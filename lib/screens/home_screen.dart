@@ -2018,7 +2018,7 @@ class _CheckinCard extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: Text(
-                    '${energy != null && energy <= 2 ? 'Energy $energy/5' : 'Under 6 hours of sleep'}. Make today a minimum day? ${system.minimumTarget} of ${system.dailyCount} counts, smallest versions are fine.',
+                    '${energy != null && energy <= 2 ? 'Energy $energy/5' : 'Under 6 hours of sleep'}. Make today a minimum day? ${PersonalSystemProvider.minTargetOf(system.itemIdsOn(system.logicalToday).length)} of ${system.itemIdsOn(system.logicalToday).length} counts, smallest versions are fine.',
                     style: AppText.small()),
               ),
               Wrap(
@@ -2253,7 +2253,7 @@ Future<void> showHardDaySheet(BuildContext context, DateTime date) {
                 style: AppText.small()),
             const SizedBox(height: 10),
             option('minimum', Icons.compress_rounded, 'Minimum day',
-                'Swamped or low. Do the smallest version of each item; ${system.minimumTarget} of ${system.itemIdsOn(date).length} holds the day.'),
+                'Swamped or low. Do the smallest version of each item; ${PersonalSystemProvider.minTargetOf(system.itemIdsOn(date).length)} of ${system.itemIdsOn(date).length} holds the day.'),
             option('sick', Icons.healing_outlined, 'Sick day',
                 'Rest is the plan. Nothing is expected; your streak waits for you.'),
             option('pass', Icons.flash_on_outlined, 'Emergency skip',
