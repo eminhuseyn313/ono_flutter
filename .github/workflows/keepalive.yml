@@ -1,0 +1,22 @@
+name: Keep Supabase awake
+
+# Free Supabase projects pause after about a week without traffic, and
+# then sign-in, sync and the weekly brief stop. One harmless read every
+# three days keeps the project awake. The key is the public one the web app
+# already ships; row-level security returns no rows to it.
+on:
+  schedule:
+    - cron: '17 6 */3 * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read once
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' \
+            'https://kkgkbfxvovrtmnoezcha.supabase.co/rest/v1/personal_system?select=user_id&limit=1' \
+            -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtrZ2tiZnh2b3ZydG1ub2V6Y2hhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU4NzA0NDMsImV4cCI6MjEwMTQ0NjQ0M30.d_a-m0D73Bv_mCcvgopurhI0axvHQj3Ng26A4tedhIk")
+          echo "Supabase answered $code"
+          test "$code" = 200
