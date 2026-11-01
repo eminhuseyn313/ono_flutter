@@ -29,17 +29,17 @@ class _HabitsScreenState extends State<HabitsScreen> {
     super.didChangeDependencies();
     if (_loaded) return;
     _loaded = true;
-    _ratings = Map.of(
-        context.read<PersonalSystemProvider>().automaticityRatings);
+    _ratings =
+        Map.of(context.read<PersonalSystemProvider>().automaticityRatings);
   }
 
   @override
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
     final today = dayOnly(timeNow());
-    final days = [
-      for (var i = 1; i <= 30; i++) today.minusDays(i)
-    ].where((d) => !d.isBefore(system.programStart)).toList();
+    final days = [for (var i = 1; i <= 30; i++) today.minusDays(i)]
+        .where((d) => !d.isBefore(system.programStart))
+        .toList();
     final rates = system.itemRates(days);
     return OnoPage(
       showBack: true,
@@ -92,29 +92,34 @@ class _HabitsScreenState extends State<HabitsScreen> {
                       for (var v = 1; v <= 5; v++)
                         Expanded(
                           child: Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 2),
-                            child: GestureDetector(
-                              onTap: () {
-                                HapticFeedback.selectionClick();
-                                setState(() => _ratings[n.id] = v);
-                              },
-                              child: Container(
-                                height: 34,
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                  color: _ratings[n.id] == v
-                                      ? AppColors.accent
-                                      : AppColors.cardLight,
-                                  borderRadius: BorderRadius.circular(8),
+                            padding: const EdgeInsets.symmetric(horizontal: 2),
+                            child: Semantics(
+                              button: true,
+                              selected: _ratings[n.id] == v,
+                              label: '${n.title}: $v of 5',
+                              excludeSemantics: true,
+                              child: GestureDetector(
+                                onTap: () {
+                                  HapticFeedback.selectionClick();
+                                  setState(() => _ratings[n.id] = v);
+                                },
+                                child: Container(
+                                  height: 44,
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                    color: _ratings[n.id] == v
+                                        ? AppColors.accent
+                                        : AppColors.cardLight,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text('$v',
+                                      style: AppText.small(
+                                              color: _ratings[n.id] == v
+                                                  ? AppColors.ink
+                                                  : AppColors.grey)
+                                          .copyWith(
+                                              fontWeight: FontWeight.w700)),
                                 ),
-                                child: Text('$v',
-                                    style: AppText.small(
-                                            color: _ratings[n.id] == v
-                                                ? AppColors.ink
-                                                : AppColors.grey)
-                                        .copyWith(
-                                            fontWeight: FontWeight.w700)),
                               ),
                             ),
                           ),

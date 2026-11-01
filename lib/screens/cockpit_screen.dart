@@ -77,7 +77,8 @@ class _CockpitScreenState extends State<CockpitScreen> {
       isScrollControlled: true,
       backgroundColor: AppColors.card,
       builder: (ctx) => Padding(
-        padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + MediaQuery.of(ctx).viewInsets.bottom),
+        padding: EdgeInsets.fromLTRB(
+            20, 20, 20, 20 + MediaQuery.of(ctx).viewInsets.bottom),
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -128,7 +129,8 @@ class _CockpitScreenState extends State<CockpitScreen> {
       const SizedBox(height: 8),
       GhostButton('Draft the next agenda',
           key: const Key('agenda-draft'),
-          icon: Icons.list_alt_rounded, onPressed: () => _agenda(context, system)),
+          icon: Icons.list_alt_rounded,
+          onPressed: () => _agenda(context, system)),
       const SizedBox(height: 8),
       if (system.isBuiltInPerson)
         Text('Before it: run six-questions-deep prep from Today → Work.',
@@ -174,7 +176,10 @@ class _CockpitScreenState extends State<CockpitScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                      '${[l.str('with'), activeProfile.manager].firstWhere((w) => (w ?? '').trim().isNotEmpty, orElse: () => '1:1')} · ${weekdayName(l.date.weekday).substring(0, 3)} ${shortDate(l.date)}',
+                      '${[
+                        l.str('with'),
+                        activeProfile.manager
+                      ].firstWhere((w) => (w ?? '').trim().isNotEmpty, orElse: () => '1:1')} · ${weekdayName(l.date.weekday).substring(0, 3)} ${shortDate(l.date)}',
                       style: AppText.eyebrow()),
                   const SizedBox(height: 6),
                   Text(l.text.isEmpty ? '—' : l.text, style: AppText.body()),
@@ -194,7 +199,8 @@ class _CockpitScreenState extends State<CockpitScreen> {
     final record = system.handoffRecord;
     return [
       SectionHeader('Handed off · ${open.length}'),
-      Text('Hand over the result, not the steps — then check in on the day you said.',
+      Text(
+          'Hand over the result, not the steps — then check in on the day you said.',
           style: AppText.small()),
       const SizedBox(height: 8),
       for (final h in open)
@@ -210,7 +216,8 @@ class _CockpitScreenState extends State<CockpitScreen> {
                 Text(
                     [
                       'To ${h.str('to')}',
-                      if ((h.str('result') ?? '').isNotEmpty) 'done when: ${h.str('result')}',
+                      if ((h.str('result') ?? '').isNotEmpty)
+                        'done when: ${h.str('result')}',
                       due.contains(h.id)
                           ? 'check in now'
                           : 'check in ${shortDate(DateTime.tryParse(h.str('check_on') ?? '') ?? timeNow())}',
@@ -221,16 +228,20 @@ class _CockpitScreenState extends State<CockpitScreen> {
           ),
         ),
       GhostButton('Hand something off',
-          key: const Key('handoff-new'), icon: Icons.call_made_rounded, onPressed: () => _newHandoff(context, system)),
+          key: const Key('handoff-new'),
+          icon: Icons.call_made_rounded,
+          onPressed: () => _newHandoff(context, system)),
       if (record != null) ...[
         const SizedBox(height: 6),
-        Text('Last six months: ${record.$1} stayed handed off, you took back ${record.$2}.',
+        Text(
+            'Last six months: ${record.$1} stayed handed off, you took back ${record.$2}.',
             style: AppText.small(color: AppColors.white)),
       ],
     ];
   }
 
-  Future<void> _newHandoff(BuildContext context, PersonalSystemProvider system) async {
+  Future<void> _newHandoff(
+      BuildContext context, PersonalSystemProvider system) async {
     final what = TextEditingController();
     final to = TextEditingController();
     final result = TextEditingController();
@@ -261,14 +272,20 @@ class _CockpitScreenState extends State<CockpitScreen> {
       const SizedBox(height: 10),
     ]);
     if (ok != true || !context.mounted) return;
-    if (system.addHandoff(what: what.text, to: to.text, result: result.text, weeks: weeks.value) == null) {
+    if (system.addHandoff(
+            what: what.text,
+            to: to.text,
+            result: result.text,
+            weeks: weeks.value) ==
+        null) {
       toast(context, 'Say what and to whom.');
       return;
     }
     toast(context, 'Handed off. ONO asks how it went on the day.');
   }
 
-  Future<void> _closeHandoff(BuildContext context, PersonalSystemProvider system, LogEntry h) async {
+  Future<void> _closeHandoff(
+      BuildContext context, PersonalSystemProvider system, LogEntry h) async {
     final lesson = TextEditingController();
     final outcome = ValueNotifier<String?>(null);
     final ok = await _sheet(context, 'How did it go?', [
@@ -291,7 +308,8 @@ class _CockpitScreenState extends State<CockpitScreen> {
             for (final w in PersonalSystemProvider.handoffCheckInWeeks)
               ChoiceChip(
                 key: Key('handoff-later-$w'),
-                label: Text('Still going — again in ${w == 1 ? '1 week' : '$w weeks'}'),
+                label: Text(
+                    'Still going — again in ${w == 1 ? '1 week' : '$w weeks'}'),
                 selected: o == 'later:$w',
                 showCheckmark: false,
                 onSelected: (_) => outcome.value = 'later:$w',
@@ -300,7 +318,8 @@ class _CockpitScreenState extends State<CockpitScreen> {
         ),
       ),
       const SizedBox(height: 10),
-      _field(lesson, 'One lesson about handing things off (optional)', lines: 2),
+      _field(lesson, 'One lesson about handing things off (optional)',
+          lines: 2),
     ]);
     if (ok != true || !context.mounted) return;
     if (outcome.value == null) {
@@ -314,7 +333,11 @@ class _CockpitScreenState extends State<CockpitScreen> {
       return;
     }
     system.closeHandoff(h.id, outcome.value!, lesson: lesson.text);
-    toast(context, outcome.value == 'took_back' ? 'Noted. Next time, hand over a smaller piece.' : 'Closed.');
+    toast(
+        context,
+        outcome.value == 'took_back'
+            ? 'Noted. Next time, hand over a smaller piece.'
+            : 'Closed.');
   }
 
   Future<void> _logOneOnOne(BuildContext context) async {
@@ -559,28 +582,34 @@ class _CockpitScreenState extends State<CockpitScreen> {
                       Expanded(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 2),
-                          child: GestureDetector(
-                            onTap: () {
-                              HapticFeedback.selectionClick();
-                              system.saveReadiness({...r, d.id: v});
-                            },
-                            child: Container(
-                              height: 34,
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: (r[d.id] ?? 0) >= v
-                                    ? (v >= readinessBar
-                                        ? AppColors.body
-                                        : AppColors.accent)
-                                    : AppColors.cardLight,
-                                borderRadius: BorderRadius.circular(8),
+                          child: Semantics(
+                            button: true,
+                            selected: r[d.id] == v,
+                            label: '${d.name}: $v of 5',
+                            excludeSemantics: true,
+                            child: GestureDetector(
+                              onTap: () {
+                                HapticFeedback.selectionClick();
+                                system.saveReadiness({...r, d.id: v});
+                              },
+                              child: Container(
+                                height: 44,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: (r[d.id] ?? 0) >= v
+                                      ? (v >= readinessBar
+                                          ? AppColors.body
+                                          : AppColors.accent)
+                                      : AppColors.cardLight,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text('$v',
+                                    style: AppText.small(
+                                            color: (r[d.id] ?? 0) >= v
+                                                ? AppColors.ink
+                                                : AppColors.grey)
+                                        .copyWith(fontWeight: FontWeight.w700)),
                               ),
-                              child: Text('$v',
-                                  style: AppText.small(
-                                          color: (r[d.id] ?? 0) >= v
-                                              ? AppColors.ink
-                                              : AppColors.grey)
-                                      .copyWith(fontWeight: FontWeight.w700)),
                             ),
                           ),
                         ),
@@ -608,8 +637,7 @@ class _CockpitScreenState extends State<CockpitScreen> {
 
   // ── Shared ─────────────────────────────────────────────────────────────
 
-  static Widget _field(TextEditingController c, String hint,
-          {int lines = 1}) =>
+  static Widget _field(TextEditingController c, String hint, {int lines = 1}) =>
       Padding(
         padding: const EdgeInsets.only(bottom: 10),
         child: TextField(
@@ -684,7 +712,8 @@ class _DecisionCard extends StatelessWidget {
           ],
           if (entry.number('confidence') != null) ...[
             const SizedBox(height: 4),
-            Text('You were ${entry.number('confidence')!.toInt()}% sure', style: AppText.small()),
+            Text('You were ${entry.number('confidence')!.toInt()}% sure',
+                style: AppText.small()),
           ],
           if ((entry.str('outcome') ?? '').isNotEmpty) ...[
             const SizedBox(height: 4),

@@ -1437,7 +1437,7 @@ class _PromptsState extends State<_Prompts> {
               onPressed: () => system.skipFirstWeekStep(first.id),
               style: TextButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
-                  minimumSize: const Size(0, 32),
+                  minimumSize: const Size(0, 44),
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap),
               child: Text('Not now', style: AppText.small()),
             ),
@@ -1734,7 +1734,7 @@ class _PromptsState extends State<_Prompts> {
               onPressed: () => system.setDone(system.reconnectSeenKey(now), true),
               style: TextButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
-                  minimumSize: const Size(0, 32),
+                  minimumSize: const Size(0, 44),
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap),
               child: Text('Not this week', style: AppText.small()),
             ),
@@ -1751,7 +1751,7 @@ class _PromptsState extends State<_Prompts> {
               onPressed: () => system.setDone(system.onThisDaySeenKey(now), true),
               style: TextButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
-                  minimumSize: const Size(0, 32),
+                  minimumSize: const Size(0, 44),
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap),
               child: Text('Seen', style: AppText.small()),
             ),
@@ -1847,7 +1847,7 @@ class _PromptsState extends State<_Prompts> {
             onPressed: () => system.setDone(_snoozeKey(id, widget.now), true),
             style: TextButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
-                minimumSize: const Size(0, 32),
+                minimumSize: const Size(0, 44),
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap),
             child: Text('Not now', style: AppText.small()),
           ),

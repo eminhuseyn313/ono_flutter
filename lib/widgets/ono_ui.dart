@@ -538,28 +538,37 @@ class Segmented extends StatelessWidget {
         children: [
           for (var i = 0; i < labels.length; i++)
             Expanded(
-              child: GestureDetector(
-                onTap: () {
-                  HapticFeedback.selectionClick();
-                  onChanged(i);
-                },
-                behavior: HitTestBehavior.opaque,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 180),
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  decoration: BoxDecoration(
-                    color:
-                        i == index ? AppColors.cardLight : Colors.transparent,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    labels[i],
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppText.small(
-                      color: i == index ? AppColors.white : AppColors.grey,
-                    ).copyWith(fontWeight: FontWeight.w700),
+              // A screen reader hears it as one choice of several, and which
+              // is chosen.
+              child: Semantics(
+                button: true,
+                selected: i == index,
+                inMutuallyExclusiveGroup: true,
+                child: GestureDetector(
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    onChanged(i);
+                  },
+                  behavior: HitTestBehavior.opaque,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    // 44 pt tall: Apple's smallest comfortable tap target.
+                    constraints: const BoxConstraints(minHeight: 44),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      color:
+                          i == index ? AppColors.cardLight : Colors.transparent,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      labels[i],
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppText.small(
+                        color: i == index ? AppColors.white : AppColors.grey,
+                      ).copyWith(fontWeight: FontWeight.w700),
+                    ),
                   ),
                 ),
               ),
