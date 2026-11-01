@@ -156,11 +156,11 @@ class _MoneyScreenState extends State<MoneyScreen> {
           ),
         if (series.length > 1) ...[
           const SectionHeader('Net worth over time'),
-          TrendLine(points: series, color: AppColors.accent),
+          TrendLine(points: series, color: AppColors.accent, format: formatAmount),
           const SizedBox(height: 6),
           Text(
-              '${_signed(series.last.y - series[series.length - 2].y)} since the month before · '
-              '${_signed(series.last.y - series.first.y)} since ${shortDate(series.first.x)}',
+              '${_signed(series.last.y - series[series.length - 2].y)} since the month before'
+              '${series.length > 2 ? ' · ${_signed(series.last.y - series.first.y)} since ${shortDate(series.first.x)}' : ''}',
               key: const Key('money-net-change'),
               style: AppText.small(color: AppColors.white)),
         ],

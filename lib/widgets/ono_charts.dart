@@ -490,6 +490,10 @@ class TrendLine extends StatelessWidget {
   final double height;
   final String unit;
 
+  /// How a value reads on the last point and to a screen reader (default:
+  /// one decimal, e.g. a weight). Money passes thousands separators.
+  final String Function(double)? format;
+
   const TrendLine({
     super.key,
     required this.points,
@@ -498,6 +502,7 @@ class TrendLine extends StatelessWidget {
     this.color = AppColors.body,
     this.height = 140,
     this.unit = '',
+    this.format,
   });
 
   @override
@@ -509,7 +514,7 @@ class TrendLine extends StatelessWidget {
         height: height,
         width: double.infinity,
         child: CustomPaint(
-          painter: _TrendPainter(points, bandLow, bandHigh, color, unit),
+          painter: _TrendPainter(points, bandLow, bandHigh, color, unit, format),
         ),
       ),
     );
@@ -519,7 +524,7 @@ class TrendLine extends StatelessWidget {
   String _describe() {
     if (points.isEmpty) return 'No entries yet';
     String v(double y) =>
-        '${y == y.roundToDouble() ? y.round() : y.toStringAsFixed(1)}${unit.isEmpty ? '' : ' $unit'}';
+        '${format?.call(y) ?? (y == y.roundToDouble() ? y.round() : y.toStringAsFixed(1))}${unit.isEmpty ? '' : ' $unit'}';
     final last = points.last.y;
     final parts = [
       points.length == 1
@@ -538,8 +543,17 @@ class _TrendPainter extends CustomPainter {
   final double? high;
   final Color color;
   final String unit;
+  final String Function(double)? format;
 
-  _TrendPainter(this.points, this.low, this.high, this.color, this.unit);
+  _TrendPainter(this.points, this.low, this.high, this.color, this.unit, this.format);
+
+  /// Grid labels stay short: 28.5k, 1.2M.
+  static String _axis(double v) {
+    final a = v.abs();
+    if (a >= 1e6) return '${(v / 1e6).toStringAsFixed(a >= 1e7 ? 0 : 1)}M';
+    if (a >= 1e4) return '${(v / 1e3).toStringAsFixed(a >= 1e5 ? 0 : 1)}k';
+    return v.toStringAsFixed(0);
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -549,8 +563,11 @@ class _TrendPainter extends CustomPainter {
       if (low != null) low!,
       if (high != null) high!,
     ];
-    var minY = ys.reduce(math.min) - 1;
-    var maxY = ys.reduce(math.max) + 1;
+    // A little room above and below, in proportion to the values.
+    final lo = ys.reduce(math.min), hi = ys.reduce(math.max);
+    final pad = math.max(1.0, (hi - lo) * 0.08);
+    var minY = lo - pad;
+    var maxY = hi + pad;
     if (maxY - minY < 2) maxY = minY + 2;
     final x0 = points.first.x.millisecondsSinceEpoch.toDouble();
     var x1 = points.last.x.millisecondsSinceEpoch.toDouble();
@@ -570,7 +587,7 @@ class _TrendPainter extends CustomPainter {
       canvas.drawLine(Offset(leftPad, y), Offset(size.width, y),
           Paint()..color = AppColors.divider);
       tp.text = TextSpan(
-          text: v.toStringAsFixed(0),
+          text: _axis(v),
           style: AppText.small().copyWith(fontSize: 10.5));
       tp.layout();
       tp.paint(canvas, Offset(0, y - tp.height / 2));
@@ -600,7 +617,7 @@ class _TrendPainter extends CustomPainter {
     }
     final last = points.last;
     tp.text = TextSpan(
-        text: '${last.y.toStringAsFixed(1)}$unit',
+        text: '${format?.call(last.y) ?? last.y.toStringAsFixed(1)}$unit',
         style: AppText.small(color: AppColors.white)
             .copyWith(fontWeight: FontWeight.w700));
     tp.layout();
