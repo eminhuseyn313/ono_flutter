@@ -4192,6 +4192,8 @@ class PersonalSystemProvider extends ChangeNotifier {
     double? savings,
     String decision = '',
     String worry = '',
+    double? owns,
+    double? owes,
   }) {
     month ??= programMonth;
     final data = {
@@ -4201,6 +4203,9 @@ class PersonalSystemProvider extends ChangeNotifier {
       'savings': savings,
       'decision': decision.trim(),
       'worry': worry.trim(),
+      // Net worth: optional, and never sent to the coach.
+      if (owns != null) 'owns': owns,
+      if (owes != null) 'owes': owes,
     };
     final e = moneyCheckFor(month);
     if (e == null) {
@@ -4209,6 +4214,20 @@ class PersonalSystemProvider extends ChangeNotifier {
       updateLog(e.copyWith(date: dayOnly(_now), data: data));
     }
   }
+
+  /// What you own minus what you owe, when "own" was filled in that month.
+  /// It stays with the person: never sent to the coach.
+  double? netWorth(LogEntry check) {
+    final owns = check.number('owns')?.toDouble();
+    if (owns == null) return null;
+    return owns - (check.number('owes')?.toDouble() ?? 0);
+  }
+
+  /// Net worth by month, oldest first (the day each check-in was saved).
+  List<({DateTime x, double y})> get netWorthSeries => [
+        for (final l in logsOf('money_check').reversed)
+          if (netWorth(l) case final v?) (x: dayOnly(l.date), y: v)
+      ];
 
   /// Share of income not spent, 0–1 (can be negative).
   double? savingsRate(LogEntry check) {

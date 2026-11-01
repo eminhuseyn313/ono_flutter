@@ -15,7 +15,7 @@ import 'package:ono/providers/auth_provider.dart';
 import 'package:ono/models/personal_system.dart';
 import 'package:ono/providers/personal_system_provider.dart';
 import 'package:ono/router.dart';
-import 'package:ono/screens/money_screen.dart' show parseAmount;
+import 'package:ono/screens/money_screen.dart' show formatAmount, parseAmount;
 import 'package:ono/services/app_shortcuts.dart';
 import 'package:ono/services/brief_generator.dart';
 import 'package:ono/services/calendar_service.dart';
@@ -4108,5 +4108,36 @@ void main() {
     expect(p.itemIdsOn(saturday).length, 7);
     // Monday to Friday untouched (0), the weekend full: 2 of 7 days at 10.
     expect(p.weekAverage(saturday), closeTo(20 / 7, 0.001));
+  });
+
+  test('net worth over time stays with the person', () async {
+    final sent = _CapturingBriefs();
+    final p = await _commissioned(briefs: sent);
+    p.saveMoneyCheck(month: 1, income: 3000, spent: 2400, savings: 6000, owns: 40000, owes: 15000);
+    p.clock = () => _today.plusDays(1);
+    p.saveMoneyCheck(month: 2, income: 3000, spent: 2500, savings: 6500, owns: 42500, owes: 14000);
+    p.saveMoneyCheck(month: 3, income: 3000, spent: 2500); // own left out: no point
+    expect(p.netWorthSeries.map((e) => e.y).toList(), [25000, 28500]);
+    await p.submitReport(WeeklyReport(
+      id: 'r',
+      weekStart: weekStartOf(_today),
+      nonNegotiableAverage: 7,
+      gymSessions: 3,
+      bestMoment: '',
+      hardestMoment: '',
+      workSituation: '',
+      createdAt: _today,
+    ));
+    final json = jsonEncode(sent.last!.toJson());
+    for (final leak in ['28500', '42500', '14000', '"owns"', '"owes"', 'net_worth']) {
+      expect(json, isNot(contains(leak)), reason: 'net worth is never sent');
+    }
+  });
+
+  test('amounts read as people write them', () {
+    expect(formatAmount(28500), '28,500');
+    expect(formatAmount(-3250.5), '-3,250.50');
+    expect(formatAmount(999), '999');
+    expect(formatAmount(1234567.25), '1,234,567.25');
   });
 }

@@ -843,4 +843,18 @@ void main() {
       expect(find.byKey(const Key('mode-day-off')), findsNothing);
     });
   }
+
+  testWidgets('money: what you own and owe becomes a net worth', (tester) async {
+    final system = await _start(tester);
+    await _go(tester, '/money');
+    await _type(tester, 'Came in this month', '3000');
+    await _type(tester, 'Went out this month', '2400');
+    await _type(tester, 'Own in total', '40,000');
+    await _type(tester, 'Owe in total (optional)', '15000');
+    await _reach(tester, find.byKey(const Key('money-net')));
+    expect(find.text('Net worth: 25,000'), findsOneWidget);
+    await tester.tap(find.text('Save'));
+    await _pumpFor(tester, const Duration(milliseconds: 600));
+    expect(system.netWorthSeries.single.y, 25000);
+  });
 }

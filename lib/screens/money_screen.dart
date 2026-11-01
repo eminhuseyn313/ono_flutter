@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../providers/personal_system_provider.dart';
 import '../theme/app_theme.dart';
+import '../widgets/ono_charts.dart';
 import '../widgets/ono_ui.dart';
 
 /// Monthly money check-in: in, out, set aside, one decision.
@@ -19,6 +20,8 @@ class _MoneyScreenState extends State<MoneyScreen> {
   final _savings = TextEditingController();
   final _decision = TextEditingController();
   final _worry = TextEditingController();
+  final _owns = TextEditingController();
+  final _owes = TextEditingController();
   bool _loaded = false;
   late int _month;
 
@@ -37,7 +40,7 @@ class _MoneyScreenState extends State<MoneyScreen> {
 
   void _fill(PersonalSystemProvider system) {
     final c = system.moneyCheckFor(_month);
-    for (final t in [_income, _spent, _savings, _decision, _worry]) {
+    for (final t in [_income, _spent, _savings, _decision, _worry, _owns, _owes]) {
       t.clear();
     }
     if (c != null) {
@@ -46,12 +49,14 @@ class _MoneyScreenState extends State<MoneyScreen> {
       _savings.text = _num(c.number('savings'));
       _decision.text = c.str('decision') ?? '';
       _worry.text = c.str('worry') ?? '';
+      _owns.text = _num(c.number('owns'));
+      _owes.text = _num(c.number('owes'));
     }
   }
 
   @override
   void dispose() {
-    for (final c in [_income, _spent, _savings, _decision, _worry]) {
+    for (final c in [_income, _spent, _savings, _decision, _worry, _owns, _owes]) {
       c.dispose();
     }
     super.dispose();
@@ -79,6 +84,9 @@ class _MoneyScreenState extends State<MoneyScreen> {
     final rate = income == null || income <= 0 || spent == null ? null : (income - spent) / income;
     final buffer = savings == null || spent == null || spent <= 0 ? null : savings / spent;
     final history = system.logsOf('money_check');
+    final owns = _parse(_owns), owes = _parse(_owes);
+    final net = owns == null ? null : owns - (owes ?? 0);
+    final series = system.netWorthSeries;
     return OnoPage(
       showBack: true,
       eyebrow: 'Month $_month · money check-in',
@@ -91,7 +99,14 @@ class _MoneyScreenState extends State<MoneyScreen> {
           return;
         }
         system.saveMoneyCheck(
-            month: _month, income: income, spent: spent, savings: savings, decision: _decision.text, worry: _worry.text);
+            month: _month,
+            income: income,
+            spent: spent,
+            savings: savings,
+            decision: _decision.text,
+            worry: _worry.text,
+            owns: owns,
+            owes: owes);
         FocusManager.instance.primaryFocus?.unfocus();
         toast(context, 'Saved. Next one in a month.');
       }),
@@ -128,6 +143,27 @@ class _MoneyScreenState extends State<MoneyScreen> {
         _field(_decision, 'Change or keep next month', number: false,
             hint: 'e.g. Cancel two subscriptions'),
         _field(_worry, 'A money worry (optional)', number: false),
+        const SectionHeader('What you own and owe'),
+        Text('Optional, once a month: a rough total is enough. It stays with you — the coach never sees it.',
+            style: AppText.small()),
+        _field(_owns, 'Own in total', hint: 'Savings, investments, home, car — what they\'re worth'),
+        _field(_owes, 'Owe in total (optional)', hint: 'Mortgage, loans, cards'),
+        if (net != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: Text('Net worth: ${formatAmount(net)}',
+                key: const Key('money-net'), style: AppText.heading()),
+          ),
+        if (series.length > 1) ...[
+          const SectionHeader('Net worth over time'),
+          TrendLine(points: series, color: AppColors.accent),
+          const SizedBox(height: 6),
+          Text(
+              '${_signed(series.last.y - series[series.length - 2].y)} since the month before · '
+              '${_signed(series.last.y - series.first.y)} since ${shortDate(series.first.x)}',
+              key: const Key('money-net-change'),
+              style: AppText.small(color: AppColors.white)),
+        ],
         if (history.length > 1) ...[
           const SectionHeader('Savings rate by month'),
           for (final h in history.take(6))
@@ -142,6 +178,18 @@ class _MoneyScreenState extends State<MoneyScreen> {
       ],
     );
   }
+}
+
+String _signed(double v) => '${v >= 0 ? '+' : '−'}${formatAmount(v.abs())}';
+
+/// "12,500" or "-3,250.5": whole thousands grouped, no currency (it's theirs).
+String formatAmount(double v) {
+  final neg = v < 0;
+  final a = v.abs();
+  final whole = a.truncate().toString();
+  final grouped = whole.replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (_) => ',');
+  final cents = ((a - a.truncate()) * 100).round();
+  return '${neg ? '-' : ''}$grouped${cents == 0 ? '' : '.${cents.toString().padLeft(2, '0')}'}';
 }
 
 /// Accepts "1500,50", "1.234,50", "1,234.50" and "1 234": the last
