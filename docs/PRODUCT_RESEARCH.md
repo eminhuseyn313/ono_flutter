@@ -186,11 +186,11 @@ Placed lower: appearance-for-confidence claims (no peer-reviewed support; power 
 | N7 | **Advice to a friend after a miss** | After-action review | Eskreis-Winkler & Fishbach 2019; PNAS 2019 | S | Built |
 | N8 | **Your phone, on your terms** (batched checks, weekly typed Screen Time) | Daily items, patterns | Fitz 2019; Burnell 2025 | S–M | Decided (Emin left it to Claude, 20 Oct): no Screen Time numbers; phone habits as daily ideas (phone outside the bedroom, first hour without it) and the phone-free-first-hour experiment |
 | N9 | **Practice design for drills** (sub-skill, feedback source, beyond comfort) | Growth drills | Debriefs (Tannenbaum 2013) | S–M | Built |
-| N10 | **Money over time** (net worth, true costs, giving) | Money check-in | Vanguard 2025; prosocial spending | M | Needs Emin |
+| N10 | **Money over time** (net worth, true costs, giving) | Money check-in | Vanguard 2025; prosocial spending | M | Built (Emin's yes, 1 Nov): net worth on the monthly check-in, a trend, never sent |
 | N11 | **Rehearse a big moment** (random question, 2-minute timer, STAR check) | Story bank | Weak | S | Built |
 | N12 | **Make and play** (weekly line, template) | Daily library, growth | Conner 2018; Proyer 2020 | S | Built |
 
-Rejected: brain games (no transfer), readiness scores and energy curves (invented numbers), app blocking (phone plumbing). Nutrition only as a plan pack, if at all (Emin to decide).
+Rejected: brain games (no transfer), readiness scores and energy curves (invented numbers), app blocking (phone plumbing). Nutrition only as a plan pack: decided (Emin, 1 Nov) and built — "Eat better" with an "Eating well" area, habits and never calories.
 
 ### O. Tenth pass: the whole of life (19 Oct 2026)
 Ranked by value for effort. Effect sizes marked (abstract) were read from abstracts only.
@@ -244,7 +244,7 @@ Never: drink or cigarette counters with streak badges, medication advice. ONO po
 | F2 | **Configurable Daily items** (add, remove, retire when automatic, with cues) | Adjust as habits stick | Required for a general app | M |
 | F3 | **Onboarding that builds a plan in 5 minutes** (profile → goal → growth area from a template → 3–5 Daily items) | — | Solves the "no value in the first session" churn | L |
 | F4 | **A calmer Today** (rank cards; show the 1–3 that matter now, the rest behind "More") | Today is crowded | Reduces choice overload | M |
-| F5 | **Languages** (English, Azerbaijani, Russian) | Native-language reflection is deeper | His home market first | M |
+| F5 | **Languages** (English, Azerbaijani, Russian) — English only for now (Emin, 1 Nov 2026) | Native-language reflection is deeper | His home market first | M |
 | F6 | **Plan packs** (shareable plans: "First-time manager, 90 days", "16-week marathon", "New parent") | Share his own plan | Growth engine for the mass version | L |
 | F7 | **Coach mode** (a human coach sees a client's plan, with consent) | — | A future B2B2C model | L |
 | F8 | **Privacy and data ownership** (export, delete, on-device by default, clear sync consent) | His health data | Trust is a precondition for adoption | M |
