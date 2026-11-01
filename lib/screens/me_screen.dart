@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -816,6 +817,19 @@ class MeScreen extends StatelessWidget {
           padding: EdgeInsets.zero,
           child: Column(
             children: [
+              // In a browser: ONO can live on the phone's Home Screen like
+              // an app, with nothing to install and nothing that expires.
+              if (kIsWeb) ...[
+                LinkRow(
+                  key: const Key('me-home-screen'),
+                  icon: Icons.add_to_home_screen_rounded,
+                  color: AppColors.accent,
+                  title: 'ONO on your Home Screen',
+                  subtitle: 'Open it like an app, from your phone',
+                  onTap: () => _showHomeScreenHowTo(context),
+                ),
+                const Divider(indent: 66),
+              ],
               LinkRow(
                 icon: Icons.auto_awesome_outlined,
                 color: AppColors.accent,
@@ -1620,4 +1634,38 @@ class _MoveSummary extends StatelessWidget {
       ),
     );
   }
+}
+
+/// How to put the web app on a phone's Home Screen.
+void _showHomeScreenHowTo(BuildContext context) {
+  showModalBottomSheet<void>(
+    context: context,
+    useRootNavigator: true,
+    isScrollControlled: true,
+    builder: (ctx) => SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('ONO on your Home Screen', style: AppText.title()),
+            const SizedBox(height: 8),
+            Text('It opens full screen, like an app. Nothing to install, nothing that expires, and it stays in sync with your account.',
+                style: AppText.small()),
+            const SectionHeader('iPhone'),
+            Text('1. Open this page in Safari.\n2. Tap Share (the square with the arrow).\n3. Tap "Add to Home Screen", then Add.',
+                style: AppText.body(color: AppColors.white)),
+            const SectionHeader('Android'),
+            Text('1. Open this page in Chrome.\n2. Tap the menu (three dots).\n3. Tap "Add to Home screen" or "Install app".',
+                style: AppText.body(color: AppColors.white)),
+            const SizedBox(height: 12),
+            Text('Reminders, Apple Health and your calendar need the installed app; everything else works here.',
+                style: AppText.small()),
+            const SizedBox(height: 16),
+            PrimaryButton('Got it', onPressed: () => Navigator.of(ctx).pop()),
+          ],
+        ),
+      ),
+    ),
+  );
 }
