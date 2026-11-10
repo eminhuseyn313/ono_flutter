@@ -70,9 +70,18 @@ class _OnoAppState extends State<OnoApp> {
     widget.shortcuts.init(onOpen: _open);
     // Back on the phone or the browser tab: take in what the other
     // device changed meanwhile.
-    _lifecycle = AppLifecycleListener(onResume: () {
-      if (_auth.status == AuthStatus.authenticated) _system.syncNow();
-    });
+    _lifecycle = AppLifecycleListener(
+      onResume: () {
+        if (_auth.status == AuthStatus.authenticated) _system.syncNow();
+      },
+      // Leaving the app: tomorrow's wake-up should say what was just
+      // planned (priorities, the week's three), not what stood this morning.
+      onPause: () {
+        if (_auth.status == AuthStatus.authenticated && _system.isCommissioned) {
+          _system.resyncReminders();
+        }
+      },
+    );
   }
 
   late final AppLifecycleListener _lifecycle;

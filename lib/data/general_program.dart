@@ -17,6 +17,8 @@ const Map<String, String> generalPhasePromises = {
 /// follow their schedule: `reminderDefs` in emin_system.dart). Times are
 /// sensible defaults; each can be switched off under Me → Reminders.
 const List<ReminderDef> generalReminderDefs = [
+  // At their wake time: the one thing today is for, from their own plan.
+  ReminderDef('g_wake', 'Wake up: today\'s plan', 7, 0, route: '/home'),
   ReminderDef('g_checkin', 'Morning check-in', 7, 30, route: '/checkin'),
   ReminderDef('g_items', 'Your daily items', 12, 30, route: '/home'),
   ReminderDef('g_shutdown', 'Close the day', 21, 0, route: '/shutdown'),

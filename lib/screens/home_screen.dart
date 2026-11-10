@@ -1340,7 +1340,7 @@ class _PromptsState extends State<_Prompts> {
             Icons.notifications_none_rounded,
             AppColors.accent,
             'Let ONO nudge you',
-            'A check-in in the morning, your items at midday, the shutdown at night. Tap to allow.',
+            'Your plan for the day when you wake, your items at midday, the shutdown at night. Tap to allow.',
             '',
             onTap: () async {
               system.setDone('notify:asked', true);

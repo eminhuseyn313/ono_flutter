@@ -2240,12 +2240,12 @@ void main() {
     expect(builtIn.any((t) => t.startsWith('Domain scan')), isTrue);
     p.saveProfile(activeProfile.copyWith(name: 'Someone Else'));
     final general = p.plannedReminders();
-    // Check-in, items, shutdown daily (7 × 3) plus the Sunday report.
-    expect(general.length, 22);
+    // Wake-up, check-in, items, shutdown daily (7 × 4) plus the Sunday report.
+    expect(general.length, 29);
     expect(general.any((r) => r.title.startsWith('Domain scan')), isFalse);
     expect(general.where((r) => r.route == '/weekly-coaching').single.weekday, DateTime.sunday);
     p.setReminder('g_items', false);
-    expect(p.plannedReminders().length, 15);
+    expect(p.plannedReminders().length, 22);
     p.resetProfile();
   });
 
@@ -4139,5 +4139,31 @@ void main() {
     expect(formatAmount(-3250.5), '-3,250.50');
     expect(formatAmount(999), '999');
     expect(formatAmount(1234567.25), '1,234,567.25');
+  });
+
+  test('the wake-up reminder carries the day\'s plan', () async {
+    final p = await _commissioned(); // Friday 2 Oct, built-in plan
+    PlannedReminder wake(int wd) => p.plannedReminders().firstWhere(
+        (r) => r.title.startsWith('Good morning') && r.weekday == wd);
+    // Nothing planned: his water line, then the first morning item.
+    expect(wake(5).title, 'Good morning, Emin');
+    expect(wake(5).body, contains('500ml'));
+    expect(wake(5).body, contains('Start with: Read manifesto this morning.'));
+    // The week's three, then tomorrow's first priority from the shutdown.
+    p.setWeekOutcome(_today, 0, 'Ship the pricing draft');
+    expect(wake(5).body, contains('This week you chose: Ship the pricing draft.'));
+    p.setPriority(dayOnly(_today).plusDays(1), 0, 'Call the supplier');
+    expect(wake(6).body, contains('First today: Call the supplier.'));
+    expect(wake(5).body, isNot(contains('Call the supplier')), reason: 'that is Saturday\'s');
+
+    // Someone else: at their own wake time, without his water line.
+    p.saveProfile(builtInProfile.copyWith(name: 'Sam Rivera', firstName: 'Sam'));
+    p.saveDayShape(wake: 6 * 60 + 15, workStart: 9 * 60, workEnd: 17 * 60, bed: 23 * 60);
+    final w = wake(6);
+    expect((w.hour, w.minute), (6, 15));
+    expect(w.title, 'Good morning, Sam');
+    expect(w.body, 'First today: Call the supplier.');
+    p.setReminder('g_wake', false);
+    expect(p.plannedReminders().where((r) => r.title.startsWith('Good morning')), isEmpty);
   });
 }

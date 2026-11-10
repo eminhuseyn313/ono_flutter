@@ -2874,6 +2874,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     return [
       for (final r in generalReminderDefs)
         switch (r.id) {
+          'g_wake' => at(r, d.wake),
           'g_checkin' => at(r, d.wake + 30),
           'g_items' => at(r, midday),
           // Lights out after midnight counts as the same night.
@@ -3086,6 +3087,16 @@ class PersonalSystemProvider extends ChangeNotifier {
                 gymDays);
             title = g == null ? 'Gym' : 'Day ${g.letter} · ${g.name} at 19:00';
             body = 'Face pulls 3×15 never skipped. Zone 2 cooldown 15 min.';
+          case 'wake' || 'g_wake':
+            // The day that weekday next falls on, so tomorrow's alarm
+            // carries what tonight's shutdown decided.
+            final day = logicalToday.plusDays((wd - logicalToday.weekday) % 7);
+            final first = activeProfile.firstName.trim();
+            title = first.isEmpty ? 'Good morning' : 'Good morning, $first';
+            body = [
+              if (def.id == 'wake') _reminderBody('wake'),
+              wakePlanFor(day),
+            ].join(' ');
           case 'ritual':
             title = 'Morning ritual · 5 min';
             body = activeProfile.identityStatement;
@@ -3127,6 +3138,30 @@ class PersonalSystemProvider extends ChangeNotifier {
   static const worryReminderBase = 950;
 
   /// Whether what reminder [id] asks for is already done today.
+  /// The wake-up line: what [day] is for, from the person's own plan — the
+  /// first priority they wrote for it, else an open outcome of the week's
+  /// three, else this week's practice, else the first item of the morning.
+  String wakePlanFor(DateTime day) {
+    String clip(String t) => t.length > 90 ? '${t.substring(0, 89)}…' : t;
+    final priority =
+        prioritiesFor(day).map((p) => p.trim()).where((p) => p.isNotEmpty).firstOrNull;
+    if (priority != null) return 'First today: ${clip(priority)}.';
+    final outcomes = weekOutcomes(day);
+    for (var i = 0; i < outcomes.length; i++) {
+      if (outcomes[i].trim().isNotEmpty && !weekOutcomeDone(day, i)) {
+        return 'This week you chose: ${clip(outcomes[i].trim())}. What moves it today?';
+      }
+    }
+    final area = focusArea();
+    if (area != null) {
+      return 'This week\'s practice in ${area.name}: ${drillFor(area, day).title}.';
+    }
+    final item = dailyItems.where((n) => n.when == 'morning').firstOrNull ?? dailyItems.firstOrNull;
+    return item == null
+        ? 'Open ONO and choose the one thing today is for.'
+        : 'Start with: ${item.title}.';
+  }
+
   bool reminderDoneToday(String id) {
     final today = dayOnly(_now);
     return switch (id) {
@@ -3443,8 +3478,9 @@ class PersonalSystemProvider extends ChangeNotifier {
       'set': p.where((x) => x.trim().isNotEmpty).length,
       'at': _now.toIso8601String(),
     });
-    // Tonight's "close the day" reminder has nothing left to ask.
-    if (dateKey(day) == dateKey(_now)) _syncReminders();
+    // Tonight's "close the day" reminder has nothing left to ask, and
+    // tomorrow's wake-up now has its first priority.
+    _syncReminders();
   }
 
   int shutdownsInWeek(DateTime anyDay) =>
