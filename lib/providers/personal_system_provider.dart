@@ -3097,6 +3097,19 @@ class PersonalSystemProvider extends ChangeNotifier {
               if (def.id == 'wake') _reminderBody('wake'),
               wakePlanFor(day),
             ].join(' ');
+          case 'g_items' || 'g_shutdown':
+            // Today's own reminder names what is still open of today's
+            // three; other weekdays keep the general line until their day
+            // (reminders re-plan whenever the app is left).
+            title = def.label;
+            body = _reminderBody(def.id);
+            final open = wd == logicalToday.weekday ? carryOverFrom(logicalToday) : const <String>[];
+            if (open.isNotEmpty) {
+              final first = open.first.length > 80 ? '${open.first.substring(0, 79)}…' : open.first;
+              body = def.id == 'g_items'
+                  ? 'Still open of today\'s three: $first.${open.length > 1 ? ' And ${open.length - 1} more.' : ''}'
+                  : '${open.length} of today\'s three still open — carry or drop, then tomorrow\'s three.';
+            }
           case 'ritual':
             title = 'Morning ritual · 5 min';
             body = activeProfile.identityStatement;

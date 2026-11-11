@@ -4166,4 +4166,21 @@ void main() {
     p.setReminder('g_wake', false);
     expect(p.plannedReminders().where((r) => r.title.startsWith('Good morning')), isEmpty);
   });
+
+  test('midday and evening reminders name what is open of today\'s three', () async {
+    final p = await _commissioned(); // Friday 2 Oct
+    p.saveProfile(builtInProfile.copyWith(name: 'Sam Rivera', firstName: 'Sam'));
+    PlannedReminder at(String route, int wd, String label) => p.plannedReminders()
+        .firstWhere((r) => r.route == route && r.weekday == wd && r.title == label);
+    expect(at('/home', 5, 'Your daily items').body, isNot(contains('Still open')));
+    p.setPriority(dayOnly(_today), 0, 'Send the proposal');
+    p.setPriority(dayOnly(_today), 1, 'Call the bank');
+    expect(at('/home', 5, 'Your daily items').body, 'Still open of today\'s three: Send the proposal. And 1 more.');
+    expect(at('/shutdown', 5, 'Close the day').body, startsWith('2 of today\'s three still open'));
+    // Another weekday keeps the general line; a finished one drops out.
+    expect(at('/home', 6, 'Your daily items').body, isNot(contains('Send the proposal')));
+    p.togglePriority(dayOnly(_today), 0);
+    p.togglePriority(dayOnly(_today), 1);
+    expect(at('/home', 5, 'Your daily items').body, isNot(contains('Still open')));
+  });
 }
