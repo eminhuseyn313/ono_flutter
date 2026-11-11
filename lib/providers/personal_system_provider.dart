@@ -3179,7 +3179,8 @@ class PersonalSystemProvider extends ChangeNotifier {
     final today = dayOnly(_now);
     return switch (id) {
       'g_checkin' => checkinFor(today) != null,
-      'g_items' => isHeld(today),
+      // Held, and nothing of today's three left to name.
+      'g_items' => isHeld(today) && carryOverFrom(logicalToday).isEmpty,
       'g_shutdown' => shutdownFor(today) != null,
       'g_sunday' || 'report' => reportForWeek(today) != null,
       'ritual' => logsOn(today, 'ritual').isNotEmpty,

@@ -858,7 +858,11 @@ Future<void> copyText(BuildContext context, String text,
 }
 
 void toast(BuildContext context, String message) {
-  ScaffoldMessenger.of(context)
+  // A sheet or page may have gone by the time its work finishes.
+  if (!context.mounted) return;
+  final messenger = ScaffoldMessenger.maybeOf(context);
+  if (messenger == null) return;
+  messenger
     ..hideCurrentSnackBar()
     ..showSnackBar(SnackBar(content: Text(message)));
 }

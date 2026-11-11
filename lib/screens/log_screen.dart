@@ -929,9 +929,7 @@ Future<void> _openAdd(BuildContext context, String kind) async {
                   Wrap(
                     spacing: 6,
                     children: [
-                      for (final s in context
-                          .read<PersonalSystemProvider>()
-                          .activeEvidenceSections)
+                      for (final s in system.activeEvidenceSections)
                         ChoiceChip(
                           label: Text(s.title),
                           selected: section == s.section,
