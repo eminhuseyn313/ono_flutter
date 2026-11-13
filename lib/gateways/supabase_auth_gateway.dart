@@ -1,7 +1,11 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform, kIsWeb;
 
 import 'package:google_sign_in/google_sign_in.dart';
-// TODO: re-add sign_in_with_apple when a compatible version is available
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'auth_gateway.dart';
@@ -84,10 +88,41 @@ class SupabaseAuthGateway implements AuthGateway {
 
   // -- Sign in with Apple -------------------------------------------------
 
+  /// Native Sign in with Apple, handed to Supabase as an ID token. Needs
+  /// the Apple provider switched on in Supabase (Authentication →
+  /// Providers → Apple, Client IDs: the app's bundle ID) and the
+  /// "Sign in with Apple" capability (scripts/capabilities.sh apple on).
+  /// An Apple ID with the same verified email joins the existing account.
   @override
   Future<AuthResult> signInWithApple() async {
-    // TODO: re-add when sign_in_with_apple package is updated
-    return const AuthResult(error: 'Apple Sign In is temporarily unavailable.');
+    try {
+      final rawNonce = _auth.generateRawNonce();
+      final credential = await SignInWithApple.getAppleIDCredential(
+        scopes: [AppleIDAuthorizationScopes.email, AppleIDAuthorizationScopes.fullName],
+        nonce: sha256.convert(utf8.encode(rawNonce)).toString(),
+      );
+      final idToken = credential.identityToken;
+      if (idToken == null) {
+        return const AuthResult(error: 'Apple didn\'t send a sign-in token. Try again.');
+      }
+      final response = await _auth.signInWithIdToken(
+        provider: OAuthProvider.apple,
+        idToken: idToken,
+        nonce: rawNonce,
+      );
+      return AuthResult(user: response.user, session: response.session);
+    } on SignInWithAppleAuthorizationException catch (e) {
+      if (e.code == AuthorizationErrorCode.canceled) {
+        return const AuthResult(); // They closed the sheet.
+      }
+      return const AuthResult(error: 'Sign in with Apple didn\'t finish. Try again, or use your email.');
+    } on AuthException catch (e) {
+      return AuthResult(
+          error: authExceptionMessage(
+              code: e.code, statusCode: e.statusCode, message: e.message));
+    } catch (e) {
+      return AuthResult(error: friendlyAuthError(e));
+    }
   }
 
   // -- Sign in with Google ------------------------------------------------
@@ -142,7 +177,11 @@ class SupabaseAuthGateway implements AuthGateway {
   // -- Auth state stream --------------------------------------------------
 
   @override
-  bool get offersSocialSignIn => false; // Needs Google/Apple client IDs.
+  bool get offersSocialSignIn => false; // Needs a Google client ID.
+
+  @override
+  bool get offersAppleSignIn =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
 
   @override
   Stream<AuthChangeEvent> onAuthStateChange() {

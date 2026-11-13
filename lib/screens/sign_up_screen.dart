@@ -205,9 +205,11 @@ class _SignUpScreenState extends State<SignUpScreen>
                         ),
 
                         // -- Social sign-in buttons -----------------------
-                        if (auth.offersSocialSignIn) ...[
+                        if (auth.offersSocialSignIn ||
+                            auth.offersAppleSignIn) ...[
                           const SizedBox(height: 28),
-                          if (!kIsWeb &&
+                          if (auth.offersAppleSignIn &&
+                              !kIsWeb &&
                               defaultTargetPlatform == TargetPlatform.iOS) ...[
                             _SocialButton(
                               label: 'Continue with Apple',
@@ -216,11 +218,12 @@ class _SignUpScreenState extends State<SignUpScreen>
                             ),
                             const SizedBox(height: 12),
                           ],
-                          _SocialButton(
-                            label: 'Continue with Google',
-                            iconWidget: _googleIcon(),
-                            onTap: isLoading ? null : _handleGoogleSignIn,
-                          ),
+                          if (auth.offersSocialSignIn)
+                            _SocialButton(
+                              label: 'Continue with Google',
+                              iconWidget: _googleIcon(),
+                              onTap: isLoading ? null : _handleGoogleSignIn,
+                            ),
 
                           // -- Divider --------------------------------------
                           const SizedBox(height: 24),

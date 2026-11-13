@@ -91,6 +91,9 @@ class FakeAuthGateway implements AuthGateway {
   bool get offersSocialSignIn => true;
 
   @override
+  bool get offersAppleSignIn => true;
+
+  @override
   User? get currentUser => _session?.user;
 
   @override

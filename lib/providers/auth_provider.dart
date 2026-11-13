@@ -19,6 +19,7 @@ class AuthProvider extends ChangeNotifier {
   AuthProvider({required AuthGateway gateway}) : _gateway = gateway;
 
   bool get offersSocialSignIn => _gateway.offersSocialSignIn;
+  bool get offersAppleSignIn => _gateway.offersAppleSignIn;
 
   // -- Public getters -----------------------------------------------------
 

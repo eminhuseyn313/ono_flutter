@@ -79,6 +79,9 @@ class MockAuthGateway implements AuthGateway {
   bool get offersSocialSignIn => true;
 
   @override
+  bool get offersAppleSignIn => false;
+
+  @override
   User? get currentUser => _user;
 
   @override

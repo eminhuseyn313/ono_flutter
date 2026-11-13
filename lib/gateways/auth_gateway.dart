@@ -30,8 +30,11 @@ abstract class AuthGateway {
   /// Stream of auth state changes (sign-in, sign-out, token refresh, etc.).
   Stream<AuthChangeEvent> onAuthStateChange();
 
-  /// Whether Google and Apple sign-in are set up (else only email shows).
+  /// Whether Google sign-in is set up (else only email shows).
   bool get offersSocialSignIn;
+
+  /// Whether "Continue with Apple" shows (on an iPhone).
+  bool get offersAppleSignIn;
 
   /// The currently authenticated user, if any.
   User? get currentUser;
@@ -92,7 +95,10 @@ String authExceptionMessage(
   if (c == 'invalid_credentials' || m.contains('invalid login credentials')) {
     return 'That email and password don\'t match. If you made the account a while ago, tap "Forgot password?" to set a new one.';
   }
-  if (c == 'email_not_confirmed' || m.contains('email not confirmed')) {
+  if (c == 'provider_disabled' || m.contains('provider is not enabled') || m.contains('unsupported provider')) {
+    return 'Sign in with Apple isn\'t switched on for ONO\'s server yet. Use your email for now.';
+  }
+    if (c == 'email_not_confirmed' || m.contains('email not confirmed')) {
     return 'Confirm your email first: tap the link we sent, then sign in.';
   }
   if (c == 'weak_password' || m.contains('password should be')) {

@@ -91,6 +91,9 @@ class MockAuthGateway implements AuthGateway {
   bool get offersSocialSignIn => true;
 
   @override
+  bool get offersAppleSignIn => true;
+
+  @override
   User? get currentUser => _currentUser;
 
   @override
@@ -425,6 +428,9 @@ class _ThrowingRecoverGateway implements AuthGateway {
 
   @override
   bool get offersSocialSignIn => true;
+
+  @override
+  bool get offersAppleSignIn => true;
 
   @override
   User? get currentUser => null;
