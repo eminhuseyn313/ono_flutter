@@ -55,12 +55,15 @@ class _Outcomes extends StatefulWidget {
 
 class _OutcomesState extends State<_Outcomes> {
   late final List<TextEditingController> _c;
+  late final TextEditingController _forward;
 
   @override
   void initState() {
     super.initState();
     final o = context.read<PersonalSystemProvider>().weekOutcomes(widget.week);
     _c = List.generate(3, (i) => TextEditingController(text: o[i]));
+    _forward = TextEditingController(
+        text: context.read<PersonalSystemProvider>().lookForward(widget.week)?.text ?? '');
   }
 
   @override
@@ -68,6 +71,7 @@ class _OutcomesState extends State<_Outcomes> {
     for (final c in _c) {
       c.dispose();
     }
+    _forward.dispose();
     super.dispose();
   }
 
@@ -80,6 +84,8 @@ class _OutcomesState extends State<_Outcomes> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _card(context, system),
+        const SizedBox(height: 10),
+        _forwardCard(system),
         // Not a blank page: what the goal, the growth area and the latest
         // feedback point to, in one tap.
         if (empty > 0 && proposals.isNotEmpty) ...[
@@ -117,6 +123,61 @@ class _OutcomesState extends State<_Outcomes> {
           ),
         ],
       ],
+    );
+  }
+
+  /// Not a task: one good thing on the calendar, so the week isn't only
+  /// outcomes.
+  Widget _forwardCard(PersonalSystemProvider system) {
+    final f = system.lookForward(widget.week);
+    return OnoCard(
+      padding: const EdgeInsets.fromLTRB(12, 6, 16, 6),
+      child: Row(
+        children: [
+          if (widget.tickable)
+            IconButton(
+              key: Key('forward-done-${dateKey(widget.week)}'),
+              tooltip: f?.happened == true ? 'It happened — undo' : 'It happened',
+              visualDensity: VisualDensity.compact,
+              onPressed: f == null
+                  ? null
+                  : () => system.markLookForward(
+                      widget.week, f.happened == true ? null : true),
+              icon: Icon(
+                f?.happened == true
+                    ? Icons.favorite_rounded
+                    : Icons.favorite_border_rounded,
+                color: f?.happened == true ? AppColors.accent : AppColors.faint,
+              ),
+            )
+          else
+            const SizedBox(
+              width: 40,
+              child: Center(
+                child: Icon(Icons.favorite_border_rounded,
+                    size: 20, color: AppColors.accent),
+              ),
+            ),
+          Expanded(
+            child: TextField(
+              key: Key('forward-${dateKey(widget.week)}'),
+              controller: _forward,
+              style: AppText.body(color: AppColors.white),
+              onChanged: (v) {
+                system.setLookForward(widget.week, v);
+                setState(() {});
+              },
+              decoration: const InputDecoration(
+                  labelText: 'Something to look forward to',
+                  hintText: 'e.g. Friday dinner with a friend',
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  filled: false),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

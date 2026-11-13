@@ -1181,6 +1181,31 @@ class _WeekCard extends StatelessWidget {
             ],
           ),
         ),
+        if (system.lookForward(now) case final f?)
+          Padding(
+            key: const Key('today-forward'),
+            padding: const EdgeInsets.fromLTRB(4, 8, 4, 0),
+            child: Row(
+              children: [
+                Icon(
+                    f.happened == true
+                        ? Icons.favorite_rounded
+                        : Icons.favorite_border_rounded,
+                    size: 16,
+                    color: AppColors.accent),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                      f.happened == true
+                          ? 'It happened: ${f.text}'
+                          : 'To look forward to: ${f.text}',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppText.small(color: AppColors.white)),
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }

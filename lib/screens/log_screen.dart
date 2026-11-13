@@ -306,6 +306,7 @@ class _LogScreenState extends State<LogScreen> {
                   'caregiver_check',
                   'negotiation',
                   'value_act',
+                  'look_forward',
                   'daily_list'
                 }.contains(e.type))
             .toList()

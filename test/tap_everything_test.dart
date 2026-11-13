@@ -48,6 +48,8 @@ void main() {
   final all = Platform.environment['TAP_ALL'] == '1';
   final part = int.parse(Platform.environment['PART'] ?? '0');
   final parts = int.parse(Platform.environment['PARTS'] ?? '1');
+  // SCROLL=1200 starts each page that far down, for long screens.
+  final scroll = double.parse(Platform.environment['SCROLL'] ?? '0');
 
   for (final builtIn in [true, false]) {
     testWidgets(
@@ -128,6 +130,11 @@ void main() {
           await tester.pump(const Duration(milliseconds: 200));
           GoRouter.of(ctx()).go(r);
           await _pumpFor(tester, const Duration(milliseconds: 700));
+          if (scroll > 0 && find.byType(Scrollable).evaluate().isNotEmpty) {
+            await tester.drag(find.byType(Scrollable).first, Offset(0, -scroll),
+                warnIfMissed: false);
+            await tester.pump(const Duration(milliseconds: 300));
+          }
           return find.byWidgetPredicate(_tappable).evaluate().length;
         }
 

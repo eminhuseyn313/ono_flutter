@@ -4183,4 +4183,21 @@ void main() {
     p.togglePriority(dayOnly(_today), 1);
     expect(at('/home', 5, 'Your daily items').body, isNot(contains('Still open')));
   });
+
+  test('something to look forward to: one a week, marked when it happened, cleared when emptied', () async {
+    final p = await _commissioned();
+    final today = dayOnly(_today);
+    expect(p.lookForward(today), isNull);
+    p.setLookForward(today, '  Friday dinner with Dana ');
+    p.setLookForward(today.plusDays(1), 'Friday dinner with Dana and Sam');
+    expect(p.logsOf('look_forward'), hasLength(1));
+    expect(p.lookForward(weekStartOf(today))!.text, 'Friday dinner with Dana and Sam');
+    expect(p.lookForward(today)!.happened, isNull);
+    p.markLookForward(today, true);
+    expect(p.lookForward(today)!.happened, isTrue);
+    // Next week starts empty.
+    expect(p.lookForward(weekStartOf(today).plusDays(7)), isNull);
+    p.setLookForward(today, '');
+    expect(p.lookForward(today), isNull);
+  });
 }

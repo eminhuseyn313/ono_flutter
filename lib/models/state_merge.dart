@@ -63,7 +63,7 @@ const _dailyTypes = {
   'checkin', 'week_plan', 'shutdown', 'hard_day', 'detach', 'daily_list',
   'partner_checkin', 'us_checkin', 'values_check', 'sleep', 'vitals',
   // One per week (dated its Monday) or per month (dated its first day).
-  'lesson', 'value_act', 'load_check',
+  'lesson', 'value_act', 'load_check', 'look_forward',
 };
 
 /// Keeps the most recently created log of each one-per-day type and day.

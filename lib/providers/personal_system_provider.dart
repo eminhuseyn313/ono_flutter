@@ -2226,7 +2226,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     'goal': '/goals', 'goal_value': '/goals', 'growth_focus': '/growth', 'rep': '/growth',
     'odyssey': '/odyssey', 'best_future': '/best-future', 'strengths': '/strengths',
     'strength_use': '/strengths', 'life_story': '/chapters', 'values': '/values',
-    'values_check': '/values', 'value_act': '/values', 'money_check': '/money',
+    'values_check': '/values', 'value_act': '/values', 'look_forward': '/week', 'money_check': '/money',
     'quarterly_review': '/quarter', 'story': '/stories', 'year_review': '/year',
     'letter': '/letters', 'learning': '/learning', 'feynman': '/learning', 'aar': '/aar',
     'courage': '/courage', 'focus': '/focus', 'anki': '/review', 'automaticity': '/habits',
@@ -6288,6 +6288,41 @@ class PersonalSystemProvider extends ChangeNotifier {
       'act_value': a.value,
       'act': a.act,
       'act_done': done,
+    });
+  }
+
+  /// One thing to look forward to in the week of [anyDay] — planned
+  /// pleasant activity (behavioural activation, Mazzucchelli et al. 2010)
+  /// and the lift of anticipating it. (text, happened — null until said).
+  ({String text, bool? happened})? lookForward(DateTime anyDay) {
+    final own = logsOn(weekStartOf(anyDay), 'look_forward');
+    final text = own.isEmpty ? '' : '${own.last.data['what'] ?? ''}'.trim();
+    if (text.isEmpty) return null;
+    return (text: text, happened: own.last.data['happened'] as bool?);
+  }
+
+  /// Plans (or changes) it; empty clears.
+  void setLookForward(DateTime anyDay, String text) {
+    final week = weekStartOf(anyDay);
+    if (text.trim().isEmpty) {
+      for (final l in logsOn(week, 'look_forward')) {
+        removeLog(l.id);
+      }
+      return;
+    }
+    final own = logsOn(week, 'look_forward');
+    _upsertDayLog('look_forward', week, {
+      if (own.isNotEmpty) ...own.last.data,
+      'what': text.trim(),
+    });
+  }
+
+  void markLookForward(DateTime anyDay, bool? happened) {
+    final f = lookForward(anyDay);
+    if (f == null) return;
+    _upsertDayLog('look_forward', weekStartOf(anyDay), {
+      'what': f.text,
+      if (happened != null) 'happened': happened,
     });
   }
 

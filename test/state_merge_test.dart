@@ -126,7 +126,7 @@ void main() {
   });
 
   test('a week\'s lesson or a month\'s load check made on two devices keeps one', () {
-    for (final type in ['lesson', 'load_check', 'value_act']) {
+    for (final type in ['lesson', 'load_check', 'value_act', 'look_forward']) {
       Map<String, dynamic> log(String id, String at) => {
             'id': id, 'type': type, 'date': '2026-10-12',
             'created_at': at, 'text': id, 'data': {'month': 2}
