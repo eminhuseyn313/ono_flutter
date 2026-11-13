@@ -1,4 +1,5 @@
-import 'package:supabase_flutter/supabase_flutter.dart' show Session, User, AuthChangeEvent;
+import 'package:supabase_flutter/supabase_flutter.dart'
+    show Session, User, AuthChangeEvent;
 
 /// Result wrapper for auth operations.
 class AuthResult {
@@ -56,10 +57,56 @@ abstract class AuthGateway {
 /// never a raw exception with an address in it.
 String friendlyAuthError(Object e) {
   final t = '$e'.toLowerCase();
-  const offline = ['socketexception', 'clientexception', 'failed host lookup',
-      'xmlhttprequest', 'connection', 'network', 'timeout', 'timed out'];
+  const offline = [
+    'socketexception',
+    'clientexception',
+    'failed host lookup',
+    'xmlhttprequest',
+    'connection',
+    'network',
+    'timeout',
+    'timed out'
+  ];
   if (offline.any(t.contains)) {
     return 'Couldn\'t reach ONO. Check your connection and try again.';
   }
   return 'Something went wrong. Try again in a moment.';
+}
+
+/// A Supabase Auth error in words a person can act on. Server-side
+/// failures (a database waking up after a pause, a restart) never show
+/// their raw text; a wrong password points to the reset.
+String authExceptionMessage(
+    {String? code,
+    String? statusCode,
+    required String message,
+    bool signUp = false}) {
+  final c = (code ?? '').toLowerCase();
+  final m = message.toLowerCase();
+  final status = int.tryParse(statusCode ?? '') ?? 0;
+  if (c == 'user_already_exists' ||
+      c == 'email_exists' ||
+      m.contains('already registered')) {
+    return 'You already have an account with this email — sign in instead. Forgot the password? Reset it from the sign-in screen.';
+  }
+  if (c == 'invalid_credentials' || m.contains('invalid login credentials')) {
+    return 'That email and password don\'t match. If you made the account a while ago, tap "Forgot password?" to set a new one.';
+  }
+  if (c == 'email_not_confirmed' || m.contains('email not confirmed')) {
+    return 'Confirm your email first: tap the link we sent, then sign in.';
+  }
+  if (c == 'weak_password' || m.contains('password should be')) {
+    return 'Choose a longer password: at least 6 characters.';
+  }
+  if (c == 'over_email_send_rate_limit' ||
+      c == 'over_request_rate_limit' ||
+      status == 429) {
+    return 'Too many tries in a short time. Wait a few minutes, then try again.';
+  }
+  if (c == 'unexpected_failure' ||
+      status >= 500 ||
+      m.contains('database error')) {
+    return 'ONO\'s server is waking up or busy. Wait a minute and try again${signUp ? ' — nothing was created' : ''}.';
+  }
+  return message;
 }

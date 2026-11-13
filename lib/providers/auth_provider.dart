@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart'
-    show User, AuthChangeEvent;
+    show User, AuthChangeEvent, AuthException;
 
 import '../gateways/auth_gateway.dart';
 
@@ -181,6 +181,12 @@ class AuthProvider extends ChangeNotifier {
       _errorMessage = null;
       notifyListeners();
       return true;
+    } on AuthException catch (e) {
+      _status = AuthStatus.unauthenticated;
+      _errorMessage = authExceptionMessage(
+          code: e.code, statusCode: e.statusCode, message: e.message);
+      notifyListeners();
+      return false;
     } catch (e) {
       _status = AuthStatus.unauthenticated;
       _errorMessage = friendlyAuthError(e);

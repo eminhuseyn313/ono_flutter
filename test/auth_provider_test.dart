@@ -1,7 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' show Session, User, AuthChangeEvent;
+import 'package:supabase_flutter/supabase_flutter.dart'
+    show Session, User, AuthChangeEvent;
 
 import 'package:ono/gateways/auth_gateway.dart';
 import 'package:ono/providers/auth_provider.dart';
@@ -11,7 +12,6 @@ import 'package:ono/time.dart';
 // Hand-rolled mock — no codegen needed
 // ---------------------------------------------------------------------------
 class MockAuthGateway implements AuthGateway {
-
   @override
   Future<AuthResult> signInWithApple() async =>
       const AuthResult(error: 'not implemented');
@@ -350,13 +350,45 @@ void main() {
       expect(provider.status, AuthStatus.authenticated);
     });
   });
+
+  group('Supabase auth errors in plain words', () {
+    test('a database waking up never shows its raw text', () {
+      final m = authExceptionMessage(
+          code: 'unexpected_failure',
+          statusCode: '500',
+          message: 'Database error finding user',
+          signUp: true);
+      expect(m, contains('waking up'));
+      expect(m, contains('nothing was created'));
+      expect(m.toLowerCase(), isNot(contains('database')));
+    });
+    test('a wrong password points to the reset', () {
+      expect(
+          authExceptionMessage(
+              code: 'invalid_credentials',
+              statusCode: '400',
+              message: 'Invalid login credentials'),
+          contains('Forgot password?'));
+    });
+    test('an existing email says sign in', () {
+      expect(
+          authExceptionMessage(
+              code: 'user_already_exists', message: 'User already registered'),
+          contains('sign in instead'));
+    });
+    test('anything else keeps the server\'s own words', () {
+      expect(
+          authExceptionMessage(
+              code: 'x', statusCode: '400', message: 'Signups not allowed'),
+          'Signups not allowed');
+    });
+  });
 }
 
 // ---------------------------------------------------------------------------
 // Helper gateway that throws on recoverSession
 // ---------------------------------------------------------------------------
 class _ThrowingRecoverGateway implements AuthGateway {
-
   @override
   Future<AuthResult> signInWithApple() async =>
       const AuthResult(error: 'not implemented');
@@ -370,11 +402,13 @@ class _ThrowingRecoverGateway implements AuthGateway {
   }
 
   @override
-  Future<AuthResult> signUp({required String email, required String password}) async =>
+  Future<AuthResult> signUp(
+          {required String email, required String password}) async =>
       const AuthResult(error: 'nope');
 
   @override
-  Future<AuthResult> signIn({required String email, required String password}) async =>
+  Future<AuthResult> signIn(
+          {required String email, required String password}) async =>
       const AuthResult(error: 'nope');
 
   @override

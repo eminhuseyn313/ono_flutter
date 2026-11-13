@@ -38,20 +38,23 @@ class SupabaseAuthGateway implements AuthGateway {
         // An email that already has an account comes back with no
         // identities (and no email is sent): say so instead of waiting.
         if (response.user?.identities?.isEmpty ?? false) {
-          return const AuthResult(
-              error: 'You already have an account with this email — sign in instead.');
+          return AuthResult(
+              error: authExceptionMessage(
+                  code: 'user_already_exists', message: ''));
         }
         // The project asks new accounts to confirm their email first.
         return const AuthResult(
-            error: 'Check your email and tap the link to confirm, then come back here and sign in.');
+            error:
+                'Check your email and tap the link to confirm, then come back here and sign in.');
       }
       return AuthResult(user: response.user, session: response.session);
     } on AuthException catch (e) {
-      if (e.message.toLowerCase().contains('already registered')) {
-        return const AuthResult(
-            error: 'You already have an account with this email — sign in instead.');
-      }
-      return AuthResult(error: e.message);
+      return AuthResult(
+          error: authExceptionMessage(
+              code: e.code,
+              statusCode: e.statusCode,
+              message: e.message,
+              signUp: true));
     } catch (e) {
       return AuthResult(error: friendlyAuthError(e));
     }
@@ -71,7 +74,9 @@ class SupabaseAuthGateway implements AuthGateway {
       );
       return AuthResult(user: response.user, session: response.session);
     } on AuthException catch (e) {
-      return AuthResult(error: e.message);
+      return AuthResult(
+          error: authExceptionMessage(
+              code: e.code, statusCode: e.statusCode, message: e.message));
     } catch (e) {
       return AuthResult(error: friendlyAuthError(e));
     }
@@ -109,7 +114,8 @@ class SupabaseAuthGateway implements AuthGateway {
       final accessToken = googleAuth.accessToken;
 
       if (idToken == null) {
-        return const AuthResult(error: 'Google Sign In failed — no ID token received.');
+        return const AuthResult(
+            error: 'Google Sign In failed — no ID token received.');
       }
 
       final response = await _auth.signInWithIdToken(
@@ -166,9 +172,13 @@ class SupabaseAuthGateway implements AuthGateway {
       await _auth.updateUser(UserAttributes(password: password));
       return null;
     } on AuthException catch (e) {
-      return e.message;
+      if (e.code == 'same_password') {
+        return 'That\'s your current password — choose a new one.';
+      }
+      return authExceptionMessage(
+          code: e.code, statusCode: e.statusCode, message: e.message);
     } catch (e) {
-      return 'Couldn\'t change the password: $e';
+      return friendlyAuthError(e);
     }
   }
 
