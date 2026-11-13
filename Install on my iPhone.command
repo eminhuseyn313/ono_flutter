@@ -37,10 +37,13 @@ The build was refused — almost always signing. Fix it once:
   3. Close Xcode and double-click this file again.
 EOF
   if [ -n "$(ls ios/.capabilities 2>/dev/null)" ]; then
-    echo "If the error mentions HealthKit, App Groups or a provisioning profile, your"
-    echo "Apple account may not support those extras. Turn them off and try again:"
+    echo "If the error mentions HealthKit, App Groups, Sign in with Apple or a"
+    echo "provisioning profile: in Xcode → Settings → Accounts, pick your paid team"
+    echo "and press Download Manual Profiles, then try again. On a free Apple ID,"
+    echo "turn the extras off instead:"
     echo "  bash scripts/capabilities.sh health off"
     echo "  bash scripts/capabilities.sh widget off"
+    echo "  bash scripts/capabilities.sh apple off"
   fi
   open ios/Runner.xcworkspace
   fail "Signing needs a one-time setup (see above)."
@@ -55,5 +58,6 @@ Sign in with your email: the web app (https://eminhuseyn313.github.io/ono_flutte
 uses the same account, and the two stay in sync. What was already on the phone
 moves into the first account you sign in with.
 With a free Apple ID it runs for 7 days, then run this again (your data stays).
+With the paid program it lasts a year; for no cable at all, use "ONO to TestFlight".
 EOF
 read -r -p "Press Enter to close…" _

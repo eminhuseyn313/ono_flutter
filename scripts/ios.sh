@@ -64,17 +64,20 @@ connected_iphone() {
 }
 
 # Ask once whether to turn on the extras that depend on the Apple account.
+# A paid Apple Developer Program team supports all of them; a free Apple
+# ID doesn't. Asked again once for people who said no before joining.
 ask_capabilities_once() {
-  [ -f ios/.capabilities/.asked ] && return 0
+  [ -f ios/.capabilities/.asked-paid ] && return 0
   mkdir -p ios/.capabilities
   echo
-  echo "Two optional extras need your Apple account to support them."
-  echo "Say n if unsure — you can turn them on later with scripts/capabilities.sh."
-  local a b
-  read -r -p "  Apple Health (sleep, HRV, weigh-ins)? [y/N] " a
-  read -r -p "  Home Screen & Lock Screen widget? [y/N] " b
-  [[ "$a" =~ ^[Yy] ]] && touch ios/.capabilities/health
-  [[ "$b" =~ ^[Yy] ]] && touch ios/.capabilities/widget
-  touch ios/.capabilities/.asked
+  echo "Is your Apple ID in the paid Apple Developer Program (\$99/year)?"
+  echo "With it ONO gets Apple Health, the Home & Lock Screen widget, the"
+  echo "Lock Screen timer and Sign in with Apple. A free Apple ID can't sign them."
+  local a
+  read -r -p "  Paid Apple Developer Program? [Y/n] " a
+  if [[ ! "$a" =~ ^[Nn] ]]; then
+    touch ios/.capabilities/health ios/.capabilities/widget ios/.capabilities/apple
+  fi
+  touch ios/.capabilities/.asked ios/.capabilities/.asked-paid
   bash scripts/capabilities.sh apply || say "Couldn't add them — continuing without."
 }

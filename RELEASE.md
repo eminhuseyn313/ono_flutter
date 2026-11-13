@@ -18,23 +18,24 @@ How long it runs:
 - **Free Apple ID:** the app stops opening after 7 days. Run the installer again; your data is kept.
 - **Apple Developer Program ($99/year):** it lasts much longer. It's also needed for steps 3–4.
 
-## 3. TestFlight (recommended next)
+## 3. TestFlight (recommended)
 TestFlight installs ONO from Apple, with no Mac or cable, and builds last 90 days. Internal testers (you) need no App Review.
 
-1. Join the Apple Developer Program: developer.apple.com/programs.
-2. In App Store Connect, go to Apps → **+** → New App:
+Once:
+1. Apple Developer Program: done.
+2. Xcode → Settings → Accounts: sign in with that Apple ID; team `XYY5Y3F4W5` should show.
+3. In App Store Connect (appstoreconnect.apple.com), go to Apps → **+** → New App:
    - Platform: iOS
    - Name: ONO (pick another if it's taken)
    - Bundle ID: `com.eminhuseynzade.ono`
    - SKU: `ono`
-3. Bump the build number in `pubspec.yaml` for every upload (`1.0.0+2`, `+3`, …).
-4. Build the archive and open it:
-   ```bash
-   flutter build ipa --release
-   open build/ios/archive/Runner.xcarchive
-   ```
-   Xcode Organizer opens. Click **Distribute App** → **App Store Connect** → Upload.
-5. In App Store Connect → TestFlight, add yourself as an internal tester. Install the **TestFlight** app on the iPhone and accept the invite.
+   If an agreement is waiting under Business, accept it.
+
+Every time: double-click **ONO to TestFlight**. It updates the code, builds with the next build number (the commit count, so it always goes up), and uploads (`ios/ExportOptions-TestFlight.plist`). Apple emails you when the build is processed (5–15 minutes).
+
+The first time only: App Store Connect → ONO → TestFlight → Internal Testing → add yourself. On the iPhone, install the **TestFlight** app, accept the invite and install ONO. Later uploads appear there by themselves.
+
+If the upload is refused, the launcher says why and opens the archive in Xcode; Distribute App → App Store Connect → Upload does the same by hand.
 
 ## 4. Public App Store release
 In App Store Connect you also need:
@@ -49,25 +50,26 @@ So:
 - **Personal use:** stay on TestFlight. It needs no review and is private.
 - **Public app:** the content needs a generic version first. Onboarding would collect each user's own profile and fill `emin_system.dart`'s structure from it.
 
-## Apple Health and the widget (opt-in)
-These need capabilities your Apple team must support: HealthKit, and App Groups for the widget. **ONO on iPhone** asks once. To change it later, run this in the `ono_flutter` folder:
+## Apple Health, widget, Lock Screen timer, Sign in with Apple
+These need a paid team (a free Apple ID can't sign them). **ONO on iPhone** and **ONO to TestFlight** ask once: "Paid Apple Developer Program? [Y/n]". Yes switches on:
+- `health`: Apple Health (sleep, HRV, weigh-ins).
+- `widget`: the Home and Lock Screen widget. It also carries the Lock Screen timer: a Live Activity counting down deep-work blocks, tool timers and rest between sets on the Lock Screen and in the Dynamic Island.
+- `apple`: Sign in with Apple.
+
+To change one later, run this in the `ono_flutter` folder:
 ```bash
-bash scripts/capabilities.sh health on    # or off
-bash scripts/capabilities.sh widget on    # or off
+bash scripts/capabilities.sh health on    # or off; also widget, apple
 bash scripts/capabilities.sh status
 ```
 The choice is remembered and re-applied after every update. Don't add these by hand in Xcode: the launchers reset hand edits to the project.
 
-For App Store review:
-- Mention Health use in the privacy policy.
-- Declare "Health & Fitness" data under App Privacy.
-- The widget needs no extra review.
+If signing complains about a profile after switching them on: Xcode → Settings → Accounts → your team → Download Manual Profiles, then run the launcher again. Automatic signing registers the App ID's capabilities and the app group by itself.
 
-## Already set up in the project
-- iPhone-only (no iPad screenshots or iPad review needed).
-- Export compliance answered (`ITSAppUsesNonExemptEncryption = NO`).
-- App icon in every size, with no transparency.
-- Dark launch screen.
-- Portrait only.
-- Local notifications (no extra permissions text needed).
-- Calendar usage text (read-only meeting prep); declare nothing extra in App Privacy, since meetings never leave the phone.
+### Sign in with Apple: one setting in Supabase
+The button calls Apple on the phone and hands Supabase the token, so no secret key is needed:
+1. Supabase → project Ono → Authentication → Sign In / Providers → **Apple** → Enable.
+2. Client IDs: `com.eminhuseynzade.ono`. Leave the secret key empty (it's only for sign-in on the web). Save.
+
+Use the Apple ID whose email is your ONO email and choose **Share My Email**: Supabase then signs you in to the same account (same verified email). "Hide My Email" makes a separate, empty account. Until the provider is on, the button says Sign in with Apple isn't switched on yet.
+
+Minimum iOS is 16.2 (Live Activities).

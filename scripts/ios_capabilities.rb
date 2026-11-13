@@ -1,10 +1,12 @@
 #!/usr/bin/env ruby
 # Applies opt-in iOS capabilities to Runner.xcodeproj. Idempotent.
-#   ruby scripts/ios_capabilities.rb health widget
+#   ruby scripts/ios_capabilities.rb health widget apple
 #
 # health: HealthKit entitlement on the app (Apple Health).
+# apple:  Sign in with Apple entitlement on the app.
 # widget: the ONOWidget WidgetKit extension (ios/ONOWidget) plus an app group
-#         shared by the app and the widget.
+#         shared by the app and the widget. The extension also draws the
+#         Lock Screen countdown (Live Activity) for timers.
 #
 # Opt-in because your Apple team must support them; use
 # `bash scripts/capabilities.sh` rather than calling this directly — it
@@ -14,7 +16,7 @@ require 'xcodeproj'
 GROUP_ID = 'group.com.eminhuseynzade.ono'.freeze
 IOS = File.expand_path('../ios', __dir__)
 wanted = ARGV.map(&:downcase)
-abort('usage: ios_capabilities.rb [health] [widget]') if (wanted - %w[health widget]).any?
+abort('usage: ios_capabilities.rb [health] [widget] [apple]') if (wanted - %w[health widget apple]).any?
 project = Xcodeproj::Project.open(File.join(IOS, 'Runner.xcodeproj'))
 runner = project.targets.find { |t| t.name == 'Runner' } or abort('Runner target not found')
 
@@ -101,6 +103,13 @@ if wanted.include?('health')
     ent['com.apple.developer.healthkit.access'] ||= []
   end
   puts 'HealthKit: on.'
+end
+
+if wanted.include?('apple')
+  merge_runner_entitlements(project, runner) do |ent|
+    ent['com.apple.developer.applesignin'] = ['Default']
+  end
+  puts 'Sign in with Apple: on.'
 end
 
 if wanted.include?('widget')
