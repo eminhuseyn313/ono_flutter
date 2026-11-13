@@ -191,6 +191,8 @@ class _FocusScreenState extends State<FocusScreen> {
             key: ValueKey('$_minutes-$_target'),
             minutes: _minutes,
             label: targets[_target]!.toLowerCase(),
+            liveTitle: 'Deep work · ${targets[_target]!}',
+            liveKind: 'focus',
             onDone: () => _log(system, timed: true),
           ),
         ),

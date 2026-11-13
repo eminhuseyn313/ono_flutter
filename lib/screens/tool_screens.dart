@@ -90,8 +90,17 @@ class CountdownTimer extends StatefulWidget {
   final VoidCallback? onDone;
   final String label;
 
+  /// What the Lock Screen countdown says (else the label), and its icon.
+  final String? liveTitle;
+  final String liveKind;
+
   const CountdownTimer(
-      {super.key, required this.minutes, this.onDone, this.label = ''});
+      {super.key,
+      required this.minutes,
+      this.onDone,
+      this.label = '',
+      this.liveTitle,
+      this.liveKind = 'timer'});
 
   @override
   State<CountdownTimer> createState() => _CountdownTimerState();
@@ -137,7 +146,12 @@ class _CountdownTimerState extends State<CountdownTimer> {
         body: widget.label.isEmpty
             ? 'Time is up.'
             : 'Time is up — ${widget.label}.',
-        route: _route);
+        route: _route,
+        live: widget.liveTitle ??
+            (widget.label.isEmpty
+                ? '${widget.minutes}-minute timer'
+                : '${widget.label[0].toUpperCase()}${widget.label.substring(1)}'),
+        liveKind: widget.liveKind);
     setState(() {
       _t = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
     });
@@ -152,6 +166,7 @@ class _CountdownTimerState extends State<CountdownTimer> {
       _t = null;
       _endsAt = null;
       HapticFeedback.heavyImpact();
+      _system.endLiveTimer();
       widget.onDone?.call();
     }
   }

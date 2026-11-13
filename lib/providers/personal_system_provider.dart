@@ -15,6 +15,7 @@ import '../data/plan_packs.dart';
 import '../gateways/personal_system_gateway.dart';
 import '../models/personal_system.dart';
 import '../models/state_merge.dart';
+import '../services/live_timer.dart';
 import '../services/brief_generator.dart';
 import '../services/calendar_service.dart';
 import '../services/health_service.dart';
@@ -3252,12 +3253,22 @@ class PersonalSystemProvider extends ChangeNotifier {
       Duration(seconds: exercise.keyLift ? 120 : 90);
 
   /// Notifies when the rest ends, in case ONO is in the background then.
+  /// Also counts down on the Lock Screen while ONO is in the background.
   Future<void> startRest(DateTime endsAt, {required String next}) async {
+    unawaited(liveTimer.start(
+        title: 'Rest', endsAt: endsAt, kind: 'rest', next: next));
     await _reminders?.notifyOnce(restNotificationId, endsAt,
         title: 'Rest done', body: 'Next: $next', route: '/gym');
   }
 
-  Future<void> cancelRest() async => _reminders?.cancel(restNotificationId);
+  Future<void> cancelRest() async {
+    unawaited(liveTimer.end());
+    await _reminders?.cancel(restNotificationId);
+  }
+
+  /// A countdown finished on screen: take it off the Lock Screen without
+  /// touching the notification that is going off.
+  Future<void> endLiveTimer() => liveTimer.end();
 
   static const timerNotificationId = onceIdBase + 2;
 
@@ -3266,13 +3277,20 @@ class PersonalSystemProvider extends ChangeNotifier {
   Future<void> notifyTimerEnd(DateTime at,
       {required String title,
       required String body,
-      required String route}) async {
+      required String route,
+      String? live,
+      String liveKind = 'timer'}) async {
+    if (live != null) {
+      unawaited(liveTimer.start(title: live, endsAt: at, kind: liveKind));
+    }
     await _reminders?.notifyOnce(timerNotificationId, at,
         title: title, body: body, route: route);
   }
 
-  Future<void> cancelTimerEnd() async =>
-      _reminders?.cancel(timerNotificationId);
+  Future<void> cancelTimerEnd() async {
+    unawaited(liveTimer.end());
+    await _reminders?.cancel(timerNotificationId);
+  }
 
   // ── Meetings (iPhone calendar) ───────────────────────────────────────
 

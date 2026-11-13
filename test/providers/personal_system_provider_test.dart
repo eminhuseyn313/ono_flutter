@@ -25,6 +25,7 @@ import 'package:ono/services/widget_sync.dart';
 
 import '../support/fake_calendar.dart';
 import '../support/fake_health.dart';
+import 'package:ono/services/live_timer.dart';
 import 'package:ono/time.dart';
 
 /// Friday 2 Oct 2026, noon. The program starts Tue 1 Sep → day 32, month 2.
@@ -4200,4 +4201,45 @@ void main() {
     p.setLookForward(today, '');
     expect(p.lookForward(today), isNull);
   });
+
+  test('timers and rest count down on the Lock Screen and leave it when done', () async {
+    final calls = <String>[];
+    final previous = liveTimer;
+    liveTimer = _RecordingLiveTimer(calls);
+    addTearDown(() => liveTimer = previous);
+    final p = await _commissioned();
+    final end = timeNow().add(const Duration(minutes: 25));
+    await p.notifyTimerEnd(end,
+        title: '25 minutes done', body: 'Time is up.', route: '/focus',
+        live: 'Deep work · Skill', liveKind: 'focus');
+    await p.cancelTimerEnd();
+    await p.startRest(timeNow().add(const Duration(seconds: 90)), next: 'Bench press');
+    await p.endLiveTimer();
+    // A tool timer without a title shows nothing on the Lock Screen.
+    await p.notifyTimerEnd(end, title: 'Done', body: '', route: '/home');
+    expect(calls, [
+      'start focus Deep work · Skill ',
+      'end',
+      'start rest Rest Bench press',
+      'end',
+    ]);
+  });
+}
+
+class _RecordingLiveTimer extends LiveTimer {
+  final List<String> calls;
+  _RecordingLiveTimer(this.calls);
+
+  @override
+  Future<bool> start(
+      {required String title,
+      required DateTime endsAt,
+      String kind = 'timer',
+      String? next}) async {
+    calls.add('start $kind $title ${next ?? ''}');
+    return true;
+  }
+
+  @override
+  Future<void> end() async => calls.add('end');
 }

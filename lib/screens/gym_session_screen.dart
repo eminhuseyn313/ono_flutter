@@ -164,6 +164,7 @@ class _GymSessionScreenState extends State<GymSessionScreen> {
     if (!timeNow().isBefore(_restEnds!)) {
       _tick?.cancel();
       _restEnds = null;
+      _system.endLiveTimer();
       HapticFeedback.heavyImpact();
       SystemSound.play(SystemSoundType.alert);
       toast(context, 'Rest done. Next: $_restNext');

@@ -1,6 +1,9 @@
 // ONO Home Screen and Lock Screen widget.
 // The Flutter app writes a snapshot into the shared app group (see
 // lib/services/widget_sync.dart); this extension only reads and draws it.
+// It also draws the Lock Screen countdown (Live Activity) that the app
+// starts for deep work, tool timers and rest between sets.
+import ActivityKit
 import SwiftUI
 import WidgetKit
 
@@ -219,7 +222,105 @@ struct ONOWidget: Widget {
   }
 }
 
+// MARK: - Lock Screen countdown (Live Activity)
+
+/// Must match the struct of the same name in ios/Runner/AppDelegate.swift.
+struct OnoTimerAttributes: ActivityAttributes {
+  public struct ContentState: Codable, Hashable {
+    var title: String
+    var endsAt: Date
+    var next: String
+  }
+
+  var kind: String
+}
+
+private func timerIcon(_ kind: String) -> String {
+  switch kind {
+  case "focus": return "brain.head.profile"
+  case "rest": return "dumbbell.fill"
+  default: return "timer"
+  }
+}
+
+/// Counts down by itself: the system redraws the time, ONO needn't run.
+private func countdown(_ endsAt: Date) -> Text {
+  let now = Date()
+  return Text(timerInterval: min(now, endsAt)...endsAt, countsDown: true)
+}
+
+struct OnoTimerLiveActivity: Widget {
+  var body: some WidgetConfiguration {
+    ActivityConfiguration(for: OnoTimerAttributes.self) { context in
+      HStack(spacing: 12) {
+        Image(systemName: timerIcon(context.attributes.kind))
+          .font(.title2)
+          .foregroundStyle(Color.onoAccent)
+        VStack(alignment: .leading, spacing: 2) {
+          Text(context.state.title)
+            .font(.headline)
+            .foregroundStyle(Color.onoIvory)
+            .lineLimit(1)
+          if !context.state.next.isEmpty {
+            Text("Next: \(context.state.next)")
+              .font(.caption)
+              .foregroundStyle(Color.onoGrey)
+              .lineLimit(1)
+          }
+        }
+        Spacer(minLength: 8)
+        countdown(context.state.endsAt)
+          .font(.system(size: 34, weight: .semibold, design: .rounded))
+          .monospacedDigit()
+          .foregroundStyle(Color.onoIvory)
+          .multilineTextAlignment(.trailing)
+          .frame(width: 112, alignment: .trailing)
+      }
+      .padding(16)
+      .activityBackgroundTint(Color.onoBackground)
+      .activitySystemActionForegroundColor(Color.onoAccent)
+    } dynamicIsland: { context in
+      DynamicIsland {
+        DynamicIslandExpandedRegion(.leading) {
+          Image(systemName: timerIcon(context.attributes.kind))
+            .font(.title2)
+            .foregroundStyle(Color.onoAccent)
+        }
+        DynamicIslandExpandedRegion(.trailing) {
+          countdown(context.state.endsAt)
+            .font(.title2)
+            .monospacedDigit()
+            .multilineTextAlignment(.trailing)
+            .frame(width: 80, alignment: .trailing)
+        }
+        DynamicIslandExpandedRegion(.bottom) {
+          Text(context.state.next.isEmpty
+               ? context.state.title
+               : "\(context.state.title) · next: \(context.state.next)")
+            .font(.caption)
+            .lineLimit(1)
+        }
+      } compactLeading: {
+        Image(systemName: timerIcon(context.attributes.kind))
+          .foregroundStyle(Color.onoAccent)
+      } compactTrailing: {
+        countdown(context.state.endsAt)
+          .monospacedDigit()
+          .multilineTextAlignment(.trailing)
+          .frame(width: 44)
+      } minimal: {
+        Image(systemName: timerIcon(context.attributes.kind))
+          .foregroundStyle(Color.onoAccent)
+      }
+      .keylineTint(Color.onoAccent)
+    }
+  }
+}
+
 @main
 struct ONOWidgetBundle: WidgetBundle {
-  var body: some Widget { ONOWidget() }
+  var body: some Widget {
+    ONOWidget()
+    OnoTimerLiveActivity()
+  }
 }
