@@ -72,7 +72,11 @@ class _OnoAppState extends State<OnoApp> {
     // device changed meanwhile.
     _lifecycle = AppLifecycleListener(
       onResume: () {
-        if (_auth.status == AuthStatus.authenticated) _system.syncNow();
+        if (_auth.status == AuthStatus.authenticated) {
+          _system.syncNow();
+          // Ticks made on the widget or the watch while ONO was away.
+          _system.refreshWidget();
+        }
       },
       // Leaving the app: tomorrow's wake-up should say what was just
       // planned (priorities, the week's three), not what stood this morning.

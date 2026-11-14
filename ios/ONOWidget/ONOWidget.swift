@@ -4,6 +4,7 @@
 // It also draws the Lock Screen countdown (Live Activity) that the app
 // starts for deep work, tool timers and rest between sets.
 import ActivityKit
+import AppIntents
 import SwiftUI
 import WidgetKit
 
@@ -222,6 +223,187 @@ struct ONOWidget: Widget {
   }
 }
 
+// MARK: - Today's list, ticked from the Home Screen (iOS 17)
+
+/// One daily item as the app writes it ("items" in the app group).
+struct OnoItem: Codable, Hashable {
+  let id: String
+  let t: String
+  var d: Bool
+}
+
+/// The app group holds what the widget shows and the ticks waiting for the
+/// app ("pending_ticks"), which ONO records the next time it opens.
+enum OnoTicks {
+  static func items(_ d: UserDefaults?) -> [OnoItem] {
+    guard let json = d?.string(forKey: "items"), let data = json.data(using: .utf8),
+          let list = try? JSONDecoder().decode([OnoItem].self, from: data)
+    else { return [] }
+    return list
+  }
+
+  static func toggle(_ id: String, day: String) {
+    guard let d = UserDefaults(suiteName: appGroup) else { return }
+    var list = items(d)
+    guard let i = list.firstIndex(where: { $0.id == id }) else { return }
+    list[i].d.toggle()
+    if let data = try? JSONEncoder().encode(list), let json = String(data: data, encoding: .utf8) {
+      d.set(json, forKey: "items")
+    }
+    if d.string(forKey: "date") == day {
+      d.set(list.filter { $0.d }.count, forKey: "score")
+    }
+    var pending: [[String: Any]] = []
+    if let json = d.string(forKey: "pending_ticks"), let data = json.data(using: .utf8),
+       let old = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] {
+      pending = old
+    }
+    pending.append(["id": id, "date": day, "on": list[i].d])
+    if let data = try? JSONSerialization.data(withJSONObject: pending),
+       let json = String(data: data, encoding: .utf8) {
+      d.set(json, forKey: "pending_ticks")
+    }
+  }
+}
+
+struct OnoTickIntent: AppIntent {
+  static var title: LocalizedStringResource = "Tick a daily item"
+  static var isDiscoverable: Bool = false
+
+  @Parameter(title: "Item") var itemId: String
+  @Parameter(title: "Day") var day: String
+
+  init() {}
+
+  init(itemId: String, day: String) {
+    self.itemId = itemId
+    self.day = day
+  }
+
+  func perform() async throws -> some IntentResult {
+    OnoTicks.toggle(itemId, day: day)
+    return .result()
+  }
+}
+
+struct ItemsEntry: TimelineEntry {
+  let date: Date
+  let day: String
+  let items: [OnoItem]
+  let score: Int
+  let target: Int
+  let first: String
+  let isToday: Bool
+
+  static let sample = ItemsEntry(
+    date: Date(), day: "", score: 1, target: 2, first: "",
+    items: [OnoItem(id: "a", t: "Morning walk", d: true), OnoItem(id: "b", t: "Read 20 minutes", d: false),
+            OnoItem(id: "c", t: "Call someone", d: false)],
+    isToday: true)
+
+  init(date: Date, day: String, score: Int, target: Int, first: String, items: [OnoItem], isToday: Bool) {
+    self.date = date
+    self.day = day
+    self.items = items
+    self.score = score
+    self.target = target
+    self.first = first
+    self.isToday = isToday
+  }
+}
+
+struct ItemsProvider: TimelineProvider {
+  func placeholder(in context: Context) -> ItemsEntry { .sample }
+
+  func getSnapshot(in context: Context, completion: @escaping (ItemsEntry) -> Void) {
+    completion(context.isPreview ? .sample : entry())
+  }
+
+  func getTimeline(in context: Context, completion: @escaping (Timeline<ItemsEntry>) -> Void) {
+    let midnight = Calendar.current.startOfDay(for: Date()).addingTimeInterval(24 * 60 * 60)
+    completion(Timeline(entries: [entry()], policy: .after(midnight)))
+  }
+
+  private func entry() -> ItemsEntry {
+    let d = UserDefaults(suiteName: appGroup)
+    let f = DateFormatter()
+    f.calendar = Calendar(identifier: .gregorian)
+    f.dateFormat = "yyyy-MM-dd"
+    let day = d?.string(forKey: "date") ?? ""
+    let list = OnoTicks.items(d)
+    return ItemsEntry(
+      date: Date(), day: day,
+      score: list.filter { $0.d }.count,
+      target: max((d?.object(forKey: "target") as? Int) ?? 1, 1),
+      first: d?.string(forKey: "first") ?? "",
+      items: list,
+      isToday: day == f.string(from: Date()))
+  }
+}
+
+struct ItemsView: View {
+  @Environment(\.widgetFamily) private var family
+  let e: ItemsEntry
+
+  var body: some View {
+    let large = family == .systemLarge
+    // Medium shows the next open items; large shows the whole list.
+    let shown = Array((large ? e.items : e.items.filter { !$0.d }).prefix(large ? 8 : 3))
+    VStack(alignment: .leading, spacing: large ? 8 : 6) {
+      HStack {
+        Text("Today").font(.headline).foregroundStyle(Color.onoIvory)
+        Spacer()
+        Text("\(e.score)/\(e.items.count)")
+          .font(.subheadline.monospacedDigit())
+          .foregroundStyle(e.score >= e.target ? Color.onoAccent : Color.onoGrey)
+      }
+      if !e.isToday || e.items.isEmpty {
+        Text("Open ONO to start today.").font(.subheadline).foregroundStyle(Color.onoGrey)
+      } else if shown.isEmpty {
+        Text("Everything on today's list is done.").font(.subheadline).foregroundStyle(Color.onoGrey)
+      } else {
+        ForEach(shown, id: \.id) { item in
+          Button(intent: OnoTickIntent(itemId: item.id, day: e.day)) {
+            HStack(spacing: 8) {
+              Image(systemName: item.d ? "checkmark.circle.fill" : "circle")
+                .foregroundStyle(item.d ? Color.onoAccent : Color.onoGrey)
+              Text(item.t)
+                .font(.subheadline)
+                .foregroundStyle(item.d ? Color.onoGrey : Color.onoIvory)
+                .lineLimit(1)
+              Spacer(minLength: 0)
+            }
+            .contentShape(Rectangle())
+          }
+          .buttonStyle(.plain)
+        }
+      }
+      if large && e.isToday && !e.first.isEmpty {
+        Spacer(minLength: 0)
+        Text("First of today's three: \(e.first)")
+          .font(.caption)
+          .foregroundStyle(Color.onoGrey)
+          .lineLimit(2)
+      }
+      Spacer(minLength: 0)
+    }
+  }
+}
+
+struct ONOItemsWidget: Widget {
+  let kind = "ONOItems"
+
+  var body: some WidgetConfiguration {
+    StaticConfiguration(kind: kind, provider: ItemsProvider()) { entry in
+      ItemsView(e: entry)
+        .containerBackground(Color.onoBackground, for: .widget)
+    }
+    .configurationDisplayName("ONO · today's list")
+    .description("Tick your daily items from the Home Screen.")
+    .supportedFamilies([.systemMedium, .systemLarge])
+  }
+}
+
 // MARK: - Lock Screen countdown (Live Activity)
 
 /// Must match the struct of the same name in ios/Runner/AppDelegate.swift.
@@ -321,6 +503,7 @@ struct OnoTimerLiveActivity: Widget {
 struct ONOWidgetBundle: WidgetBundle {
   var body: some Widget {
     ONOWidget()
+    ONOItemsWidget()
     OnoTimerLiveActivity()
   }
 }

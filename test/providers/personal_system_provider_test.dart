@@ -649,6 +649,50 @@ void main() {
     expect(sync.last, isNull);
   });
 
+  test('widget and watch: the snapshot lists today\'s items; their ticks are recorded on return', () async {
+    final sync = NoopWidgetSync();
+    final p = PersonalSystemProvider(
+        gateway: MockPersonalSystemGateway(), widgets: sync)
+      ..clock = () => _today;
+    await p.load('test');
+    await p.commission(
+        start: _start, gymDays: const [1, 3, 5], reminders: const {});
+    p.setPriority(_today, 0, 'Send the proposal');
+    await p.refreshWidget();
+    final s = sync.last!;
+    expect(s.items.map((i) => i.$1), p.itemIdsOn(_today));
+    expect(s.items.every((i) => !i.$3), isTrue);
+    expect(s.first, 'Send the proposal');
+    final first = s.items.first.$1, second = s.items[1].$1;
+    sync.pending.addAll([
+      WidgetTick(first, dateKey(_today), true),
+      WidgetTick(second, dateKey(_today.minusDays(1)), true),
+      // Not on the list, too old, or in the future: ignored.
+      WidgetTick('no_such_item', dateKey(_today), true),
+      WidgetTick(first, dateKey(_today.minusDays(5)), true),
+      WidgetTick(first, dateKey(_today.plusDays(1)), true),
+    ]);
+    sync.onWaiting!();
+    await Future<void>.delayed(Duration.zero);
+    await Future<void>.delayed(Duration.zero);
+    expect(p.isChecked(_today, first), isTrue);
+    expect(p.isChecked(_today.minusDays(1), second), isTrue);
+    expect(p.isChecked(_today.minusDays(5), first), isFalse);
+    expect(p.isChecked(_today.plusDays(1), first), isFalse);
+    expect(sync.pending, isEmpty);
+    // Unticked on the widget: unticked here too.
+    sync.pending.add(WidgetTick(first, dateKey(_today), false));
+    expect(await p.applyDeviceTicks(), 1);
+    expect(p.isChecked(_today, first), isFalse);
+  });
+
+  test('widget ticks: only well-formed entries are read', () {
+    expect(WidgetTick.parse(null), isEmpty);
+    expect(WidgetTick.parse('not json'), isEmpty);
+    final t = WidgetTick.parse('[{"id":"a","date":"2026-10-02","on":false},{"id":3},{"id":"b","date":"2026-10-02"}]');
+    expect(t.map((x) => '${x.id} ${x.on}'), ['a false', 'b true']);
+  });
+
   test('remembered: no more nudges, history kept, a quiet day each year', () async {
     final p = await _commissioned();
     final mum = p.addPerson('Maria Lopez', role: 'Mum', every: 7);

@@ -45,7 +45,10 @@ class PersonalSystemProvider extends ChangeNotifier {
         _reminders = reminders,
         _briefs = briefGenerator ?? DeviceBriefGenerator(),
         _health = health ?? const NoopHealthService(),
-        _widgets = widgets;
+        _widgets = widgets {
+    // A tick sent from the watch while ONO is open lands at once.
+    widgets?.listenForTicks(() => refreshWidget());
+  }
 
   final WidgetSync? _widgets;
   Timer? _widgetTimer;
@@ -240,7 +243,29 @@ class PersonalSystemProvider extends ChangeNotifier {
       cardsDue: dueCards(today).length,
       phase: phase.name,
       blocks: [for (final b in scheduleFor(today)) (b.minuteOfDay, b.title)],
+      items: [
+        for (final n in itemsOn(today)) (n.id, n.title, isChecked(today, n.id))
+      ],
+      first: carryOverFrom(today).firstOrNull ?? '',
     );
+  }
+
+  /// Records the ticks made on the widget or the watch since ONO last
+  /// looked: only items on that day's list, within the 48-hour window.
+  Future<int> applyDeviceTicks() async {
+    final w = _widgets;
+    if (w == null || !isCommissioned) return 0;
+    var n = 0;
+    for (final t in await w.takeTicks()) {
+      final d = DateTime.tryParse(t.date);
+      if (d == null) continue;
+      final day = dayOnly(d);
+      if (day.isAfter(dayOnly(_now)) || logicalToday.daysSince(day) > 1) continue;
+      if (!itemIdsOn(day).contains(t.id)) continue;
+      setCheck(day, t.id, t.on);
+      n++;
+    }
+    return n;
   }
 
   /// Push to the widget at most every 2 seconds (ticks come in bursts).
@@ -249,13 +274,14 @@ class PersonalSystemProvider extends ChangeNotifier {
     if (w == null || !isCommissioned) return;
     _widgetTimer?.cancel();
     _widgetTimer =
-        Timer(const Duration(seconds: 2), () => w.push(widgetSnapshot()));
+        Timer(const Duration(seconds: 2), () => refreshWidget());
   }
 
   /// Push now (app start, back to foreground).
   Future<void> refreshWidget() async {
     final w = _widgets;
     if (w == null || !isCommissioned) return;
+    await applyDeviceTicks();
     await w.push(widgetSnapshot());
   }
 
