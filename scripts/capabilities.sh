@@ -3,6 +3,7 @@
 #   bash scripts/capabilities.sh health on|off   Apple Health (HealthKit)
 #   bash scripts/capabilities.sh widget on|off   Home/Lock Screen widget and Lock Screen timer (App Groups)
 #   bash scripts/capabilities.sh apple on|off    Sign in with Apple
+#   bash scripts/capabilities.sh watch on|off    the Apple Watch app
 #   bash scripts/capabilities.sh status
 #   bash scripts/capabilities.sh apply           re-apply (the launchers do this)
 # Choices live in ios/.capabilities (not in git), so updates never lose them.
@@ -51,7 +52,7 @@ apply() {
 }
 
 case "${1:-status}" in
-  health|widget|apple)
+  health|widget|apple|watch)
     case "${2:-}" in
       on) touch "$DIR/$1" ;;
       off) rm -f "$DIR/$1" ;;
@@ -60,5 +61,5 @@ case "${1:-status}" in
     apply ;;
   apply) apply ;;
   status) echo "On: $(enabled | tr '\n' ' ')" ;;
-  *) echo "Usage: bash scripts/capabilities.sh health|widget|apple on|off | status | apply" >&2; exit 2 ;;
+  *) echo "Usage: bash scripts/capabilities.sh health|widget|apple|watch on|off | status | apply" >&2; exit 2 ;;
 esac

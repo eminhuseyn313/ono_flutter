@@ -1,9 +1,10 @@
 #!/usr/bin/env ruby
 # Applies opt-in iOS capabilities to Runner.xcodeproj. Idempotent.
-#   ruby scripts/ios_capabilities.rb health widget apple
+#   ruby scripts/ios_capabilities.rb health widget apple watch
 #
 # health: HealthKit entitlement on the app (Apple Health).
 # apple:  Sign in with Apple entitlement on the app.
+# watch:  the ONOWatch watchOS app (ios/ONOWatch), embedded in the app.
 # widget: the ONOWidget WidgetKit extension (ios/ONOWidget) plus an app group
 #         shared by the app and the widget. The extension also draws the
 #         Lock Screen countdown (Live Activity) for timers.
@@ -16,7 +17,7 @@ require 'xcodeproj'
 GROUP_ID = 'group.com.eminhuseynzade.ono'.freeze
 IOS = File.expand_path('../ios', __dir__)
 wanted = ARGV.map(&:downcase)
-abort('usage: ios_capabilities.rb [health] [widget] [apple]') if (wanted - %w[health widget apple]).any?
+abort('usage: ios_capabilities.rb [health] [widget] [apple] [watch]') if (wanted - %w[health widget apple watch]).any?
 project = Xcodeproj::Project.open(File.join(IOS, 'Runner.xcodeproj'))
 runner = project.targets.find { |t| t.name == 'Runner' } or abort('Runner target not found')
 
@@ -97,6 +98,68 @@ def add_widget(project, runner)
   end
 end
 
+# Moves [phase] before Flutter's "Thin Binary" script, or Xcode reports a
+# dependency cycle.
+def before_thin_binary(runner, phase)
+  phases = runner.build_phases
+  phases.delete(phase)
+  thin = phases.index do |p|
+    p.is_a?(Xcodeproj::Project::Object::PBXShellScriptBuildPhase) &&
+      p.display_name.to_s.include?('Thin Binary')
+  end
+  phases.insert(thin || phases.length, phase)
+end
+
+def add_watch(project, runner)
+  base = runner.build_configurations.find { |c| c.name == 'Release' }.build_settings
+  team = base['DEVELOPMENT_TEAM']
+  app_id = base['PRODUCT_BUNDLE_IDENTIFIER'] or abort('Runner has no bundle id')
+
+  group = project.main_group.new_group('ONOWatch', 'ONOWatch')
+  swift = group.new_reference('ONOWatchApp.swift')
+  assets = group.new_reference('Assets.xcassets')
+  xcconfig = group.new_reference('Watch.xcconfig')
+
+  watch = project.new_target(:application, 'ONOWatch', :watchos, '10.0', nil, :swift)
+  watch.add_file_references([swift])
+  watch.resources_build_phase.add_file_reference(assets)
+  unless watch.build_configurations.any? { |c| c.name == 'Profile' }
+    watch.add_build_configuration('Profile', :release)
+  end
+  watch.build_configurations.each do |c|
+    c.base_configuration_reference = xcconfig
+    s = c.build_settings
+    s['PRODUCT_BUNDLE_IDENTIFIER'] = "#{app_id}.watchkitapp"
+    s['PRODUCT_NAME'] = '$(TARGET_NAME)'
+    s['GENERATE_INFOPLIST_FILE'] = 'YES'
+    s['INFOPLIST_KEY_CFBundleDisplayName'] = 'ONO'
+    s['INFOPLIST_KEY_WKApplication'] = 'YES'
+    s['INFOPLIST_KEY_WKCompanionAppBundleIdentifier'] = app_id
+    s['INFOPLIST_KEY_UISupportedInterfaceOrientations'] = 'UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown'
+    s['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon'
+    s['ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME'] = 'AccentColor'
+    s['SDKROOT'] = 'watchos'
+    s['SUPPORTED_PLATFORMS'] = 'watchos watchsimulator'
+    s['TARGETED_DEVICE_FAMILY'] = '4'
+    s['WATCHOS_DEPLOYMENT_TARGET'] = '10.0'
+    s['SKIP_INSTALL'] = 'YES'
+    s['CODE_SIGN_STYLE'] = 'Automatic'
+    s['DEVELOPMENT_TEAM'] = team if team
+    s['SWIFT_VERSION'] = '5.0'
+    s['ENABLE_PREVIEWS'] = 'NO'
+    s['LD_RUNPATH_SEARCH_PATHS'] = ['$(inherited)', '@executable_path/Frameworks']
+  end
+
+  # The watch app travels inside the iPhone app (Watch/ONOWatch.app).
+  runner.add_dependency(watch)
+  embed = runner.new_copy_files_build_phase('Embed Watch Content')
+  embed.symbol_dst_subfolder_spec = :products_directory
+  embed.dst_path = '$(CONTENTS_FOLDER_PATH)/Watch'
+  embed.add_file_reference(watch.product_reference, true)
+       .settings = { 'ATTRIBUTES' => ['RemoveHeadersOnCopy'] }
+  before_thin_binary(runner, embed)
+end
+
 if wanted.include?('health')
   merge_runner_entitlements(project, runner) do |ent|
     ent['com.apple.developer.healthkit'] = true
@@ -110,6 +173,15 @@ if wanted.include?('apple')
     ent['com.apple.developer.applesignin'] = ['Default']
   end
   puts 'Sign in with Apple: on.'
+end
+
+if wanted.include?('watch')
+  if project.targets.any? { |t| t.name == 'ONOWatch' }
+    puts 'Apple Watch: already in the project.'
+  else
+    add_watch(project, runner)
+    puts 'Apple Watch: added.'
+  end
 end
 
 if wanted.include?('widget')

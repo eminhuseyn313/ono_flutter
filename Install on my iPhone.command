@@ -44,6 +44,8 @@ EOF
     echo "  bash scripts/capabilities.sh health off"
     echo "  bash scripts/capabilities.sh widget off"
     echo "  bash scripts/capabilities.sh apple off"
+    echo "If it names ONOWatch, leave the watch app out for now:"
+    echo "  bash scripts/capabilities.sh watch off"
   fi
   open ios/Runner.xcworkspace
   fail "Signing needs a one-time setup (see above)."

@@ -19,7 +19,7 @@ rm -rf "$ARCHIVE" build/ios/testflight
 say "Building ONO (build $BUILD) for the App Store — 5–10 minutes…"
 # Flutter's own export step may stop at signing; the archive is what counts.
 flutter build ipa --release -t lib/main_production.dart --build-number "$BUILD" || true
-[ -d "$ARCHIVE" ] || fail "The build didn't finish. Scroll up for the first error (often signing: open ios/Runner.xcworkspace → Runner → Signing & Capabilities and pick your paid team)."
+[ -d "$ARCHIVE" ] || fail "The build didn't finish. Scroll up for the first error (often signing: open ios/Runner.xcworkspace → Runner → Signing & Capabilities and pick your paid team). If it names ONOWatch, run: bash scripts/capabilities.sh watch off"
 
 say "Uploading build $BUILD to App Store Connect…"
 if ! xcodebuild -exportArchive \

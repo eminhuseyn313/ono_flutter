@@ -56,9 +56,13 @@ These need a paid team (a free Apple ID can't sign them). **ONO on iPhone** and 
 - `widget`: the Home and Lock Screen widget. It also carries the Lock Screen timer: a Live Activity counting down deep-work blocks, tool timers and rest between sets on the Lock Screen and in the Dynamic Island.
 - `apple`: Sign in with Apple.
 
+Then once more: "Apple Watch app? [Y/n]" (`watch`): today's list to tick, the first of today's three and running timers on the wrist. It's asked on its own because it is another app to build: if a build error names ONOWatch, `bash scripts/capabilities.sh watch off` and the rest still installs.
+
+After installing: Me → Settings → **ONO around your iPhone** says where to add the "Today's list" widget, how to set ONO's Focus filter (Settings → Focus → Work → Focus Filters → ONO), and how to install the watch app (Watch app on the iPhone → ONO → Install).
+
 To change one later, run this in the `ono_flutter` folder:
 ```bash
-bash scripts/capabilities.sh health on    # or off; also widget, apple
+bash scripts/capabilities.sh health on    # or off; also widget, apple, watch
 bash scripts/capabilities.sh status
 ```
 The choice is remembered and re-applied after every update. Don't add these by hand in Xcode: the launchers reset hand edits to the project.

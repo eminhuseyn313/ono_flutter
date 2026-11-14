@@ -65,19 +65,30 @@ connected_iphone() {
 
 # Ask once whether to turn on the extras that depend on the Apple account.
 # A paid Apple Developer Program team supports all of them; a free Apple
-# ID doesn't. Asked again once for people who said no before joining.
+# ID doesn't. Asked again once for people who said no before joining, and
+# the watch app once more on its own (another target to build, so it can
+# be left out without losing the rest).
 ask_capabilities_once() {
-  [ -f ios/.capabilities/.asked-paid ] && return 0
+  local asked=0 a w
   mkdir -p ios/.capabilities
-  echo
-  echo "Is your Apple ID in the paid Apple Developer Program (\$99/year)?"
-  echo "With it ONO gets Apple Health, the Home & Lock Screen widget, the"
-  echo "Lock Screen timer and Sign in with Apple. A free Apple ID can't sign them."
-  local a
-  read -r -p "  Paid Apple Developer Program? [Y/n] " a
-  if [[ ! "$a" =~ ^[Nn] ]]; then
-    touch ios/.capabilities/health ios/.capabilities/widget ios/.capabilities/apple
+  if [ ! -f ios/.capabilities/.asked-paid ]; then
+    asked=1
+    echo
+    echo "Is your Apple ID in the paid Apple Developer Program (\$99/year)?"
+    echo "With it ONO gets Apple Health, the Home & Lock Screen widgets, the"
+    echo "Lock Screen timer and Sign in with Apple. A free Apple ID can't sign them."
+    read -r -p "  Paid Apple Developer Program? [Y/n] " a
+    if [[ ! "$a" =~ ^[Nn] ]]; then
+      touch ios/.capabilities/health ios/.capabilities/widget ios/.capabilities/apple
+    fi
+    touch ios/.capabilities/.asked ios/.capabilities/.asked-paid
   fi
-  touch ios/.capabilities/.asked ios/.capabilities/.asked-paid
+  if [ ! -f ios/.capabilities/.asked-watch ] && [ -f ios/.capabilities/widget ]; then
+    asked=1
+    read -r -p "  Apple Watch app (tick today's list, timers on the wrist)? [Y/n] " w
+    [[ ! "$w" =~ ^[Nn] ]] && touch ios/.capabilities/watch
+    touch ios/.capabilities/.asked-watch
+  fi
+  [ "$asked" = 1 ] || return 0
   bash scripts/capabilities.sh apply || say "Couldn't add them — continuing without."
 }
