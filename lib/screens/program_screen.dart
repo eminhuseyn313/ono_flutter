@@ -679,7 +679,7 @@ class _Body extends StatelessWidget {
             ],
           ),
         ),
-        const SectionHeader('Plan · RA-safe'),
+        const SectionHeader('Plan · joint-safe'),
         for (final g in gymPlan)
           Padding(
             padding: const EdgeInsets.only(bottom: 8),

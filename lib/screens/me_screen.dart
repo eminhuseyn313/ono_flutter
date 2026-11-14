@@ -31,13 +31,12 @@ class MeScreen extends StatelessWidget {
     final weeks = ((today.daysSince(weekStartOf(system.programStart))) ~/ 7 + 1)
         .clamp(1, 26);
     final heatFrom = weekStartOf(today).minusDays((weeks - 1) * 7);
-    final keyLifts = [
-      'Dumbbell Shoulder Press',
-      'Lat Pulldown',
-      'Goblet Squat',
-      'Romanian Deadlift',
-      'Face Pulls',
-    ];
+    // The plan's key lifts (marked in its training plan).
+    final keyLifts = <String>{
+      for (final d in gymPlan)
+        for (final e in d.exercises)
+          if (e.keyLift) e.name
+    }.toList();
 
     return OnoPage(
       eyebrow: activeProfile.archetype.trim().isEmpty ? null : activeProfile.archetype,
@@ -1287,7 +1286,7 @@ class MeScreen extends StatelessWidget {
 }
 
 /// Last 7 days of check-ins: energy, sleep and shoulders, plus the pain
-/// trend for 30 days — the log to bring to the rheumatologist.
+/// trend for 30 days — the log to bring to your doctor.
 /// Personal patterns from his own logs: days with a habit vs without.
 /// A section of links: its core tools and the ones used in the last 30
 /// days stay in view, the rest fold behind "N more" (remembered).
@@ -1480,7 +1479,7 @@ class _Mornings extends StatelessWidget {
               accent: AppColors.warning,
               padding: const EdgeInsets.all(12),
               child: Text(
-                  'Shoulders flagged on $flags of the last 7 mornings. Worth mentioning to your rheumatologist — this log shows the pattern.',
+                  'Shoulders flagged on $flags of the last 7 mornings. Worth mentioning to your doctor — this log shows the pattern.',
                   style: AppText.small(color: AppColors.greyLight)),
             ),
           ],

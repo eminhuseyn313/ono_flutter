@@ -487,7 +487,7 @@ class DeviceBriefGenerator implements BriefGenerator {
             ? 'Shrink to the core five next week: manifesto, scan, BLUF, protein, bed. Add the rest back when you hold 5/5.'
             : 'Shrink the list next week: keep the three items that matter most, use their minimum versions on hard days, and add the rest back once those hold.',
       if (input.shoulderFlagDays >= 3)
-        'Shoulders flagged on ${input.shoulderFlagDays} mornings. Keep the shoulder-sparing sessions and bring the check-in log to your rheumatologist.',
+        'Shoulders flagged on ${input.shoulderFlagDays} mornings. Keep the shoulder-sparing sessions and bring the check-in log to your doctor.',
       if (input.avgSleep != null && input.avgSleep! < 7)
         'Average sleep ${input.avgSleep!.toStringAsFixed(1)} h. Protect ${input.builtInPlan ? '22:30' : 'a fixed bedtime'} before adding anything else — sleep sets tomorrow\'s mind.',
       if ((input.hardDays['sick'] ?? 0) >= 2)

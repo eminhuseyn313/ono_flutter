@@ -11,7 +11,7 @@ import '../time.dart';
 
 /// Fifteen-second morning check-in: energy, mood, sleep, shoulder pain and
 /// morning stiffness. A painful or stiff morning turns the day's gym session
-/// shoulder-sparing. The log is for you and your rheumatologist — ONO never
+/// shoulder-sparing. The log is for you and your doctor — ONO never
 /// changes medication or supplements.
 class CheckinScreen extends StatefulWidget {
   const CheckinScreen({super.key});
@@ -192,7 +192,7 @@ class _CheckinScreenState extends State<CheckinScreen> {
           padding: const EdgeInsets.all(14),
           child: Text(
             flagged
-                ? 'Shoulder-sparing day: presses, flyes and pulldowns are swapped for legs and trunk work. Stiffness past 30 minutes most mornings is worth mentioning to your rheumatologist.'
+                ? 'Shoulder-sparing day: presses, flyes and pulldowns are swapped for legs and trunk work. Stiffness past 30 minutes most mornings is worth mentioning to your doctor.'
                 : 'Normal training day.',
             style: AppText.small(color: AppColors.greyLight),
           ),

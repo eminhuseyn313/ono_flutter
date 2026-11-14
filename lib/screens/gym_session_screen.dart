@@ -313,7 +313,7 @@ class _GymSessionScreenState extends State<GymSessionScreen> {
       showBack: true,
       eyebrow: _sparing
           ? 'Day ${_day.letter} · shoulder-sparing'
-          : 'Day ${_day.letter} · RA-safe',
+          : 'Day ${_day.letter} · joint-safe',
       title: _day.name,
       subtitle: last == null
           ? 'First time logging this day — enter what you lift today.'

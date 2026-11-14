@@ -266,7 +266,7 @@ void main() {
       workSituation: '',
       createdAt: _today,
     ));
-    expect(brief!.adjustments.join(' '), contains('rheumatologist'));
+    expect(brief!.adjustments.join(' '), contains('your doctor'));
     expect(brief.adjustments.join(' '), contains('6.0 h'));
   });
 

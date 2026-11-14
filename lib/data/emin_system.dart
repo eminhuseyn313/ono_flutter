@@ -255,7 +255,7 @@ ScheduleBlock nextBlock(DateTime now) {
 const _openDay = ScheduleBlock(0, 0, 'Your day', '', 'mind', Icons.wb_twilight_rounded);
 
 // ------------------------------------------------------------
-// Gym plan — RA-safe
+// Training plan
 // ------------------------------------------------------------
 
 List<GymDay> get gymPlan => plan.gym;
