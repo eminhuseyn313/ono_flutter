@@ -36,9 +36,9 @@ void main() {
   });
 
   test('the profile drives names, roles and the coach', () async {
-    expect(activeProfile.manager, 'Ali');
-    expect(activeProfile.keyPeopleNames, 'Ali and Rustam');
-    expect(keyPeople, ['Ali', 'Rustam']);
+    expect(activeProfile.manager, 'Jordan');
+    expect(activeProfile.keyPeopleNames, 'Jordan and Casey');
+    expect(keyPeople, ['Jordan', 'Casey']);
     final input = BriefInput(
       report: WeeklyReport(
           id: 'r',

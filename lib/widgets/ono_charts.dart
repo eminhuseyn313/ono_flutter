@@ -28,8 +28,8 @@ class DayDial extends StatelessWidget {
     required this.ticks,
     required this.center,
     this.size = 280,
-    this.schedule = dailySchedule,
-  });
+    List<ScheduleBlock>? schedule,
+  }) : schedule = schedule ?? const [];
 
   @override
   Widget build(BuildContext context) {
@@ -214,9 +214,9 @@ class Spine extends StatelessWidget {
     required this.months,
     required this.currentMonth,
     required this.onMonthTap,
-    this.steps = pathSteps,
+    List<List<String>>? steps,
     this.currentPhaseId,
-  });
+  }) : steps = steps ?? const [];
 
   static const _baseColW = 62.0;
 

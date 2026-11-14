@@ -348,14 +348,14 @@ void main() {
       nonNegotiableAverage: 5.2,
       gymSessions: 1,
       bestMoment: 'Shipped the onboarding spec',
-      hardestMoment: 'Froze when Ali asked about the roadmap',
-      workSituation: 'Pitching the Business ID pricing change on Tuesday',
+      hardestMoment: 'Froze when Jordan asked about the roadmap',
+      workSituation: 'Pitching the Merchant ID pricing change on Tuesday',
       createdAt: _today,
     ));
     expect(brief, isNotNull);
     expect(brief!.source, 'device');
     expect(brief.headline, startsWith('Reset week'));
-    expect(brief.coaching, contains('Business ID pricing'));
+    expect(brief.coaching, contains('Merchant ID pricing'));
     expect(brief.tasks, isNotEmpty);
     expect(brief.tasks.length, lessThanOrEqualTo(6));
     expect(p.briefForWeek(week.plusDays(7))?.id, brief.id);
@@ -381,7 +381,7 @@ void main() {
   test('export and import round-trip everything', () async {
     final p = await _commissioned();
     _hold(p, _daysAgo(1), 8);
-    p.addEvidence('built', 'Launched Business ID v2');
+    p.addEvidence('built', 'Launched Merchant ID v2');
     p.addProtein(_today, 40);
     final json = p.exportJson();
 
@@ -472,12 +472,12 @@ void main() {
       () async {
     final p = await _commissioned(briefs: DeviceBriefGenerator());
     p.addOneOnOne(
-        withWhom: 'Ali',
-        decided: 'Business ID pricing goes to the board',
-        followUps: ['Draft the PR/FAQ', '', 'Book Rustam']);
+        withWhom: 'Jordan',
+        decided: 'Merchant ID pricing goes to the board',
+        followUps: ['Draft the PR/FAQ', '', 'Book Casey']);
     expect(p.openFollowUps.length, 2);
     p.setDone(p.openFollowUps.first.key, true);
-    expect(p.openFollowUps.single.text, 'Book Rustam');
+    expect(p.openFollowUps.single.text, 'Book Casey');
 
     p.addDecision(
         decision: 'Ship KYC v2 without the video step',
@@ -962,9 +962,9 @@ void main() {
     final cal = FakeCalendarService(meetings: [
       m('past', 'Standup', 9, 30, 15),
       m('lunch', 'Squad sync', 12, 0, 30),
-      m('ali', '1:1', 15, 0, 30, ['Ali Mammadov', 'Emin']),
+      m('ali', '1:1', 15, 0, 30, ['Jordan Mammadov', 'Alex']),
       m('focus', 'Focus: PR/FAQ', 16, 0, 90, const []),
-      m('rustam', 'Roadmap with Rustam', 17, 0, 60, const []),
+      m('rustam', 'Roadmap with Casey', 17, 0, 60, const []),
     ]);
     final p = PersonalSystemProvider(
         gateway: MockPersonalSystemGateway(), reminders: r, calendar: cal)
@@ -983,10 +983,10 @@ void main() {
     expect(PersonalSystemProvider.isKeyMeeting(cal.meetings[2]), isTrue);
     expect(PersonalSystemProvider.isKeyMeeting(cal.meetings[4]), isTrue);
     expect(PersonalSystemProvider.isKeyMeeting(cal.meetings[1]), isFalse);
-    // "Alina" isn't Ali.
+    // "Alina" isn't Jordan.
     expect(
         PersonalSystemProvider.isKeyMeeting(
-            m('x', 'Coffee', 9, 0, 10, ['Alina K', 'Emin'])),
+            m('x', 'Coffee', 9, 0, 10, ['Alina K', 'Alex'])),
         isFalse);
 
     // Nudges only for real meetings still ahead (15:00 and 17:00), plus a
@@ -1004,14 +1004,14 @@ void main() {
         end: day.add(const Duration(hours: 15))
       ),
     ]);
-    // 15:40: the 1:1 with Ali ended 10 min ago and isn't logged yet.
+    // 15:40: the 1:1 with Jordan ended 10 min ago and isn't logged yet.
     p.clock = () => day.add(const Duration(hours: 15, minutes: 40));
     expect(p.debriefsDue(p.clock()).map((m) => m.id), ['ali']);
-    p.addOneOnOne(withWhom: 'Ali', decided: 'Ship it', followUps: const []);
+    p.addOneOnOne(withWhom: 'Jordan', decided: 'Ship it', followUps: const []);
     expect(p.debriefsDue(p.clock()), isEmpty);
     p.clock = () => _today;
     // Meetings never go into saved state.
-    expect(p.exportJson(), isNot(contains('Roadmap with Rustam')));
+    expect(p.exportJson(), isNot(contains('Roadmap with Casey')));
 
     await p.disconnectCalendar();
     expect(r.once, isEmpty);
@@ -1032,7 +1032,7 @@ void main() {
     final p = await _commissioned();
     final today = dayOnly(_today);
     final tomorrow = today.plusDays(1);
-    p.setPriority(today, 0, 'Pricing memo to Ali');
+    p.setPriority(today, 0, 'Pricing memo to Jordan');
     p.setPriority(today, 1, 'KYC v2 spec');
     p.togglePriority(today, 0);
     expect(p.carryOverFrom(today), ['KYC v2 spec']);
@@ -1098,11 +1098,11 @@ void main() {
   test('Big 3: set, tick, score; blanking one clears its tick', () async {
     final p = await _commissioned();
     expect(p.hasWeekPlan(_today), isFalse);
-    p.setWeekOutcome(_today, 0, 'OST draft reviewed by Ali');
+    p.setWeekOutcome(_today, 0, 'OST draft reviewed by Jordan');
     p.setWeekOutcome(_today, 1, 'KYC v2 scope signed off');
     p.toggleWeekOutcome(_today, 1);
     expect(p.weekOutcomes(_today),
-        ['OST draft reviewed by Ali', 'KYC v2 scope signed off', '']);
+        ['OST draft reviewed by Jordan', 'KYC v2 scope signed off', '']);
     expect(p.weekOutcomeScore(_today), (1, 2));
     // Any day of the same week reads the same plan; next week is empty.
     expect(p.weekOutcomeScore(weekStartOf(_today).plusDays(6)),
@@ -1116,29 +1116,29 @@ void main() {
   test('people: cadence, 1:1s count as contact, overdue order', () async {
     final p = await _commissioned();
     p.clock = () => _today.minusDays(20);
-    final ali = p.addPerson('Ali', role: 'Manager', every: 7);
+    final ali = p.addPerson('Jordan', role: 'Manager', every: 7);
     final leyla = p.addPerson('Leyla Aliyeva', role: 'Head of Product', every: 30);
     p.clock = () => _today;
     expect(p.daysSinceContact(ali), 20);
-    expect(p.peopleDue.map((x) => x.text), ['Ali'],
+    expect(p.peopleDue.map((x) => x.text), ['Jordan'],
         reason: 'Leyla is 20 of 30 days in');
-    // A 1:1 with "Ali Mammadov" counts for Ali — but "Aliyeva" isn't Ali.
-    p.addOneOnOne(withWhom: 'Ali Mammadov', decided: 'x', followUps: const []);
+    // A 1:1 with "Jordan Mammadov" counts for Jordan — but "Aliyeva" isn't Jordan.
+    p.addOneOnOne(withWhom: 'Jordan Mammadov', decided: 'x', followUps: const []);
     expect(p.lastContact(ali), dayOnly(_today));
     expect(p.peopleDue, isEmpty);
     p.logTouch(leyla, note: 'Coffee');
     expect(p.daysSinceContact(leyla), 0);
     p.removePerson(leyla.id);
-    expect(p.people.map((x) => x.text), ['Ali']);
+    expect(p.people.map((x) => x.text), ['Jordan']);
     expect(p.logsOf('touch'), isEmpty, reason: 'her touches go too');
   });
 
   test('shutdown saves one good thing as a win, once', () async {
     final p = await _commissioned();
-    p.completeShutdown(_today, tomorrow: const [], win: 'Ali took the pricing memo as is');
-    p.completeShutdown(_today, tomorrow: const [], win: 'Ali took the pricing memo as is');
+    p.completeShutdown(_today, tomorrow: const [], win: 'Jordan took the pricing memo as is');
+    p.completeShutdown(_today, tomorrow: const [], win: 'Jordan took the pricing memo as is');
     expect(p.logsOn(_today, 'win').map((w) => w.text),
-        ['Ali took the pricing memo as is']);
+        ['Jordan took the pricing memo as is']);
   });
 
   test('brief: Big 3 review and overdue people', () async {
@@ -1147,7 +1147,7 @@ void main() {
     p.setWeekOutcome(_today, 1, 'Scope signed');
     p.toggleWeekOutcome(_today, 0);
     p.clock = () => _today.minusDays(10);
-    p.addPerson('Rustam', every: 7);
+    p.addPerson('Casey', every: 7);
     p.clock = () => _today;
     final brief = await p.submitReport(WeeklyReport(
       id: 'r',
@@ -1161,7 +1161,7 @@ void main() {
     ));
     final text = brief!.adjustments.join(' ');
     expect(text, contains('Week outcomes: 1 of 2 done'));
-    expect(text, contains('Overdue to reach out: Rustam'));
+    expect(text, contains('Overdue to reach out: Casey'));
   });
 
   test('growth plan: one area a month, rotating drills, reps and feedback',
@@ -1184,15 +1184,15 @@ void main() {
         did: 'Sighed before the pricing review',
         noticed: 'Voice steadier',
         lesson: 'The sigh works when I do it in the car, not in the room',
-        next: 'Sigh in the car before every Ali meeting');
+        next: 'Sigh in the car before every Jordan meeting');
     expect(p.drillFor(area, _today).title, first.title);
     expect(p.drillFor(area, _today.plusDays(7)).title, isNot(first.title));
     expect(p.repsIn('composure', p.programMonth).single.str('lesson'),
         startsWith('The sigh works'));
     expect(p.repsInWeek(_today), 1);
 
-    p.logFeedback(area, from: 'Ali', said: 'You rush the first minute', action: 'Rehearse the opening');
-    expect(p.feedbackIn('composure', p.programMonth).single.str('from'), 'Ali');
+    p.logFeedback(area, from: 'Jordan', said: 'You rush the first minute', action: 'Rehearse the opening');
+    expect(p.feedbackIn('composure', p.programMonth).single.str('from'), 'Jordan');
 
     p.rateFocusEnd(3);
     expect(p.focusRatings(), (2, 3));
@@ -1247,7 +1247,7 @@ void main() {
     expect(p.valueGap(_today), isNull, reason: 'all at 4+');
     p.saveValuesCheck(_today, {'Craft': 5, 'Calm': 3, 'Courage': 4});
 
-    p.logAffirmation('Craft', 'I built Paya from nothing', before: 'pricing review');
+    p.logAffirmation('Craft', 'I built a side project from nothing', before: 'pricing review');
     expect(p.logsOf('affirmation').single.str('before'), 'pricing review');
 
     final brief = await p.submitReport(WeeklyReport(
@@ -1266,10 +1266,10 @@ void main() {
   test('self-coaching: commitment comes due, kept or dropped', () async {
     final p = await _commissioned();
     final c = p.logCoaching(
-        goal: 'Own Business ID onboarding',
-        reality: 'Ali assigns it piece by piece',
+        goal: 'Own Merchant ID onboarding',
+        reality: 'Jordan assigns it piece by piece',
         options: ['Ask directly', 'Write a proposal', ''],
-        will: 'Send Ali a one-page ownership proposal',
+        will: 'Send Jordan a one-page ownership proposal',
         by: dayOnly(_today).plusDays(3),
         commitment: 8);
     expect(c.data['options'], ['Ask directly', 'Write a proposal']);
@@ -1291,8 +1291,8 @@ void main() {
     p.setFocus('communication', startRating: 2);
     final area = p.focusArea()!;
     p.logRep(area, area.drills.first,
-        did: 'BLUF update to Ali', lesson: 'Decision first gets a reply in minutes');
-    p.logFeedback(area, from: 'Ali', said: 'Clearer this month');
+        did: 'BLUF update to Jordan', lesson: 'Decision first gets a reply in minutes');
+    p.logFeedback(area, from: 'Jordan', said: 'Clearer this month');
     p.addLog('artifact', data: {'title': 'OST — onboarding', 'kind': 'OST', 'status': 'shipped', 'month': 1});
     final c = p.caseFor('communication');
     expect(c.rating, 4);
@@ -1300,7 +1300,7 @@ void main() {
     final text = p.caseText();
     expect(text, contains('EXECUTIVE COMMUNICATION — 4/5 (bar 4)'));
     expect(text, contains('→ Decision first gets a reply in minutes'));
-    expect(text, contains('Feedback from Ali: "Clearer this month"'));
+    expect(text, contains('Feedback from Jordan: "Clearer this month"'));
     expect(text, contains('OST — onboarding (OST, shipped)'));
     expect(text, contains('Nothing logged yet'), reason: 'unpractised areas say so');
     expect(text, contains("WHERE I'M STILL GROWING\nStrategy & business"));
@@ -1350,7 +1350,7 @@ void main() {
       expect(t.bar, isNotEmpty);
       // Written for anyone: nothing specific to his job or people.
       for (final text in [t.bar, t.ask, ...t.drills.expand((d) => [d.how, d.signal])]) {
-        expect(text, isNot(matches(RegExp(r'Ali|Rustam|Business ID|PASHA'))), reason: t.id);
+        expect(text, isNot(matches(RegExp(r'Jordan|Casey|Merchant ID|Northwind'))), reason: t.id);
       }
     }
   });
@@ -1432,22 +1432,22 @@ void main() {
     // _today is a Friday.
     expect(_today.weekday, DateTime.friday);
     expect(p.noteDue(_today), isFalse, reason: 'nothing to report yet');
-    expect(p.progressNoteText(_today, to: 'Ali'), contains('What moved this week'));
+    expect(p.progressNoteText(_today, to: 'Jordan'), contains('What moved this week'));
     p.saveGoal(title: 'Savings', unit: 'AZN', start: 0, target: 1000,
         deadline: dayOnly(_today).plusDays(100));
     p.setWeekOutcome(_today, 0, 'Ship the OST draft');
     p.toggleWeekOutcome(_today, 0);
     p.addLog('win', text: 'Pricing memo approved');
     expect(p.noteDue(_today), isTrue);
-    final text = p.progressNoteText(_today, to: 'Ali', ask: 'Feedback on the OST');
-    expect(text, startsWith('Hi Ali — my week:'));
+    final text = p.progressNoteText(_today, to: 'Jordan', ask: 'Feedback on the OST');
+    expect(text, startsWith('Hi Jordan — my week:'));
     expect(text, contains('• Savings: 0%'));
     expect(text, contains("This week's three: 1 of 1 done"));
     expect(text, contains('• ✓ Ship the OST draft'));
     expect(text, contains('• Pricing memo approved'));
     expect(text, endsWith('Where you could help: Feedback on the OST'));
     expect(p.defaultNoteRecipient, activeProfile.manager);
-    p.logProgressNote('Ali', text);
+    p.logProgressNote('Jordan', text);
     expect(p.noteSentInWeek(_today), isTrue);
     expect(p.noteDue(_today), isFalse);
     expect(p.noteDue(_today.minusDays(3)), isFalse,
@@ -1672,9 +1672,9 @@ void main() {
 
   test('relationship rituals and presence', () async {
     final p = await _commissioned();
-    final wife = p.addPerson('Aysel', role: 'Wife', every: 7);
-    expect(p.ritualOf(wife), '');
-    p.setRitual(wife, 'Friday dinner, phones away');
+    final partner = p.addPerson('Aysel', role: 'Wife', every: 7);
+    expect(p.ritualOf(partner), '');
+    p.setRitual(partner, 'Friday dinner, phones away');
     final w = p.people.single;
     expect(p.ritualOf(w), 'Friday dinner, phones away');
     expect(p.presenceOf(w), isNull);
@@ -1772,15 +1772,15 @@ void main() {
     expect(p.roundDue, isFalse, reason: 'day 32 of the quarter');
     p.clock = () => _start.plusDays(50);
     expect(p.roundDue, isTrue);
-    final r = p.startRound(['Ali', 'Leyla', 'Tural', 'Fourth']);
+    final r = p.startRound(['Jordan', 'Leyla', 'Tural', 'Fourth']);
     expect((r.data['people'] as List).length, 3);
     expect(p.roundDue, isFalse);
-    p.addRoundAnswer(r.id, 'Ali', 'Keep the BLUF; change: decide faster');
-    p.addRoundAnswer(r.id, 'Ali', 'Keep BLUF. Decide faster.');
+    p.addRoundAnswer(r.id, 'Jordan', 'Keep the BLUF; change: decide faster');
+    p.addRoundAnswer(r.id, 'Jordan', 'Keep BLUF. Decide faster.');
     expect(p.roundAnswers(p.roundFor(1)!).length, 1, reason: 'replaced');
     p.setRoundThemes(r.id, 'Decide faster in the room');
     expect(p.caseText(), contains('Quarter 1: Decide faster in the room'));
-    p.startRound(['Ali']);
+    p.startRound(['Jordan']);
     expect(p.logsOf('feedback_round').length, 1);
     expect(p.roundAnswers(p.roundFor(1)!).length, 1, reason: 'answers kept');
     p.clock = () => _today;
@@ -2314,7 +2314,7 @@ void main() {
     expect(p.dueDecisionReviews(_today.plusDays(90)).length, 1);
     p.logStepBack(what: ' ');
     expect(p.logsOf('stepback'), isEmpty);
-    p.logStepBack(what: 'Emin is facing a tough review', advice: 'Breathe', mattersInAYear: 1);
+    p.logStepBack(what: 'Alex is facing a tough review', advice: 'Breathe', mattersInAYear: 1);
     expect(p.logsOf('stepback').single.number('year'), 1);
   });
 
@@ -4031,7 +4031,7 @@ void main() {
   test('review fixes: whole-name agenda, circular wake spread, decider-only board', () async {
     final p = await _commissioned();
     p.addAsk(what: 'Budget for Natalia', of: 'Natalia');
-    expect(p.oneOnOneAgenda('Ali'), isNot(contains('Natalia')));
+    expect(p.oneOnOneAgenda('Jordan'), isNot(contains('Natalia')));
     final mon = weekStartOf(_today);
     for (final (d, h, m) in [(0, 23, 40), (1, 0, 20), (2, 0, 0)]) {
       p.addLog('sleep', date: mon.plusDays(d), data: {'wake': DateTime(2026, 1, 1, h, m).toIso8601String()});
@@ -4191,7 +4191,7 @@ void main() {
     PlannedReminder wake(int wd) => p.plannedReminders().firstWhere(
         (r) => r.title.startsWith('Good morning') && r.weekday == wd);
     // Nothing planned: his water line, then the first morning item.
-    expect(wake(5).title, 'Good morning, Emin');
+    expect(wake(5).title, 'Good morning, Alex');
     expect(wake(5).body, contains('500ml'));
     expect(wake(5).body, contains('Start with: Read manifesto this morning.'));
     // The week's three, then tomorrow's first priority from the shutdown.

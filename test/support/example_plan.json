@@ -1,0 +1,2401 @@
+{
+  "format": 1,
+  "profile": {
+    "name": "Alex Morgan",
+    "first_name": "Alex",
+    "current_role": "Senior PO",
+    "target_role": "Head of Product",
+    "organisation": "Northwind Group (Northwind Bank, Northwind)",
+    "focus": "Merchant ID",
+    "domain": "identity, payments and agentic commerce",
+    "identity_statement": "Today I build something permanent.",
+    "archetype": "The Product Architect",
+    "tagline": "Builds what others can't see yet",
+    "location": "Lisbon, Portugal",
+    "path": [
+      "Senior PO",
+      "Head of Product",
+      "CPO / Tribe Lead",
+      "Global Manager"
+    ],
+    "key_people": [
+      {
+        "name": "Jordan",
+        "relation": "Manager",
+        "every": 7,
+        "primary": true
+      },
+      {
+        "name": "Casey",
+        "relation": "Senior stakeholder",
+        "every": 30,
+        "primary": false
+      }
+    ],
+    "context": "Archetype: The Product Architect. Path over 18 months: Senior PO → Head of Product → CPO / Tribe Lead → global manager. His system: a Daily 10 (manifesto, domain scan, physiological sigh, BLUF, deliberate pause, lunch read, Feynman write, no caffeine after 13:00, protein 150 g, bed 22:30); gym Mon Push / Wed Pull / Thu Legs, joint-safe (no overhead barbell, upright rows, behind-neck press or back squat; face pulls every session; Zone 2 cooldown); impostor pattern Expert + Soloist; protocols: physiological sigh, \"I am excited\", BLUF, six questions deep before meetings with Jordan, Feynman, Evidence Archive, still body, deliberate pause; LinkedIn 2 posts/week from month 2; one artifact per month. Domain thesis: \"The next interface of a super-app is an agent. Ecosystems that turn existing identity and payment trust into agent permissions will win. Merchant ID is Northwind's answer.\" Morning check-ins track joint in the shoulders: shoulder_flag_mornings counts mornings with pain ≥ 5/10 or stiffness ≥ 30 min."
+  },
+  "manifesto": [
+    [
+      "I do not need to know everything to be competent.",
+      "Competence is knowing how to find answers fast,",
+      "make good decisions with incomplete information,",
+      "and learn faster than the room."
+    ],
+    [
+      "I have built real things.",
+      "I have solved real problems.",
+      "I am not a fraud — I hold myself to a high standard."
+    ],
+    [
+      "I protect my sleep. I train my body.",
+      "I dress with intention. I study my domain.",
+      "I speak from position, not permission."
+    ],
+    [
+      "Today I build something permanent.",
+      "Not performing. Building."
+    ]
+  ],
+  "lane_focus": [
+    {
+      "lane": "mind",
+      "name": "Mind",
+      "problem": "Knowledge collapses under pressure. Impostor syndrome (Expert + Soloist). Overthinking. Anxiety before executive meetings.",
+      "actions": [
+        "Read manifesto — 2 min every morning while drinking water",
+        "Physiological sigh ×3 before every pressure moment",
+        "Say \"I am excited\" before every high-stakes interaction",
+        "Evidence Archive — add items Sunday, read Monday",
+        "Pennebaker writing — 15 min every Tuesday for 4 weeks"
+      ]
+    },
+    {
+      "lane": "body",
+      "name": "Body",
+      "problem": "83kg / 176cm, skinny-fat, building muscle for a year. joint in shoulders. Snoring / nose breathing issues.",
+      "actions": [
+        "Gym 3× per week — Mon Push / Wed Pull / Thu Legs (joint-safe)",
+        "Face pulls 3×15 every session",
+        "Zone 2 cooldown 15 min after gym",
+        "Protein 150g daily minimum",
+        "Nasal strip every night",
+        "In bed 10:30pm — 7.5 hours minimum",
+        "Supplements: D3 + Creatine + Omega-3 (AM), Magnesium (PM)"
+      ]
+    },
+    {
+      "lane": "skill",
+      "name": "Skill",
+      "problem": "Domain knowledge feels inaccessible under pressure. No structured frameworks. Preparation disappears under stress.",
+      "actions": [
+        "BLUF on every work output — decision first",
+        "Six-questions-deep before every meeting with Jordan or seniors",
+        "15 min domain scan every morning",
+        "Read current book at lunch — 20 min",
+        "Feynman write after reading — 5 min, from memory",
+        "Anki review — 5 min daily, 5 new cards per week",
+        "One artifact per month — PR/FAQ, OST, strategy doc"
+      ]
+    },
+    {
+      "lane": "social",
+      "name": "Social",
+      "problem": "No public presence. LinkedIn headline describes the old job. No posts published. Style is functional but has no signal.",
+      "actions": [
+        "Dress check: \"Does this person belong in every room today?\"",
+        "Still body in every meeting — feet flat, hands still, no phone",
+        "Deliberate pause before every answer — one breath",
+        "Downward vocal inflection on statements",
+        "LinkedIn: 2 posts per week from Month 2"
+      ]
+    }
+  ],
+  "schedule": [
+    {
+      "h": 6,
+      "m": 0,
+      "title": "Wake",
+      "detail": "500ml water immediately.",
+      "lane": "body",
+      "icon": "wb_twilight_rounded"
+    },
+    {
+      "h": 6,
+      "m": 5,
+      "title": "Morning ritual",
+      "detail": "Manifesto (2 min) · 3 priorities (3 min) · physiological sigh ×3 · \"Today I build something permanent.\"",
+      "lane": "mind",
+      "icon": "self_improvement_rounded"
+    },
+    {
+      "h": 6,
+      "m": 15,
+      "title": "Get ready",
+      "detail": "With your partner. Dress intentionally. Mirror check.",
+      "lane": "social",
+      "icon": "checkroom_rounded"
+    },
+    {
+      "h": 6,
+      "m": 45,
+      "title": "Drive",
+      "detail": "Drop your partner, continue. Podcast of the day.",
+      "lane": "skill",
+      "icon": "podcasts_rounded"
+    },
+    {
+      "h": 7,
+      "m": 45,
+      "title": "Desk arrival",
+      "detail": "Breakfast + supplements. Domain scan 10 min.",
+      "lane": "skill",
+      "icon": "coffee_rounded"
+    },
+    {
+      "h": 8,
+      "m": 0,
+      "title": "Work",
+      "detail": "BLUF all outputs. Sigh before pressure. \"I am excited\" before stakes. Still body. Deliberate pause.",
+      "lane": "skill",
+      "icon": "work_outline_rounded"
+    },
+    {
+      "h": 12,
+      "m": 0,
+      "title": "Lunch",
+      "detail": "Eat 20 min. Read current book 20 min. Feynman write 5 min.",
+      "lane": "skill",
+      "icon": "menu_book_rounded"
+    },
+    {
+      "h": 13,
+      "m": 0,
+      "title": "Afternoon work",
+      "detail": "No caffeine after 1pm.",
+      "lane": "skill",
+      "icon": "work_outline_rounded"
+    },
+    {
+      "h": 18,
+      "m": 0,
+      "title": "Work ends",
+      "detail": "Drive home.",
+      "lane": "mind",
+      "icon": "directions_car_rounded"
+    },
+    {
+      "h": 19,
+      "m": 0,
+      "title": "Train or deep work",
+      "detail": "Gym Mon/Wed/Thu · Evening deep work Tue/Fri.",
+      "lane": "body",
+      "icon": "fitness_center_rounded"
+    },
+    {
+      "h": 20,
+      "m": 30,
+      "title": "Dinner with your partner",
+      "detail": "Cook together. Magnesium 400mg.",
+      "lane": "social",
+      "icon": "restaurant_rounded"
+    },
+    {
+      "h": 21,
+      "m": 0,
+      "title": "Evening work",
+      "detail": "Craft / domain / LinkedIn by day rotation.",
+      "lane": "skill",
+      "icon": "edit_note_rounded"
+    },
+    {
+      "h": 22,
+      "m": 0,
+      "title": "Wind down",
+      "detail": "No screens. Prepare tomorrow's outfit.",
+      "lane": "mind",
+      "icon": "nightlight_round"
+    },
+    {
+      "h": 22,
+      "m": 30,
+      "title": "Sleep",
+      "detail": "Nasal strip. Phone outside bedroom. Room 18–19°C.",
+      "lane": "body",
+      "icon": "bedtime_rounded"
+    }
+  ],
+  "gym": [
+    {
+      "id": "push",
+      "letter": "A",
+      "name": "Push",
+      "weekday": 1,
+      "finisher": "Zone 2 cooldown — 15 min",
+      "exercises": [
+        {
+          "name": "Chest Machine (full lying)",
+          "sets": "3×12",
+          "shoulder": true
+        },
+        {
+          "name": "Butterfly Machine",
+          "sets": "3×12",
+          "shoulder": true
+        },
+        {
+          "name": "Sitting Chest Machine",
+          "sets": "3×12",
+          "shoulder": true
+        },
+        {
+          "name": "Dumbbell Shoulder Press",
+          "sets": "3×12",
+          "note": "Dumbbells, not barbell",
+          "shoulder": true
+        },
+        {
+          "name": "Lateral Raise Machine",
+          "sets": "3×12",
+          "shoulder": true
+        },
+        {
+          "name": "Tricep Pushdown (V-bar)",
+          "sets": "3×12"
+        },
+        {
+          "name": "Cable Rope Overhead Tricep",
+          "sets": "3×12",
+          "note": "Replaces DB overhead — safer for joint",
+          "shoulder": true
+        },
+        {
+          "name": "Face Pulls",
+          "sets": "3×15",
+          "note": "Never skip",
+          "key": true
+        }
+      ]
+    },
+    {
+      "id": "pull",
+      "letter": "B",
+      "name": "Pull",
+      "weekday": 3,
+      "finisher": "Zone 2 cooldown — 15 min",
+      "exercises": [
+        {
+          "name": "Lat Pulldown",
+          "sets": "3×12",
+          "shoulder": true
+        },
+        {
+          "name": "Incline T-bar Row",
+          "sets": "3×12"
+        },
+        {
+          "name": "Seated Cable Row",
+          "sets": "3×12"
+        },
+        {
+          "name": "Supinated Bicep Curl",
+          "sets": "3×12"
+        },
+        {
+          "name": "Cable Bicep Curl",
+          "sets": "3×12"
+        },
+        {
+          "name": "Hammer Curl",
+          "sets": "3×12"
+        },
+        {
+          "name": "One-Hand Tricep Pushdown",
+          "sets": "3×12"
+        },
+        {
+          "name": "Face Pulls + Reverse Cable Fly",
+          "sets": "3×15 each",
+          "key": true
+        }
+      ]
+    },
+    {
+      "id": "legs",
+      "letter": "C",
+      "name": "Legs + Core",
+      "weekday": 4,
+      "finisher": "Zone 2 cooldown — 15 min",
+      "exercises": [
+        {
+          "name": "Goblet Squat",
+          "sets": "3×12",
+          "note": "DB at chest — zero shoulder load"
+        },
+        {
+          "name": "Romanian Deadlift",
+          "sets": "3×12"
+        },
+        {
+          "name": "Walking Lunges",
+          "sets": "3×12 each"
+        },
+        {
+          "name": "Leg Press",
+          "sets": "3×12"
+        },
+        {
+          "name": "Plank",
+          "sets": "3×45 sec"
+        },
+        {
+          "name": "Dead Bug",
+          "sets": "3×10 each"
+        },
+        {
+          "name": "Leverage Shoulder Press",
+          "sets": "3×12",
+          "note": "Light, only if pain-free",
+          "shoulder": true
+        },
+        {
+          "name": "Face Pulls",
+          "sets": "3×15",
+          "key": true
+        }
+      ]
+    }
+  ],
+  "shoulder_sparing": [
+    {
+      "name": "Leg Press",
+      "sets": "3×12",
+      "note": "Shoulder-sparing swap"
+    },
+    {
+      "name": "Goblet Squat",
+      "sets": "3×12",
+      "note": "DB at chest — zero shoulder load"
+    },
+    {
+      "name": "Dead Bug",
+      "sets": "3×10 each",
+      "note": "Shoulder-sparing swap"
+    }
+  ],
+  "avoid_lifts": [
+    "Overhead barbell press",
+    "Upright rows",
+    "Behind-neck press",
+    "Barbell back squat"
+  ],
+  "lift_swaps": [
+    "DB shoulder press",
+    "Cable rope tricep",
+    "Goblet squat",
+    "Leg press"
+  ],
+  "supplements_morning": [
+    "Vitamin D3 2000 IU",
+    "Creatine 5g",
+    "Omega-3 2g"
+  ],
+  "supplements_night": [
+    "Magnesium glycinate 400mg"
+  ],
+  "bloodwork": [
+    "Ferritin",
+    "Hemoglobin",
+    "Vitamin D",
+    "Testosterone",
+    "TSH"
+  ],
+  "evening_focus": {
+    "1": "Gym — Day A Push",
+    "2": "Evening deep work · Pennebaker writing",
+    "3": "Gym — Day B Pull",
+    "4": "Gym — Day C Legs + Core",
+    "5": "Evening deep work",
+    "6": "Wardrobe buy · rest",
+    "7": "Evidence Archive · grooming · weekly report"
+  },
+  "podcasts": [
+    {
+      "weekday": 1,
+      "title": "Lenny's Podcast",
+      "detail": "Start: Shreyas Doshi — LNO Framework"
+    },
+    {
+      "weekday": 2,
+      "title": "Acquired",
+      "detail": "Start: the Visa episode"
+    },
+    {
+      "weekday": 3,
+      "title": "The Knowledge Project",
+      "detail": "Start: Mental Models episode"
+    },
+    {
+      "weekday": 4,
+      "title": "Fintech Brainfood",
+      "detail": "Latest episode, always"
+    },
+    {
+      "weekday": 5,
+      "title": "Fintech Leaders",
+      "detail": "Start: Kaspi.kz CEO episode"
+    },
+    {
+      "weekday": 6,
+      "title": "Identity at the Center",
+      "detail": "Latest episode, always"
+    },
+    {
+      "weekday": 7,
+      "title": "Acquired — or silence",
+      "detail": "Any episode"
+    }
+  ],
+  "domain_scans": [
+    {
+      "weekday": 1,
+      "title": "CIAM Compass",
+      "detail": "Identity & agent identity",
+      "url": "https://guptadeepak.com/ciam-compass"
+    },
+    {
+      "weekday": 2,
+      "title": "Stratechery",
+      "detail": "Platform & ecosystem strategy",
+      "url": "https://stratechery.com"
+    },
+    {
+      "weekday": 3,
+      "title": "Lenny's Newsletter",
+      "detail": "Product craft & leadership",
+      "url": "https://www.lennysnewsletter.com"
+    },
+    {
+      "weekday": 4,
+      "title": "Product Compass",
+      "detail": "Modern PM frameworks",
+      "url": "https://theproductcompass.substack.com"
+    },
+    {
+      "weekday": 5,
+      "title": "Fintech Brainfood",
+      "detail": "Fintech & payments",
+      "url": "https://www.fintechbrainfood.com"
+    },
+    {
+      "weekday": 6,
+      "title": "Primary sources",
+      "detail": "Kaspi · Stripe · Visa · Auth0 blogs"
+    },
+    {
+      "weekday": 7,
+      "title": "Personal synthesis",
+      "detail": "Write 3 domain insights in your journal"
+    }
+  ],
+  "books": [
+    {
+      "slot": "Month 1",
+      "month": 1,
+      "title": "Continuous Discovery Habits",
+      "author": "Teresa Torres",
+      "chapters": "Ch. 1, 2, 3, 7, 9",
+      "why": "You are mid-discovery on the entrepreneur integration now."
+    },
+    {
+      "slot": "Month 2",
+      "month": 2,
+      "title": "Good Strategy Bad Strategy",
+      "author": "Richard Rumelt",
+      "chapters": "Ch. 1, 2, 5, 9",
+      "why": "Write the real Merchant ID strategy."
+    },
+    {
+      "slot": "Month 3",
+      "month": 3,
+      "title": "Working Backwards",
+      "author": "Bryar & Carr",
+      "chapters": "Ch. 4, 5, 6",
+      "why": "PR/FAQ changes how Jordan reads your thinking."
+    },
+    {
+      "slot": "Month 4",
+      "month": 4,
+      "title": "Inspired",
+      "author": "Marty Cagan",
+      "chapters": "Ch. 1–5, 28, 37",
+      "why": "Defines what a great PM actually is."
+    },
+    {
+      "slot": "Month 5",
+      "month": 5,
+      "title": "7 Powers",
+      "author": "Hamilton Helmer",
+      "chapters": "Ch. 1–3, 5, 8",
+      "why": "Explains why Northwind's ecosystem wins."
+    },
+    {
+      "slot": "Month 6",
+      "month": 6,
+      "title": "Empowered",
+      "author": "Cagan & Jones",
+      "chapters": "Ch. 3, 5, 8, 10",
+      "why": "The IC → product leader transition."
+    }
+  ],
+  "novels": [
+    {
+      "slot": "Now",
+      "month": 1,
+      "title": "Man's Search for Meaning",
+      "author": "Viktor Frankl",
+      "chapters": "Full book",
+      "why": "Enjoyment has been absent — read this weekend.",
+      "fiction": true
+    },
+    {
+      "slot": "Month 2",
+      "month": 2,
+      "title": "Norwegian Wood",
+      "author": "Haruki Murakami",
+      "chapters": "Full",
+      "why": "Restraint and precision in communication.",
+      "fiction": true
+    },
+    {
+      "slot": "Month 3",
+      "month": 3,
+      "title": "The Trial",
+      "author": "Franz Kafka",
+      "chapters": "Full",
+      "why": "Capable people in systems that don't recognize them.",
+      "fiction": true
+    },
+    {
+      "slot": "Month 4",
+      "month": 4,
+      "title": "Crime and Punishment",
+      "author": "Fyodor Dostoevsky",
+      "chapters": "Full",
+      "why": "The psychology of self-perception.",
+      "fiction": true
+    },
+    {
+      "slot": "Month 5",
+      "month": 5,
+      "title": "The Art of War",
+      "author": "Sun Tzu",
+      "chapters": "Full",
+      "why": "Knowing yourself and your environment.",
+      "fiction": true
+    }
+  ],
+  "films": [
+    {
+      "title": "Whiplash",
+      "year": 2014,
+      "when": "When you want to quit",
+      "why": "Why discomfort is necessary for excellence."
+    },
+    {
+      "title": "The Social Network",
+      "year": 2010,
+      "when": "Wednesday evening",
+      "why": "BLUF communication. Building while underestimated."
+    },
+    {
+      "title": "Jiro Dreams of Sushi",
+      "year": 2011,
+      "when": "When progress feels slow",
+      "why": "Mastery requires daily discipline over years."
+    },
+    {
+      "title": "Moneyball",
+      "year": 2011,
+      "when": "Friday evening",
+      "why": "Evidence-based thinking against hierarchy — you at Northwind."
+    },
+    {
+      "title": "Parasite",
+      "year": 2019,
+      "when": "Weekend",
+      "why": "Performance, ambition, and the gap between presentation and reality."
+    },
+    {
+      "title": "Steve Jobs",
+      "year": 2015,
+      "when": "Month 2",
+      "why": "How a product leader communicates under pressure."
+    }
+  ],
+  "protocols": [
+    {
+      "id": "sigh",
+      "name": "Physiological Sigh",
+      "lane": "mind",
+      "icon": "air_rounded",
+      "what": "Double inhale through the nose → long exhale through the mouth. 1–3 reps. 30 seconds.",
+      "when": "Before every meeting with Jordan. Before any hard conversation. In the car before entering the office.",
+      "why": "Fastest known stress reset. Re-inflates lung alveoli, activates the vagus nerve. Stressed → calm in 60 seconds.",
+      "source": "Huberman, Stanford"
+    },
+    {
+      "id": "excited",
+      "name": "\"I Am Excited\"",
+      "lane": "mind",
+      "icon": "bolt_rounded",
+      "what": "Say internally \"I am excited\" before any high-stakes moment.",
+      "when": "Before presenting. Before difficult conversations. Before entering any important room.",
+      "why": "Anxiety and excitement are physiologically identical. \"Calm down\" requires changing your state; \"I am excited\" only reinterprets it. Reappraisal beats suppression.",
+      "source": "Brooks, Harvard 2014"
+    },
+    {
+      "id": "bluf",
+      "name": "BLUF",
+      "lane": "skill",
+      "icon": "vertical_align_top_rounded",
+      "what": "Decision first → 3 supporting reasons → what you need → deadline.",
+      "when": "Every email, every Slack message, every meeting update to Jordan or Casey.",
+      "why": "Executives process top-down. They decide from your first sentence whether the rest is worth reading.",
+      "source": "Military writing standard · Amazon narratives",
+      "before": "So after reviewing everything we probably should consider maybe delaying…",
+      "after": "I recommend delaying SA automation to Sprint 5. Affects 12% of users, complexity higher than estimated, DVX is the priority blocker. Need your alignment by Thursday."
+    },
+    {
+      "id": "six_deep",
+      "name": "Six Questions Deep",
+      "lane": "skill",
+      "icon": "layers_rounded",
+      "what": "Write the 6 hardest questions Jordan could ask. Write your answers. Then write the hardest follow-up to each answer.",
+      "when": "Before any meeting with Jordan or senior stakeholders.",
+      "why": "Preparation depth is what gravitas actually is. Six deep, nothing in the room surprises you.",
+      "source": "Hewlett, CTI"
+    },
+    {
+      "id": "feynman",
+      "name": "Feynman Technique",
+      "lane": "skill",
+      "icon": "edit_rounded",
+      "what": "After reading, close everything. Write what you just read from memory. 5 minutes.",
+      "when": "Right after the 20-minute lunch read.",
+      "why": "Retrieval practice gives ~50% better retention than re-reading. Where you blank = the gap.",
+      "source": "Roediger & Karpicke, 2006"
+    },
+    {
+      "id": "evidence",
+      "name": "Evidence Archive",
+      "lane": "mind",
+      "icon": "inventory_2_rounded",
+      "what": "A running record in 3 sections: Things I built · Problems I solved · Knowledge I have that others don't.",
+      "when": "Add at least 5 items every Sunday. Read every Monday before the first meeting.",
+      "why": "The Expert + Soloist impostor forgets what they have built. Real evidence interrupts the spiral.",
+      "source": "Valerie Young — impostor types"
+    },
+    {
+      "id": "pause",
+      "name": "Deliberate Pause",
+      "lane": "social",
+      "icon": "pause_circle_outline_rounded",
+      "what": "One slow breath before answering any challenging question.",
+      "when": "Every meeting, every hard question.",
+      "why": "Immediate answers read as reactive. Paused answers read as deliberate. A 1–2 second pause is a gravitas signal.",
+      "source": "Executive presence research"
+    },
+    {
+      "id": "still",
+      "name": "Still Body",
+      "lane": "social",
+      "icon": "accessibility_new_rounded",
+      "what": "Feet flat on the floor. Hands still on table or lap. Phone face-down or invisible. Eyes on the speaker.",
+      "when": "Every meeting.",
+      "why": "Physical stillness is the strongest unconscious signal of authority. Fidgeting signals anxiety.",
+      "source": "Nonverbal dominance research"
+    },
+    {
+      "id": "pennebaker",
+      "name": "Pennebaker Writing",
+      "lane": "mind",
+      "icon": "history_edu_rounded",
+      "what": "Write about your deepest fears and anxieties for 15 minutes without stopping.",
+      "when": "Every Tuesday evening, for 4 consecutive weeks.",
+      "why": "Translating emotion into language engages the prefrontal cortex and measurably lowers anxiety.",
+      "source": "Pennebaker, UT Austin"
+    }
+  ],
+  "face_notes": [
+    [
+      "Shaved head",
+      "Grade 1 all over, every 2 weeks. Own it completely."
+    ],
+    [
+      "Strong nose",
+      "Do nothing. It photographs with authority. The beard balances it."
+    ],
+    [
+      "Soft jaw / chin",
+      "The beard fixes this — fuller at the chin, sharp neck line."
+    ],
+    [
+      "Short neck",
+      "Posture work at the gym + V-neck / crewneck collars + a precise beard neck line."
+    ]
+  ],
+  "beard_spec": [
+    [
+      "Chin",
+      "Fuller — the longest point. Adds jaw definition."
+    ],
+    [
+      "Cheeks",
+      "Clean defined line. Not too high, not too low."
+    ],
+    [
+      "Neck line",
+      "Two fingers above the Adam's apple. Shave everything below."
+    ],
+    [
+      "Sides",
+      "5–8mm, fading down."
+    ],
+    [
+      "Maintain",
+      "Every Sunday evening, 10 minutes."
+    ]
+  ],
+  "wardrobe": [
+    {
+      "id": "w1",
+      "week": "Sat 1",
+      "item": "Navy fine merino crewneck",
+      "min": 40,
+      "max": 50,
+      "where": "Uniqlo online",
+      "month": 1
+    },
+    {
+      "id": "w2",
+      "week": "Sat 2",
+      "item": "Charcoal merino + dark chinos (tailored)",
+      "min": 60,
+      "max": 70,
+      "where": "Uniqlo + local tailor",
+      "month": 1
+    },
+    {
+      "id": "w3",
+      "week": "Sat 3",
+      "item": "White Oxford shirt",
+      "min": 30,
+      "max": 50,
+      "where": "Local or Massimo Dutti",
+      "month": 1
+    },
+    {
+      "id": "w4",
+      "week": "Sat 4",
+      "item": "White minimal leather sneakers",
+      "min": 40,
+      "max": 70,
+      "where": "Adidas Stan Smith",
+      "month": 1
+    },
+    {
+      "id": "w5",
+      "week": "Sat 5–6",
+      "item": "Navy unstructured blazer",
+      "min": 150,
+      "max": 200,
+      "where": "Best Lisbon tailor",
+      "month": 2
+    },
+    {
+      "id": "w6",
+      "week": "Sat 7",
+      "item": "Dark brown suede loafers",
+      "min": 60,
+      "max": 100,
+      "where": "Best local shoe shop",
+      "month": 2
+    },
+    {
+      "id": "w7",
+      "week": "Sat 8",
+      "item": "Skincare: Cetaphil + SPF50 + beard oil",
+      "min": 35,
+      "max": 35,
+      "where": "Lisbon pharmacy",
+      "month": 2
+    },
+    {
+      "id": "w8",
+      "week": "Month 3",
+      "item": "Dark overcoat",
+      "min": 150,
+      "max": 250,
+      "where": "Tailor or store",
+      "month": 3
+    },
+    {
+      "id": "w9",
+      "week": "Month 3",
+      "item": "Quality leather backpack",
+      "min": 80,
+      "max": 150,
+      "where": "Leather shop",
+      "month": 3
+    },
+    {
+      "id": "w10",
+      "week": "Month 3",
+      "item": "Charcoal suit (tailored)",
+      "min": 300,
+      "max": 400,
+      "where": "Tailor",
+      "month": 3
+    }
+  ],
+  "outfits": [
+    {
+      "occasion": "Northwind meeting",
+      "formula": "Light blue shirt · black trousers · navy blazer · brown loafers · Skagen",
+      "icon": "business_center_rounded"
+    },
+    {
+      "occasion": "Daily office",
+      "formula": "Navy merino · dark chinos · white sneakers · Skagen",
+      "icon": "apartment_rounded"
+    },
+    {
+      "occasion": "Smart casual",
+      "formula": "Charcoal merino · dark chinos · white sneakers",
+      "icon": "local_cafe_rounded"
+    },
+    {
+      "occasion": "Dinner out",
+      "formula": "White shirt (open collar) · dark chinos · loafers · Skagen",
+      "icon": "wine_bar_rounded"
+    },
+    {
+      "occasion": "Weekend",
+      "formula": "Navy merino or plain tee · dark chinos · white sneakers · Casio",
+      "icon": "weekend_rounded"
+    },
+    {
+      "occasion": "Gym",
+      "formula": "Dark fitted training tee · dark shorts/joggers · Apple Watch",
+      "icon": "fitness_center_rounded"
+    }
+  ],
+  "weekday_outfit": 1,
+  "weekend_outfit": 4,
+  "watch_rule": [
+    [
+      "Work",
+      "Skagen — every day, no exceptions"
+    ],
+    [
+      "Gym",
+      "Apple Watch"
+    ],
+    [
+      "Weekend",
+      "Casio"
+    ]
+  ],
+  "grooming_routine": [
+    [
+      "Every morning · 5 min",
+      "Cetaphil cleanser → SPF50 moisturizer → beard oil, 3 drops"
+    ],
+    [
+      "Every Sunday · 15 min",
+      "Beard edge-up → skincare → lay out Monday's outfit"
+    ],
+    [
+      "Every 2 weeks",
+      "Grade 1 buzz cut"
+    ]
+  ],
+  "skincare_plan": [
+    [
+      "Month 1–2",
+      "Cetaphil cleanser + Neutrogena SPF50"
+    ],
+    [
+      "Month 3",
+      "Add niacinamide serum (The Ordinary)"
+    ],
+    [
+      "Month 4+",
+      "Add retinol 2–3 nights per week (night only)"
+    ]
+  ],
+  "linkedin_headline": "Building merchant identity for 5M+ users @ Northwind Group (Northwind) | Payments · Identity · AI Agents",
+  "linkedin_about": "I build the identity layer for ecosystems.\n\nCurrently at Northwind Group (Northwind Holdings), I'm leading Merchant ID — a unified merchant identity and SSO platform connecting 5M+ users across Portugal's first fully integrated digital ecosystem: banking, marketplace, payments, and loyalty.\n\nBefore this: B2B remittance infrastructure at Coinly, open banking and BaaS at Harbor Bank, high-traffic transaction systems at Playly. The thread across all of it: complex technical systems where identity, payments, and product strategy intersect.\n\nWhat I'm focused on now: how merchant identity becomes the connective tissue of super-app ecosystems — and how agentic payments change the trust and permission model for everything.\n\n📍 Lisbon, Portugal | 🎓 Ca' Foscari University, Venice (110/110 cum laude)\n🌐 AZ | RU | TR | EN",
+  "linkedin_role": "Leading product strategy for Merchant ID — a unified merchant identity and SSO layer across Northwind Group's B2B services: BirBank Business, BirMarket, BirBonus, and BirPay.\n\n→ Serving an ecosystem of 5M+ users across Portugal's first fully integrated digital platform\n→ Directing discovery and delivery for merchant onboarding, SSO integration, and identity verification (national e-signature, DVX)\n→ Working across engineering, compliance, and executive stakeholders to define the identity architecture for agentic commerce use cases",
+  "linkedin_first_post": "I spent 4 years in payments and iGaming before I understood what identity actually is.\n\nIt's not authentication. It's not a login screen.\n\nIdentity is the trust layer that decides what a merchant can access, what they can borrow, what they can sell.\n\nAt Kaspi: 764,000 merchants. 95% accept Kaspi QR. The reason they can offer those merchants working capital loans isn't just data — it's verified identity tied to transaction history.\n\nThat's what we're building with Merchant ID at Northwind.\n\nWhat's the most underrated layer in your product stack?",
+  "domain_thesis": "The next interface of a super-app is an agent. Ecosystems that turn existing identity and payment trust into agent permissions will win. Merchant ID is Northwind's answer to this.",
+  "key_data": [
+    [
+      "Kaspi",
+      "764,000 active merchants · 95% accept Kaspi QR · $97.3B payment volume FY2025"
+    ],
+    [
+      "Grab",
+      "Multi-service adoption 12% → 54% · retention 47% → 79% after identity integration"
+    ],
+    [
+      "NHI",
+      "Non-human identities outnumber humans 45:1 (CSA, May 2026)"
+    ],
+    [
+      "Agentic payments",
+      "Mastercard Agent Pay (Apr 2025) · Visa Intelligent Commerce (Apr 2025) · Stripe SPT (Mar 2026) · Auth0 MCP (May 2026)"
+    ],
+    [
+      "Northwind",
+      "5M+ users · first fully integrated ecosystem in the Caucasus"
+    ]
+  ],
+  "certificates": [
+    {
+      "id": "svpg",
+      "priority": 1,
+      "timing": "Month 3–4",
+      "name": "SVPG Coaching Program",
+      "org": "Silicon Valley Product Group",
+      "url": "https://www.svpg.com"
+    },
+    {
+      "id": "aws",
+      "priority": 2,
+      "timing": "Month 4–5",
+      "name": "AWS Cloud Practitioner",
+      "org": "Amazon",
+      "url": "https://aws.amazon.com/training"
+    },
+    {
+      "id": "ciam",
+      "priority": 3,
+      "timing": "Month 6+",
+      "name": "CIAM Professional",
+      "org": "KuppingerCole",
+      "url": "https://www.kuppingercole.com"
+    },
+    {
+      "id": "pspo",
+      "priority": 4,
+      "timing": "Month 9+",
+      "name": "PSPO",
+      "org": "Scrum.org",
+      "url": "https://www.scrum.org"
+    }
+  ],
+  "career_milestones": [
+    {
+      "month": 1,
+      "targets": [
+        "Sleep consistent",
+        "Grooming routine",
+        "LinkedIn headline changed",
+        "Domain scans started"
+      ]
+    },
+    {
+      "month": 2,
+      "targets": [
+        "Bloodwork done",
+        "Zone 2 base building",
+        "BLUF automatic",
+        "First 5 LinkedIn posts"
+      ]
+    },
+    {
+      "month": 3,
+      "targets": [
+        "Agentic payments thesis owned",
+        "PR/FAQ written",
+        "Professional headshot taken"
+      ]
+    },
+    {
+      "month": 4,
+      "targets": [
+        "Advisory board — first contacts",
+        "Style capsule Month 1–2 complete",
+        "15 posts published"
+      ]
+    },
+    {
+      "month": 6,
+      "targets": [
+        "Full style capsule",
+        "2,000+ LinkedIn followers",
+        "Signature thesis draft written"
+      ]
+    },
+    {
+      "month": 9,
+      "targets": [
+        "Advisory board — 3 seats filled",
+        "Internal talk delivered",
+        "5,000+ followers"
+      ]
+    },
+    {
+      "month": 12,
+      "targets": [
+        "Conference CFP submitted",
+        "8,000+ followers",
+        "Coaching one junior PM"
+      ]
+    },
+    {
+      "month": 18,
+      "targets": [
+        "Career decision made from strength — promotion, international move, or founding path"
+      ]
+    }
+  ],
+  "daily_items": [
+    {
+      "id": "manifesto",
+      "title": "Read manifesto this morning",
+      "lane": "mind",
+      "when": "morning",
+      "route": "/manifesto"
+    },
+    {
+      "id": "scan",
+      "title": "Domain scan — 15 min",
+      "lane": "skill",
+      "when": "morning",
+      "route": "/tool/scan"
+    },
+    {
+      "id": "sigh",
+      "title": "Physiological sigh before pressure",
+      "lane": "mind",
+      "when": "day",
+      "route": "/tool/sigh"
+    },
+    {
+      "id": "bluf",
+      "title": "BLUF on at least one output",
+      "lane": "skill",
+      "when": "day",
+      "route": "/tool/bluf"
+    },
+    {
+      "id": "pause",
+      "title": "Deliberate pause practiced",
+      "lane": "social",
+      "when": "day"
+    },
+    {
+      "id": "read",
+      "title": "Read at lunch — 20 min",
+      "lane": "skill",
+      "when": "day",
+      "route": "/tool/read"
+    },
+    {
+      "id": "feynman",
+      "title": "Wrote from memory after reading",
+      "lane": "skill",
+      "when": "day",
+      "route": "/tool/feynman"
+    },
+    {
+      "id": "caffeine",
+      "title": "No caffeine after 1pm",
+      "lane": "body",
+      "when": "day"
+    },
+    {
+      "id": "protein",
+      "title": "Protein — 150g",
+      "lane": "body",
+      "when": "evening",
+      "route": "/log?add=protein"
+    },
+    {
+      "id": "bed",
+      "title": "In bed by 10:30pm",
+      "lane": "body",
+      "when": "evening"
+    }
+  ],
+  "work_day_only_items": [
+    "scan",
+    "bluf",
+    "read"
+  ],
+  "work_day_only_from": "2026-10-25",
+  "cues": {
+    "manifesto": "When I switch off the 06:00 alarm → manifesto before the phone",
+    "scan": "When I sit at my desk at 07:45 → scan before opening email",
+    "sigh": "When I park at the office or a hard meeting starts → sigh ×3",
+    "bluf": "When I open Slack the first time → write that message as BLUF",
+    "pause": "When someone challenges me → one breath before I answer",
+    "read": "When lunch arrives → phone face-down, book open",
+    "feynman": "When I close the book → 5 minutes writing from memory",
+    "caffeine": "When it turns 13:00 → water or herbal tea only",
+    "protein": "When I sit down to breakfast → 40 g protein first",
+    "bed": "When the 22:00 alarm rings → phone goes outside the bedroom"
+  },
+  "minimums": {
+    "manifesto": "Read the first line",
+    "scan": "One headline from the domain, two minutes",
+    "sigh": "One sigh, once",
+    "bluf": "One message with the ask in the first line",
+    "pause": "One breath before one answer",
+    "read": "One page",
+    "feynman": "One sentence from memory",
+    "caffeine": "No coffee after 13:00",
+    "protein": "Protein at one meal",
+    "bed": "Phone out of the bedroom"
+  },
+  "evidence_sections": [
+    {
+      "section": "built",
+      "title": "Things I built",
+      "prompts": [
+        "Products / features shipped at Northwind, Coinly, Harbor Bank, Playly",
+        "Built outside work: two side projects",
+        "Integrations or technical implementations you led"
+      ]
+    },
+    {
+      "section": "solved",
+      "title": "Problems I solved",
+      "prompts": [
+        "When were you the one who unblocked something?",
+        "When did your technical background solve what others couldn't?",
+        "When did your 4 languages give you an advantage no one else had?"
+      ]
+    },
+    {
+      "section": "knowledge",
+      "title": "Knowledge others don't have",
+      "prompts": [
+        "Domain depth nobody else in the room has",
+        "Rare skills for a PO"
+      ]
+    }
+  ],
+  "evidence_seeds": [
+    "national e-signature integration complexity in Portugal's regulatory context",
+    "DVX verification flows for merchant onboarding at Northwind",
+    "Data engineering: Airflow, Delta Lake, medallion architecture (rare for POs)",
+    "iGaming regulatory environments from direct product work",
+    "4 languages: AZ / RU / TR / EN — direct access to CIS, Caucasus and Turkish fintech",
+    "Building identity infrastructure for the first super-app ecosystem in the Caucasus",
+    "110/110 cum laude Masters — Ca' Foscari, Venice"
+  ],
+  "path_steps": [
+    [
+      "Senior PO",
+      "1"
+    ],
+    [
+      "Head of Product",
+      "9"
+    ],
+    [
+      "CPO / Tribe Lead",
+      "15"
+    ],
+    [
+      "Global Manager",
+      "18"
+    ]
+  ],
+  "month_themes": {
+    "1": "Sleep consistent, ritual installed, protocols in use.",
+    "2": "Bloodwork done. Zone 2 base. BLUF automatic. LinkedIn starts.",
+    "3": "Own the agentic-payments thesis. PR/FAQ written. Headshot taken.",
+    "4": "Advisory board first contacts. 15 posts published.",
+    "5": "Cloud fluency (AWS). Read Northwind through 7 Powers.",
+    "6": "Full style capsule. 2,000+ followers. Signature thesis drafted.",
+    "7": "Thesis becomes a talk outline. Build in public.",
+    "8": "Deepen the advisory board. Ship the second big artifact.",
+    "9": "Advisory board 3 seats. Internal talk delivered. 5,000+ followers.",
+    "10": "PSPO certification. Conference talk material.",
+    "11": "Coach-ready: write your product principles.",
+    "12": "Conference CFP submitted. 8,000+ followers. Coach a junior PM.",
+    "13": "Map the options: promotion, international, founding.",
+    "14": "Conversations with people one role ahead.",
+    "15": "Make the case: a written narrative for the next role.",
+    "16": "Test the options in the market.",
+    "17": "Negotiate from evidence.",
+    "18": "Career decision made from strength."
+  },
+  "month_artifacts": {
+    "1": "Opportunity Solution Tree — entrepreneur integration",
+    "2": "Merchant ID strategy: diagnosis, guiding policy, coherent actions",
+    "3": "PR/FAQ for Merchant ID",
+    "4": "Product operating model — how Merchant ID decides",
+    "5": "7 Powers analysis of Northwind Group",
+    "6": "Signature thesis draft — agents & merchant identity"
+  },
+  "unlocks": {
+    "1": [
+      {
+        "kind": "book",
+        "title": "Continuous Discovery Habits",
+        "detail": "Teresa Torres · Ch. 1, 2, 3, 7, 9",
+        "route": "/library",
+        "done": "book:Continuous Discovery Habits"
+      },
+      {
+        "kind": "novel",
+        "title": "Man's Search for Meaning",
+        "detail": "Enjoyment has been absent — read this weekend.",
+        "route": "/library",
+        "done": "book:Man's Search for Meaning"
+      },
+      {
+        "kind": "wardrobe",
+        "title": "Navy fine merino crewneck",
+        "detail": "Sat 1 · Uniqlo online",
+        "route": "/style",
+        "done": "wardrobe:w1"
+      },
+      {
+        "kind": "wardrobe",
+        "title": "Charcoal merino + dark chinos (tailored)",
+        "detail": "Sat 2 · Uniqlo + local tailor",
+        "route": "/style",
+        "done": "wardrobe:w2"
+      },
+      {
+        "kind": "wardrobe",
+        "title": "White Oxford shirt",
+        "detail": "Sat 3 · Local or Massimo Dutti",
+        "route": "/style",
+        "done": "wardrobe:w3"
+      },
+      {
+        "kind": "wardrobe",
+        "title": "White minimal leather sneakers",
+        "detail": "Sat 4 · Adidas Stan Smith",
+        "route": "/style",
+        "done": "wardrobe:w4"
+      },
+      {
+        "kind": "protocol",
+        "title": "Pennebaker writing",
+        "detail": "15 min every Tuesday for 4 weeks",
+        "route": "/tool/pennebaker"
+      },
+      {
+        "kind": "linkedin",
+        "title": "New LinkedIn headline + About",
+        "detail": "Exact rewrites are ready to copy",
+        "route": "/career",
+        "done": "li:headline"
+      },
+      {
+        "kind": "artifact",
+        "title": "Artifact of the month",
+        "detail": "Opportunity Solution Tree — entrepreneur integration",
+        "route": "/tool/artifact"
+      }
+    ],
+    "2": [
+      {
+        "kind": "book",
+        "title": "Good Strategy Bad Strategy",
+        "detail": "Richard Rumelt · Ch. 1, 2, 5, 9",
+        "route": "/library",
+        "done": "book:Good Strategy Bad Strategy"
+      },
+      {
+        "kind": "novel",
+        "title": "Norwegian Wood",
+        "detail": "Restraint and precision in communication.",
+        "route": "/library",
+        "done": "book:Norwegian Wood"
+      },
+      {
+        "kind": "film",
+        "title": "Steve Jobs (2015)",
+        "detail": "How a product leader communicates under pressure",
+        "route": "/library",
+        "done": "film:Steve Jobs"
+      },
+      {
+        "kind": "wardrobe",
+        "title": "Navy unstructured blazer",
+        "detail": "Sat 5–6 · Best Lisbon tailor",
+        "route": "/style",
+        "done": "wardrobe:w5"
+      },
+      {
+        "kind": "wardrobe",
+        "title": "Dark brown suede loafers",
+        "detail": "Sat 7 · Best local shoe shop",
+        "route": "/style",
+        "done": "wardrobe:w6"
+      },
+      {
+        "kind": "wardrobe",
+        "title": "Skincare: Cetaphil + SPF50 + beard oil",
+        "detail": "Sat 8 · Lisbon pharmacy",
+        "route": "/style",
+        "done": "wardrobe:w7"
+      },
+      {
+        "kind": "linkedin",
+        "title": "LinkedIn: 2 posts per week",
+        "detail": "Cadence starts this month",
+        "route": "/career"
+      },
+      {
+        "kind": "artifact",
+        "title": "Artifact of the month",
+        "detail": "Merchant ID strategy: diagnosis, guiding policy, coherent actions",
+        "route": "/tool/artifact"
+      }
+    ],
+    "3": [
+      {
+        "kind": "book",
+        "title": "Working Backwards",
+        "detail": "Bryar & Carr · Ch. 4, 5, 6",
+        "route": "/library",
+        "done": "book:Working Backwards"
+      },
+      {
+        "kind": "novel",
+        "title": "The Trial",
+        "detail": "Capable people in systems that don't recognize them.",
+        "route": "/library",
+        "done": "book:The Trial"
+      },
+      {
+        "kind": "wardrobe",
+        "title": "Dark overcoat",
+        "detail": "Month 3 · Tailor or store",
+        "route": "/style",
+        "done": "wardrobe:w8"
+      },
+      {
+        "kind": "wardrobe",
+        "title": "Quality leather backpack",
+        "detail": "Month 3 · Leather shop",
+        "route": "/style",
+        "done": "wardrobe:w9"
+      },
+      {
+        "kind": "wardrobe",
+        "title": "Charcoal suit (tailored)",
+        "detail": "Month 3 · Tailor",
+        "route": "/style",
+        "done": "wardrobe:w10"
+      },
+      {
+        "kind": "skincare",
+        "title": "Add niacinamide serum",
+        "detail": "The Ordinary — morning, after cleanser",
+        "route": "/style"
+      },
+      {
+        "kind": "certificate",
+        "title": "SVPG Coaching Program",
+        "detail": "Silicon Valley Product Group · Month 3–4",
+        "route": "/career",
+        "done": "cert:svpg"
+      },
+      {
+        "kind": "artifact",
+        "title": "Artifact of the month",
+        "detail": "PR/FAQ for Merchant ID",
+        "route": "/tool/artifact"
+      }
+    ],
+    "4": [
+      {
+        "kind": "book",
+        "title": "Inspired",
+        "detail": "Marty Cagan · Ch. 1–5, 28, 37",
+        "route": "/library",
+        "done": "book:Inspired"
+      },
+      {
+        "kind": "novel",
+        "title": "Crime and Punishment",
+        "detail": "The psychology of self-perception.",
+        "route": "/library",
+        "done": "book:Crime and Punishment"
+      },
+      {
+        "kind": "skincare",
+        "title": "Add retinol 2–3 nights a week",
+        "detail": "Night only",
+        "route": "/style"
+      },
+      {
+        "kind": "certificate",
+        "title": "AWS Cloud Practitioner",
+        "detail": "Amazon · Month 4–5",
+        "route": "/career",
+        "done": "cert:aws"
+      },
+      {
+        "kind": "artifact",
+        "title": "Artifact of the month",
+        "detail": "Product operating model — how Merchant ID decides",
+        "route": "/tool/artifact"
+      }
+    ],
+    "5": [
+      {
+        "kind": "book",
+        "title": "7 Powers",
+        "detail": "Hamilton Helmer · Ch. 1–3, 5, 8",
+        "route": "/library",
+        "done": "book:7 Powers"
+      },
+      {
+        "kind": "novel",
+        "title": "The Art of War",
+        "detail": "Knowing yourself and your environment.",
+        "route": "/library",
+        "done": "book:The Art of War"
+      },
+      {
+        "kind": "artifact",
+        "title": "Artifact of the month",
+        "detail": "7 Powers analysis of Northwind Group",
+        "route": "/tool/artifact"
+      }
+    ],
+    "6": [
+      {
+        "kind": "book",
+        "title": "Empowered",
+        "detail": "Cagan & Jones · Ch. 3, 5, 8, 10",
+        "route": "/library",
+        "done": "book:Empowered"
+      },
+      {
+        "kind": "certificate",
+        "title": "CIAM Professional",
+        "detail": "KuppingerCole · Month 6+",
+        "route": "/career",
+        "done": "cert:ciam"
+      },
+      {
+        "kind": "artifact",
+        "title": "Artifact of the month",
+        "detail": "Signature thesis draft — agents & merchant identity",
+        "route": "/tool/artifact"
+      }
+    ],
+    "7": [
+      {
+        "kind": "artifact",
+        "title": "Artifact of the month",
+        "detail": "One artifact: PR/FAQ, OST, strategy doc or 6-pager",
+        "route": "/tool/artifact"
+      }
+    ],
+    "8": [
+      {
+        "kind": "artifact",
+        "title": "Artifact of the month",
+        "detail": "One artifact: PR/FAQ, OST, strategy doc or 6-pager",
+        "route": "/tool/artifact"
+      }
+    ],
+    "9": [
+      {
+        "kind": "certificate",
+        "title": "PSPO",
+        "detail": "Scrum.org · Month 9+",
+        "route": "/career",
+        "done": "cert:pspo"
+      },
+      {
+        "kind": "artifact",
+        "title": "Artifact of the month",
+        "detail": "One artifact: PR/FAQ, OST, strategy doc or 6-pager",
+        "route": "/tool/artifact"
+      }
+    ],
+    "10": [
+      {
+        "kind": "artifact",
+        "title": "Artifact of the month",
+        "detail": "One artifact: PR/FAQ, OST, strategy doc or 6-pager",
+        "route": "/tool/artifact"
+      }
+    ],
+    "11": [
+      {
+        "kind": "artifact",
+        "title": "Artifact of the month",
+        "detail": "One artifact: PR/FAQ, OST, strategy doc or 6-pager",
+        "route": "/tool/artifact"
+      }
+    ],
+    "12": [
+      {
+        "kind": "artifact",
+        "title": "Artifact of the month",
+        "detail": "One artifact: PR/FAQ, OST, strategy doc or 6-pager",
+        "route": "/tool/artifact"
+      }
+    ],
+    "13": [
+      {
+        "kind": "artifact",
+        "title": "Artifact of the month",
+        "detail": "One artifact: PR/FAQ, OST, strategy doc or 6-pager",
+        "route": "/tool/artifact"
+      }
+    ],
+    "14": [
+      {
+        "kind": "artifact",
+        "title": "Artifact of the month",
+        "detail": "One artifact: PR/FAQ, OST, strategy doc or 6-pager",
+        "route": "/tool/artifact"
+      }
+    ],
+    "15": [
+      {
+        "kind": "artifact",
+        "title": "Artifact of the month",
+        "detail": "One artifact: PR/FAQ, OST, strategy doc or 6-pager",
+        "route": "/tool/artifact"
+      }
+    ],
+    "16": [
+      {
+        "kind": "artifact",
+        "title": "Artifact of the month",
+        "detail": "One artifact: PR/FAQ, OST, strategy doc or 6-pager",
+        "route": "/tool/artifact"
+      }
+    ],
+    "17": [
+      {
+        "kind": "artifact",
+        "title": "Artifact of the month",
+        "detail": "One artifact: PR/FAQ, OST, strategy doc or 6-pager",
+        "route": "/tool/artifact"
+      }
+    ],
+    "18": [
+      {
+        "kind": "artifact",
+        "title": "Artifact of the month",
+        "detail": "One artifact: PR/FAQ, OST, strategy doc or 6-pager",
+        "route": "/tool/artifact"
+      }
+    ]
+  },
+  "reminders": [
+    {
+      "id": "wake",
+      "label": "Wake — 500ml water",
+      "h": 6,
+      "m": 0,
+      "route": "/home"
+    },
+    {
+      "id": "ritual",
+      "label": "Morning ritual",
+      "h": 6,
+      "m": 5,
+      "route": "/ritual-flow/ritual_morning_default"
+    },
+    {
+      "id": "scan",
+      "label": "Supplements + domain scan",
+      "h": 7,
+      "m": 45,
+      "work_days_only": true,
+      "route": "/tool/scan"
+    },
+    {
+      "id": "evidence_read",
+      "label": "Read your evidence before the first meeting",
+      "h": 7,
+      "m": 55,
+      "weekdays": [
+        1
+      ],
+      "route": "/evidence"
+    },
+    {
+      "id": "read",
+      "label": "Lunch read + Feynman",
+      "h": 12,
+      "m": 0,
+      "work_days_only": true,
+      "route": "/tool/read"
+    },
+    {
+      "id": "caffeine",
+      "label": "Last coffee — nothing after 13:00",
+      "h": 12,
+      "m": 55,
+      "weekdays": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "route": "/home",
+      "default_on": false
+    },
+    {
+      "id": "gym",
+      "label": "Gym in 15 minutes",
+      "h": 18,
+      "m": 45,
+      "route": "/gym"
+    },
+    {
+      "id": "pennebaker",
+      "label": "Pennebaker writing — 15 min",
+      "h": 21,
+      "m": 0,
+      "weekdays": [
+        2
+      ],
+      "route": "/tool/pennebaker"
+    },
+    {
+      "id": "winddown",
+      "label": "Wind down — screens off, lay out the outfit",
+      "h": 22,
+      "m": 0,
+      "route": "/home"
+    },
+    {
+      "id": "bed",
+      "label": "Nasal strip. Lights out 22:30",
+      "h": 22,
+      "m": 25,
+      "route": "/home"
+    },
+    {
+      "id": "evidence_add",
+      "label": "Add 5 items to the Evidence Archive",
+      "h": 18,
+      "m": 0,
+      "weekdays": [
+        7
+      ],
+      "route": "/evidence"
+    },
+    {
+      "id": "report",
+      "label": "Sunday report → next week's brief",
+      "h": 19,
+      "m": 0,
+      "weekdays": [
+        7
+      ],
+      "route": "/weekly-coaching"
+    },
+    {
+      "id": "grooming",
+      "label": "Beard edge-up, skincare, Monday outfit",
+      "h": 20,
+      "m": 30,
+      "weekdays": [
+        7
+      ],
+      "route": "/style"
+    }
+  ],
+  "readiness": [
+    {
+      "id": "product_sense",
+      "name": "Product sense",
+      "bar": "Picks the right problems for Merchant ID; a clear point of view on where identity and agentic commerce go."
+    },
+    {
+      "id": "execution",
+      "name": "Execution",
+      "bar": "Ships predictably across teams; unblocks others; decisions backed by data."
+    },
+    {
+      "id": "leadership",
+      "name": "Leadership",
+      "bar": "Leads without authority; grows people; trusted by Jordan and Casey to own an area."
+    },
+    {
+      "id": "strategy",
+      "name": "Strategy & business",
+      "bar": "Links product bets to revenue and ecosystem economics; speaks the P&L."
+    },
+    {
+      "id": "communication",
+      "name": "Executive communication",
+      "bar": "BLUF by default; calm in the room; writes PR/FAQs that change minds."
+    }
+  ],
+  "growth_areas": [
+    {
+      "id": "product_sense",
+      "name": "Product sense",
+      "bar": "Picks the right problems for Merchant ID; a clear point of view on where identity and agentic commerce go.",
+      "ask": "When I bring you a problem, what do I tend to miss about it?",
+      "personal": false,
+      "drills": [
+        {
+          "title": "Problem before solution",
+          "how": "For one Merchant ID request this week, write who has the problem and what it costs them — before looking at any solution.",
+          "signal": "Someone changes their ask after reading it."
+        },
+        {
+          "title": "Customer hour",
+          "how": "Join or listen to one real SME onboarding or support call. Write three observations, no solutions.",
+          "signal": "One observation becomes a backlog item."
+        },
+        {
+          "title": "Point of view",
+          "how": "Write 200 words: where business identity in Portugal goes in three years, and what Merchant ID should do about it.",
+          "signal": "You can say it in 30 seconds without notes."
+        },
+        {
+          "title": "Kill one thing",
+          "how": "Find one backlog item that shouldn't be built and make the case to drop it.",
+          "signal": "It gets dropped or pushed down."
+        },
+        {
+          "title": "Teardown",
+          "how": "Go through one peer bank's business onboarding end to end. Write three things to steal and one to avoid.",
+          "signal": "One idea lands in a discussion with the team."
+        }
+      ]
+    },
+    {
+      "id": "execution",
+      "name": "Execution",
+      "bar": "Ships predictably across teams; unblocks others; decisions backed by data.",
+      "ask": "What's one thing that would make working with my team more predictable for you?",
+      "personal": false,
+      "drills": [
+        {
+          "title": "Pre-mortem",
+          "how": "Before the next release, 15 minutes with the team: \"It's three months later and this failed. Why?\"",
+          "signal": "One risk gets an owner and a date."
+        },
+        {
+          "title": "Friday status",
+          "how": "Send one update: shipped, slipping (and why), decisions needed — five lines.",
+          "signal": "No follow-up questions."
+        },
+        {
+          "title": "Unblock someone",
+          "how": "Find the dependency blocking another team and clear it this week.",
+          "signal": "They tell you it moved."
+        },
+        {
+          "title": "Metric first",
+          "how": "For the next feature, write the one success metric and its target before it ships.",
+          "signal": "It's on a dashboard on launch day."
+        },
+        {
+          "title": "Log a decision",
+          "how": "Record one real decision in the cockpit with the options and what you expect to happen.",
+          "signal": "It's there to review in 90 days."
+        }
+      ]
+    },
+    {
+      "id": "leadership",
+      "name": "Leadership",
+      "bar": "Leads without authority; grows people; trusted by Jordan and Casey to own an area.",
+      "ask": "Where could I take more ownership without being asked?",
+      "personal": false,
+      "drills": [
+        {
+          "title": "Win a team you don't manage",
+          "how": "Get another team to commit to something by showing what's in it for them.",
+          "signal": "They commit in writing."
+        },
+        {
+          "title": "Grow someone",
+          "how": "Give one teammate specific praise and one specific suggestion: situation, behaviour, impact.",
+          "signal": "They act on the suggestion."
+        },
+        {
+          "title": "Claim an area",
+          "how": "Propose to Jordan one area you'll own end to end, and what success looks like.",
+          "signal": "Jordan agrees, or tells you what it would take."
+        },
+        {
+          "title": "Run the room",
+          "how": "Facilitate one meeting with a written agenda that ends in a decision.",
+          "signal": "The decision is written down before people leave."
+        },
+        {
+          "title": "Say no well",
+          "how": "Decline one request with the reason and an alternative.",
+          "signal": "The relationship holds."
+        }
+      ]
+    },
+    {
+      "id": "strategy",
+      "name": "Strategy & business",
+      "bar": "Links product bets to revenue and ecosystem economics; speaks the P&L.",
+      "ask": "When I present a plan, how well do I connect it to the business?",
+      "personal": false,
+      "drills": [
+        {
+          "title": "Speak the P&L",
+          "how": "Find what Merchant ID costs and earns (or its best proxy) and explain it in three lines.",
+          "signal": "You answer \"what's it worth?\" without looking anything up."
+        },
+        {
+          "title": "Ecosystem map",
+          "how": "Draw how Merchant ID creates value for two other Northwind or Northwind businesses.",
+          "signal": "Someone else uses your map."
+        },
+        {
+          "title": "Bet memo",
+          "how": "One page: the opportunity, how big, why now, and what you would stop doing for it.",
+          "signal": "Jordan or Casey asks a follow-up question."
+        },
+        {
+          "title": "Read the numbers",
+          "how": "Read one peer bank's annual report or investor deck. Three takeaways for Merchant ID.",
+          "signal": "You use one in a meeting."
+        },
+        {
+          "title": "Trade-off out loud",
+          "how": "In one roadmap discussion, state the trade-off in money or time.",
+          "signal": "The decision refers to it."
+        }
+      ]
+    },
+    {
+      "id": "communication",
+      "name": "Executive communication",
+      "bar": "BLUF by default; calm in the room; writes PR/FAQs that change minds.",
+      "ask": "In my updates to you, what should I cut and what should I lead with?",
+      "personal": false,
+      "drills": [
+        {
+          "title": "BLUF rewrite",
+          "how": "Rewrite your longest message of the week as BLUF before sending: decision, three reasons, ask, deadline.",
+          "signal": "The reply comes faster than usual."
+        },
+        {
+          "title": "Two-minute version",
+          "how": "Record yourself explaining your current project in two minutes. Listen once, record again.",
+          "signal": "The second take is shorter and calmer."
+        },
+        {
+          "title": "PR/FAQ",
+          "how": "Write the press release and five FAQs for a feature before it's built.",
+          "signal": "It changes a decision."
+        },
+        {
+          "title": "Pause in the room",
+          "how": "In the next senior meeting, one breath before every answer. Count them.",
+          "signal": "Three or more deliberate pauses."
+        },
+        {
+          "title": "Hard question first",
+          "how": "Open your next update with the question you least want asked — and answer it.",
+          "signal": "No ambush."
+        }
+      ]
+    },
+    {
+      "id": "self_trust",
+      "name": "Self-trust",
+      "bar": "Owns wins out loud, asks for help without shame, speaks from position — not permission.",
+      "ask": "When do I undersell what I've done?",
+      "personal": true,
+      "drills": [
+        {
+          "title": "Say the win",
+          "how": "Tell Jordan one thing you shipped this week, plainly — no \"just\", no \"only\".",
+          "signal": "You said it without a qualifier."
+        },
+        {
+          "title": "Ask in the first hour",
+          "how": "The Soloist waits. When you're stuck this week, ask someone within the first hour.",
+          "signal": "You asked before the end of the day."
+        },
+        {
+          "title": "Ship at 80%",
+          "how": "The Expert polishes. Send one piece of work at 80% that you would normally keep polishing.",
+          "signal": "Nobody asks for the missing 20%."
+        },
+        {
+          "title": "Read the evidence",
+          "how": "Monday, before the first meeting: read the Evidence Archive.",
+          "signal": "You remember one item when the doubt shows up."
+        },
+        {
+          "title": "Name the voice",
+          "how": "When the \"fraud\" thought shows up, write it down with the evidence against it.",
+          "signal": "You caught it twice this week."
+        }
+      ]
+    },
+    {
+      "id": "composure",
+      "name": "Composure under pressure",
+      "bar": "Calm before executive meetings; what you know stays available when it matters.",
+      "ask": "How do I come across in tense meetings?",
+      "personal": true,
+      "drills": [
+        {
+          "title": "Prepare the six",
+          "how": "Six questions deep before your next meeting with Jordan or Casey.",
+          "signal": "One of your six gets asked."
+        },
+        {
+          "title": "Sigh, then speak",
+          "how": "Physiological sigh ×3 before every pressure moment this week.",
+          "signal": "You did it before each one."
+        },
+        {
+          "title": "Say \"I am excited\"",
+          "how": "Before the hardest conversation of the week, say it out loud.",
+          "signal": "You noticed the energy as fuel, not threat."
+        },
+        {
+          "title": "Rehearse the opening",
+          "how": "Say your first two sentences out loud before the meeting starts.",
+          "signal": "The opening came out as planned."
+        },
+        {
+          "title": "After-action",
+          "how": "After a meeting that went badly: what happened, what you told yourself, what you'll do next time.",
+          "signal": "You wrote it the same day."
+        }
+      ]
+    },
+    {
+      "id": "presence",
+      "name": "Public voice",
+      "bar": "A visible point of view: a LinkedIn that fits the role you're growing into, regular posts, one talk a year.",
+      "ask": "What should people outside the team know me for?",
+      "personal": true,
+      "drills": [
+        {
+          "title": "Headline",
+          "how": "Rewrite your LinkedIn headline for the role you're growing into.",
+          "signal": "It no longer describes the old job."
+        },
+        {
+          "title": "One post",
+          "how": "Publish one lesson from building Merchant ID — no confidential detail. Hook, insight, example, question.",
+          "signal": "It's published."
+        },
+        {
+          "title": "Comment with substance",
+          "how": "Leave three thoughtful comments on posts by product leaders you respect.",
+          "signal": "One of them replies."
+        },
+        {
+          "title": "Teach it",
+          "how": "Offer the team a 15-minute lunch talk on a framework you use (BLUF, OST, six questions).",
+          "signal": "Someone uses it the week after."
+        },
+        {
+          "title": "Show the work",
+          "how": "Share this month's artifact with a wider audience than usual.",
+          "signal": "Someone outside the team responds."
+        }
+      ]
+    }
+  ],
+  "item_reminder": {
+    "scan": "scan",
+    "read": "read",
+    "caffeine": "caffeine",
+    "bed": "bed"
+  },
+  "ritual": [
+    {
+      "id": "water",
+      "title": "First water",
+      "subtitle": "Hydration affects cognitive function within minutes",
+      "lane": "body",
+      "seconds": 60,
+      "icon": "water_drop",
+      "instruction": "500ml water immediately on waking. Before coffee. Before phone."
+    },
+    {
+      "id": "manifesto",
+      "title": "Read your manifesto",
+      "subtitle": "Identity-based priming anchors your day",
+      "lane": "mind",
+      "seconds": 120,
+      "icon": "auto_stories",
+      "instruction": "I do not need to know everything to be competent. Competence is knowing how to find answers fast, make good decisions with incomplete information, and learn faster than the room.\n\nI have built real things. I have solved real problems. I am not a fraud — I hold myself to a high standard.\n\nI protect my sleep. I train my body. I dress with intention. I study my domain. I speak from position, not permission.\n\nToday I build something permanent. Not performing. Building."
+    },
+    {
+      "id": "three_priorities",
+      "title": "3 priorities for today",
+      "subtitle": "Reduces decision fatigue throughout the day",
+      "lane": "skill",
+      "seconds": 90,
+      "icon": "flag_outlined",
+      "instruction": "Write exactly 3 things that must happen today. Not a to-do list. 3 outcomes. Write them in the Three priorities card on Today."
+    },
+    {
+      "id": "sigh",
+      "title": "Physiological sigh",
+      "subtitle": "Fastest method to activate parasympathetic nervous system",
+      "lane": "mind",
+      "seconds": 30,
+      "icon": "self_improvement",
+      "instruction": "Double inhale through nose (big breath, then squeeze more air in), then long slow exhale through mouth until empty. Repeat 3 times."
+    },
+    {
+      "id": "identity",
+      "title": "Say your statement",
+      "subtitle": "Verbal commitment increases follow-through",
+      "lane": "mind",
+      "seconds": 10,
+      "icon": "record_voice_over",
+      "instruction": "Say aloud: \"Today I build something permanent.\""
+    }
+  ],
+  "coach_tips": [
+    {
+      "id": "tip_d1",
+      "title": "The manifesto is not motivation",
+      "content": "Reading your manifesto every morning is neurological priming, not positive thinking. Stanford researcher Hal Hershfield showed that people who regularly visualize their future identity make measurably different decisions in the present. Your brain starts filtering reality through the identity you claim. Two minutes. Every morning. This is the anchor the whole program runs on.",
+      "lane": "mind",
+      "color": 4287538386
+    },
+    {
+      "id": "tip_d2",
+      "title": "Why \"I am excited\" beats \"I am calm\"",
+      "content": "Harvard professor Alison Wood Brooks proved in 2014 that people who say \"I am excited\" before high-stakes performance outperform those who try to calm down. Anxiety and excitement are physiologically identical — same cortisol, same adrenaline. The only difference is interpretation. One phrase. Before every hard moment today.",
+      "lane": "mind",
+      "color": 4287538386
+    },
+    {
+      "id": "tip_d3",
+      "title": "Your energy has a biological cause",
+      "content": "Beta a blood condition means your red blood cells carry less oxygen than average. This is not a motivation problem. It is a physiological reality. Zone 2 training builds mitochondrial density, the cellular machinery that extracts more energy from the oxygen you do have. 15 minutes after every gym session. The effect accumulates over 8-12 weeks.",
+      "lane": "body",
+      "color": 4286428309
+    },
+    {
+      "id": "tip_d4",
+      "title": "BLUF — why decision first changes everything",
+      "content": "Jeff Bezos banned PowerPoint at Amazon because bullets allow you to hide weak thinking. Executives process top-down. They want to know what you think first, then decide if the reasoning is worth reading. From today: every email, every update, every meeting contribution — decision first. One sentence. Then your three supporting points.",
+      "lane": "skill",
+      "color": 4291332426
+    },
+    {
+      "id": "tip_d5",
+      "title": "The 15-minute domain scan that compounds into expertise",
+      "content": "The professional who reads 15 minutes on their domain daily for 52 weeks reads the equivalent of 25 books per year. Your domain — B2B identity, payments, AI agents, ecosystem strategy — is at an inflection point in 2026. The person who knows what's happening before others do owns the room. That person is you.",
+      "lane": "skill",
+      "color": 4291332426
+    },
+    {
+      "id": "tip_d6",
+      "title": "Why face pulls belong in every session",
+      "content": "Face pulls directly strengthen the rear deltoids and rotator cuff muscles that keep your shoulders healthy — critical with rheumatoid arthritis. But they also build the upper back musculature that creates upright posture with an open chest. That posture is the single most visible executive presence signal. 3x15 every session. Non-negotiable.",
+      "lane": "body",
+      "color": 4286428309
+    },
+    {
+      "id": "tip_d7",
+      "title": "Week 1 complete — what actually happened this week",
+      "content": "You installed the physiological sigh. You started reading the manifesto. You applied BLUF to some outputs. You did your domain scans. The world doesn't see any of this yet. That's correct. Month 1 changes nothing externally. It changes everything internally. Keep going.",
+      "lane": "mind",
+      "color": 4287538386
+    },
+    {
+      "id": "tip_d8",
+      "title": "Your impostor syndrome type: Expert + Soloist",
+      "content": "Dr. Valerie Young identifies 5 impostor types. Yours are Expert + Soloist. The Expert believes they must know everything before speaking with authority. The Soloist believes asking for help proves inadequacy. The reframe: competence is not knowing everything. It is knowing how to find answers fast and learn faster than the room.",
+      "lane": "mind",
+      "color": 4287538386
+    },
+    {
+      "id": "tip_d9",
+      "title": "Six-questions-deep: how gravitas is built",
+      "content": "Sylvia Ann Hewlett surveyed 268 senior executives on what signals gravitas. The ability to \"go six questions deep\" on any topic was one of the top responses. Before your next meeting with Jordan: write his 6 hardest questions. Write your answers. Walk in having already had the hard conversation 6 times in your head.",
+      "lane": "skill",
+      "color": 4291332426
+    },
+    {
+      "id": "tip_d10",
+      "title": "Your beard is your most powerful tool",
+      "content": "A well-shaped beard adds vertical length to the chin, creates jaw definition, and frames your face with structure. The shape: fuller at the chin, sharp precise line at the neck, clean defined cheek line. Sunday evening, 10 minutes with a trimmer. This single grooming change will visibly change how people see your face.",
+      "lane": "social",
+      "color": 4291074752
+    },
+    {
+      "id": "tip_d11",
+      "title": "The Feynman technique: why production beats reading",
+      "content": "Roediger and Karpicke (2006) proved that retrieval practice — writing from memory — produces 50% better long-term retention than re-reading. After reading, close everything. Open Ono journal. Write the concept in plain language from memory. Where you blank = where your understanding has gaps. Fill those gaps.",
+      "lane": "skill",
+      "color": 4291332426
+    },
+    {
+      "id": "tip_d12",
+      "title": "Get bloodwork done this week",
+      "content": "With beta a blood condition, your ferritin, hemoglobin, Vitamin D, testosterone, and thyroid levels directly affect your daily energy. Low ferritin is extremely common with some blood conditions and dramatically worsens fatigue. A blood test is the only way to know. Book it this week.",
+      "lane": "body",
+      "color": 4286428309
+    },
+    {
+      "id": "tip_d13",
+      "title": "The deliberate pause: one breath changes how you read",
+      "content": "A 1-2 second pause before answering is perceived as thoughtful and confident. Immediate answers are perceived as defensive or impulsive. Before answering anything challenging, take one slow breath. It will feel strange. It reads as authority.",
+      "lane": "social",
+      "color": 4291074752
+    },
+    {
+      "id": "tip_d14",
+      "title": "Day 14 — two weeks. What has actually changed.",
+      "content": "You are two weeks in. The physiological sigh is becoming automatic. Your morning starts with intention instead of chaos. None of this is visible to anyone yet. That is correct. This is the unsexy work that makes the visible change permanent instead of temporary.",
+      "lane": "mind",
+      "color": 4287538386
+    },
+    {
+      "id": "tip_d15",
+      "title": "Kaspi: the reference model for Merchant ID",
+      "content": "Kaspi.kz: 764,000 active merchants, 95% accepting Kaspi QR, $97.3B total payment volume. Merchant loans are tied to transaction history — identity + data = underwriting infrastructure. This is what Merchant ID is building toward. Identity is not a security feature. Identity is the foundation of every financial service that follows.",
+      "lane": "skill",
+      "color": 4291332426
+    },
+    {
+      "id": "tip_d16",
+      "title": "Your LinkedIn headline is your first impression",
+      "content": "Change it today to: \"Building merchant identity for 5M+ users @ Northwind Group (Northwind) | Payments · Identity · AI Agents\". This signals scale, employer, and three frontier topics in one line. Every recruiter from Revolut, Wise, or Stripe who searches these terms will find you.",
+      "lane": "social",
+      "color": 4291074752
+    },
+    {
+      "id": "tip_d17",
+      "title": "Agent identity: your frontier thesis",
+      "content": "Non-human identities now outnumber human users 45:1 on average. 92% of IT professionals say their tools cannot handle AI agent authentication. Your thesis: \"The next interface of a super-app is an agent. Ecosystems that turn existing identity and payment trust into agent permissions will win.\" Own this. It is yours.",
+      "lane": "skill",
+      "color": 4291332426
+    },
+    {
+      "id": "tip_d18",
+      "title": "Why your capsule wardrobe starts with knitwear",
+      "content": "The modern tech-fintech executive look in 2026 is \"quiet luxury\" — dark colors, no visible logos, high-quality fabric, excellent fit. A fine merino crewneck in navy or charcoal, over dark fitted chinos, with minimal white leather sneakers. The navy merino is your first purchase.",
+      "lane": "body",
+      "color": 4286428309
+    },
+    {
+      "id": "tip_d19",
+      "title": "Your evidence archive at Day 19",
+      "content": "You have: built a complex identity product for an ecosystem with 5M+ users. Data engineering skills rare for any PO globally. 6 years of domain experience. Built a side project, Zimba, Duyit, Nimat, and Ono alongside your full-time role. 4 languages. The impostor says none of this is enough. The evidence says otherwise.",
+      "lane": "mind",
+      "color": 4287538386
+    },
+    {
+      "id": "tip_d20",
+      "title": "The PR/FAQ: your most important artifact this month",
+      "content": "Amazon's Working Backwards method starts with the press release. Write it as if the product already launched successfully. Then write 5 customer questions and 5 leadership questions. Write your PR/FAQ for the Merchant ID entrepreneur integration this week. Not for Jordan. For yourself.",
+      "lane": "skill",
+      "color": 4291332426
+    },
+    {
+      "id": "tip_d21",
+      "title": "Day 21: the habit research says something important",
+      "content": "The actual science: Phillippa Lally at UCL tracked 96 people. Median time to automaticity: 66 days. You are at Day 21. The habit is not automatic yet. That is correct. The people who give up now miss the automaticity that arrives around Day 40-60. Keep going.",
+      "lane": "mind",
+      "color": 4287538386
+    },
+    {
+      "id": "tip_d22",
+      "title": "Your first LinkedIn post: the formula",
+      "content": "Line 1 (hook): A counterintuitive claim or surprising number. Lines 2-5: Your real insight. Line 6: One specific example. Final line: One question for your network. 150-250 words. No external links in the post body. Topic: something you genuinely learned this month.",
+      "lane": "social",
+      "color": 4291074752
+    },
+    {
+      "id": "tip_d23",
+      "title": "The body recomposition timeline",
+      "content": "At 83kg/176cm, your target is 76-78kg over 5-6 months while maintaining muscle. The formula: slight caloric deficit, 150g+ protein daily, consistent training, Zone 2 for energy. No crash diet. Slow and permanent. The person in your headshot at Month 6 will look different.",
+      "lane": "body",
+      "color": 4286428309
+    },
+    {
+      "id": "tip_d24",
+      "title": "Anki: why 5 minutes beats 1 hour",
+      "content": "Ebbinghaus's forgetting curve: we forget 70% of new information within 24 hours unless we review it. Spaced repetition is the evidence-based solution. 5 minutes of Anki daily produces more retention than an hour of re-reading. 5 cards per week. Review every morning.",
+      "lane": "skill",
+      "color": 4291332426
+    },
+    {
+      "id": "tip_d25",
+      "title": "The professional headshot: why it matters",
+      "content": "Nalini Ambady's Harvard research: people form stable impressions of competence in under 7 seconds. Your current LinkedIn photo reads as \"employee applying for a job.\" A proper headshot reads as \"expert worth following.\" Book a photographer this week. Not a friend with an iPhone.",
+      "lane": "social",
+      "color": 4291074752
+    },
+    {
+      "id": "tip_d26",
+      "title": "Grab's retention data and what it means for Merchant ID",
+      "content": "When Grab integrated identity across services, multi-service adoption grew from 12% to 54%. One-year retention grew from 47% to 79%. Merchant ID is building the same infrastructure for Northwind. A merchant verified once across the entire ecosystem becomes a merchant who can be offered credit, insurance, and growth tools.",
+      "lane": "skill",
+      "color": 4291332426
+    },
+    {
+      "id": "tip_d27",
+      "title": "The Pennebaker protocol: why it works",
+      "content": "Writing about your deepest fears and anxieties for 15-20 minutes, four sessions over four weeks, produces measurable reductions in anxiety markers and improved cognitive performance. The mechanism: translating emotional experience into language activates the prefrontal cortex. This is your Tuesday evening practice.",
+      "lane": "mind",
+      "color": 4287538386
+    },
+    {
+      "id": "tip_d28",
+      "title": "Your first artifact is almost done",
+      "content": "By Day 28 your PR/FAQ should be complete or close. Ask yourself: Would Jordan read this and understand immediately what we are building? Does the press release make me excited? Do the FAQs answer the questions I'm afraid of being asked? A PM who can write a compelling PR/FAQ is a PM who has done the thinking.",
+      "lane": "skill",
+      "color": 4291332426
+    },
+    {
+      "id": "tip_d29",
+      "title": "Viktor Frankl and the depleted motivation system",
+      "content": "Viktor Frankl's concept of \"tragic optimism\" — finding meaning despite suffering. The question underneath your depleted state is not \"how do I get more motivated?\" It is: \"what am I building this for?\" The answer: recognition, impact, freedom, legacy. All of them. The full life. That is your meaning.",
+      "lane": "social",
+      "color": 4291074752
+    },
+    {
+      "id": "tip_d30",
+      "title": "Day 30: Month 1 complete. What actually happened.",
+      "content": "You did not become a different person in 30 days. You built the infrastructure that makes becoming a different person possible. This is Month 1. Not the result. The foundation. Month 2 starts tomorrow. The system continues. You continue. That is the whole program.",
+      "lane": "mind",
+      "color": 4287538386
+    }
+  ],
+  "weekly_review_questions": [
+    "Did I hit 10:30pm bedtime most nights this week? If not — what got in the way?",
+    "Did I use the physiological sigh before pressure moments? How many times?",
+    "Did I apply BLUF to my most important work output this week?",
+    "Did I do my morning domain scan every day? What was the best insight?",
+    "Did I go to the gym 3 times? Did I do face pulls every session?",
+    "What is one thing I learned this week that I did not know last Monday?",
+    "What happened at work that I handled better than I would have a month ago?",
+    "Did I add to my Evidence Archive this week? What did I add?",
+    "What was the hardest moment this week — and what did it reveal?",
+    "What is the single most important thing I must do next week?",
+    "What did I say I would do this week that I did not do? Why?",
+    "Is there a real work situation I should bring to my coaching session?"
+  ],
+  "seed_cards": [
+    {
+      "id": "seed:key:0",
+      "front": "Kaspi — the numbers you quote?",
+      "back": "764,000 active merchants · 95% accept Kaspi QR · $97.3B payment volume FY2025",
+      "source": "seed"
+    },
+    {
+      "id": "seed:key:1",
+      "front": "Grab — the numbers you quote?",
+      "back": "Multi-service adoption 12% → 54% · retention 47% → 79% after identity integration",
+      "source": "seed"
+    },
+    {
+      "id": "seed:key:2",
+      "front": "NHI — the numbers you quote?",
+      "back": "Non-human identities outnumber humans 45:1 (CSA, May 2026)",
+      "source": "seed"
+    },
+    {
+      "id": "seed:key:3",
+      "front": "Agentic payments — the numbers you quote?",
+      "back": "Mastercard Agent Pay (Apr 2025) · Visa Intelligent Commerce (Apr 2025) · Stripe SPT (Mar 2026) · Auth0 MCP (May 2026)",
+      "source": "seed"
+    },
+    {
+      "id": "seed:key:4",
+      "front": "Northwind — the numbers you quote?",
+      "back": "5M+ users · first fully integrated ecosystem in the Caucasus",
+      "source": "seed"
+    },
+    {
+      "id": "seed:thesis",
+      "front": "Your domain thesis, in one breath?",
+      "back": "The next interface of a super-app is an agent. Ecosystems that turn existing identity and payment trust into agent permissions will win. Merchant ID is Northwind's answer to this.",
+      "source": "seed"
+    },
+    {
+      "id": "seed:protocol:sigh",
+      "front": "Physiological Sigh: what, and when?",
+      "back": "Double inhale through the nose → long exhale through the mouth. 1–3 reps. 30 seconds.\n\nWhen: Before every meeting with Jordan. Before any hard conversation. In the car before entering the office.",
+      "source": "seed"
+    },
+    {
+      "id": "seed:protocol:excited",
+      "front": "\"I Am Excited\": what, and when?",
+      "back": "Say internally \"I am excited\" before any high-stakes moment.\n\nWhen: Before presenting. Before difficult conversations. Before entering any important room.",
+      "source": "seed"
+    },
+    {
+      "id": "seed:protocol:bluf",
+      "front": "BLUF: what, and when?",
+      "back": "Decision first → 3 supporting reasons → what you need → deadline.\n\nWhen: Every email, every Slack message, every meeting update to Jordan or Casey.",
+      "source": "seed"
+    },
+    {
+      "id": "seed:protocol:six_deep",
+      "front": "Six Questions Deep: what, and when?",
+      "back": "Write the 6 hardest questions Jordan could ask. Write your answers. Then write the hardest follow-up to each answer.\n\nWhen: Before any meeting with Jordan or senior stakeholders.",
+      "source": "seed"
+    },
+    {
+      "id": "seed:protocol:feynman",
+      "front": "Feynman Technique: what, and when?",
+      "back": "After reading, close everything. Write what you just read from memory. 5 minutes.\n\nWhen: Right after the 20-minute lunch read.",
+      "source": "seed"
+    },
+    {
+      "id": "seed:protocol:evidence",
+      "front": "Evidence Archive: what, and when?",
+      "back": "A running record in 3 sections: Things I built · Problems I solved · Knowledge I have that others don't.\n\nWhen: Add at least 5 items every Sunday. Read every Monday before the first meeting.",
+      "source": "seed"
+    },
+    {
+      "id": "seed:protocol:pause",
+      "front": "Deliberate Pause: what, and when?",
+      "back": "One slow breath before answering any challenging question.\n\nWhen: Every meeting, every hard question.",
+      "source": "seed"
+    },
+    {
+      "id": "seed:protocol:still",
+      "front": "Still Body: what, and when?",
+      "back": "Feet flat on the floor. Hands still on table or lap. Phone face-down or invisible. Eyes on the speaker.\n\nWhen: Every meeting.",
+      "source": "seed"
+    },
+    {
+      "id": "seed:protocol:pennebaker",
+      "front": "Pennebaker Writing: what, and when?",
+      "back": "Write about your deepest fears and anxieties for 15 minutes without stopping.\n\nWhen: Every Tuesday evening, for 4 consecutive weeks.",
+      "source": "seed"
+    },
+    {
+      "id": "seed:ra",
+      "front": "The four lifts you never do (joints)?",
+      "back": "Overhead barbell press · Upright rows · Behind-neck press · Barbell back squat",
+      "source": "seed"
+    }
+  ]
+}

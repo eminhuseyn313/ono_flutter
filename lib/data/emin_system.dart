@@ -7,10 +7,12 @@
 
 import 'package:flutter/material.dart';
 
+import 'plan_content.dart';
 import 'profile.dart';
 
 import '../models/personal_system.dart';
 
+export 'plan_content.dart' show plan, planOverride, fallbackPlan, PlanContent;
 export 'profile.dart';
 
 // ------------------------------------------------------------
@@ -209,49 +211,12 @@ class EvidencePrompt {
 // Identity
 // ------------------------------------------------------------
 
-class EminIdentity {
-  static const name = 'Emin Huseynzade';
-  static const firstName = 'Emin';
-  static const role = 'Senior Product Owner — Business ID';
-  static const company = 'Bir Ecosystem (PASHA Financial Holding)';
-  static const location = 'Baku, Azerbaijan';
-  static const archetype = 'The Product Architect';
-  static const tagline = 'Builds what others can\'t see yet';
-  static const path = [
-    'Senior PO',
-    'Head of Product',
-    'CPO / Tribe Lead',
-    'Global Manager',
-  ];
-  static const identityStatement = 'Today I build something permanent.';
-}
 
 // ------------------------------------------------------------
 // Manifesto
 // ------------------------------------------------------------
 
-const List<List<String>> manifestoStanzas = [
-  [
-    'I do not need to know everything to be competent.',
-    'Competence is knowing how to find answers fast,',
-    'make good decisions with incomplete information,',
-    'and learn faster than the room.',
-  ],
-  [
-    'I have built real things.',
-    'I have solved real problems.',
-    'I am not a fraud — I hold myself to a high standard.',
-  ],
-  [
-    'I protect my sleep. I train my body.',
-    'I dress with intention. I study my domain.',
-    'I speak from position, not permission.',
-  ],
-  [
-    'Today I build something permanent.',
-    'Not performing. Building.',
-  ],
-];
+List<List<String>> get manifestoStanzas => plan.manifesto;
 
 String get manifestoText =>
     manifestoStanzas.map((s) => s.join('\n')).join('\n\n');
@@ -260,121 +225,18 @@ String get manifestoText =>
 // The 4 lanes
 // ------------------------------------------------------------
 
-const List<LaneFocus> laneFocus = [
-  LaneFocus(
-    'mind',
-    'Mind',
-    'Knowledge collapses under pressure. Impostor syndrome (Expert + Soloist). '
-        'Overthinking. Anxiety before executive meetings.',
-    [
-      'Read manifesto — 2 min every morning while drinking water',
-      'Physiological sigh ×3 before every pressure moment',
-      'Say "I am excited" before every high-stakes interaction',
-      'Evidence Archive — add items Sunday, read Monday',
-      'Pennebaker writing — 15 min every Tuesday for 4 weeks',
-    ],
-  ),
-  LaneFocus(
-    'body',
-    'Body',
-    '83kg / 176cm, skinny-fat, building muscle for a year. Beta thalassemia '
-        '(chronic low O₂). RA in shoulders. Snoring / nose breathing issues.',
-    [
-      'Gym 3× per week — Mon Push / Wed Pull / Thu Legs (RA-safe)',
-      'Face pulls 3×15 every session',
-      'Zone 2 cooldown 15 min after gym',
-      'Protein 150g daily minimum',
-      'Nasal strip every night',
-      'In bed 10:30pm — 7.5 hours minimum',
-      'Supplements: D3 + Creatine + Omega-3 (AM), Magnesium (PM)',
-    ],
-  ),
-  LaneFocus(
-    'skill',
-    'Skill',
-    'Domain knowledge feels inaccessible under pressure. No structured '
-        'frameworks. Preparation disappears under stress.',
-    [
-      'BLUF on every work output — decision first',
-      'Six-questions-deep before every meeting with Ali or seniors',
-      '15 min domain scan every morning',
-      'Read current book at lunch — 20 min',
-      'Feynman write after reading — 5 min, from memory',
-      'Anki review — 5 min daily, 5 new cards per week',
-      'One artifact per month — PR/FAQ, OST, strategy doc',
-    ],
-  ),
-  LaneFocus(
-    'social',
-    'Social',
-    'No public presence. LinkedIn headline describes the old job. No posts '
-        'published. Style is functional but has no signal.',
-    [
-      'Dress check: "Does this person belong in every room today?"',
-      'Still body in every meeting — feet flat, hands still, no phone',
-      'Deliberate pause before every answer — one breath',
-      'Downward vocal inflection on statements',
-      'LinkedIn: 2 posts per week from Month 2',
-    ],
-  ),
-];
+List<LaneFocus> get laneFocus => plan.laneFocus;
 
 // ------------------------------------------------------------
 // Daily schedule
 // ------------------------------------------------------------
 
-const List<ScheduleBlock> dailySchedule = [
-  ScheduleBlock(6, 0, 'Wake', '500ml water immediately.', 'body',
-      Icons.wb_twilight_rounded),
-  ScheduleBlock(
-      6,
-      5,
-      'Morning ritual',
-      'Manifesto (2 min) · 3 priorities (3 min) · physiological sigh ×3 · '
-          '"Today I build something permanent."',
-      'mind',
-      Icons.self_improvement_rounded),
-  ScheduleBlock(6, 15, 'Get ready', 'With your wife. Dress intentionally. Mirror check.',
-      'social', Icons.checkroom_rounded),
-  ScheduleBlock(6, 45, 'Drive', 'Drop your wife, continue. Podcast of the day.',
-      'skill', Icons.podcasts_rounded),
-  ScheduleBlock(7, 45, 'Desk arrival',
-      'Breakfast + supplements. Domain scan 10 min.', 'skill',
-      Icons.coffee_rounded),
-  ScheduleBlock(
-      8,
-      0,
-      'Work',
-      'BLUF all outputs. Sigh before pressure. "I am excited" before stakes. '
-          'Still body. Deliberate pause.',
-      'skill',
-      Icons.work_outline_rounded),
-  ScheduleBlock(12, 0, 'Lunch',
-      'Eat 20 min. Read current book 20 min. Feynman write 5 min.', 'skill',
-      Icons.menu_book_rounded),
-  ScheduleBlock(13, 0, 'Afternoon work', 'No caffeine after 1pm.', 'skill',
-      Icons.work_outline_rounded),
-  ScheduleBlock(18, 0, 'Work ends', 'Drive home.', 'mind',
-      Icons.directions_car_rounded),
-  ScheduleBlock(19, 0, 'Train or deep work',
-      'Gym Mon/Wed/Thu · Evening deep work Tue/Fri.', 'body',
-      Icons.fitness_center_rounded),
-  ScheduleBlock(20, 30, 'Dinner with your wife',
-      'Cook together. Magnesium 400mg.', 'social', Icons.restaurant_rounded),
-  ScheduleBlock(21, 0, 'Evening work',
-      'Craft / domain / LinkedIn by day rotation.', 'skill',
-      Icons.edit_note_rounded),
-  ScheduleBlock(22, 0, 'Wind down',
-      'No screens. Prepare tomorrow\'s outfit.', 'mind',
-      Icons.nightlight_round),
-  ScheduleBlock(22, 30, 'Sleep',
-      'Nasal strip. Phone outside bedroom. Room 18–19°C.', 'body',
-      Icons.bedtime_rounded),
-];
+List<ScheduleBlock> get dailySchedule => plan.schedule;
 
 /// The block that is active at [now] (the last block that has started).
 ScheduleBlock currentBlock(DateTime now) {
   final m = now.hour * 60 + now.minute;
+  if (dailySchedule.isEmpty) return _openDay;
   ScheduleBlock active = dailySchedule.last;
   for (final b in dailySchedule) {
     if (b.minuteOfDay <= m) active = b;
@@ -387,70 +249,16 @@ ScheduleBlock nextBlock(DateTime now) {
   for (final b in dailySchedule) {
     if (b.minuteOfDay > m) return b;
   }
-  return dailySchedule.first;
+  return dailySchedule.isEmpty ? _openDay : dailySchedule.first;
 }
+
+const _openDay = ScheduleBlock(0, 0, 'Your day', '', 'mind', Icons.wb_twilight_rounded);
 
 // ------------------------------------------------------------
 // Gym plan — RA-safe
 // ------------------------------------------------------------
 
-const List<GymDay> gymPlan = [
-  GymDay(
-    id: 'push',
-    letter: 'A',
-    name: 'Push',
-    weekday: DateTime.monday,
-    finisher: 'Zone 2 cooldown — 15 min',
-    exercises: [
-      Exercise('Chest Machine (full lying)', '3×12', shoulder: true),
-      Exercise('Butterfly Machine', '3×12', shoulder: true),
-      Exercise('Sitting Chest Machine', '3×12', shoulder: true),
-      Exercise('Dumbbell Shoulder Press', '3×12',
-          note: 'Dumbbells, not barbell', shoulder: true),
-      Exercise('Lateral Raise Machine', '3×12', shoulder: true),
-      Exercise('Tricep Pushdown (V-bar)', '3×12'),
-      Exercise('Cable Rope Overhead Tricep', '3×12',
-          note: 'Replaces DB overhead — safer for RA', shoulder: true),
-      Exercise('Face Pulls', '3×15', note: 'Never skip', keyLift: true),
-    ],
-  ),
-  GymDay(
-    id: 'pull',
-    letter: 'B',
-    name: 'Pull',
-    weekday: DateTime.wednesday,
-    finisher: 'Zone 2 cooldown — 15 min',
-    exercises: [
-      Exercise('Lat Pulldown', '3×12', shoulder: true),
-      Exercise('Incline T-bar Row', '3×12'),
-      Exercise('Seated Cable Row', '3×12'),
-      Exercise('Supinated Bicep Curl', '3×12'),
-      Exercise('Cable Bicep Curl', '3×12'),
-      Exercise('Hammer Curl', '3×12'),
-      Exercise('One-Hand Tricep Pushdown', '3×12'),
-      Exercise('Face Pulls + Reverse Cable Fly', '3×15 each', keyLift: true),
-    ],
-  ),
-  GymDay(
-    id: 'legs',
-    letter: 'C',
-    name: 'Legs + Core',
-    weekday: DateTime.thursday,
-    finisher: 'Zone 2 cooldown — 15 min',
-    exercises: [
-      Exercise('Goblet Squat', '3×12',
-          note: 'DB at chest — zero shoulder load'),
-      Exercise('Romanian Deadlift', '3×12'),
-      Exercise('Walking Lunges', '3×12 each'),
-      Exercise('Leg Press', '3×12'),
-      Exercise('Plank', '3×45 sec'),
-      Exercise('Dead Bug', '3×10 each'),
-      Exercise('Leverage Shoulder Press', '3×12',
-          note: 'Light, only if pain-free', shoulder: true),
-      Exercise('Face Pulls', '3×15', keyLift: true),
-    ],
-  ),
-];
+List<GymDay> get gymPlan => plan.gym;
 
 /// The gym day (A/B/C) that falls on [date]. [days] maps A, B, C to
 /// weekdays (default Mon / Wed / Thu, as in the profile).
@@ -468,519 +276,113 @@ GymDay? gymDayFor(DateTime date,
 
 /// Added on a shoulder-sparing day: legs, trunk and conditioning carry the
 /// session while the shoulders rest.
-const List<Exercise> shoulderSparingAddOns = [
-  Exercise('Leg Press', '3×12', note: 'Shoulder-sparing swap'),
-  Exercise('Goblet Squat', '3×12', note: 'DB at chest — zero shoulder load'),
-  Exercise('Dead Bug', '3×10 each', note: 'Shoulder-sparing swap'),
-];
+List<Exercise> get shoulderSparingAddOns => plan.shoulderSparing;
 
-const raRemove = [
-  'Overhead barbell press',
-  'Upright rows',
-  'Behind-neck press',
-  'Barbell back squat',
-];
-const raReplace = [
-  'DB shoulder press',
-  'Cable rope tricep',
-  'Goblet squat',
-  'Leg press',
-];
+List<String> get raRemove => plan.avoidLifts;
+List<String> get raReplace => plan.liftSwaps;
 
-const supplementsMorning = [
-  'Vitamin D3 2000 IU',
-  'Creatine 5g',
-  'Omega-3 2g',
-];
-const supplementsNight = ['Magnesium glycinate 400mg'];
+List<String> get supplementsMorning => plan.supplementsMorning;
+List<String> get supplementsNight => plan.supplementsNight;
 
-const bloodwork = [
-  'Ferritin',
-  'Hemoglobin',
-  'Vitamin D',
-  'Testosterone',
-  'TSH',
-];
+List<String> get bloodwork => plan.bloodwork;
 
 /// What the evening (19:00) slot holds, by weekday.
-String eveningFocus(int weekday) {
-  switch (weekday) {
-    case DateTime.monday:
-      return 'Gym — Day A Push';
-    case DateTime.tuesday:
-      return 'Evening deep work · Pennebaker writing';
-    case DateTime.wednesday:
-      return 'Gym — Day B Pull';
-    case DateTime.thursday:
-      return 'Gym — Day C Legs + Core';
-    case DateTime.friday:
-      return 'Evening deep work';
-    case DateTime.saturday:
-      return 'Wardrobe buy · rest';
-    default:
-      return 'Evidence Archive · grooming · weekly report';
-  }
-}
+String eveningFocus(int weekday) => plan.eveningFocus[weekday] ?? '';
 
 // ------------------------------------------------------------
 // Podcasts & domain scan
 // ------------------------------------------------------------
 
-const List<DailyInput> podcastRotation = [
-  DailyInput(DateTime.monday, 'Lenny\'s Podcast',
-      'Start: Shreyas Doshi — LNO Framework'),
-  DailyInput(DateTime.tuesday, 'Acquired', 'Start: the Visa episode'),
-  DailyInput(DateTime.wednesday, 'The Knowledge Project',
-      'Start: Mental Models episode'),
-  DailyInput(DateTime.thursday, 'Fintech Brainfood', 'Latest episode, always'),
-  DailyInput(DateTime.friday, 'Fintech Leaders', 'Start: Kaspi.kz CEO episode'),
-  DailyInput(DateTime.saturday, 'Identity at the Center',
-      'Latest episode, always'),
-  DailyInput(DateTime.sunday, 'Acquired — or silence', 'Any episode'),
-];
+List<DailyInput> get podcastRotation => plan.podcasts;
 
-const List<DailyInput> domainScanRotation = [
-  DailyInput(DateTime.monday, 'CIAM Compass', 'Identity & agent identity',
-      url: 'https://guptadeepak.com/ciam-compass'),
-  DailyInput(DateTime.tuesday, 'Stratechery', 'Platform & ecosystem strategy',
-      url: 'https://stratechery.com'),
-  DailyInput(DateTime.wednesday, 'Lenny\'s Newsletter',
-      'Product craft & leadership',
-      url: 'https://www.lennysnewsletter.com'),
-  DailyInput(DateTime.thursday, 'Product Compass', 'Modern PM frameworks',
-      url: 'https://theproductcompass.substack.com'),
-  DailyInput(DateTime.friday, 'Fintech Brainfood', 'Fintech & payments',
-      url: 'https://www.fintechbrainfood.com'),
-  DailyInput(DateTime.saturday, 'Primary sources',
-      'Kaspi · Stripe · Visa · Auth0 blogs'),
-  DailyInput(DateTime.sunday, 'Personal synthesis',
-      'Write 3 domain insights in your journal'),
-];
+List<DailyInput> get domainScanRotation => plan.domainScans;
+
+const _noInput = DailyInput(0, '', '');
 
 DailyInput podcastFor(DateTime d) =>
-    podcastRotation.firstWhere((p) => p.weekday == d.weekday);
+    podcastRotation.where((p) => p.weekday == d.weekday).firstOrNull ?? _noInput;
 
 DailyInput domainScanFor(DateTime d) =>
-    domainScanRotation.firstWhere((p) => p.weekday == d.weekday);
+    domainScanRotation.where((p) => p.weekday == d.weekday).firstOrNull ?? _noInput;
 
 // ------------------------------------------------------------
 // Library
 // ------------------------------------------------------------
 
-const List<Book> bookSchedule = [
-  Book(
-      slot: 'Month 1',
-      month: 1,
-      title: 'Continuous Discovery Habits',
-      author: 'Teresa Torres',
-      chapters: 'Ch. 1, 2, 3, 7, 9',
-      why: 'You are mid-discovery on the entrepreneur integration now.'),
-  Book(
-      slot: 'Month 2',
-      month: 2,
-      title: 'Good Strategy Bad Strategy',
-      author: 'Richard Rumelt',
-      chapters: 'Ch. 1, 2, 5, 9',
-      why: 'Write the real Business ID strategy.'),
-  Book(
-      slot: 'Month 3',
-      month: 3,
-      title: 'Working Backwards',
-      author: 'Bryar & Carr',
-      chapters: 'Ch. 4, 5, 6',
-      why: 'PR/FAQ changes how Ali reads your thinking.'),
-  Book(
-      slot: 'Month 4',
-      month: 4,
-      title: 'Inspired',
-      author: 'Marty Cagan',
-      chapters: 'Ch. 1–5, 28, 37',
-      why: 'Defines what a great PM actually is.'),
-  Book(
-      slot: 'Month 5',
-      month: 5,
-      title: '7 Powers',
-      author: 'Hamilton Helmer',
-      chapters: 'Ch. 1–3, 5, 8',
-      why: 'Explains why Bir\'s ecosystem wins.'),
-  Book(
-      slot: 'Month 6',
-      month: 6,
-      title: 'Empowered',
-      author: 'Cagan & Jones',
-      chapters: 'Ch. 3, 5, 8, 10',
-      why: 'The IC → product leader transition.'),
-];
+List<Book> get bookSchedule => plan.books;
 
-const List<Book> fictionSchedule = [
-  Book(
-      slot: 'Now',
-      month: 1,
-      title: 'Man\'s Search for Meaning',
-      author: 'Viktor Frankl',
-      chapters: 'Full book',
-      why: 'Enjoyment has been absent — read this weekend.',
-      fiction: true),
-  Book(
-      slot: 'Month 2',
-      month: 2,
-      title: 'Norwegian Wood',
-      author: 'Haruki Murakami',
-      chapters: 'Full',
-      why: 'Restraint and precision in communication.',
-      fiction: true),
-  Book(
-      slot: 'Month 3',
-      month: 3,
-      title: 'The Trial',
-      author: 'Franz Kafka',
-      chapters: 'Full',
-      why: 'Capable people in systems that don\'t recognize them.',
-      fiction: true),
-  Book(
-      slot: 'Month 4',
-      month: 4,
-      title: 'Crime and Punishment',
-      author: 'Fyodor Dostoevsky',
-      chapters: 'Full',
-      why: 'The psychology of self-perception.',
-      fiction: true),
-  Book(
-      slot: 'Month 5',
-      month: 5,
-      title: 'The Art of War',
-      author: 'Sun Tzu',
-      chapters: 'Full',
-      why: 'Knowing yourself and your environment.',
-      fiction: true),
-];
+List<Book> get fictionSchedule => plan.novels;
 
 /// The planned book for [programMonth], or null once the plan's books
 /// are read (the provider's `planBook` then follows the learning list).
 Book? scheduledBook(int programMonth) =>
     bookSchedule.where((b) => b.month == programMonth).firstOrNull;
 
-Book currentBook(int programMonth) => bookSchedule.firstWhere(
-    (b) => b.month == programMonth,
-    orElse: () => bookSchedule.last);
+Book currentBook(int programMonth) =>
+    bookSchedule.where((b) => b.month == programMonth).firstOrNull ??
+    bookSchedule.lastOrNull ??
+    _noBook;
 
-Book currentNovel(int programMonth) => fictionSchedule.firstWhere(
-    (b) => b.month == programMonth,
-    orElse: () => fictionSchedule.last);
+Book currentNovel(int programMonth) =>
+    fictionSchedule.where((b) => b.month == programMonth).firstOrNull ??
+    fictionSchedule.lastOrNull ??
+    _noBook;
 
-const List<Film> filmList = [
-  Film('Whiplash', 2014, 'When you want to quit',
-      'Why discomfort is necessary for excellence.'),
-  Film('The Social Network', 2010, 'Wednesday evening',
-      'BLUF communication. Building while underestimated.'),
-  Film('Jiro Dreams of Sushi', 2011, 'When progress feels slow',
-      'Mastery requires daily discipline over years.'),
-  Film('Moneyball', 2011, 'Friday evening',
-      'Evidence-based thinking against hierarchy — you at PASHA.'),
-  Film('Parasite', 2019, 'Weekend',
-      'Performance, ambition, and the gap between presentation and reality.'),
-  Film('Steve Jobs', 2015, 'Month 2',
-      'How a product leader communicates under pressure.'),
-];
+const _noBook = Book(slot: '', month: null, title: '', author: '', chapters: '', why: '');
+
+List<Film> get filmList => plan.films;
 
 // ------------------------------------------------------------
 // Protocols
 // ------------------------------------------------------------
 
-const List<Protocol> protocols = [
-  Protocol(
-    id: 'sigh',
-    name: 'Physiological Sigh',
-    lane: 'mind',
-    icon: Icons.air_rounded,
-    what:
-        'Double inhale through the nose → long exhale through the mouth. 1–3 reps. 30 seconds.',
-    when:
-        'Before every meeting with Ali. Before any hard conversation. In the car before entering the office.',
-    why:
-        'Fastest known stress reset. Re-inflates lung alveoli, activates the vagus nerve. Stressed → calm in 60 seconds.',
-    source: 'Huberman, Stanford',
-  ),
-  Protocol(
-    id: 'excited',
-    name: '"I Am Excited"',
-    lane: 'mind',
-    icon: Icons.bolt_rounded,
-    what: 'Say internally "I am excited" before any high-stakes moment.',
-    when:
-        'Before presenting. Before difficult conversations. Before entering any important room.',
-    why:
-        'Anxiety and excitement are physiologically identical. "Calm down" requires changing your state; "I am excited" only reinterprets it. Reappraisal beats suppression.',
-    source: 'Brooks, Harvard 2014',
-  ),
-  Protocol(
-    id: 'bluf',
-    name: 'BLUF',
-    lane: 'skill',
-    icon: Icons.vertical_align_top_rounded,
-    what:
-        'Decision first → 3 supporting reasons → what you need → deadline.',
-    when:
-        'Every email, every Slack message, every meeting update to Ali or Rustam.',
-    why:
-        'Executives process top-down. They decide from your first sentence whether the rest is worth reading.',
-    source: 'Military writing standard · Amazon narratives',
-    before:
-        'So after reviewing everything we probably should consider maybe delaying…',
-    after:
-        'I recommend delaying SA automation to Sprint 5. Affects 12% of users, complexity higher than estimated, DVX is the priority blocker. Need your alignment by Thursday.',
-  ),
-  Protocol(
-    id: 'six_deep',
-    name: 'Six Questions Deep',
-    lane: 'skill',
-    icon: Icons.layers_rounded,
-    what:
-        'Write the 6 hardest questions Ali could ask. Write your answers. Then write the hardest follow-up to each answer.',
-    when: 'Before any meeting with Ali or senior stakeholders.',
-    why:
-        'Preparation depth is what gravitas actually is. Six deep, nothing in the room surprises you.',
-    source: 'Hewlett, CTI',
-  ),
-  Protocol(
-    id: 'feynman',
-    name: 'Feynman Technique',
-    lane: 'skill',
-    icon: Icons.edit_rounded,
-    what:
-        'After reading, close everything. Write what you just read from memory. 5 minutes.',
-    when: 'Right after the 20-minute lunch read.',
-    why:
-        'Retrieval practice gives ~50% better retention than re-reading. Where you blank = the gap.',
-    source: 'Roediger & Karpicke, 2006',
-  ),
-  Protocol(
-    id: 'evidence',
-    name: 'Evidence Archive',
-    lane: 'mind',
-    icon: Icons.inventory_2_rounded,
-    what:
-        'A running record in 3 sections: Things I built · Problems I solved · Knowledge I have that others don\'t.',
-    when: 'Add at least 5 items every Sunday. Read every Monday before the first meeting.',
-    why:
-        'The Expert + Soloist impostor forgets what they have built. Real evidence interrupts the spiral.',
-    source: 'Valerie Young — impostor types',
-  ),
-  Protocol(
-    id: 'pause',
-    name: 'Deliberate Pause',
-    lane: 'social',
-    icon: Icons.pause_circle_outline_rounded,
-    what: 'One slow breath before answering any challenging question.',
-    when: 'Every meeting, every hard question.',
-    why:
-        'Immediate answers read as reactive. Paused answers read as deliberate. A 1–2 second pause is a gravitas signal.',
-    source: 'Executive presence research',
-  ),
-  Protocol(
-    id: 'still',
-    name: 'Still Body',
-    lane: 'social',
-    icon: Icons.accessibility_new_rounded,
-    what:
-        'Feet flat on the floor. Hands still on table or lap. Phone face-down or invisible. Eyes on the speaker.',
-    when: 'Every meeting.',
-    why:
-        'Physical stillness is the strongest unconscious signal of authority. Fidgeting signals anxiety.',
-    source: 'Nonverbal dominance research',
-  ),
-  Protocol(
-    id: 'pennebaker',
-    name: 'Pennebaker Writing',
-    lane: 'mind',
-    icon: Icons.history_edu_rounded,
-    what:
-        'Write about your deepest fears and anxieties for 15 minutes without stopping.',
-    when: 'Every Tuesday evening, for 4 consecutive weeks.',
-    why:
-        'Translating emotion into language engages the prefrontal cortex and measurably lowers anxiety.',
-    source: 'Pennebaker, UT Austin',
-  ),
-];
+List<Protocol> get protocols => plan.protocols;
 
 // ------------------------------------------------------------
 // Style system
 // ------------------------------------------------------------
 
-const faceNotes = [
-  ['Shaved head', 'Grade 1 all over, every 2 weeks. Own it completely.'],
-  ['Strong nose', 'Do nothing. It photographs with authority. The beard balances it.'],
-  ['Soft jaw / chin', 'The beard fixes this — fuller at the chin, sharp neck line.'],
-  ['Short neck', 'Posture work at the gym + V-neck / crewneck collars + a precise beard neck line.'],
-];
+List<List<String>> get faceNotes => plan.faceNotes;
 
-const beardSpec = [
-  ['Chin', 'Fuller — the longest point. Adds jaw definition.'],
-  ['Cheeks', 'Clean defined line. Not too high, not too low.'],
-  ['Neck line', 'Two fingers above the Adam\'s apple. Shave everything below.'],
-  ['Sides', '5–8mm, fading down.'],
-  ['Maintain', 'Every Sunday evening, 10 minutes.'],
-];
+List<List<String>> get beardSpec => plan.beardSpec;
 
-const List<WardrobeItem> wardrobe = [
-  WardrobeItem('w1', 'Sat 1', 'Navy fine merino crewneck', 40, 50, 'Uniqlo online', 1),
-  WardrobeItem('w2', 'Sat 2', 'Charcoal merino + dark chinos (tailored)', 60, 70,
-      'Uniqlo + local tailor', 1),
-  WardrobeItem('w3', 'Sat 3', 'White Oxford shirt', 30, 50, 'Local or Massimo Dutti', 1),
-  WardrobeItem('w4', 'Sat 4', 'White minimal leather sneakers', 40, 70,
-      'Adidas Stan Smith', 1),
-  WardrobeItem('w5', 'Sat 5–6', 'Navy unstructured blazer', 150, 200,
-      'Best Baku tailor', 2),
-  WardrobeItem('w6', 'Sat 7', 'Dark brown suede loafers', 60, 100,
-      'Best local shoe shop', 2),
-  WardrobeItem('w7', 'Sat 8', 'Skincare: Cetaphil + SPF50 + beard oil', 35, 35,
-      'Baku pharmacy', 2),
-  WardrobeItem('w8', 'Month 3', 'Dark overcoat', 150, 250, 'Tailor or store', 3),
-  WardrobeItem('w9', 'Month 3', 'Quality leather backpack', 80, 150, 'Leather shop', 3),
-  WardrobeItem('w10', 'Month 3', 'Charcoal suit (tailored)', 300, 400, 'Tailor', 3),
-];
+List<WardrobeItem> get wardrobe => plan.wardrobe;
 
-const List<Outfit> outfits = [
-  Outfit('PASHA meeting', 'Light blue shirt · black trousers · navy blazer · brown loafers · Skagen',
-      Icons.business_center_rounded),
-  Outfit('Daily office', 'Navy merino · dark chinos · white sneakers · Skagen',
-      Icons.apartment_rounded),
-  Outfit('Smart casual', 'Charcoal merino · dark chinos · white sneakers',
-      Icons.local_cafe_rounded),
-  Outfit('Dinner out', 'White shirt (open collar) · dark chinos · loafers · Skagen',
-      Icons.wine_bar_rounded),
-  Outfit('Weekend', 'Navy merino or plain tee · dark chinos · white sneakers · Casio',
-      Icons.weekend_rounded),
-  Outfit('Gym', 'Dark fitted training tee · dark shorts/joggers · Apple Watch',
-      Icons.fitness_center_rounded),
-];
+List<Outfit> get outfits => plan.outfits;
+
+const _noOutfit = Outfit('', '', Icons.checkroom_rounded);
 
 Outfit outfitFor(DateTime d) {
-  if (d.weekday == DateTime.saturday || d.weekday == DateTime.sunday) {
-    return outfits[4];
-  }
-  return outfits[1];
+  final weekend = d.weekday == DateTime.saturday || d.weekday == DateTime.sunday;
+  final i = weekend ? plan.weekendOutfit : plan.weekdayOutfit;
+  return i >= 0 && i < outfits.length ? outfits[i] : _noOutfit;
 }
 
-const watchRule = [
-  ['Work', 'Skagen — every day, no exceptions'],
-  ['Gym', 'Apple Watch'],
-  ['Weekend', 'Casio'],
-];
+List<List<String>> get watchRule => plan.watchRule;
 
-const groomingRoutine = [
-  ['Every morning · 5 min', 'Cetaphil cleanser → SPF50 moisturizer → beard oil, 3 drops'],
-  ['Every Sunday · 15 min', 'Beard edge-up → skincare → lay out Monday\'s outfit'],
-  ['Every 2 weeks', 'Grade 1 buzz cut'],
-];
+List<List<String>> get groomingRoutine => plan.groomingRoutine;
 
-const skincarePlan = [
-  ['Month 1–2', 'Cetaphil cleanser + Neutrogena SPF50'],
-  ['Month 3', 'Add niacinamide serum (The Ordinary)'],
-  ['Month 4+', 'Add retinol 2–3 nights per week (night only)'],
-];
+List<List<String>> get skincarePlan => plan.skincarePlan;
 
 // ------------------------------------------------------------
 // Career: LinkedIn, thesis, data, certificates, milestones
 // ------------------------------------------------------------
 
-const linkedinHeadline =
-    'Building merchant identity for 5M+ users @ Bir Ecosystem (PASHA) | Payments · Identity · AI Agents';
+String get linkedinHeadline => plan.linkedinHeadline;
 
-const linkedinAbout = '''I build the identity layer for ecosystems.
+String get linkedinAbout => plan.linkedinAbout;
 
-Currently at Bir Ecosystem (PASHA Financial Holding), I'm leading Business ID — a unified merchant identity and SSO platform connecting 5M+ users across Azerbaijan's first fully integrated digital ecosystem: banking, marketplace, payments, and loyalty.
+String get linkedinRole => plan.linkedinRole;
 
-Before this: B2B remittance infrastructure at Guavapay, open banking and BaaS at PASHA Bank, high-traffic transaction systems at Misli. The thread across all of it: complex technical systems where identity, payments, and product strategy intersect.
+String get linkedinFirstPost => plan.linkedinFirstPost;
 
-What I'm focused on now: how merchant identity becomes the connective tissue of super-app ecosystems — and how agentic payments change the trust and permission model for everything.
+String get domainThesis => plan.domainThesis;
 
-📍 Baku, Azerbaijan | 🎓 Ca' Foscari University, Venice (110/110 cum laude)
-🌐 AZ | RU | TR | EN''';
+List<List<String>> get keyData => plan.keyData;
 
-const linkedinRole = '''Leading product strategy for Business ID — a unified merchant identity and SSO layer across Bir Ecosystem's B2B services: BirBank Business, BirMarket, BirBonus, and BirPay.
+List<Certificate> get certificates => plan.certificates;
 
-→ Serving an ecosystem of 5M+ users across Azerbaijan's first fully integrated digital platform
-→ Directing discovery and delivery for merchant onboarding, SSO integration, and identity verification (ASAN İmza, DVX)
-→ Working across engineering, compliance, and executive stakeholders to define the identity architecture for agentic commerce use cases''';
-
-const linkedinFirstPost = '''I spent 4 years in payments and iGaming before I understood what identity actually is.
-
-It's not authentication. It's not a login screen.
-
-Identity is the trust layer that decides what a merchant can access, what they can borrow, what they can sell.
-
-At Kaspi: 764,000 merchants. 95% accept Kaspi QR. The reason they can offer those merchants working capital loans isn't just data — it's verified identity tied to transaction history.
-
-That's what we're building with Business ID at Bir.
-
-What's the most underrated layer in your product stack?''';
-
-const domainThesis =
-    'The next interface of a super-app is an agent. Ecosystems that turn existing '
-    'identity and payment trust into agent permissions will win. '
-    'Business ID is Bir\'s answer to this.';
-
-const keyData = [
-  ['Kaspi', '764,000 active merchants · 95% accept Kaspi QR · \$97.3B payment volume FY2025'],
-  ['Grab', 'Multi-service adoption 12% → 54% · retention 47% → 79% after identity integration'],
-  ['NHI', 'Non-human identities outnumber humans 45:1 (CSA, May 2026)'],
-  ['Agentic payments', 'Mastercard Agent Pay (Apr 2025) · Visa Intelligent Commerce (Apr 2025) · Stripe SPT (Mar 2026) · Auth0 MCP (May 2026)'],
-  ['Bir', '5M+ users · first fully integrated ecosystem in the Caucasus'],
-];
-
-const List<Certificate> certificates = [
-  Certificate('svpg', 1, 'Month 3–4', 'SVPG Coaching Program',
-      'Silicon Valley Product Group', 'https://www.svpg.com'),
-  Certificate('aws', 2, 'Month 4–5', 'AWS Cloud Practitioner', 'Amazon',
-      'https://aws.amazon.com/training'),
-  Certificate('ciam', 3, 'Month 6+', 'CIAM Professional', 'KuppingerCole',
-      'https://www.kuppingercole.com'),
-  Certificate('pspo', 4, 'Month 9+', 'PSPO', 'Scrum.org', 'https://www.scrum.org'),
-];
-
-const List<CareerMilestone> careerMilestones = [
-  CareerMilestone(1, [
-    'Sleep consistent',
-    'Grooming routine',
-    'LinkedIn headline changed',
-    'Domain scans started',
-  ]),
-  CareerMilestone(2, [
-    'Bloodwork done',
-    'Zone 2 base building',
-    'BLUF automatic',
-    'First 5 LinkedIn posts',
-  ]),
-  CareerMilestone(3, [
-    'Agentic payments thesis owned',
-    'PR/FAQ written',
-    'Professional headshot taken',
-  ]),
-  CareerMilestone(4, [
-    'Advisory board — first contacts',
-    'Style capsule Month 1–2 complete',
-    '15 posts published',
-  ]),
-  CareerMilestone(6, [
-    'Full style capsule',
-    '2,000+ LinkedIn followers',
-    'Signature thesis draft written',
-  ]),
-  CareerMilestone(9, [
-    'Advisory board — 3 seats filled',
-    'Internal talk delivered',
-    '5,000+ followers',
-  ]),
-  CareerMilestone(12, [
-    'Conference CFP submitted',
-    '8,000+ followers',
-    'Coaching one junior PM',
-  ]),
-  CareerMilestone(18, [
-    'Career decision made from strength — promotion, international move, or founding path',
-  ]),
-];
+List<CareerMilestone> get careerMilestones => plan.careerMilestones;
 
 // ------------------------------------------------------------
 // Daily 10 non-negotiables
@@ -992,91 +394,41 @@ const List<CareerMilestone> careerMilestones = [
 Profile get activeProfile => profileOverride ?? builtInProfile;
 
 /// His profile as shipped.
-const Profile builtInProfile = Profile(
-  name: EminIdentity.name,
-  firstName: EminIdentity.firstName,
-  currentRole: 'Senior PO',
-  targetRole: 'Head of Product',
-  organisation: 'Bir Ecosystem (Kapital Bank, PASHA)',
-  focus: 'Business ID',
-  domain: 'identity, payments and agentic commerce',
-  identityStatement: EminIdentity.identityStatement,
-  archetype: EminIdentity.archetype,
-  tagline: EminIdentity.tagline,
-  location: EminIdentity.location,
-  path: EminIdentity.path,
-  keyPeople: [
-    KeyPerson('Ali', 'Manager', every: 7, primary: true),
-    KeyPerson('Rustam', 'Senior stakeholder', every: 30),
-  ],
-  coachContext:
-      'Archetype: The Product Architect. Path over 18 months: Senior PO → Head of Product → CPO / Tribe Lead → global manager. '
-      'His system: a Daily 10 (manifesto, domain scan, physiological sigh, BLUF, deliberate pause, lunch read, Feynman write, no caffeine after 13:00, protein 150 g, bed 22:30); '
-      'gym Mon Push / Wed Pull / Thu Legs, RA-safe (no overhead barbell, upright rows, behind-neck press or back squat; face pulls every session; Zone 2 cooldown); beta thalassemia; '
-      'impostor pattern Expert + Soloist; protocols: physiological sigh, "I am excited", BLUF, six questions deep before meetings with Ali, Feynman, Evidence Archive, still body, deliberate pause; '
-      'LinkedIn 2 posts/week from month 2; one artifact per month. Domain thesis: "The next interface of a super-app is an agent. Ecosystems that turn existing identity and payment trust into agent permissions will win. Business ID is Bir\'s answer." '
-      'Morning check-ins track RA in the shoulders: shoulder_flag_mornings counts mornings with pain ≥ 5/10 or stiffness ≥ 30 min.',
-);
+/// The loaded plan's profile (a blank one when no plan is loaded).
+Profile get builtInProfile => plan.profile ?? blankProfile;
+
+/// No one yet: the plan builder fills it in.
+const blankProfile = Profile(
+    name: '',
+    firstName: '',
+    currentRole: '',
+    targetRole: '',
+    organisation: '',
+    focus: '',
+    domain: '',
+    identityStatement: '',
+    path: [],
+    keyPeople: []);
 
 /// People whose meetings get the full six-questions-deep prep.
 List<String> get keyPeople => [for (final p in activeProfile.keyPeople) p.name];
 
-const List<NonNegotiable> nonNegotiables = [
-  NonNegotiable('manifesto', 'Read manifesto this morning', 'mind', 'morning',
-      route: '/manifesto'),
-  NonNegotiable('scan', 'Domain scan — 15 min', 'skill', 'morning',
-      route: '/tool/scan'),
-  NonNegotiable('sigh', 'Physiological sigh before pressure', 'mind', 'day',
-      route: '/tool/sigh'),
-  NonNegotiable('bluf', 'BLUF on at least one output', 'skill', 'day',
-      route: '/tool/bluf'),
-  NonNegotiable('pause', 'Deliberate pause practiced', 'social', 'day'),
-  NonNegotiable('read', 'Read at lunch — 20 min', 'skill', 'day',
-      route: '/tool/read'),
-  NonNegotiable('feynman', 'Wrote from memory after reading', 'skill', 'day',
-      route: '/tool/feynman'),
-  NonNegotiable('caffeine', 'No caffeine after 1pm', 'body', 'day'),
-  NonNegotiable('protein', 'Protein — 150g', 'body', 'evening',
-      route: '/log?add=protein'),
-  NonNegotiable('bed', 'In bed by 10:30pm', 'body', 'evening'),
-];
+List<NonNegotiable> get nonNegotiables => plan.dailyItems;
 
 /// Items that belong to the working day: they rest on days off (Emin's
 /// choice, 25 Oct 2026), from [workDayOnlyFrom] so earlier days keep the
 /// list they were scored on. Changed per item on /daily.
-const workDayOnlyItems = {'scan', 'bluf', 'read'};
-const workDayOnlyFrom = '2026-10-25';
+Set<String> get workDayOnlyItems => plan.workDayOnlyItems;
+String get workDayOnlyFrom => plan.workDayOnlyFrom;
 
 
 /// Default if-then plans (implementation intentions): the cue that
 /// triggers each Daily 10 item. Editable on /plans.
-const Map<String, String> defaultCues = {
-  'manifesto': 'When I switch off the 06:00 alarm → manifesto before the phone',
-  'scan': 'When I sit at my desk at 07:45 → scan before opening email',
-  'sigh': 'When I park at the office or a hard meeting starts → sigh ×3',
-  'bluf': 'When I open Slack the first time → write that message as BLUF',
-  'pause': 'When someone challenges me → one breath before I answer',
-  'read': 'When lunch arrives → phone face-down, book open',
-  'feynman': 'When I close the book → 5 minutes writing from memory',
-  'caffeine': 'When it turns 13:00 → water or herbal tea only',
-  'protein': 'When I sit down to breakfast → 40 g protein first',
-  'bed': 'When the 22:00 alarm rings → phone goes outside the bedroom',
-};
+Map<String, String> get defaultCues => plan.cues;
 
 /// The smallest version of each Daily 10 item, for a hard day: enough to
 /// keep the identity alive, small enough to do when sick or swamped.
-const Map<String, String> defaultMinimums = {
-  'manifesto': 'Read the first line',
-  'scan': 'One headline from the domain, two minutes',
-  'sigh': 'One sigh, once',
-  'bluf': 'One message with the ask in the first line',
-  'pause': 'One breath before one answer',
-  'read': 'One page',
-  'feynman': 'One sentence from memory',
-  'caffeine': 'No coffee after 13:00',
-  'protein': 'Protein at one meal',
-  'bed': 'Phone out of the bedroom',
-};
+Map<String, String> get defaultMinimums => plan.minimums;
 
 const nonNegotiableGroups = [
   ['morning', 'Morning'],
@@ -1100,33 +452,10 @@ const weeklyCoachingFields = [
 // Evidence Archive
 // ------------------------------------------------------------
 
-const evidenceSections = [
-  EvidencePrompt('built', 'Things I built', [
-    'Products / features shipped at Bir, Guavapay, PASHA Bank, Misli',
-    'Built outside work: Paya, Ono, Zimba, Duyit, Nimat, Okhu, Oruta',
-    'Integrations or technical implementations you led',
-  ]),
-  EvidencePrompt('solved', 'Problems I solved', [
-    'When were you the one who unblocked something?',
-    'When did your technical background solve what others couldn\'t?',
-    'When did your 4 languages give you an advantage no one else had?',
-  ]),
-  EvidencePrompt('knowledge', 'Knowledge others don\'t have', [
-    'Domain depth nobody else in the room has',
-    'Rare skills for a PO',
-  ]),
-];
+List<EvidencePrompt> get evidenceSections => plan.evidenceSections;
 
 /// Starter items for "Knowledge I have that most don't" — from the profile.
-const evidenceSeeds = [
-  'ASAN İmza integration complexity in Azerbaijan\'s regulatory context',
-  'DVX verification flows for merchant onboarding at Bir',
-  'Data engineering: Airflow, Delta Lake, medallion architecture (rare for POs)',
-  'iGaming regulatory environments from direct product work',
-  '4 languages: AZ / RU / TR / EN — direct access to CIS, Caucasus and Turkish fintech',
-  'Building identity infrastructure for the first super-app ecosystem in the Caucasus',
-  '110/110 cum laude Masters — Ca\' Foscari, Venice',
-];
+List<String> get evidenceSeeds => plan.evidenceSeeds;
 
 // ------------------------------------------------------------
 // The 18-month journey
@@ -1162,43 +491,12 @@ Phase phaseFor(int month) =>
     phases.firstWhere((p) => p.contains(month), orElse: () => phases.last);
 
 /// Role steps along the path, with the month each becomes realistic.
-const pathSteps = [
-  ['Senior PO', '1'],
-  ['Head of Product', '9'],
-  ['CPO / Tribe Lead', '15'],
-  ['Global Manager', '18'],
-];
+List<List<String>> get pathSteps => plan.pathSteps;
 
-const Map<int, String> monthThemes = {
-  1: 'Sleep consistent, ritual installed, protocols in use.',
-  2: 'Bloodwork done. Zone 2 base. BLUF automatic. LinkedIn starts.',
-  3: 'Own the agentic-payments thesis. PR/FAQ written. Headshot taken.',
-  4: 'Advisory board first contacts. 15 posts published.',
-  5: 'Cloud fluency (AWS). Read Bir through 7 Powers.',
-  6: 'Full style capsule. 2,000+ followers. Signature thesis drafted.',
-  7: 'Thesis becomes a talk outline. Build in public.',
-  8: 'Deepen the advisory board. Ship the second big artifact.',
-  9: 'Advisory board 3 seats. Internal talk delivered. 5,000+ followers.',
-  10: 'PSPO certification. Conference talk material.',
-  11: 'Coach-ready: write your product principles.',
-  12: 'Conference CFP submitted. 8,000+ followers. Coach a junior PM.',
-  13: 'Map the options: promotion, international, founding.',
-  14: 'Conversations with people one role ahead.',
-  15: 'Make the case: a written narrative for the next role.',
-  16: 'Test the options in the market.',
-  17: 'Negotiate from evidence.',
-  18: 'Career decision made from strength.',
-};
+Map<int, String> get monthThemes => plan.monthThemes;
 
 /// Suggested artifact for each month ("one artifact per month").
-const Map<int, String> monthArtifacts = {
-  1: 'Opportunity Solution Tree — entrepreneur integration',
-  2: 'Business ID strategy: diagnosis, guiding policy, coherent actions',
-  3: 'PR/FAQ for Business ID',
-  4: 'Product operating model — how Business ID decides',
-  5: '7 Powers analysis of Bir Ecosystem',
-  6: 'Signature thesis draft — agents & merchant identity',
-};
+Map<int, String> get monthArtifacts => plan.monthArtifacts;
 
 String artifactFor(int month) =>
     monthArtifacts[month] ?? 'One artifact: PR/FAQ, OST, strategy doc or 6-pager';
@@ -1214,56 +512,8 @@ class Unlock {
   const Unlock(this.kind, this.title, this.detail, {this.route, this.doneKey});
 }
 
-List<Unlock> unlocksFor(int month) {
-  final list = <Unlock>[];
-  for (final b in bookSchedule.where((b) => b.month == month)) {
-    list.add(Unlock('book', b.title, '${b.author} · ${b.chapters}',
-        route: '/library', doneKey: 'book:${b.title}'));
-  }
-  for (final b in fictionSchedule.where((b) => b.month == month)) {
-    list.add(Unlock('novel', b.title, b.why,
-        route: '/library', doneKey: 'book:${b.title}'));
-  }
-  if (month == 2) {
-    list.add(const Unlock('film', 'Steve Jobs (2015)',
-        'How a product leader communicates under pressure',
-        route: '/library', doneKey: 'film:Steve Jobs'));
-  }
-  for (final w in wardrobe.where((w) => w.month == month)) {
-    list.add(Unlock('wardrobe', w.item, '${w.week} · ${w.where}',
-        route: '/style', doneKey: 'wardrobe:${w.id}'));
-  }
-  if (month == 1) {
-    list.add(const Unlock('protocol', 'Pennebaker writing',
-        '15 min every Tuesday for 4 weeks',
-        route: '/tool/pennebaker'));
-    list.add(const Unlock('linkedin', 'New LinkedIn headline + About',
-        'Exact rewrites are ready to copy',
-        route: '/career', doneKey: 'li:headline'));
-  }
-  if (month == 2) {
-    list.add(const Unlock('linkedin', 'LinkedIn: 2 posts per week',
-        'Cadence starts this month', route: '/career'));
-  }
-  if (month == 3) {
-    list.add(const Unlock('skincare', 'Add niacinamide serum',
-        'The Ordinary — morning, after cleanser', route: '/style'));
-  }
-  if (month == 4) {
-    list.add(const Unlock('skincare', 'Add retinol 2–3 nights a week',
-        'Night only', route: '/style'));
-  }
-  for (final c in certificates.where((c) => _certStart(c) == month)) {
-    list.add(Unlock('certificate', c.name, '${c.org} · ${c.timing}',
-        route: '/career', doneKey: 'cert:${c.id}'));
-  }
-  list.add(Unlock('artifact', 'Artifact of the month', artifactFor(month),
-      route: '/tool/artifact'));
-  return list;
-}
-
-int _certStart(Certificate c) =>
-    int.tryParse(RegExp(r'\d+').firstMatch(c.timing)?.group(0) ?? '') ?? 99;
+/// What the plan unlocks in [month] (books, style, career steps…).
+List<Unlock> unlocksFor(int month) => plan.unlocks[month] ?? const [];
 
 // ------------------------------------------------------------
 // Reminders (local notifications)
@@ -1291,41 +541,8 @@ class ReminderDef {
       '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
 }
 
-const _weekdays = [
-  DateTime.monday,
-  DateTime.tuesday,
-  DateTime.wednesday,
-  DateTime.thursday,
-  DateTime.friday,
-];
-
 /// Gym reminder weekdays come from the user's gym days at runtime.
-const List<ReminderDef> reminderDefs = [
-  ReminderDef('wake', 'Wake — 500ml water', 6, 0, route: '/home'),
-  ReminderDef('ritual', 'Morning ritual', 6, 5,
-      route: '/ritual-flow/ritual_morning_default'),
-  ReminderDef('scan', 'Supplements + domain scan', 7, 45,
-      workDaysOnly: true, route: '/tool/scan'),
-  ReminderDef('evidence_read', 'Read your evidence before the first meeting',
-      7, 55,
-      weekdays: [DateTime.monday], route: '/evidence'),
-  ReminderDef('read', 'Lunch read + Feynman', 12, 0,
-      workDaysOnly: true, route: '/tool/read'),
-  ReminderDef('caffeine', 'Last coffee — nothing after 13:00', 12, 55,
-      weekdays: _weekdays, route: '/home', defaultOn: false),
-  ReminderDef('gym', 'Gym in 15 minutes', 18, 45, route: '/gym'),
-  ReminderDef('pennebaker', 'Pennebaker writing — 15 min', 21, 0,
-      weekdays: [DateTime.tuesday], route: '/tool/pennebaker'),
-  ReminderDef('winddown', 'Wind down — screens off, lay out the outfit', 22, 0,
-      route: '/home'),
-  ReminderDef('bed', 'Nasal strip. Lights out 22:30', 22, 25, route: '/home'),
-  ReminderDef('evidence_add', 'Add 5 items to the Evidence Archive', 18, 0,
-      weekdays: [DateTime.sunday], route: '/evidence'),
-  ReminderDef('report', 'Sunday report → next week\'s brief', 19, 0,
-      weekdays: [DateTime.sunday], route: '/weekly-coaching'),
-  ReminderDef('grooming', 'Beard edge-up, skincare, Monday outfit', 20, 30,
-      weekdays: [DateTime.sunday], route: '/style'),
-];
+List<ReminderDef> get reminderDefs => plan.reminders;
 
 // ------------------------------------------------------------
 // Protocol mastery
@@ -1386,18 +603,7 @@ const protocolLogTypes = {
 // Study deck (spaced repetition) — seed cards from the profile
 // ------------------------------------------------------------
 
-List<StudyCard> get seedCards => [
-      for (var i = 0; i < keyData.length; i++)
-        StudyCard('seed:key:$i', '${keyData[i][0]} — the numbers you quote?',
-            keyData[i][1]),
-      const StudyCard('seed:thesis', 'Your domain thesis, in one breath?',
-          domainThesis),
-      for (final p in protocols)
-        StudyCard('seed:protocol:${p.id}', '${p.name}: what, and when?',
-            '${p.what}\n\nWhen: ${p.when}'),
-      StudyCard('seed:ra', 'The four lifts you never do (RA)?',
-          raRemove.join(' · ')),
-    ];
+List<StudyCard> get seedCards => plan.seedCards;
 
 /// New cards introduced per day; the rest wait.
 const newCardsPerDay = 5;
@@ -1417,18 +623,7 @@ class ReadinessDimension {
 }
 
 /// Head of Product readiness, rated monthly 1–5 against the bar (4 = ready).
-const List<ReadinessDimension> readinessDimensions = [
-  ReadinessDimension('product_sense', 'Product sense',
-      'Picks the right problems for Business ID; a clear point of view on where identity and agentic commerce go.'),
-  ReadinessDimension('execution', 'Execution',
-      'Ships predictably across teams; unblocks others; decisions backed by data.'),
-  ReadinessDimension('leadership', 'Leadership',
-      'Leads without authority; grows people; trusted by Ali and Rustam to own an area.'),
-  ReadinessDimension('strategy', 'Strategy & business',
-      'Links product bets to revenue and ecosystem economics; speaks the P&L.'),
-  ReadinessDimension('communication', 'Executive communication',
-      'BLUF by default; calm in the room; writes PR/FAQs that change minds.'),
-];
+List<ReadinessDimension> get readinessDimensions => plan.readiness;
 
 const readinessBar = 4;
 
@@ -1522,171 +717,7 @@ class GrowthArea {
       );
 }
 
-const List<GrowthArea> growthAreas = [
-  GrowthArea('product_sense', 'Product sense',
-      bar: 'Picks the right problems for Business ID; a clear point of view on where identity and agentic commerce go.',
-      ask: 'When I bring you a problem, what do I tend to miss about it?',
-      drills: [
-        Drill('Problem before solution',
-            'For one Business ID request this week, write who has the problem and what it costs them — before looking at any solution.',
-            'Someone changes their ask after reading it.'),
-        Drill('Customer hour',
-            'Join or listen to one real SME onboarding or support call. Write three observations, no solutions.',
-            'One observation becomes a backlog item.'),
-        Drill('Point of view',
-            'Write 200 words: where business identity in Azerbaijan goes in three years, and what Business ID should do about it.',
-            'You can say it in 30 seconds without notes.'),
-        Drill('Kill one thing',
-            'Find one backlog item that shouldn\'t be built and make the case to drop it.',
-            'It gets dropped or pushed down.'),
-        Drill('Teardown',
-            'Go through one peer bank\'s business onboarding end to end. Write three things to steal and one to avoid.',
-            'One idea lands in a discussion with the team.'),
-      ]),
-  GrowthArea('execution', 'Execution',
-      bar: 'Ships predictably across teams; unblocks others; decisions backed by data.',
-      ask: 'What\'s one thing that would make working with my team more predictable for you?',
-      drills: [
-        Drill('Pre-mortem',
-            'Before the next release, 15 minutes with the team: "It\'s three months later and this failed. Why?"',
-            'One risk gets an owner and a date.'),
-        Drill('Friday status',
-            'Send one update: shipped, slipping (and why), decisions needed — five lines.',
-            'No follow-up questions.'),
-        Drill('Unblock someone',
-            'Find the dependency blocking another team and clear it this week.',
-            'They tell you it moved.'),
-        Drill('Metric first',
-            'For the next feature, write the one success metric and its target before it ships.',
-            'It\'s on a dashboard on launch day.'),
-        Drill('Log a decision',
-            'Record one real decision in the cockpit with the options and what you expect to happen.',
-            'It\'s there to review in 90 days.'),
-      ]),
-  GrowthArea('leadership', 'Leadership',
-      bar: 'Leads without authority; grows people; trusted by Ali and Rustam to own an area.',
-      ask: 'Where could I take more ownership without being asked?',
-      drills: [
-        Drill('Win a team you don\'t manage',
-            'Get another team to commit to something by showing what\'s in it for them.',
-            'They commit in writing.'),
-        Drill('Grow someone',
-            'Give one teammate specific praise and one specific suggestion: situation, behaviour, impact.',
-            'They act on the suggestion.'),
-        Drill('Claim an area',
-            'Propose to Ali one area you\'ll own end to end, and what success looks like.',
-            'Ali agrees, or tells you what it would take.'),
-        Drill('Run the room',
-            'Facilitate one meeting with a written agenda that ends in a decision.',
-            'The decision is written down before people leave.'),
-        Drill('Say no well',
-            'Decline one request with the reason and an alternative.',
-            'The relationship holds.'),
-      ]),
-  GrowthArea('strategy', 'Strategy & business',
-      bar: 'Links product bets to revenue and ecosystem economics; speaks the P&L.',
-      ask: 'When I present a plan, how well do I connect it to the business?',
-      drills: [
-        Drill('Speak the P&L',
-            'Find what Business ID costs and earns (or its best proxy) and explain it in three lines.',
-            'You answer "what\'s it worth?" without looking anything up.'),
-        Drill('Ecosystem map',
-            'Draw how Business ID creates value for two other Bir or PASHA businesses.',
-            'Someone else uses your map.'),
-        Drill('Bet memo',
-            'One page: the opportunity, how big, why now, and what you would stop doing for it.',
-            'Ali or Rustam asks a follow-up question.'),
-        Drill('Read the numbers',
-            'Read one peer bank\'s annual report or investor deck. Three takeaways for Business ID.',
-            'You use one in a meeting.'),
-        Drill('Trade-off out loud',
-            'In one roadmap discussion, state the trade-off in money or time.',
-            'The decision refers to it.'),
-      ]),
-  GrowthArea('communication', 'Executive communication',
-      bar: 'BLUF by default; calm in the room; writes PR/FAQs that change minds.',
-      ask: 'In my updates to you, what should I cut and what should I lead with?',
-      drills: [
-        Drill('BLUF rewrite',
-            'Rewrite your longest message of the week as BLUF before sending: decision, three reasons, ask, deadline.',
-            'The reply comes faster than usual.'),
-        Drill('Two-minute version',
-            'Record yourself explaining your current project in two minutes. Listen once, record again.',
-            'The second take is shorter and calmer.'),
-        Drill('PR/FAQ',
-            'Write the press release and five FAQs for a feature before it\'s built.',
-            'It changes a decision.'),
-        Drill('Pause in the room',
-            'In the next senior meeting, one breath before every answer. Count them.',
-            'Three or more deliberate pauses.'),
-        Drill('Hard question first',
-            'Open your next update with the question you least want asked — and answer it.',
-            'No ambush.'),
-      ]),
-  GrowthArea('self_trust', 'Self-trust',
-      personal: true,
-      bar: 'Owns wins out loud, asks for help without shame, speaks from position — not permission.',
-      ask: 'When do I undersell what I\'ve done?',
-      drills: [
-        Drill('Say the win',
-            'Tell Ali one thing you shipped this week, plainly — no "just", no "only".',
-            'You said it without a qualifier.'),
-        Drill('Ask in the first hour',
-            'The Soloist waits. When you\'re stuck this week, ask someone within the first hour.',
-            'You asked before the end of the day.'),
-        Drill('Ship at 80%',
-            'The Expert polishes. Send one piece of work at 80% that you would normally keep polishing.',
-            'Nobody asks for the missing 20%.'),
-        Drill('Read the evidence',
-            'Monday, before the first meeting: read the Evidence Archive.',
-            'You remember one item when the doubt shows up.'),
-        Drill('Name the voice',
-            'When the "fraud" thought shows up, write it down with the evidence against it.',
-            'You caught it twice this week.'),
-      ]),
-  GrowthArea('composure', 'Composure under pressure',
-      personal: true,
-      bar: 'Calm before executive meetings; what you know stays available when it matters.',
-      ask: 'How do I come across in tense meetings?',
-      drills: [
-        Drill('Prepare the six',
-            'Six questions deep before your next meeting with Ali or Rustam.',
-            'One of your six gets asked.'),
-        Drill('Sigh, then speak',
-            'Physiological sigh ×3 before every pressure moment this week.',
-            'You did it before each one.'),
-        Drill('Say "I am excited"',
-            'Before the hardest conversation of the week, say it out loud.',
-            'You noticed the energy as fuel, not threat.'),
-        Drill('Rehearse the opening',
-            'Say your first two sentences out loud before the meeting starts.',
-            'The opening came out as planned.'),
-        Drill('After-action',
-            'After a meeting that went badly: what happened, what you told yourself, what you\'ll do next time.',
-            'You wrote it the same day.'),
-      ]),
-  GrowthArea('presence', 'Public voice',
-      personal: true,
-      bar: 'A visible point of view: a LinkedIn that fits the role you\'re growing into, regular posts, one talk a year.',
-      ask: 'What should people outside the team know me for?',
-      drills: [
-        Drill('Headline',
-            'Rewrite your LinkedIn headline for the role you\'re growing into.',
-            'It no longer describes the old job.'),
-        Drill('One post',
-            'Publish one lesson from building Business ID — no confidential detail. Hook, insight, example, question.',
-            'It\'s published.'),
-        Drill('Comment with substance',
-            'Leave three thoughtful comments on posts by product leaders you respect.',
-            'One of them replies.'),
-        Drill('Teach it',
-            'Offer the team a 15-minute lunch talk on a framework you use (BLUF, OST, six questions).',
-            'Someone uses it the week after.'),
-        Drill('Show the work',
-            'Share this month\'s artifact with a wider audience than usual.',
-            'Someone outside the team responds.'),
-      ]),
-];
+List<GrowthArea> get growthAreas => plan.growthAreas;
 
 /// Values to choose from; he picks 3–5 and says what each means to him.
 const valueOptions = [
@@ -1710,7 +741,9 @@ List<String> levelsOf(GrowthArea area) {
 }
 
 GrowthArea growthArea(String id) =>
-    growthAreas.firstWhere((a) => a.id == id, orElse: () => growthAreas.first);
+    growthAreas.where((a) => a.id == id).firstOrNull ??
+    growthAreas.firstOrNull ??
+    const GrowthArea('none', 'Your area', bar: '', ask: '', drills: []);
 
 // ------------------------------------------------------------
 // Automaticity — monthly "is it a habit yet?"
@@ -1718,9 +751,4 @@ GrowthArea growthArea(String id) =>
 
 /// Reminder that exists only to prompt a Daily 10 item; switched off once
 /// the item is automatic.
-const Map<String, String> itemReminder = {
-  'scan': 'scan',
-  'read': 'read',
-  'caffeine': 'caffeine',
-  'bed': 'bed',
-};
+Map<String, String> get itemReminder => plan.itemReminder;

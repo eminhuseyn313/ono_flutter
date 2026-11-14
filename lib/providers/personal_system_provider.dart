@@ -143,6 +143,10 @@ class PersonalSystemProvider extends ChangeNotifier {
     // Their reminders and one-off nudges stop with them: the next person
     // to sign in here mustn't get them, nor see their numbers on the
     // Home Screen widget.
+    // Their plan and profile leave with them.
+    planOverride = null;
+    _appliedPlanData = null;
+    setProfileOverride(null);
     _widgetTimer?.cancel();
     _widgets?.clear();
     _reminders?.sync(const []);
@@ -1426,7 +1430,10 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   /// Whether the built-in person is using ONO (their content — seed cards,
   /// gym plan, schedule — only applies to them).
-  bool get isBuiltInPerson => activeProfile.name == builtInProfile.name;
+  /// A full plan is loaded and the profile in use is its person's (someone
+  /// else who signs in, or a new name in the plan builder, gets the
+  /// general app built from their own set-up).
+  bool get isBuiltInPerson => plan.isPersonal && activeProfile.name == builtInProfile.name;
 
   /// Seed cards (built-in person only), one card per Feynman note, lesson,
   /// applied principle and value, and your own cards. Retrieval keeps what
@@ -3556,8 +3563,65 @@ class PersonalSystemProvider extends ChangeNotifier {
   bool get profileEdited => _profileLog != null;
 
   void _applyProfile() {
+    _applyPlan();
     final l = _profileLog;
     setProfileOverride(l == null ? null : Profile.fromJson(l.data));
+  }
+
+  // ── A person's full plan ─────────────────────────────────────────────
+
+  static const planLogId = 'personal_plan';
+
+  LogEntry? get _planLog => logsOf('personal_plan').firstOrNull;
+  Object? _appliedPlanData;
+
+  /// The plan stored in their data (one `personal_plan` log with a fixed
+  /// id, so it syncs, exports and imports like everything else) becomes
+  /// the plan every screen reads; without one, the general app.
+  void _applyPlan() {
+    final data = _planLog?.data['plan'];
+    if (identical(data, _appliedPlanData) && (data != null || planOverride == null)) return;
+    _appliedPlanData = data;
+    planOverride = data is Map ? PlanContent.fromJson(data) : null;
+  }
+
+  /// A full plan is loaded (theirs, imported or set up for them).
+  bool get hasPersonalPlan => _planLog != null;
+
+  /// Stores [p] as their plan (null removes it: back to the general app).
+  /// Their own items, areas, cards and logs are never touched.
+  void setPersonalPlan(PlanContent? p) {
+    final l = _planLog;
+    if (p == null) {
+      if (l != null) removeLog(l.id);
+    } else if (l == null) {
+      addLog('personal_plan', id: planLogId, text: p.profile?.name ?? '', data: {'plan': p.toJson()});
+    } else {
+      updateLog(l.copyWith(text: p.profile?.name ?? '', data: {'plan': p.toJson()}));
+    }
+    _applyProfile();
+    resyncReminders();
+    notifyListeners();
+  }
+
+  /// [text] is a plan file's contents; false when it isn't one.
+  bool importPlanText(String text) {
+    try {
+      final m = jsonDecode(text);
+      if (m is! Map || m['format'] == null || m['profile'] is! Map) return false;
+      final p = PlanContent.fromJson(m);
+      if (!p.isPersonal) return false;
+      setPersonalPlan(p);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Their plan as a file's contents, or null without one.
+  String? planText() {
+    final data = _planLog?.data['plan'];
+    return data == null ? null : const JsonEncoder.withIndent('  ').convert(data);
   }
 
   /// Saves an edited profile; every screen and the coach read it from now.

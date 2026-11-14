@@ -59,10 +59,10 @@ FakeCalendarService _calendar() {
         attendees: const ['Leyla', 'Tural', 'Nigar']),
     Meeting(
         id: 'ali',
-        title: '1:1 Ali — pricing proposal for agent permissions and KYC v2 roadmap',
+        title: '1:1 Jordan — pricing proposal for agent permissions and KYC v2 roadmap',
         start: soon,
         end: soon.add(const Duration(minutes: 45)),
-        attendees: const ['Ali Mammadov', 'Emin Huseynzade']),
+        attendees: const ['Jordan Mammadov', 'Alex Morgan']),
   ]);
 }
 
@@ -251,10 +251,10 @@ void main() {
       // Career cockpit, deck and habit state, so their screens and Today's
       // prompt cards render with real content.
       system.addOneOnOne(
-          withWhom: 'Ali',
-          decided: 'Business ID pricing goes to the board in November',
+          withWhom: 'Jordan',
+          decided: 'Merchant ID pricing goes to the board in November',
           followUps: [
-            'Draft the PR/FAQ for agent permissions and share it with Rustam',
+            'Draft the PR/FAQ for agent permissions and share it with Casey',
             'Book the review'
           ]);
       system.clock = () => timeNow().minusDays(95);
@@ -280,21 +280,21 @@ void main() {
       // A letter that opened today and one sealed until day 540, plus a
       // deep-work block, so Today, /letters and /focus render them.
       system.clock = () => timeNow().minusDays(30);
-      system.writeLetter('Remember why you started: the room at PASHA where '
+      system.writeLetter('Remember why you started: the room at Northwind where '
           'you decided to stop waiting to be noticed.', today);
       system.clock = timeNow;
       system.writeLetter('Day 540.', system.programEnd);
       system.logFocus(90, 'artifact');
       // A Big 3 with a long outcome, and people: one due, one fresh.
       system.setWeekOutcome(today, 0,
-          'Opportunity solution tree for entrepreneur integration reviewed by Ali and Rustam');
+          'Opportunity solution tree for entrepreneur integration reviewed by Jordan and Casey');
       system.setWeekOutcome(today, 1, 'KYC v2 scope signed off');
       system.toggleWeekOutcome(today, 1);
       system.clock = () => timeNow().minusDays(40);
       system.addPerson('Leyla Aliyeva-Huseynova',
-          role: 'Head of Product, Kapital Bank — one role ahead', every: 30);
+          role: 'Head of Product, Northwind Bank — one role ahead', every: 30);
       system.clock = timeNow;
-      final ali = system.addPerson('Ali', role: 'Manager', every: 7);
+      final ali = system.addPerson('Jordan', role: 'Manager', every: 7);
       system.setRitual(system.people.firstWhere((x) => x.id == ali.id),
           'Thursday walk-and-talk after the steering meeting, no laptops');
       system.logTouch(system.people.firstWhere((x) => x.id == ali.id), quality: 3);
@@ -305,7 +305,7 @@ void main() {
       system.clock = timeNow;
       // One area of his own, so the chooser shows "Your own areas" and the
       // editor has something to edit.
-      system.saveCustomArea(const GrowthArea('', 'Being present at home with my wife',
+      system.saveCustomArea(const GrowthArea('', 'Being present at home with my partner',
           bar: 'Phone away from 20:30; dinner is a conversation, not logistics.',
           ask: 'What would make you feel more supported this month?',
           personal: true,
@@ -360,8 +360,8 @@ void main() {
           question: 'How do you decide what not to build?')!;
       system.answerRoleModel(model.id, 'Write the trade-off down before the meeting');
       // A feedback round with one answer in and a theme.
-      final round = system.startRound(['Ali', 'Leyla Aliyeva-Huseynova']);
-      system.addRoundAnswer(round.id, 'Ali',
+      final round = system.startRound(['Jordan', 'Leyla Aliyeva-Huseynova']);
+      system.addRoundAnswer(round.id, 'Jordan',
           'Keep writing decisions down first. Change: decide in the room instead of after it.');
       // Energy ratings: mornings clearly ahead of afternoons.
       for (var i = 0; i < 3; i++) {
@@ -451,10 +451,10 @@ void main() {
           lane: 'skill', when: 'evening', cue: 'When I sit down at home → app open');
       // A self-coaching commitment due today: Today and /coach show it.
       system.logCoaching(
-          goal: 'Be seen as the owner of Business ID onboarding end to end',
-          reality: 'Ali hands it over piece by piece',
+          goal: 'Be seen as the owner of Merchant ID onboarding end to end',
+          reality: 'Jordan hands it over piece by piece',
           options: ['Ask directly in the 1:1', 'Write an ownership proposal'],
-          will: 'Send Ali a one-page ownership proposal before Thursday\'s 1:1',
+          will: 'Send Jordan a one-page ownership proposal before Thursday\'s 1:1',
           by: today,
           commitment: 8);
       await _pumpFor(tester, const Duration(milliseconds: 500));
@@ -568,12 +568,12 @@ void main() {
         system.setFocus('communication', startRating: 2);
         final area = system.focusArea()!;
         system.logRep(area, area.drills.first,
-            did: 'Rewrote the KYC v2 status note for Ali as BLUF',
+            did: 'Rewrote the KYC v2 status note for Jordan as BLUF',
             noticed: 'He replied in four minutes instead of the next day',
             lesson: 'Decision first means he can answer from his phone',
-            next: 'Draft every update to Ali as BLUF before anything else');
+            next: 'Draft every update to Jordan as BLUF before anything else');
         system.logFeedback(area,
-            from: 'Ali',
+            from: 'Jordan',
             said: 'Lead with the decision you need from me, not the history',
             action: 'First line of every update is the ask');
         await _go(tester, '/growth');
@@ -681,7 +681,7 @@ void main() {
           // 1:1s and decisions keep what was logged, but never his
           // readiness bar (his employer, his managers).
           if (r.startsWith('/cockpit')) {
-            for (final t in ['Readiness', 'Career cockpit', 'Ali and Rustam']) {
+            for (final t in ['Readiness', 'Career cockpit', 'Jordan and Casey']) {
               if (find.textContaining(t).evaluate().isNotEmpty) {
                 errors.add('$r shows "$t"');
               }
@@ -694,7 +694,7 @@ void main() {
           // None of the built-in plan's specifics show for someone else.
           // (Their daily items are the built-in ones here, so item titles
           // may appear; the built-in cards and strips must not.)
-          for (final t in ['Shoulder pain', 'Desk at 07:45', 'Face pulls', 'Lunch read', 'LinkedIn posts', 'Gym sessions', 'Scan · 07:45', 'Guavapay', 'Day 16', 'on the artifact', 'move the artifact', 'Business ID', 'Kaspi', '21:30', 'bed by 22:30', 'readiness', 'sleep, shoulders', 'navy merino', 'this month\'s book', currentBook(system.programMonth).title]) {
+          for (final t in ['Shoulder pain', 'Desk at 07:45', 'Face pulls', 'Lunch read', 'LinkedIn posts', 'Gym sessions', 'Scan · 07:45', 'Coinly', 'Day 16', 'on the artifact', 'move the artifact', 'Merchant ID', 'Kaspi', '21:30', 'bed by 22:30', 'readiness', 'sleep, shoulders', 'navy merino', 'this month\'s book', currentBook(system.programMonth).title]) {
             if (find.textContaining(t).evaluate().isNotEmpty) {
               errors.add('$r shows "$t"');
             }

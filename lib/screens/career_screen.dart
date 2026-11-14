@@ -102,27 +102,27 @@ class CareerScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        const _CopyBlock(
+        _CopyBlock(
           title: 'Headline',
           text: linkedinHeadline,
           doneKey: 'li:headline',
           doneLabel: 'Headline live',
         ),
-        const _CopyBlock(
+        _CopyBlock(
           title: 'About',
           text: linkedinAbout,
           doneKey: 'li:about',
           doneLabel: 'About section live',
           collapsed: true,
         ),
-        const _CopyBlock(
+        _CopyBlock(
           title: 'Current role',
           text: linkedinRole,
           doneKey: 'li:role',
           doneLabel: 'Role description live',
           collapsed: true,
         ),
-        const _CopyBlock(
+        _CopyBlock(
           title: 'First post — publish this week',
           text: linkedinFirstPost,
           doneKey: 'li:post1',
