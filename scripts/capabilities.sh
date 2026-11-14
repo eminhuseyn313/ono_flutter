@@ -5,6 +5,7 @@
 #   bash scripts/capabilities.sh apple on|off    Sign in with Apple
 #   bash scripts/capabilities.sh watch on|off    the Apple Watch app
 #   bash scripts/capabilities.sh status
+#   bash scripts/capabilities.sh ask             the launchers ask again
 #   bash scripts/capabilities.sh apply           re-apply (the launchers do this)
 # Choices live in ios/.capabilities (not in git), so updates never lose them.
 set -euo pipefail
@@ -60,6 +61,10 @@ case "${1:-status}" in
     esac
     apply ;;
   apply) apply ;;
+  ask)
+    # The launchers ask again next time (paid program, then the watch).
+    rm -f "$DIR/.asked-paid" "$DIR/.asked-watch"
+    echo "The next launcher run asks about the extras again." ;;
   status) echo "On: $(enabled | tr '\n' ' ')" ;;
-  *) echo "Usage: bash scripts/capabilities.sh health|widget|apple|watch on|off | status | apply" >&2; exit 2 ;;
+  *) echo "Usage: bash scripts/capabilities.sh health|widget|apple|watch on|off | status | apply | ask" >&2; exit 2 ;;
 esac

@@ -89,6 +89,40 @@ ask_capabilities_once() {
     [[ ! "$w" =~ ^[Nn] ]] && touch ios/.capabilities/watch
     touch ios/.capabilities/.asked-watch
   fi
-  [ "$asked" = 1 ] || return 0
-  bash scripts/capabilities.sh apply || say "Couldn't add them — continuing without."
+  if [ "$asked" = 1 ]; then
+    bash scripts/capabilities.sh apply || say "Couldn't add them — continuing without."
+  fi
+  show_capabilities
+}
+
+# Every run: which extras this build has, and how to change them.
+show_capabilities() {
+  local on=""
+  for c in health widget apple watch; do
+    [ -f "ios/.capabilities/$c" ] && on="$on $c"
+  done
+  echo
+  echo "Extras in this build:${on:- none}"
+  echo "  (change: bash scripts/capabilities.sh watch on|off — or health, widget, apple;"
+  echo "   ask the questions again: bash scripts/capabilities.sh ask)"
+}
+
+# Runs a build, keeping everything it prints in [log], and on failure shows
+# the lines that matter, so they can be copied and sent.
+run_logged() {
+  local log=$1; shift
+  mkdir -p build
+  set +e
+  "$@" 2>&1 | tee "$log"
+  local code=${PIPESTATUS[0]}
+  set -e
+  if [ "$code" != 0 ]; then
+    echo
+    echo "──── What went wrong (full log: $log) ────"
+    grep -E "error:|Error:|ERROR|failed|Failed|Signing|provisioning|ONOWatch|ONOWidget" "$log" \
+      | grep -v "^warning" | sort -u | head -25
+    echo "──────────────────────────────────────────"
+    echo "Copy the lines above (or send $log) to get it fixed."
+  fi
+  return "$code"
 }

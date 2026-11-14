@@ -18,11 +18,11 @@ rm -rf "$ARCHIVE" build/ios/testflight
 
 say "Building ONO (build $BUILD) for the App Store — 5–10 minutes…"
 # Flutter's own export step may stop at signing; the archive is what counts.
-flutter build ipa --release -t lib/main_production.dart --build-number "$BUILD" || true
+run_logged build/ios-testflight.log flutter build ipa --release -t lib/main_production.dart --build-number "$BUILD" || true
 [ -d "$ARCHIVE" ] || fail "The build didn't finish. Scroll up for the first error (often signing: open ios/Runner.xcworkspace → Runner → Signing & Capabilities and pick your paid team). If it names ONOWatch, run: bash scripts/capabilities.sh watch off"
 
 say "Uploading build $BUILD to App Store Connect…"
-if ! xcodebuild -exportArchive \
+if ! run_logged build/ios-upload.log xcodebuild -exportArchive \
     -archivePath "$ARCHIVE" \
     -exportOptionsPlist ios/ExportOptions-TestFlight.plist \
     -exportPath build/ios/testflight \
@@ -50,5 +50,7 @@ Apple processes it for 5–15 minutes (you get an email). Then:
   2. On the iPhone, install "TestFlight" from the App Store, open the invite,
      and install ONO. Updates arrive there after each upload.
 Your data stays on the phone and in your account; it moves across builds.
+Apple Watch: once ONO is installed from TestFlight, open the Watch app on the
+iPhone → Available Apps → ONO → Install (no Developer Mode needed).
 TXT
 read -r -p "Press Enter to close…" _

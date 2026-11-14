@@ -56,6 +56,13 @@ These need a paid team (a free Apple ID can't sign them). **ONO on iPhone** and 
 - `widget`: the Home and Lock Screen widget. It also carries the Lock Screen timer: a Live Activity counting down deep-work blocks, tool timers and rest between sets on the Lock Screen and in the Dynamic Island.
 - `apple`: Sign in with Apple.
 
+Each launcher run now prints which extras the build has ("Extras in this build: …"). `bash scripts/capabilities.sh ask` makes the next run ask again. If a build fails, the launcher prints the lines that matter and keeps the whole log in `build/ios-install.log` (TestFlight: `build/ios-testflight.log`, `build/ios-upload.log`).
+
+### Apple Watch
+Installing on the iPhone puts the watch app inside it; the watch gets it from the iPhone's **Watch** app → Available Apps → ONO → Install.
+- From **ONO on iPhone** (a development build), the watch needs Developer Mode: on the watch, Settings → Privacy & Security → Developer Mode → On. The switch appears only after the watch has met Xcode: watch unlocked, on its charger near the Mac, iPhone plugged in, then Xcode → Window → Devices and Simulators until the watch shows as ready (this can take several minutes the first time).
+- From **TestFlight** none of that is needed: install ONO from TestFlight, then Watch app → ONO → Install.
+
 Then once more: "Apple Watch app? [Y/n]" (`watch`): today's list to tick, the first of today's three and running timers on the wrist. It's asked on its own because it is another app to build: if a build error names ONOWatch, `bash scripts/capabilities.sh watch off` and the rest still installs.
 
 After installing: Me → Settings → **ONO around your iPhone** says where to add the "Today's list" widget, how to set ONO's Focus filter (Settings → Focus → Work → Focus Filters → ONO), and how to install the watch app (Watch app on the iPhone → ONO → Install).
@@ -71,8 +78,11 @@ If signing complains about a profile after switching them on: Xcode → Settings
 
 ### Sign in with Apple: one setting in Supabase
 The button calls Apple on the phone and hands Supabase the token, so no secret key is needed:
-1. Supabase → project Ono → Authentication → Sign In / Providers → **Apple** → Enable.
-2. Client IDs: `com.eminhuseynzade.ono`. Leave the secret key empty (it's only for sign-in on the web). Save.
+1. Open supabase.com/dashboard → project **Ono** → **Authentication** (left bar) → **Sign In / Providers** (older dashboards: Providers).
+2. Find **Apple** in the list and open it. Switch **Enable Sign in with Apple** on.
+3. **Client IDs**: `com.eminhuseynzade.ono` (exactly; this is the app's bundle ID). Leave **Secret Key (for OAuth)** empty: it's only for signing in on the web. Save.
+
+Until then the button says Sign in with Apple isn't switched on yet (the server log reads "Provider (issuer https://appleid.apple.com) is not enabled"). Nothing in the app needs rebuilding after you switch it on.
 
 Use the Apple ID whose email is your ONO email and choose **Share My Email**: Supabase then signs you in to the same account (same verified email). "Hide My Email" makes a separate, empty account. Until the provider is on, the button says Sign in with Apple isn't switched on yet.
 

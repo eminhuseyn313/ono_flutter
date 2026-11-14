@@ -26,7 +26,7 @@ echo "iPhone: $DEVICE"
 ask_capabilities_once
 
 say "Building a release version and installing it (5–10 minutes the first time)…"
-if ! flutter run --release -d "$DEVICE" -t lib/main_production.dart --no-resident; then
+if ! run_logged build/ios-install.log flutter run --release -d "$DEVICE" -t lib/main_production.dart --no-resident; then
   cat <<'EOF'
 
 The build was refused — almost always signing. Fix it once:
@@ -59,6 +59,12 @@ You can unplug the phone now; the app keeps working on its own.
 Sign in with your email: the web app (https://eminhuseyn313.github.io/ono_flutter/)
 uses the same account, and the two stay in sync. What was already on the phone
 moves into the first account you sign in with.
+Apple Watch (if it's in this build): on the iPhone open the Watch app →
+  scroll to "Available Apps" → ONO → Install. If ONO isn't listed or won't
+  install: on the watch, Settings → Privacy & Security → Developer Mode → On
+  (it appears once the watch has been connected to Xcode: keep it on its
+  charger near the Mac, unlocked, and open Xcode → Window → Devices and
+  Simulators until the watch shows as ready). TestFlight needs none of this.
 With a free Apple ID it runs for 7 days, then run this again (your data stays).
 With the paid program it lasts a year; for no cable at all, use "ONO to TestFlight".
 EOF
