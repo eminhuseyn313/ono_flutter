@@ -151,7 +151,7 @@ class _OutcomesState extends State<_Outcomes> {
               ),
             )
           else
-            const SizedBox(
+            SizedBox(
               width: 40,
               child: Center(
                 child: Icon(Icons.favorite_border_rounded,

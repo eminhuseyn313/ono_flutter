@@ -243,7 +243,7 @@ class _CommissionScreenState extends State<CommissionScreen> {
                     ),
                   ),
                   if (dateKey(_start) == dateKey(o.$2))
-                    const Icon(Icons.check_circle_rounded,
+                    Icon(Icons.check_circle_rounded,
                         color: AppColors.accent),
                 ],
               ),

@@ -125,7 +125,7 @@ class _RitualFlowScreenState extends State<RitualFlowScreen> {
                 tooltip: 'Close',
                 onPressed: () =>
                     context.canPop() ? context.pop() : context.go('/home'),
-                icon: const Icon(Icons.close_rounded, color: AppColors.grey),
+                icon: Icon(Icons.close_rounded, color: AppColors.grey),
               ),
               const SizedBox(width: 4),
               Expanded(

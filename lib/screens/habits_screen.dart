@@ -77,7 +77,7 @@ class _HabitsScreenState extends State<HabitsScreen> {
                       const SizedBox(width: 8),
                       Expanded(child: Text(n.title, style: AppText.heading())),
                       if (system.isAutomatic(n.id))
-                        const Tag('Automatic', color: AppColors.body),
+                        Tag('Automatic', color: AppColors.body),
                     ],
                   ),
                   const SizedBox(height: 4),

@@ -247,11 +247,13 @@ class _Mastery extends StatelessWidget {
       children: [
         Tag(masteryFor(uses), color: AppColors.accent),
         const SizedBox(width: 8),
-        Text(
-            next == null
-                ? '$uses uses — automatic'
-                : '$uses uses · ${next - uses} to the next level',
-            style: AppText.small()),
+        Expanded(
+          child: Text(
+              next == null
+                  ? '$uses uses — automatic'
+                  : '$uses uses · ${next - uses} to the next level',
+              style: AppText.small()),
+        ),
       ],
     );
   }

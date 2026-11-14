@@ -260,7 +260,7 @@ class _LogScreenState extends State<LogScreen> {
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
     if (!system.isLoaded) {
-      return const Scaffold(backgroundColor: AppColors.background);
+      return Scaffold(backgroundColor: AppColors.background);
     }
     // Apple Health syncs a sleep and a vitals entry every day; they live
     // under Body so the main timeline stays about what you did.
@@ -489,7 +489,7 @@ class _LogScreenState extends State<LogScreen> {
                     direction: DismissDirection.endToStart,
                     background: Container(
                       alignment: Alignment.centerRight,
-                      child: const Icon(Icons.delete_outline_rounded,
+                      child: Icon(Icons.delete_outline_rounded,
                           color: AppColors.danger),
                     ),
                     confirmDismiss: (_) => _confirmDelete(

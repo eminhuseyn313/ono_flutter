@@ -130,9 +130,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
     if (!system.isLoaded || !system.isCommissioned) {
-      return const Scaffold(
+      return Scaffold(
         backgroundColor: AppColors.background,
-        body: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+        body: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
       );
     }
 
@@ -927,7 +927,7 @@ class _FreshStartCard extends StatelessWidget {
                 tooltip: 'Dismiss',
                 visualDensity: VisualDensity.compact,
                 onPressed: () => system.setDone(fs.key, true),
-                icon: const Icon(Icons.close_rounded,
+                icon: Icon(Icons.close_rounded,
                     size: 18, color: AppColors.grey),
               ),
             ],
@@ -1927,7 +1927,7 @@ class _PromptsState extends State<_Prompts> {
               ),
             ),
             if (route.isNotEmpty)
-              const Icon(Icons.chevron_right_rounded, color: AppColors.grey),
+              Icon(Icons.chevron_right_rounded, color: AppColors.grey),
           ],
         ),
       );
@@ -2022,7 +2022,7 @@ class _CheckinCard extends StatelessWidget {
           onTap: () => context.push('/checkin'),
           child: Row(
             children: [
-              const IconTile(Icons.wb_twilight_rounded,
+              IconTile(Icons.wb_twilight_rounded,
                   color: AppColors.body, size: 40),
               const SizedBox(width: 12),
               Expanded(
@@ -2038,7 +2038,7 @@ class _CheckinCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right_rounded, color: AppColors.grey),
+              Icon(Icons.chevron_right_rounded, color: AppColors.grey),
             ],
           ),
         ),

@@ -269,7 +269,7 @@ class _LearningScreenState extends State<LearningScreen> {
                     }
                     system.removeLearning(l.id);
                   },
-                  icon: const Icon(Icons.close_rounded, size: 16, color: AppColors.faint),
+                  icon: Icon(Icons.close_rounded, size: 16, color: AppColors.faint),
                 ),
               ],
             ),

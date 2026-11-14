@@ -6,7 +6,8 @@ import SwiftUI
 import WatchConnectivity
 import WatchKit
 
-private let accent = Color(red: 0.784, green: 0.537, blue: 0.290)
+// The app's accent as it looks in dark appearance (the watch is always dark).
+private let accent = Color(red: 0.486, green: 0.769, blue: 0.627)
 
 struct WatchItem: Identifiable, Codable, Hashable {
   let id: String

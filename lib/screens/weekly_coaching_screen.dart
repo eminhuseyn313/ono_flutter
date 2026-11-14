@@ -172,7 +172,7 @@ class _WeeklyCoachingScreenState extends State<WeeklyCoachingScreen> {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                const Icon(Icons.check_circle_rounded,
+                Icon(Icons.check_circle_rounded,
                     color: AppColors.body),
                 const SizedBox(width: 12),
                 Expanded(

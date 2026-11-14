@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -43,7 +44,7 @@ class OnoApp extends StatefulWidget {
   State<OnoApp> createState() => _OnoAppState();
 }
 
-class _OnoAppState extends State<OnoApp> {
+class _OnoAppState extends State<OnoApp> with WidgetsBindingObserver {
   late final AuthProvider _auth;
   late final PersonalSystemProvider _system;
   late final GoRouter _router;
@@ -51,6 +52,8 @@ class _OnoAppState extends State<OnoApp> {
   @override
   void initState() {
     super.initState();
+    // Light or dark follows the iPhone's appearance, live.
+    WidgetsBinding.instance.addObserver(this);
     _auth = AuthProvider(gateway: widget.authGateway);
     _system = PersonalSystemProvider(
       gateway: widget.personalGateway,
@@ -119,6 +122,7 @@ class _OnoAppState extends State<OnoApp> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _lifecycle.dispose();
     _auth.removeListener(_onAuth);
     _auth.dispose();
@@ -128,7 +132,13 @@ class _OnoAppState extends State<OnoApp> {
   }
 
   @override
+  void didChangePlatformBrightness() => setState(() {});
+
+  @override
   Widget build(BuildContext context) {
+    final dark =
+        WidgetsBinding.instance.platformDispatcher.platformBrightness == Brightness.dark;
+    AppColors.dark = dark;
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<AuthProvider>.value(value: _auth),
@@ -137,16 +147,24 @@ class _OnoAppState extends State<OnoApp> {
       child: MaterialApp.router(
         title: 'ONO',
         debugShowCheckedModeBanner: false,
-        theme: AppTheme.dark,
+        theme: AppTheme.light,
         darkTheme: AppTheme.dark,
-        themeMode: ThemeMode.dark,
+        themeMode: dark ? ThemeMode.dark : ThemeMode.light,
         routerConfig: _router,
         // The iPhone number pad has no Return key: tapping outside a field
         // is the only way to close it.
         builder: (context, child) => GestureDetector(
           behavior: HitTestBehavior.translucent,
           onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-          child: PhoneFrame(child: child ?? const SizedBox()),
+          // Screens read AppColors as they build: a new appearance builds
+          // them afresh. Status bar icons follow it too.
+          child: AnnotatedRegion<SystemUiOverlayStyle>(
+            value: dark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+            child: KeyedSubtree(
+              key: ValueKey(dark),
+              child: PhoneFrame(child: child ?? const SizedBox()),
+            ),
+          ),
         ),
       ),
     );

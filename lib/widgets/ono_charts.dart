@@ -408,10 +408,12 @@ Color heatColor(int? score, {bool onNavy = false}) {
         ? AppColors.navyLight.withValues(alpha: 0.45)
         : AppColors.card;
   }
-  if (score == 0) return onNavy ? const Color(0xFF2A3546) : AppColors.cardLight;
-  if (score <= 4) return const Color(0xFF4A3524);
-  if (score <= 6) return const Color(0xFF7A5230);
-  if (score <= 8) return const Color(0xFFA86D35);
+  if (score == 0) return onNavy ? AppColors.navyLight : AppColors.cardLight;
+  // Steps of the accent, so the grid reads in light and dark alike.
+  final base = onNavy ? AppColors.navyLight : AppColors.card;
+  if (score <= 4) return Color.alphaBlend(AppColors.accent.withValues(alpha: 0.28), base);
+  if (score <= 6) return Color.alphaBlend(AppColors.accent.withValues(alpha: 0.52), base);
+  if (score <= 8) return Color.alphaBlend(AppColors.accent.withValues(alpha: 0.76), base);
   return AppColors.accent;
 }
 
@@ -486,7 +488,8 @@ class TrendLine extends StatelessWidget {
   final List<({DateTime x, double y})> points;
   final double? bandLow;
   final double? bandHigh;
-  final Color color;
+  final Color? color;
+  Color get _color => color ?? AppColors.body;
   final double height;
   final String unit;
 
@@ -499,7 +502,7 @@ class TrendLine extends StatelessWidget {
     required this.points,
     this.bandLow,
     this.bandHigh,
-    this.color = AppColors.body,
+    this.color,
     this.height = 140,
     this.unit = '',
     this.format,
@@ -514,7 +517,7 @@ class TrendLine extends StatelessWidget {
         height: height,
         width: double.infinity,
         child: CustomPaint(
-          painter: _TrendPainter(points, bandLow, bandHigh, color, unit, format),
+          painter: _TrendPainter(points, bandLow, bandHigh, _color, unit, format),
         ),
       ),
     );

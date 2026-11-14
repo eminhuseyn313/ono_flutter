@@ -522,7 +522,7 @@ class _RememberScreenState extends State<RememberScreen> {
                     if (i > 0) const Divider(indent: 16),
                     ListTile(
                       title: Text(r.text, style: AppText.heading()),
-                      trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.faint),
+                      trailing: Icon(Icons.chevron_right_rounded, color: AppColors.faint),
                       onTap: () => context.push('/remember?id=${r.id}'),
                     ),
                   ],

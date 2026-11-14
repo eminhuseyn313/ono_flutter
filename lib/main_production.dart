@@ -33,11 +33,9 @@ void main() async {
     publishableKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtrZ2tiZnh2b3ZydG1ub2V6Y2hhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU4NzA0NDMsImV4cCI6MjEwMTQ0NjQ0M30.d_a-m0D73Bv_mCcvgopurhI0axvHQj3Ng26A4tedhIk',
   );
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.light,
-    statusBarBrightness: Brightness.dark,
-  ));
+  // Icons follow the appearance (OnoApp); only the colour is set here.
+  SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(statusBarColor: Colors.transparent));
 
   final client = Supabase.instance.client;
   runApp(OnoApp(

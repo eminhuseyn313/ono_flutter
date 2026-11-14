@@ -73,19 +73,17 @@ Services: ReminderService (local notifications), BriefGenerator (weekly brief)
 - Every route a piece of content points to (`NonNegotiable.route`, `ReminderDef.route`, `Unlock.route`) must exist. The smoke test resolves each one.
 
 ### Theme
-`lib/theme/app_theme.dart`: `AppColors`, `AppText`, `AppSpace`, radius 16. Charcoal surfaces, ivory text, one cognac accent, navy for journey surfaces. Dark only.
+`lib/theme/app_theme.dart`: `AppColors`, `AppText`, `AppSpace`, radius 16. **Calm light** (Emin's choice, 14 Nov 2026): warm white surfaces, ink text, one deep green accent; a matching dark palette follows the iPhone's appearance (`OnoApp` sets `AppColors.dark` from the platform brightness, `didChangePlatformBrightness` rebuilds, `KeyedSubtree(ValueKey(dark))` rebuilds even const subtrees, and the status bar icons follow). Every `AppColors.x` is a getter for the current appearance, so colors are not constants: never use them in `const` expressions or as default parameter values (take `Color?` and fall back inside, e.g. `_color => color ?? AppColors.accent`). `white` means the main text color and `ink` text on the accent (names kept from the first palette).
 
 ```dart
-AppColors.background 0xFF0B0C0E · card 0xFF14161A · cardLight 0xFF1B1E23 · divider 0xFF24272D
-AppColors.accent (= purple) 0xFFC8894A · accentPressed 0xFFA86D35 · ink 0xFF0B0C0E (text on accent)
-AppColors.navy 0xFF18222F · navyLight 0xFF223042 · white 0xFFF3EFE7 · grey 0xFFA39E95 · faint 0xFF8E8980
-AppColors.mind 0xFF8FA3C8 · body 0xFF86B49A · skill 0xFF6FAFB3 · social 0xFFC49AC0 · AppColors.lane('mind')
+//                 light      dark
+background        F7F5F1     111413   · card FFFFFF / 191D1B · cardLight EFECE6 / 222724 · divider E6E1D8 / 2A302D
+accent            2F6B4F     7CC4A0   · accentSoft (links) · accentDeep (tints) · accentPressed · ink FFFFFF / 0E1210
+white (text)      1C1B19     EDF0EE   · grey 6B665E / 9EA6A1 · greyLight 3D3A35 / CDD3CF · faint 716C63 / 8E9792
+navy (hero bands) EAF1EC     18201D   · lanes mind/body/skill/social darker in light (5B78B0, 4F8F6B, 3E8A8F, 9A6797)
 ```
 
-Type:
-- Display and section titles use **Instrument Serif**: `AppText.display()`, `title()`, `serif(size:)`.
-- UI text uses **Plus Jakarta Sans**: `heading`, `body`, `small`, `eyebrow`, `number`.
-- Both fonts are bundled in `assets/google_fonts/`, so runtime fetching is off.
+Type: **Inter** throughout (`assets/google_fonts/Inter-*.ttf`, from the official release; runtime fetching is off): `display()` 34/700, `title()` 25/700, `serif(size:)` (name kept; Inter 600 for quotes and hero numbers), `heading`, `body`, `small`, `eyebrow`, `number` (tabular). The iPhone widgets and Lock Screen timer use the same palette with light/dark variants (`Color.ono(light, dark)` in `ONOWidget.swift`); the watch uses the dark accent; the launch screen uses the `LaunchBackground` color asset (light/dark); the web page's background and theme color follow `prefers-color-scheme`. After changing fonts, delete `build/unit_test_assets` (tests keep a stale copy). `ONO_DARK=1 flutter test …` runs the suite in dark appearance.
 
 Shared widgets:
 - `lib/widgets/ono_ui.dart`: `OnoPage`, `OnoCard`, `SectionHeader`, `CheckRow` (with haptics), `PrimaryButton`, `GhostButton`, `Segmented`, `StatTile`, `LinkRow`, `toast`, …

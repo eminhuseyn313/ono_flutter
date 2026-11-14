@@ -68,7 +68,7 @@ class _MonthScreenState extends State<MonthScreen> {
             color: AppColors.navy,
             child: Row(
               children: [
-                const Icon(Icons.lock_clock_outlined,
+                Icon(Icons.lock_clock_outlined,
                     color: AppColors.grey),
                 const SizedBox(width: 12),
                 Expanded(
@@ -268,7 +268,7 @@ class LinkRowLite extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 12),
           child: Row(
             children: [
-              const Icon(Icons.arrow_outward_rounded,
+              Icon(Icons.arrow_outward_rounded,
                   size: 18, color: AppColors.accent),
               const SizedBox(width: 16),
               Expanded(

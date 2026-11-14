@@ -1,53 +1,59 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// ONO "Architect" palette.
+/// ONO's palette: calm light (warm white, ink text, one deep green accent)
+/// and its dark counterpart, following the iPhone's appearance (Emin's
+/// choice, 14 Nov 2026). [dark] is set by the app from the platform
+/// brightness; every color below reads it, so screens keep using
+/// `AppColors.x` and get the right one.
 ///
-/// Built from Emin's own style system: charcoal and ink surfaces, ivory
-/// text, one warm cognac accent (the brown loafers), steel navy as the
-/// secondary (the navy blazer). Quiet, high-contrast, no neon.
-///
-/// Field names are kept from the original palette so every screen picks up
-/// the new look; `purple*` is now the cognac accent family and `cyan` is the
-/// steel-blue secondary. Prefer the semantic aliases ([accent], [ink], …) in
-/// new code.
+/// `white` is "the main text color" and `ink` "text on the accent" — names
+/// kept from the first palette so every screen follows.
 class AppColors {
-  static const Color background = Color(0xFF0B0C0E);
-  static const Color card = Color(0xFF14161A);
-  static const Color cardLight = Color(0xFF1B1E23);
-  static const Color purple = Color(0xFFC8894A);
-  static const Color purpleSoft = Color(0xFFE8C9A3);
-  static const Color purpleDark = Color(0xFF4A2F18);
-  static const Color cyan = Color(0xFF7C9CC4);
-  static const Color green = Color(0xFF86B49A);
-  static const Color white = Color(0xFFF3EFE7);
-  static const Color grey = Color(0xFFA39E95);
-  static const Color greyLight = Color(0xFFD3CEC5);
-  static const Color success = Color(0xFF86B49A);
-  static const Color warning = Color(0xFFE2B354);
-  static const Color divider = Color(0xFF24272D);
+  /// Set by the app (OnoApp) from the iPhone's appearance.
+  static bool dark = false;
+
+  static Color _p(int light, int darkValue) => Color(dark ? darkValue : light);
+
+  static Color get background => _p(0xFFF7F5F1, 0xFF111413);
+  static Color get card => _p(0xFFFFFFFF, 0xFF191D1B);
+  static Color get cardLight => _p(0xFFEFECE6, 0xFF222724);
+  static Color get purple => accent;
+  static Color get purpleSoft => accentSoft;
+  static Color get purpleDark => accentDeep;
+  static Color get cyan => steel;
+  static Color get green => _p(0xFF3F7D5C, 0xFF86B49A);
+  static Color get white => _p(0xFF1C1B19, 0xFFEDF0EE);
+  static Color get grey => _p(0xFF6B665E, 0xFF9EA6A1);
+  static Color get greyLight => _p(0xFF3D3A35, 0xFFCDD3CF);
+  static Color get success => green;
+  static Color get warning => _p(0xFF9A6410, 0xFFE2B354);
+  static Color get divider => _p(0xFFE6E1D8, 0xFF2A302D);
 
   // ── Semantic aliases ──
-  /// Cognac — reserved for "now", "you" and the one primary action.
-  static const Color accent = purple;
-  static const Color accentSoft = purpleSoft;
-  static const Color accentDeep = purpleDark;
-  static const Color accentPressed = Color(0xFFA86D35);
-  static const Color steel = cyan;
+  /// Deep green — reserved for "now", "you" and the one primary action.
+  static Color get accent => _p(0xFF2F6B4F, 0xFF7CC4A0);
+  /// A lighter accent for links and highlights on the background.
+  static Color get accentSoft => _p(0xFF3C7F5E, 0xFFB9E2CC);
+  /// A tint of the accent behind chips, glows and selected rows.
+  static Color get accentDeep => _p(0xFFE3EFE7, 0xFF1F3A2D);
+  static Color get accentPressed => _p(0xFF24543E, 0xFF63A985);
+  static Color get steel => _p(0xFF4C6E91, 0xFF8AA8D6);
 
-  /// Navy from the wardrobe — hero bands (Day Dial, Spine).
-  static const Color navy = Color(0xFF18222F);
-  static const Color navyLight = Color(0xFF223042);
-  static const Color ink = Color(0xFF0B0C0E);
-  // 5.2:1 on card, 4.6:1 on navy: readable when it carries words.
-  static const Color faint = Color(0xFF8E8980);
-  static const Color danger = Color(0xFFE0605A);
+  /// Hero bands (Day Dial, Spine).
+  static Color get navy => _p(0xFFEAF1EC, 0xFF18201D);
+  static Color get navyLight => _p(0xFFDCE8E0, 0xFF213029);
+  /// Text and icons on the accent.
+  static Color get ink => _p(0xFFFFFFFF, 0xFF0E1210);
+  /// Quiet text that still reads (≥ 4.5:1 on cards).
+  static Color get faint => _p(0xFF716C63, 0xFF8E9792);
+  static Color get danger => _p(0xFFB83A34, 0xFFE0605A);
 
   // ── Lane colors (one map, used everywhere) ──
-  static const Color mind = Color(0xFF8FA3C8);
-  static const Color body = Color(0xFF86B49A);
-  static const Color skill = Color(0xFF6FAFB3);
-  static const Color social = Color(0xFFC49AC0);
+  static Color get mind => _p(0xFF5B78B0, 0xFF8FA3C8);
+  static Color get body => _p(0xFF4F8F6B, 0xFF86B49A);
+  static Color get skill => _p(0xFF3E8A8F, 0xFF6FAFB3);
+  static Color get social => _p(0xFF9A6797, 0xFFC49AC0);
 
   static Color lane(String lane) {
     switch (lane.toLowerCase()) {
@@ -65,24 +71,6 @@ class AppColors {
   }
 }
 
-/// Light-mode equivalents — screens that use AppColors directly
-/// should check `Theme.of(context).brightness` where it matters,
-/// but the bulk of the palette adapts through the ThemeData below.
-class AppColorsLight {
-  static const Color background = Color(0xFFF6F3EE);
-  static const Color card = Color(0xFFFFFFFF);
-  static const Color cardLight = Color(0xFFEFEAE2);
-  static const Color purple = Color(0xFFA86D35);
-  static const Color purpleSoft = AppColors.purpleSoft;
-  static const Color purpleDark = AppColors.purpleDark;
-  static const Color white = Color(0xFF1B1D22); // text becomes dark
-  static const Color grey = Color(0xFF6E6A63);
-  static const Color greyLight = Color(0xFF3F3C37);
-  static const Color success = Color(0xFF4F8A6A);
-  static const Color warning = Color(0xFFB8862A);
-  static const Color divider = Color(0xFFE2DCD2);
-}
-
 /// Shared spacing / radius tokens.
 class AppSpace {
   static const double gutter = 20;
@@ -90,104 +78,98 @@ class AppSpace {
   static const double radiusSm = 12;
 }
 
-/// Type scale. Instrument Serif carries the voice (titles, manifesto, hero
-/// numbers); Plus Jakarta Sans carries the interface.
+/// Type scale: Inter throughout — bold, tight titles and plain, readable
+/// text (Emin's choice, 14 Nov 2026).
 class AppText {
-  static TextStyle display({Color color = AppColors.white}) =>
-      GoogleFonts.instrumentSerif(
-        color: color,
-        fontSize: 40,
-        height: 1.05,
-        letterSpacing: -0.4,
+  static TextStyle display({Color? color}) => GoogleFonts.inter(
+        color: color ?? AppColors.white,
+        fontSize: 34,
+        height: 1.1,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.8,
       );
 
-  static TextStyle title({Color color = AppColors.white}) =>
-      GoogleFonts.instrumentSerif(
-        color: color,
-        fontSize: 28,
-        height: 1.15,
+  static TextStyle title({Color? color}) => GoogleFonts.inter(
+        color: color ?? AppColors.white,
+        fontSize: 25,
+        height: 1.2,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.5,
       );
 
-  /// Serif at any size, for quotes and hero numbers.
+  /// For quotes and hero numbers (the name is kept from the first type
+  /// scale): Inter at any size, semibold.
   static TextStyle serif(
-          {Color color = AppColors.white,
-          double size = 22,
-          FontStyle style = FontStyle.normal}) =>
-      GoogleFonts.instrumentSerif(
-        color: color,
-        fontSize: size,
-        height: 1.25,
+          {Color? color, double size = 22, FontStyle style = FontStyle.normal}) =>
+      GoogleFonts.inter(
+        color: color ?? AppColors.white,
+        fontSize: size * 0.9,
+        height: 1.3,
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.2,
         fontStyle: style,
       );
 
-  static TextStyle heading({Color color = AppColors.white}) =>
-      GoogleFonts.plusJakartaSans(
-        color: color,
-        fontSize: 16.5,
+  static TextStyle heading({Color? color}) => GoogleFonts.inter(
+        color: color ?? AppColors.white,
+        fontSize: 16,
         height: 1.3,
         fontWeight: FontWeight.w600,
-        letterSpacing: -0.1,
+        letterSpacing: -0.15,
       );
 
-  static TextStyle body({Color color = AppColors.greyLight}) =>
-      GoogleFonts.plusJakartaSans(
-        color: color,
-        fontSize: 15.5,
+  static TextStyle body({Color? color}) => GoogleFonts.inter(
+        color: color ?? AppColors.greyLight,
+        fontSize: 15,
         height: 1.5,
         fontWeight: FontWeight.w400,
       );
 
-  static TextStyle small({Color color = AppColors.grey}) =>
-      GoogleFonts.plusJakartaSans(
-        color: color,
+  static TextStyle small({Color? color}) => GoogleFonts.inter(
+        color: color ?? AppColors.grey,
         fontSize: 13,
         height: 1.4,
         fontWeight: FontWeight.w500,
       );
 
   /// Uppercase eyebrow label above sections. Use sparingly.
-  static TextStyle eyebrow({Color color = AppColors.grey}) =>
-      GoogleFonts.plusJakartaSans(
-        color: color,
+  static TextStyle eyebrow({Color? color}) => GoogleFonts.inter(
+        color: color ?? AppColors.grey,
         fontSize: 11,
         fontWeight: FontWeight.w600,
-        letterSpacing: 1.3,
+        letterSpacing: 1.1,
       );
 
-  static TextStyle number({Color color = AppColors.white, double size = 28}) =>
-      GoogleFonts.plusJakartaSans(
-        color: color,
+  static TextStyle number({Color? color, double size = 28}) => GoogleFonts.inter(
+        color: color ?? AppColors.white,
         fontSize: size,
-        fontWeight: FontWeight.w600,
+        fontWeight: FontWeight.w700,
         letterSpacing: -0.6,
         fontFeatures: const [FontFeature.tabularFigures()],
       );
 }
 
 class AppTheme {
-  static ThemeData get light => _build(
-        brightness: Brightness.light,
-        background: AppColorsLight.background,
-        surface: AppColorsLight.card,
-        surfaceHigh: AppColorsLight.cardLight,
-        accent: AppColorsLight.purple,
-        text: AppColorsLight.white,
-        textMuted: AppColorsLight.grey,
-        textSecondary: AppColorsLight.greyLight,
-        divider: AppColorsLight.divider,
-      );
+  static ThemeData get light => _for(false);
+  static ThemeData get dark => _for(true);
 
-  static ThemeData get dark => _build(
-        brightness: Brightness.dark,
-        background: AppColors.background,
-        surface: AppColors.card,
-        surfaceHigh: AppColors.cardLight,
-        accent: AppColors.purple,
-        text: AppColors.white,
-        textMuted: AppColors.grey,
-        textSecondary: AppColors.greyLight,
-        divider: AppColors.divider,
-      );
+  static ThemeData _for(bool dark) {
+    final was = AppColors.dark;
+    AppColors.dark = dark;
+    final t = _build(
+      brightness: dark ? Brightness.dark : Brightness.light,
+      background: AppColors.background,
+      surface: AppColors.card,
+      surfaceHigh: AppColors.cardLight,
+      accent: AppColors.accent,
+      text: AppColors.white,
+      textMuted: AppColors.grey,
+      textSecondary: AppColors.greyLight,
+      divider: AppColors.divider,
+    );
+    AppColors.dark = was;
+    return t;
+  }
 
   static ThemeData _build({
     required Brightness brightness,
@@ -200,8 +182,7 @@ class AppTheme {
     required Color textSecondary,
     required Color divider,
   }) {
-    final isDark = brightness == Brightness.dark;
-    final onAccent = isDark ? AppColors.ink : Colors.white;
+    final onAccent = AppColors.ink;
     final scheme = ColorScheme(
       brightness: brightness,
       primary: accent,
@@ -219,7 +200,7 @@ class AppTheme {
       outlineVariant: divider,
     );
 
-    final base = GoogleFonts.plusJakartaSansTextTheme(
+    final base = GoogleFonts.interTextTheme(
       TextTheme(
         displayLarge: TextStyle(
             color: text,
@@ -283,7 +264,7 @@ class AppTheme {
         scrolledUnderElevation: 0,
         centerTitle: false,
         foregroundColor: text,
-        titleTextStyle: GoogleFonts.plusJakartaSans(
+        titleTextStyle: GoogleFonts.inter(
             color: text,
             fontSize: 18,
             fontWeight: FontWeight.w700,
@@ -305,7 +286,7 @@ class AppTheme {
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: shape,
-          textStyle: GoogleFonts.plusJakartaSans(
+          textStyle: GoogleFonts.inter(
               fontSize: 15, fontWeight: FontWeight.w700),
         ),
       ),
@@ -315,7 +296,7 @@ class AppTheme {
           foregroundColor: onAccent,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: shape,
-          textStyle: GoogleFonts.plusJakartaSans(
+          textStyle: GoogleFonts.inter(
               fontSize: 15, fontWeight: FontWeight.w700),
         ),
       ),
@@ -325,14 +306,14 @@ class AppTheme {
           side: BorderSide(color: divider),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
           shape: shape,
-          textStyle: GoogleFonts.plusJakartaSans(
+          textStyle: GoogleFonts.inter(
               fontSize: 14, fontWeight: FontWeight.w600),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: accent,
-          textStyle: GoogleFonts.plusJakartaSans(
+          textStyle: GoogleFonts.inter(
               fontSize: 14, fontWeight: FontWeight.w600),
         ),
       ),
@@ -360,7 +341,7 @@ class AppTheme {
         backgroundColor: surface,
         selectedColor: accent.withValues(alpha: 0.18),
         side: BorderSide(color: divider),
-        labelStyle: GoogleFonts.plusJakartaSans(
+        labelStyle: GoogleFonts.inter(
             color: textSecondary, fontSize: 13, fontWeight: FontWeight.w600),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
@@ -391,7 +372,7 @@ class AppTheme {
       ),
       snackBarTheme: SnackBarThemeData(
         backgroundColor: surfaceHigh,
-        contentTextStyle: GoogleFonts.plusJakartaSans(
+        contentTextStyle: GoogleFonts.inter(
             color: text, fontSize: 14, fontWeight: FontWeight.w500),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -416,9 +397,9 @@ class AppTheme {
         unselectedLabelColor: textMuted,
         indicatorColor: accent,
         dividerColor: Colors.transparent,
-        labelStyle: GoogleFonts.plusJakartaSans(
+        labelStyle: GoogleFonts.inter(
             fontSize: 14, fontWeight: FontWeight.w700),
-        unselectedLabelStyle: GoogleFonts.plusJakartaSans(
+        unselectedLabelStyle: GoogleFonts.inter(
             fontSize: 14, fontWeight: FontWeight.w500),
       ),
       dividerColor: divider,

@@ -95,7 +95,7 @@ class _SplashScreenState extends State<SplashScreen>
                     children: [
                       // ONO Logo
                       ShaderMask(
-                        shaderCallback: (bounds) => const LinearGradient(
+                        shaderCallback: (bounds) => LinearGradient(
                           colors: [AppColors.purple, AppColors.purpleSoft],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
@@ -111,7 +111,7 @@ class _SplashScreenState extends State<SplashScreen>
                         ),
                       ),
                       const SizedBox(height: 12),
-                      const Text(
+                      Text(
                         'Your guardian for becoming\nyour best self.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
@@ -136,7 +136,7 @@ class _SplashScreenState extends State<SplashScreen>
               animation: _fadeIn,
               builder: (_, __) => Opacity(
                 opacity: _fadeIn.value,
-                child: const Text(
+                child: Text(
                   'ono.now',
                   textAlign: TextAlign.center,
                   style: TextStyle(

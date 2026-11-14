@@ -439,7 +439,7 @@ class _PeopleScreenState extends State<PeopleScreen> {
                       child: Row(
                         children: [
                           Expanded(child: Text(p.text, style: AppText.heading())),
-                          const Icon(Icons.local_florist_outlined, size: 18, color: AppColors.faint),
+                          Icon(Icons.local_florist_outlined, size: 18, color: AppColors.faint),
                         ],
                       ),
                     ),

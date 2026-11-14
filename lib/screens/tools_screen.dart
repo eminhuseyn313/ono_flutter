@@ -24,7 +24,7 @@ class _ToolsScreenState extends State<ToolsScreen> {
     super.dispose();
   }
 
-  static const _groupColors = {
+  static final _groupColors = {
     'Plan': AppColors.accent,
     'Direction': AppColors.skill,
     'Practice': AppColors.skill,

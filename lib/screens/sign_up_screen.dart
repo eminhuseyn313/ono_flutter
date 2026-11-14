@@ -92,7 +92,7 @@ class _SignUpScreenState extends State<SignUpScreen>
       case 0:
         return Colors.transparent;
       case 1:
-        return const Color(0xFFE0605A);
+        return AppColors.danger;
       case 2:
         return AppColors.warning;
       case 3:
@@ -144,15 +144,11 @@ class _SignUpScreenState extends State<SignUpScreen>
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF111214),
-              Color(0xFF0C0D0F),
-              Color(0xFF0E1012),
-            ],
+            colors: [AppColors.background, AppColors.background, AppColors.card],
           ),
         ),
         child: Stack(
@@ -182,7 +178,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                                 color: AppColors.divider.withValues(alpha: 0.5),
                               ),
                             ),
-                            child: const Icon(Icons.arrow_back_ios_new,
+                            child: Icon(Icons.arrow_back_ios_new,
                                 color: AppColors.grey, size: 16),
                           ),
                         ),
@@ -199,7 +195,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                           style: AppText.display(),
                         ),
                         const SizedBox(height: 8),
-                        const Text(
+                        Text(
                           'Day one starts here.',
                           style: TextStyle(color: AppColors.grey, fontSize: 15),
                         ),
@@ -236,8 +232,8 @@ class _SignUpScreenState extends State<SignUpScreen>
                                       AppColors.divider.withValues(alpha: 0.5),
                                 ),
                               ),
-                              const Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 16),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16),
                                 child: Text(
                                   'or sign up with email',
                                   style: TextStyle(
@@ -405,8 +401,8 @@ class _SignUpScreenState extends State<SignUpScreen>
                             child: RichText(
                               text: TextSpan(
                                 style: AppText.small(),
-                                children: const [
-                                  TextSpan(text: 'Already have an account? '),
+                                children: [
+                                  const TextSpan(text: 'Already have an account? '),
                                   TextSpan(
                                     text: 'Sign in',
                                     style: TextStyle(
@@ -447,7 +443,7 @@ class _SignUpScreenState extends State<SignUpScreen>
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             color: AppColors.greyLight,
             fontSize: 13,
             fontWeight: FontWeight.w600,
@@ -471,11 +467,11 @@ class _SignUpScreenState extends State<SignUpScreen>
                 keyboardType: keyboardType,
                 obscureText: obscure,
                 autofillHints: autofillHints,
-                style: const TextStyle(color: AppColors.white, fontSize: 15),
+                style: TextStyle(color: AppColors.white, fontSize: 15),
                 onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
                   hintText: hint,
-                  hintStyle: const TextStyle(color: AppColors.grey),
+                  hintStyle: TextStyle(color: AppColors.grey),
                   prefixIcon: Icon(icon, color: AppColors.grey, size: 20),
                   suffixIcon: suffixIcon,
                   border: InputBorder.none,
@@ -541,7 +537,7 @@ class _SocialButton extends StatelessWidget {
                 const SizedBox(width: 12),
                 Text(
                   label,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.white,
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
@@ -627,4 +623,4 @@ class _GoogleLogoPainter extends CustomPainter {
 bool _isNotice(String message) => message.startsWith('Check your email');
 
 Color _tone(String message) =>
-    _isNotice(message) ? const Color(0xFFC8894A) : const Color(0xFFE0605A);
+    _isNotice(message) ? AppColors.accent : AppColors.danger;

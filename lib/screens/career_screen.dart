@@ -189,7 +189,7 @@ class _CopyBlockState extends State<_CopyBlock> {
                 children: [
                   Expanded(
                       child: Text(widget.title, style: AppText.heading())),
-                  if (done) const Tag('Live', color: AppColors.body),
+                  if (done) Tag('Live', color: AppColors.body),
                   Icon(
                       _open
                           ? Icons.expand_less_rounded
@@ -266,7 +266,7 @@ class _MilestoneCard extends StatelessWidget {
                         color:
                             isCurrent ? AppColors.accent : AppColors.grey)),
                 const SizedBox(width: 8),
-                if (isCurrent) const Tag('NOW', color: AppColors.accent),
+                if (isCurrent) Tag('NOW', color: AppColors.accent),
                 const Spacer(),
                 Text('$done/${ids.length}',
                     style: AppText.small(
@@ -312,7 +312,7 @@ class _CertRow extends StatelessWidget {
               shape: BoxShape.circle,
             ),
             child: done
-                ? const Icon(Icons.check_rounded,
+                ? Icon(Icons.check_rounded,
                     size: 16, color: AppColors.ink)
                 : Text('${cert.priority}',
                     style: AppText.small(color: AppColors.white)
@@ -335,7 +335,7 @@ class _CertRow extends StatelessWidget {
           IconButton(
             tooltip: 'Open',
             onPressed: () => openLink(cert.url),
-            icon: const Icon(Icons.north_east_rounded,
+            icon: Icon(Icons.north_east_rounded,
                 size: 18, color: AppColors.grey),
           ),
         ],

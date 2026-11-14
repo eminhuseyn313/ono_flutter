@@ -346,7 +346,7 @@ class _KindnessScreenState extends State<KindnessScreen> {
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Row(
                     children: [
-                      const Icon(Icons.favorite_rounded,
+                      Icon(Icons.favorite_rounded,
                           size: 16, color: AppColors.social),
                       const SizedBox(width: 10),
                       Expanded(
@@ -369,7 +369,7 @@ class _KindnessScreenState extends State<KindnessScreen> {
                   IconButton(
                     tooltip: 'Add',
                     onPressed: () => _add(system),
-                    icon: const Icon(Icons.add_circle_rounded,
+                    icon: Icon(Icons.add_circle_rounded,
                         color: AppColors.accent),
                   ),
                 ],
@@ -548,7 +548,7 @@ class _WorryScreenState extends State<WorryScreen> {
             IconButton(
               onPressed: () => _park(system),
               tooltip: 'Park it',
-              icon: const Icon(Icons.add_circle_rounded,
+              icon: Icon(Icons.add_circle_rounded,
                   color: AppColors.accent),
             ),
           ],

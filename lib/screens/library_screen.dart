@@ -271,7 +271,7 @@ class _RotationRow extends StatelessWidget {
               ),
             ),
             if (url != null)
-              const Icon(Icons.north_east_rounded,
+              Icon(Icons.north_east_rounded,
                   size: 16, color: AppColors.grey),
           ],
         ),

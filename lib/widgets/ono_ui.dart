@@ -209,7 +209,7 @@ class CheckRow extends StatelessWidget {
                     ),
                   ),
                   child: checked
-                      ? const Icon(Icons.check_rounded,
+                      ? Icon(Icons.check_rounded,
                           size: 16, color: AppColors.ink)
                       : null,
                 ),
@@ -237,7 +237,7 @@ class CheckRow extends StatelessWidget {
                   onPressed: onOpen,
                   tooltip: 'Open $title',
                   visualDensity: VisualDensity.compact,
-                  icon: const Icon(Icons.arrow_forward_rounded,
+                  icon: Icon(Icons.arrow_forward_rounded,
                       size: 18, color: AppColors.grey),
                 ),
             ],
@@ -253,7 +253,8 @@ class ScoreRing extends StatelessWidget {
   final double progress;
   final double size;
   final double stroke;
-  final Color color;
+  final Color? color;
+  Color get _color => color ?? AppColors.accent;
   final Widget? center;
 
   const ScoreRing({
@@ -261,7 +262,7 @@ class ScoreRing extends StatelessWidget {
     required this.progress,
     this.size = 64,
     this.stroke = 8,
-    this.color = AppColors.accent,
+    this.color,
     this.center,
   });
 
@@ -281,7 +282,7 @@ class ScoreRing extends StatelessWidget {
           duration: Duration(milliseconds: still ? 0 : 600),
           curve: Curves.easeOutCubic,
           builder: (_, value, child) => CustomPaint(
-            painter: _RingPainter(value, stroke, color),
+            painter: _RingPainter(value, stroke, _color),
             child: Center(child: child),
           ),
           child: center,
@@ -331,13 +332,14 @@ class _RingPainter extends CustomPainter {
 /// Horizontal progress bar.
 class ThinBar extends StatelessWidget {
   final double value;
-  final Color color;
+  final Color? color;
+  Color get _color => color ?? AppColors.accent;
   final double height;
 
   const ThinBar(
       {super.key,
       required this.value,
-      this.color = AppColors.accent,
+      this.color,
       this.height = 6});
 
   @override
@@ -352,7 +354,7 @@ class ThinBar extends StatelessWidget {
           value: v,
           minHeight: height,
           backgroundColor: AppColors.cardLight,
-          valueColor: AlwaysStoppedAnimation(color),
+          valueColor: AlwaysStoppedAnimation(_color),
         ),
       ),
     );
@@ -364,7 +366,8 @@ class ThinBar extends StatelessWidget {
 class TickSegments extends StatelessWidget {
   final int total;
   final int filled;
-  final Color color;
+  final Color? color;
+  Color get _color => color ?? AppColors.accent;
   final double height;
   final List<Color>? colors;
 
@@ -372,7 +375,7 @@ class TickSegments extends StatelessWidget {
     super.key,
     required this.total,
     required this.filled,
-    this.color = AppColors.accent,
+    this.color,
     this.height = 6,
     this.colors,
   });
@@ -397,7 +400,7 @@ class TickSegments extends StatelessWidget {
                 height: height,
                 decoration: BoxDecoration(
                   color: i < filled
-                      ? (colors != null ? colors![i] : color)
+                      ? (colors != null ? colors![i] : _color)
                       : AppColors.cardLight,
                   borderRadius: BorderRadius.circular(height),
                 ),
@@ -443,7 +446,7 @@ class PrimaryButton extends StatelessWidget {
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         ),
         child: loading
-            ? const SizedBox(
+            ? SizedBox(
                 width: 20,
                 height: 20,
                 child: CircularProgressIndicator(
@@ -487,7 +490,7 @@ class GhostButton extends StatelessWidget {
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.white,
-          side: const BorderSide(color: AppColors.divider),
+          side: BorderSide(color: AppColors.divider),
           padding: const EdgeInsets.symmetric(horizontal: 16),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -584,10 +587,11 @@ class StatTile extends StatelessWidget {
   final String value;
   final String label;
   final String? unit;
-  final Color color;
+  final Color? color;
+  Color get _color => color ?? AppColors.white;
 
   const StatTile(this.value, this.label,
-      {super.key, this.unit, this.color = AppColors.white});
+      {super.key, this.unit, this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -602,7 +606,7 @@ class StatTile extends StatelessWidget {
               child: Text(value,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: AppText.number(size: 24, color: color)),
+                  style: AppText.number(size: 24, color: _color)),
             ),
             if (unit != null) ...[
               const SizedBox(width: 3),
@@ -653,7 +657,7 @@ class OnoBackButton extends StatelessWidget {
         icon: Icon(icon, color: AppColors.white),
         style: IconButton.styleFrom(
           backgroundColor: AppColors.card,
-          side: const BorderSide(color: AppColors.divider),
+          side: BorderSide(color: AppColors.divider),
         ),
       );
 }
@@ -717,7 +721,7 @@ class OnoPage extends StatelessWidget {
           ? null
           : Container(
               padding: EdgeInsets.fromLTRB(20, 10, 20, bottom + 12),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: AppColors.background,
                 border: Border(top: BorderSide(color: AppColors.divider)),
               ),
@@ -741,21 +745,22 @@ class OnoPage extends StatelessWidget {
 /// Icon in a soft rounded square.
 class IconTile extends StatelessWidget {
   final IconData icon;
-  final Color color;
+  final Color? color;
+  Color get _color => color ?? AppColors.accent;
   final double size;
 
   const IconTile(this.icon,
-      {super.key, this.color = AppColors.accent, this.size = 40});
+      {super.key, this.color, this.size = 40});
 
   @override
   Widget build(BuildContext context) => Container(
         width: size,
         height: size,
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.13),
+          color: _color.withValues(alpha: 0.13),
           borderRadius: BorderRadius.circular(size * 0.3),
         ),
-        child: Icon(icon, color: color, size: size * 0.5),
+        child: Icon(icon, color: _color, size: size * 0.5),
       );
 }
 
@@ -788,7 +793,8 @@ class KeyValueRow extends StatelessWidget {
 /// Single-line list row with icon, title, subtitle and chevron.
 class LinkRow extends StatelessWidget {
   final IconData icon;
-  final Color color;
+  final Color? color;
+  Color get _color => color ?? AppColors.grey;
   final String title;
   final String? subtitle;
   final String? trailing;
@@ -803,7 +809,7 @@ class LinkRow extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.onTap,
-    this.color = AppColors.grey,
+    this.color,
     this.subtitle,
     this.trailing,
   });
@@ -818,7 +824,7 @@ class LinkRow extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
           child: Row(
             children: [
-              IconTile(icon, color: color, size: 36),
+              IconTile(icon, color: _color, size: 36),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
@@ -843,7 +849,7 @@ class LinkRow extends StatelessWidget {
                         .copyWith(fontWeight: FontWeight.w700)),
               ],
               const SizedBox(width: 4),
-              const Icon(Icons.chevron_right_rounded, color: AppColors.faint),
+              Icon(Icons.chevron_right_rounded, color: AppColors.faint),
             ],
           ),
         ),

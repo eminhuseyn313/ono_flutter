@@ -93,15 +93,11 @@ class _SignInScreenState extends State<SignInScreen>
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF111214),
-              Color(0xFF0C0D0F),
-              Color(0xFF0E1012),
-            ],
+            colors: [AppColors.background, AppColors.background, AppColors.card],
           ),
         ),
         child: Stack(
@@ -131,7 +127,7 @@ class _SignInScreenState extends State<SignInScreen>
                                 color: AppColors.divider.withValues(alpha: 0.5),
                               ),
                             ),
-                            child: const Icon(Icons.arrow_back_ios_new,
+                            child: Icon(Icons.arrow_back_ios_new,
                                 color: AppColors.grey, size: 16),
                           ),
                         ),
@@ -148,7 +144,7 @@ class _SignInScreenState extends State<SignInScreen>
                           style: AppText.display(),
                         ),
                         const SizedBox(height: 8),
-                        const Text(
+                        Text(
                           'Pick up where you left the system.',
                           style: TextStyle(color: AppColors.grey, fontSize: 15),
                         ),
@@ -185,8 +181,8 @@ class _SignInScreenState extends State<SignInScreen>
                                       AppColors.divider.withValues(alpha: 0.5),
                                 ),
                               ),
-                              const Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 16),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16),
                                 child: Text(
                                   'or sign in with email',
                                   style: TextStyle(
@@ -249,7 +245,7 @@ class _SignInScreenState extends State<SignInScreen>
                           alignment: Alignment.centerRight,
                           child: GestureDetector(
                             onTap: () => context.go('/forgot-password'),
-                            child: const Text(
+                            child: Text(
                               'Forgot password?',
                               style: TextStyle(
                                 color: AppColors.purpleSoft,
@@ -267,18 +263,18 @@ class _SignInScreenState extends State<SignInScreen>
                             padding: const EdgeInsets.all(12),
                             margin: const EdgeInsets.only(bottom: 12),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFE0605A)
+                              color: AppColors.danger
                                   .withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: const Color(0xFFE0605A)
+                                color: AppColors.danger
                                     .withValues(alpha: 0.3),
                               ),
                             ),
                             child: Row(
                               children: [
                                 Icon(Icons.error_outline,
-                                    color: const Color(0xFFE0605A)
+                                    color: AppColors.danger
                                         .withValues(alpha: 0.8),
                                     size: 18),
                                 const SizedBox(width: 10),
@@ -286,7 +282,7 @@ class _SignInScreenState extends State<SignInScreen>
                                   child: Text(
                                     auth.errorMessage!,
                                     style: TextStyle(
-                                      color: const Color(0xFFE0605A)
+                                      color: AppColors.danger
                                           .withValues(alpha: 0.9),
                                       fontSize: 13,
                                     ),
@@ -311,8 +307,8 @@ class _SignInScreenState extends State<SignInScreen>
                             child: RichText(
                               text: TextSpan(
                                 style: AppText.small(),
-                                children: const [
-                                  TextSpan(text: "Don't have an account? "),
+                                children: [
+                                  const TextSpan(text: "Don't have an account? "),
                                   TextSpan(
                                     text: 'Sign up',
                                     style: TextStyle(
@@ -353,7 +349,7 @@ class _SignInScreenState extends State<SignInScreen>
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             color: AppColors.greyLight,
             fontSize: 13,
             fontWeight: FontWeight.w600,
@@ -377,11 +373,11 @@ class _SignInScreenState extends State<SignInScreen>
                 keyboardType: keyboardType,
                 obscureText: obscure,
                 autofillHints: autofillHints,
-                style: const TextStyle(color: AppColors.white, fontSize: 15),
+                style: TextStyle(color: AppColors.white, fontSize: 15),
                 onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
                   hintText: hint,
-                  hintStyle: const TextStyle(color: AppColors.grey),
+                  hintStyle: TextStyle(color: AppColors.grey),
                   prefixIcon: Icon(icon, color: AppColors.grey, size: 20),
                   suffixIcon: suffixIcon,
                   border: InputBorder.none,
@@ -447,7 +443,7 @@ class _SocialButton extends StatelessWidget {
                 const SizedBox(width: 12),
                 Text(
                   label,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.white,
                     fontSize: 15,
                     fontWeight: FontWeight.w600,

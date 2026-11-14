@@ -79,11 +79,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFF111214), Color(0xFF0C0D0F), Color(0xFF0E1012)],
+            colors: [AppColors.background, AppColors.background, AppColors.card],
           ),
         ),
         child: Stack(
@@ -110,7 +110,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                             borderRadius: BorderRadius.circular(14),
                             border: Border.all(color: AppColors.divider),
                           ),
-                          child: const Icon(Icons.arrow_back_ios_new_rounded,
+                          child: Icon(Icons.arrow_back_ios_new_rounded,
                               color: AppColors.greyLight, size: 16),
                         ),
                       ),
@@ -149,7 +149,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                                 keyboardType: TextInputType.emailAddress,
                                 textInputAction: TextInputAction.done,
                                 onSubmitted: (_) => _submit(),
-                                style: const TextStyle(
+                                style: TextStyle(
                                     color: AppColors.white, fontSize: 16),
                                 decoration: InputDecoration(
                                   hintText: 'Email address',
@@ -210,11 +210,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                   color: AppColors.green.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.check_rounded,
+                child: Icon(Icons.check_rounded,
                     color: AppColors.green, size: 32),
               ),
               const SizedBox(height: 20),
-              const Text(
+              Text(
                 'Check your email',
                 style: TextStyle(
                   color: AppColors.white,
@@ -235,7 +235,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
               const SizedBox(height: 24),
               GestureDetector(
                 onTap: () => context.go('/sign-in'),
-                child: const Text(
+                child: Text(
                   'Back to Sign In',
                   style: TextStyle(
                     color: AppColors.purple,

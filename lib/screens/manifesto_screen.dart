@@ -34,7 +34,7 @@ class ManifestoScreen extends StatelessWidget {
                     tooltip: 'Close',
                     onPressed: () =>
                         context.canPop() ? context.pop() : context.go('/home'),
-                    icon: const Icon(Icons.close_rounded,
+                    icon: Icon(Icons.close_rounded,
                         color: AppColors.grey),
                   ),
                   const Spacer(),
@@ -75,7 +75,7 @@ class ManifestoScreen extends StatelessWidget {
                     ? OutlinedButton.icon(
                         onPressed: () =>
                             system.toggleCheck(today, 'manifesto'),
-                        icon: const Icon(Icons.check_rounded,
+                        icon: Icon(Icons.check_rounded,
                             color: AppColors.accent, size: 18),
                         label: const Text('Read today'),
                       )

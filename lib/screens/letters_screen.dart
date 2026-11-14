@@ -116,7 +116,7 @@ class _Letter extends StatelessWidget {
         padding: const EdgeInsets.all(14),
         child: Row(
           children: [
-            const Icon(Icons.lock_rounded, size: 18, color: AppColors.faint),
+            Icon(Icons.lock_rounded, size: 18, color: AppColors.faint),
             const SizedBox(width: 10),
             Expanded(
               child: Column(

@@ -25,7 +25,7 @@ class MeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
     if (!system.isLoaded) {
-      return const Scaffold(backgroundColor: AppColors.background);
+      return Scaffold(backgroundColor: AppColors.background);
     }
     final today = dayOnly(timeNow());
     final weeks = ((today.daysSince(weekStartOf(system.programStart))) ~/ 7 + 1)
@@ -1575,7 +1575,7 @@ class _AppleHealth extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(Icons.favorite_rounded,
+                Icon(Icons.favorite_rounded,
                     size: 16, color: AppColors.danger),
                 const SizedBox(width: 6),
                 Expanded(child: Text('APPLE HEALTH', style: AppText.eyebrow())),

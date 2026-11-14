@@ -33,7 +33,7 @@ class _ProgramScreenState extends State<ProgramScreen> {
   Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
     if (!system.isLoaded) {
-      return const Scaffold(backgroundColor: AppColors.background);
+      return Scaffold(backgroundColor: AppColors.background);
     }
     final now = timeNow();
     return OnoPage(
@@ -363,7 +363,7 @@ class _UnlockRow extends StatelessWidget {
                     color: done ? AppColors.accent : AppColors.faint),
               )
             else
-              const Icon(Icons.chevron_right_rounded, color: AppColors.faint),
+              Icon(Icons.chevron_right_rounded, color: AppColors.faint),
           ],
         ),
       ),
@@ -702,7 +702,7 @@ class _Body extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const Icon(Icons.chevron_right_rounded,
+                  Icon(Icons.chevron_right_rounded,
                       color: AppColors.faint),
                 ],
               ),

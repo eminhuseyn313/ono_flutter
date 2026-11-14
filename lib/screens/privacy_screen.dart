@@ -67,7 +67,7 @@ class PrivacyScreen extends StatelessWidget {
                 onPressed: typed.text.trim() == 'DELETE'
                     ? () => Navigator.of(ctx).pop(true)
                     : null,
-                child: const Text('Delete',
+                child: Text('Delete',
                     style: TextStyle(color: AppColors.danger))),
           ],
         ),

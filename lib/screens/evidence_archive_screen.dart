@@ -150,7 +150,7 @@ class _Section extends StatelessWidget {
                         background: Container(
                           alignment: Alignment.centerRight,
                           padding: const EdgeInsets.only(right: 16),
-                          child: const Icon(Icons.delete_outline_rounded,
+                          child: Icon(Icons.delete_outline_rounded,
                               color: AppColors.danger),
                         ),
                         onDismissed: (_) => _remove(context, system, items[i]),

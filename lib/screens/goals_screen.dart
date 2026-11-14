@@ -362,7 +362,7 @@ class _GoalScreenState extends State<GoalScreen> {
                   IconButton(
                     tooltip: 'Remove this measurement',
                     visualDensity: VisualDensity.compact,
-                    icon: const Icon(Icons.close_rounded, size: 16, color: AppColors.grey),
+                    icon: Icon(Icons.close_rounded, size: 16, color: AppColors.grey),
                     onPressed: () => system.removeLog(v.id),
                   ),
               ],

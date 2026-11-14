@@ -6,16 +6,26 @@
 import ActivityKit
 import AppIntents
 import SwiftUI
+import UIKit
 import WidgetKit
 
 private let appGroup = "group.com.eminhuseynzade.ono"
 
 private extension Color {
-  static let onoBackground = Color(red: 0.043, green: 0.047, blue: 0.055)
-  static let onoCard = Color(red: 0.078, green: 0.086, blue: 0.102)
-  static let onoAccent = Color(red: 0.784, green: 0.537, blue: 0.290)
-  static let onoIvory = Color(red: 0.953, green: 0.937, blue: 0.906)
-  static let onoGrey = Color(red: 0.639, green: 0.620, blue: 0.584)
+  /// ONO's calm palette: warm white and deep green by day, near-black and
+  /// soft green in dark appearance (as in the app).
+  static func ono(_ light: UInt32, _ dark: UInt32) -> Color {
+    func c(_ v: UInt32) -> UIColor {
+      UIColor(red: CGFloat((v >> 16) & 0xFF) / 255, green: CGFloat((v >> 8) & 0xFF) / 255,
+              blue: CGFloat(v & 0xFF) / 255, alpha: 1)
+    }
+    return Color(UIColor { $0.userInterfaceStyle == .dark ? c(dark) : c(light) })
+  }
+  static let onoBackground = ono(0xF7F5F1, 0x111413)
+  static let onoCard = ono(0xFFFFFF, 0x191D1B)
+  static let onoAccent = ono(0x2F6B4F, 0x7CC4A0)
+  static let onoIvory = ono(0x1C1B19, 0xEDF0EE)
+  static let onoGrey = ono(0x6B665E, 0x9EA6A1)
 }
 
 struct OnoEntry: TimelineEntry {

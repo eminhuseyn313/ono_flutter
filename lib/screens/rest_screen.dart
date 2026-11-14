@@ -94,7 +94,7 @@ class _RestScreenState extends State<RestScreen> {
                     IconButton(
                       tooltip: 'Remove',
                       onPressed: () => system.removeRest(r.id),
-                      icon: const Icon(Icons.close_rounded, size: 18, color: AppColors.faint),
+                      icon: Icon(Icons.close_rounded, size: 18, color: AppColors.faint),
                     ),
                   ],
                 ),

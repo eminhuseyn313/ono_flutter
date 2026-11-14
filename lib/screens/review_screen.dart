@@ -133,7 +133,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
         IconButton(
           tooltip: 'Add a card',
           onPressed: _addCard,
-          icon: const Icon(Icons.add_rounded, color: AppColors.white),
+          icon: Icon(Icons.add_rounded, color: AppColors.white),
         ),
       ],
       bottomBar: done
@@ -234,7 +234,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
                 Text(card.front, style: AppText.serif(size: 24)),
                 if (_showBack) ...[
                   const SizedBox(height: 16),
-                  const Divider(color: AppColors.divider),
+                  Divider(color: AppColors.divider),
                   const SizedBox(height: 12),
                   Text(card.back, style: AppText.body(color: AppColors.white)),
                 ],

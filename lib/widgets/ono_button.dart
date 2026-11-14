@@ -91,7 +91,7 @@ class _OnoButtonState extends State<OnoButton>
               ),
               child: Center(
                 child: widget.isLoading
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 22,
                         height: 22,
                         child: CircularProgressIndicator(
@@ -148,7 +148,7 @@ class OnoTag extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: const TextStyle(
+        style: TextStyle(
           color: AppColors.purple,
           fontSize: 12,
           fontWeight: FontWeight.w700,
