@@ -75,6 +75,10 @@ import 'screens/small_tools_screens.dart';
 import 'screens/splash_screen.dart';
 import 'screens/style_screen.dart';
 import 'screens/tool_screens.dart';
+import 'data/emin_personal_content.dart';
+import 'widgets/ono_ui.dart';
+import 'data/emin_system.dart';
+import 'screens/plan_file_screen.dart';
 import 'screens/week_screen.dart';
 import 'screens/values_screen.dart';
 import 'screens/weekly_coaching_screen.dart';
@@ -139,6 +143,7 @@ const appRoutes = [
   '/energy',
   '/start',
   '/privacy',
+  '/plan-file',
   '/packs',
   '/partner',
   '/coach-report',
@@ -268,6 +273,7 @@ GoRouter createRouter(AuthProvider authProvider,
       _slide('/energy', (_) => const EnergyScreen()),
       _slide('/start', (_) => const PlanBuilderScreen()),
       _slide('/privacy', (_) => const PrivacyScreen()),
+      _slide('/plan-file', (_) => const PlanFileScreen()),
       _slide('/packs', (_) => const PacksScreen()),
       _slide('/partner', (_) => const PartnerScreen()),
       _slide('/coach-report', (_) => const RecordScreen(initialFor: 1)),
@@ -336,11 +342,21 @@ GoRouter createRouter(AuthProvider authProvider,
           (s) => CockpitScreen(
               initialTab:
                   int.tryParse(s.uri.queryParameters['tab'] ?? '') ?? 0)),
+      // A ritual and a training plan come with a full plan; without one
+      // these say so and point to what fits.
       _slide('/ritual-flow/:ritualId',
-          (s) => RitualFlowScreen(ritualId: s.pathParameters['ritualId']!)),
-      _slide('/gym', (_) => const GymSessionScreen()),
+          (s) => eminMorningRitual.isEmpty
+              ? const NotInPlanScreen(
+                  title: 'No morning ritual in your plan',
+                  body: 'Your mornings run on your own daily items. Add a routine of a few steps to one of them on Your daily items.',
+                  action: 'Your daily items',
+                  route: '/daily')
+              : RitualFlowScreen(ritualId: s.pathParameters['ritualId']!)),
+      _slide('/gym', (_) => gymPlan.isEmpty ? const _NoGym() : const GymSessionScreen()),
       _slide('/gym/:dayId',
-          (s) => GymSessionScreen(dayId: s.pathParameters['dayId'])),
+          (s) => gymPlan.isEmpty
+              ? const _NoGym()
+              : GymSessionScreen(dayId: s.pathParameters['dayId'])),
       _slide('/month/:m',
           (s) => MonthScreen(month: int.tryParse(s.pathParameters['m']!) ?? 1)),
       _slide(
@@ -399,3 +415,38 @@ GoRoute _slide(String path, Widget Function(GoRouterState) build) => GoRoute(
         ),
       ),
     );
+
+class _NoGym extends StatelessWidget {
+  const _NoGym();
+
+  @override
+  Widget build(BuildContext context) => const NotInPlanScreen(
+      title: 'No training plan yet',
+      body: 'Log any movement or strength session on Movement; ONO counts it towards the week.',
+      action: 'Movement',
+      route: '/move');
+}
+
+/// Shown for a part that comes with a full plan when none is loaded.
+class NotInPlanScreen extends StatelessWidget {
+  final String title;
+  final String body;
+  final String action;
+  final String route;
+
+  const NotInPlanScreen(
+      {super.key, required this.title, required this.body, required this.action, required this.route});
+
+  @override
+  Widget build(BuildContext context) => OnoPage(
+        showBack: true,
+        eyebrow: 'Not in your plan',
+        title: title,
+        subtitle: body,
+        children: [
+          const SizedBox(height: 16),
+          PrimaryButton(action, onPressed: () => context.pushReplacement(route)),
+          const SizedBox(height: 16),
+        ],
+      );
+}

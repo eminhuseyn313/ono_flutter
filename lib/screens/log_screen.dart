@@ -828,7 +828,7 @@ class _EntryRow extends StatelessWidget {
 Future<void> _openAdd(BuildContext context, String kind) async {
   final system = context.read<PersonalSystemProvider>();
   final a = TextEditingController();
-  var test = bloodwork.first;
+  var test = bloodwork.firstOrNull ?? 'Result';
   var toEvidence = true;
   var section = 'built';
 

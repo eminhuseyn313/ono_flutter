@@ -984,6 +984,17 @@ class MeScreen extends StatelessWidget {
               ),
               const Divider(indent: 66),
               LinkRow(
+                key: const Key('me-plan-file'),
+                icon: Icons.description_outlined,
+                color: AppColors.steel,
+                title: system.hasPersonalPlan ? 'Your full plan' : 'Load a full plan',
+                subtitle: system.hasPersonalPlan
+                    ? 'Loaded · copy, replace or remove it'
+                    : 'One someone prepared for you, or your saved copy',
+                onTap: () => context.push('/plan-file'),
+              ),
+              const Divider(indent: 66),
+              LinkRow(
                 icon: Icons.shield_outlined,
                 color: AppColors.steel,
                 title: 'Your data & privacy',

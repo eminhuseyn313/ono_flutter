@@ -4268,6 +4268,44 @@ void main() {
       'end',
     ]);
   });
+
+  test('a full plan loads from their data: imported, copied out, removed', () async {
+    final p = await _commissioned();
+    addTearDown(() => planOverride = null);
+    expect(p.hasPersonalPlan, isFalse);
+    expect(p.importPlanText('not a plan'), isFalse);
+    expect(p.importPlanText('{"format":1}'), isFalse, reason: 'no person');
+    final mine = {
+      'format': 1,
+      'profile': builtInProfile.copyWith(name: 'Rae Lindqvist', firstName: 'Rae').toJson(),
+      'daily_items': [
+        {'id': 'swim', 'title': 'Swim 20 minutes', 'lane': 'body', 'when': 'morning'},
+        {'id': 'call', 'title': 'Call home', 'lane': 'social', 'when': 'evening'},
+        {'id': 'draw', 'title': 'Draw one page', 'lane': 'mind', 'when': 'day'},
+      ],
+      'schedule': [
+        {'h': 7, 'm': 0, 'title': 'Swim', 'detail': '', 'lane': 'body', 'icon': 'water_drop'}
+      ],
+    };
+    expect(p.importPlanText(jsonEncode(mine)), isTrue);
+    expect(p.hasPersonalPlan, isTrue);
+    expect(plan.profile!.name, 'Rae Lindqvist');
+    expect(activeProfile.firstName, 'Rae');
+    expect(p.isBuiltInPerson, isTrue);
+    expect(nonNegotiables.map((n) => n.id), ['swim', 'call', 'draw']);
+    expect(dailySchedule.single.title, 'Swim');
+    expect(p.logsOf('personal_plan').single.id, PersonalSystemProvider.planLogId);
+    // It travels as text: copy out, load again.
+    final text = p.planText()!;
+    expect(PlanContent.fromJson(jsonDecode(text) as Map).dailyItems, hasLength(3));
+    // Someone else's profile on the same data: the general app.
+    p.saveProfile(activeProfile.copyWith(name: 'Sam Rivera', firstName: 'Sam'));
+    expect(p.isBuiltInPerson, isFalse);
+    p.resetProfile();
+    p.setPersonalPlan(null);
+    expect(p.hasPersonalPlan, isFalse);
+    expect(planOverride, isNull);
+  });
 }
 
 class _RecordingLiveTimer extends LiveTimer {
