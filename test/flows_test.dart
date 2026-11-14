@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -13,6 +14,7 @@ import 'package:ono/gateways/mock_personal_system_gateway.dart';
 import 'package:ono/models/personal_system.dart';
 import 'package:ono/providers/auth_provider.dart';
 import 'package:ono/providers/personal_system_provider.dart';
+import 'package:ono/services/device_focus.dart';
 import 'package:ono/services/reminder_service.dart';
 import 'package:ono/widgets/ono_ui.dart';
 
@@ -857,4 +859,62 @@ void main() {
     await _pumpFor(tester, const Duration(milliseconds: 600));
     expect(system.netWorthSeries.single.y, 25000);
   });
+
+  testWidgets('an iPhone Focus with ONO\'s filter sets what Today shows', (tester) async {
+    // A Wednesday morning, when the clock alone would say morning.
+    final before = timeShift;
+    timeShift += DateTime(2026, 11, 18, 9).difference(timeNow());
+    addTearDown(() => timeShift = before);
+    final previous = focusBridge;
+    final focus = _FakeFocus();
+    focusBridge = focus;
+    addTearDown(() => focusBridge = previous);
+    final system = await _start(tester);
+    system.saveProfile(builtInProfile.copyWith(name: 'Sam Rivera', firstName: 'Sam'));
+    await _go(tester, '/home');
+    expect(find.text('Good morning, Sam.'), findsOneWidget);
+    focus.set(DeviceFocus.work);
+    await _pumpFor(tester, const Duration(milliseconds: 300));
+    expect(find.text('Stay deliberate, Sam.'), findsOneWidget);
+    focus.set(DeviceFocus.personal);
+    await _pumpFor(tester, const Duration(milliseconds: 300));
+    expect(find.text('A day off, Sam.'), findsOneWidget);
+    focus.set(DeviceFocus.winddown);
+    await _pumpFor(tester, const Duration(milliseconds: 300));
+    expect(find.text('Good evening, Sam.'), findsOneWidget);
+    // The Focus ends: the clock decides again.
+    focus.set(null);
+    await _pumpFor(tester, const Duration(milliseconds: 300));
+    expect(find.text('Good morning, Sam.'), findsOneWidget);
+  });
+
+  testWidgets('on an iPhone, Me explains the list widget, Focus and the watch', (tester) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    await _start(tester);
+    await _go(tester, '/profile');
+    await _tap(tester, find.byKey(const Key('me-iphone')));
+    expect(find.text('Match your Focus'), findsOneWidget);
+    expect(find.text('Apple Watch'), findsOneWidget);
+    await tester.tap(find.text('Got it'));
+    await _pumpFor(tester, const Duration(milliseconds: 600));
+    expect(find.text('Match your Focus'), findsNothing);
+    debugDefaultTargetPlatformOverride = null;
+  });
+}
+
+class _FakeFocus extends FocusBridge {
+  DeviceFocus? now;
+  void Function(DeviceFocus?)? _onChange;
+
+  void set(DeviceFocus? f) {
+    now = f;
+    _onChange?.call(f);
+  }
+
+  @override
+  Future<DeviceFocus?> current() async => now;
+
+  @override
+  void listen(void Function(DeviceFocus?) onChange) => _onChange = onChange;
 }

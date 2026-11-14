@@ -10,6 +10,7 @@ import '../data/emin_system.dart';
 import '../models/personal_system.dart';
 import '../providers/auth_provider.dart';
 import '../providers/personal_system_provider.dart';
+import '../services/device_focus.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ono_charts.dart';
 import '../widgets/ono_ui.dart';
@@ -39,8 +40,21 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _clock = Timer.periodic(const Duration(minutes: 1), (_) {
       if (mounted) setState(() => _now = timeNow());
+      _readFocus();
     });
     WidgetsBinding.instance.addPostFrameCallback((_) => _load());
+    focusBridge.listen((f) {
+      if (mounted) setState(() => _focus = f);
+    });
+  }
+
+  /// The part of the day the iPhone's Focus says it is, if one is set up
+  /// with ONO's filter (null otherwise).
+  DeviceFocus? _focus;
+
+  Future<void> _readFocus() async {
+    final f = await focusBridge.current();
+    if (mounted && f != _focus) setState(() => _focus = f);
   }
 
   Future<void> _load() async {
@@ -50,6 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
     await system.syncHealth();
     await system.syncCalendar();
     await system.refreshWidget();
+    await _readFocus();
   }
 
   @override
@@ -71,6 +86,17 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     // After midnight it is still the evening before, not morning.
     if (_now.hour < PersonalSystemProvider.dayEndsAt) return _Mode.evening;
+    // A Focus set up with ONO's filter says which part of the day it is.
+    switch (_focus) {
+      case DeviceFocus.work:
+        return _Mode.work;
+      case DeviceFocus.personal:
+        return m < 18 * 60 ? _Mode.dayOff : _Mode.evening;
+      case DeviceFocus.winddown:
+        return _Mode.evening;
+      case null:
+        break;
+    }
     if (m < 10 * 60 + 30) return _Mode.morning;
     if (m < 18 * 60) return system.isWorkDay(_now) ? _Mode.work : _Mode.dayOff;
     return _Mode.evening;

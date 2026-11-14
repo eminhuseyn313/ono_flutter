@@ -1,4 +1,5 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -827,6 +828,18 @@ class MeScreen extends StatelessWidget {
                   title: 'ONO on your Home Screen',
                   subtitle: 'Open it like an app, from your phone',
                   onTap: () => _showHomeScreenHowTo(context),
+                ),
+                const Divider(indent: 66),
+              ],
+              // On the iPhone: the list widget, Focus and the watch.
+              if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) ...[
+                LinkRow(
+                  key: const Key('me-iphone'),
+                  icon: Icons.phone_iphone_rounded,
+                  color: AppColors.accent,
+                  title: 'ONO around your iPhone',
+                  subtitle: 'Tick from the Home Screen, Focus, Apple Watch',
+                  onTap: () => _showIphoneHowTo(context),
                 ),
                 const Divider(indent: 66),
               ],
@@ -1661,6 +1674,39 @@ void _showHomeScreenHowTo(BuildContext context) {
             const SizedBox(height: 12),
             Text('Reminders, Apple Health and your calendar need the installed app; everything else works here.',
                 style: AppText.small()),
+            const SizedBox(height: 16),
+            PrimaryButton('Got it', onPressed: () => Navigator.of(ctx).pop()),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+void _showIphoneHowTo(BuildContext context) {
+  showModalBottomSheet<void>(
+    context: context,
+    useRootNavigator: true,
+    isScrollControlled: true,
+    builder: (ctx) => SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('ONO around your iPhone', style: AppText.title()),
+            const SizedBox(height: 8),
+            Text('Each is optional. What you tick or start on them lands in ONO the next time you open it.',
+                style: AppText.small()),
+            const SectionHeader('Tick from the Home Screen'),
+            Text('Touch and hold the Home Screen → Edit → Add Widget → ONO → "Today\'s list" (medium or large). Tap an item to tick it.',
+                style: AppText.body(color: AppColors.white)),
+            const SectionHeader('Match your Focus'),
+            Text('Settings → Focus → Work → Focus Filters → Add Filter → ONO → "Work". Do the same for Personal ("Personal time") and Sleep ("Winding down"). While that Focus is on, Today shows that part of your day.',
+                style: AppText.body(color: AppColors.white)),
+            const SectionHeader('Apple Watch'),
+            Text('Open the Watch app on the iPhone → My Watch → ONO → Install. The watch shows today\'s list to tick, the first of today\'s three, and a running timer or rest.',
+                style: AppText.body(color: AppColors.white)),
             const SizedBox(height: 16),
             PrimaryButton('Got it', onPressed: () => Navigator.of(ctx).pop()),
           ],
