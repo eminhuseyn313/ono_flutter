@@ -181,7 +181,9 @@ class SupabaseAuthGateway implements AuthGateway {
 
   @override
   bool get offersAppleSignIn =>
-      !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.iOS ||
+          defaultTargetPlatform == TargetPlatform.macOS);
 
   @override
   Stream<AuthChangeEvent> onAuthStateChange() {

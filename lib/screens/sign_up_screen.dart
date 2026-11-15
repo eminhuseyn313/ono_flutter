@@ -206,7 +206,8 @@ class _SignUpScreenState extends State<SignUpScreen>
                           const SizedBox(height: 28),
                           if (auth.offersAppleSignIn &&
                               !kIsWeb &&
-                              defaultTargetPlatform == TargetPlatform.iOS) ...[
+                              (defaultTargetPlatform == TargetPlatform.iOS ||
+                                  defaultTargetPlatform == TargetPlatform.macOS)) ...[
                             _SocialButton(
                               label: 'Continue with Apple',
                               icon: Icons.apple,

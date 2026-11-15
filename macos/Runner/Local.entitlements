@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Unsigned build (no developer team): everything but Sign in with Apple. -->
+	<key>com.apple.security.app-sandbox</key>
+	<true/>
+	<!-- Sign-in, sync and the weekly brief talk to Supabase. -->
+	<key>com.apple.security.network.client</key>
+	<true/>
+	<!-- Load a plan file, save a backup or the plan as a file. -->
+	<key>com.apple.security.files.user-selected.read-write</key>
+	<true/>
+</dict>
+</plist>

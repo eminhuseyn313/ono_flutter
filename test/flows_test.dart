@@ -714,6 +714,31 @@ void main() {
     expect(find.text('stress, interview, sleep…'), findsOneWidget);
   });
 
+  testWidgets('Continue with Apple shows on the iPhone and the Mac, not elsewhere', (tester) async {
+    for (final (platform, shown) in [
+      (TargetPlatform.macOS, true),
+      (TargetPlatform.iOS, true),
+      (TargetPlatform.android, false),
+    ]) {
+      debugDefaultTargetPlatformOverride = platform;
+      tester.view.physicalSize = const Size(1179, 2556);
+      tester.view.devicePixelRatio = 3;
+      await tester.pumpWidget(OnoApp(
+        key: UniqueKey(),
+        authGateway: _AppleAuth(),
+        personalGateway: MockPersonalSystemGateway(),
+        reminders: NoopReminderService(),
+        health: FakeHealthService(),
+      ));
+      await _pumpFor(tester, const Duration(seconds: 2));
+      GoRouter.of(tester.element(find.byType(Navigator).first)).go('/sign-in');
+      await _pumpFor(tester, const Duration(seconds: 1));
+      expect(find.text('Continue with Apple'), shown ? findsOneWidget : findsNothing, reason: '$platform');
+    }
+    debugDefaultTargetPlatformOverride = null;
+    tester.view.reset();
+  });
+
   testWidgets('remember someone: the switch, then writing about them', (tester) async {
     final system = await _start(tester);
     final p = system.addPerson('Ana Silva', role: 'Grandmother', every: 14);
@@ -926,6 +951,11 @@ void main() {
     expect(find.text('Match your Focus'), findsNothing);
     debugDefaultTargetPlatformOverride = null;
   });
+}
+
+class _AppleAuth extends MockAuthGateway {
+  @override
+  bool get offersAppleSignIn => true;
 }
 
 class _FakeFocus extends FocusBridge {
