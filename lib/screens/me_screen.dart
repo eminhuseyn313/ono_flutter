@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../data/emin_system.dart';
+import '../data/tool_index.dart';
 import '../models/personal_system.dart';
 import 'day_screen.dart' show workDaysLabel;
 import '../providers/auth_provider.dart';
@@ -18,8 +19,21 @@ import '../time.dart';
 
 /// ME — who you are becoming, measured. Every figure comes from your own
 /// check-offs and logs. Settings that actually do something.
+/// The sections Me folds its tools into; each opens as its own page
+/// (`/me/section?id=`).
+const meSections = [
+  ('direction', 'Direction', Icons.explore_outlined, 'Goals, growth, values, money, your record'),
+  ('practice', 'Practice', Icons.fitness_center_rounded, 'Learning, deep work, review deck, playbook'),
+  ('people', 'People', Icons.people_outline_rounded, 'Your people, conversations, promises, feedback'),
+  ('hard_days', 'Hard days', Icons.healing_outlined, 'Reset, thought check, worry time, rest'),
+  ('body', 'Body', Icons.directions_run_rounded, 'Movement, sleep, care, training'),
+  ('settings', 'Settings', Icons.settings_outlined, 'Profile, your plan, reminders, data'),
+];
+
 class MeScreen extends StatelessWidget {
-  const MeScreen({super.key});
+  /// One of [meSections]: shows only that section's tools. Null = Me.
+  final String? section;
+  const MeScreen({super.key, this.section});
 
   @override
   Widget build(BuildContext context) {
@@ -38,25 +52,26 @@ class MeScreen extends StatelessWidget {
           if (e.keyLift) e.name
     }.toList();
 
+    final s = section;
+    final here = meSections.where((m) => m.$1 == s).firstOrNull;
     return OnoPage(
-      eyebrow: activeProfile.archetype.trim().isEmpty ? null : activeProfile.archetype,
-      title: activeProfile.name,
-      subtitle: [activeProfile.roleLine, activeProfile.organisation]
-          .where((s) => s.trim().isNotEmpty)
-          .join('\n'),
+      showBack: here != null,
+      eyebrow: here != null
+          ? 'Me'
+          : activeProfile.archetype.trim().isEmpty
+              ? null
+              : activeProfile.archetype,
+      title: here?.$2 ?? activeProfile.name,
+      subtitle: here != null
+          ? null
+          : [activeProfile.roleLine, activeProfile.organisation]
+              .where((s) => s.trim().isNotEmpty)
+              .join('\n'),
       children: [
+        if (s == null) ...[
         const SizedBox(height: 20),
         // Me starts with what someone came for: finding the right tool.
-        OnoCard(
-          padding: EdgeInsets.zero,
-          child: LinkRow(
-            icon: Icons.search_rounded,
-            color: AppColors.accent,
-            title: 'Find a tool',
-            subtitle: 'Search everything ONO can help with',
-            onTap: () => context.push('/tools'),
-          ),
-        ),
+        const _SearchBox(),
         const SizedBox(height: 12),
         OnoCard(
           color: AppColors.navy,
@@ -229,6 +244,12 @@ class MeScreen extends StatelessWidget {
             ),
           ),
         ],
+          const SectionHeader('Your tools'),
+          const _Sections(),
+          const _UsedLately(),
+        ],
+        if (s == 'body') ...[
+        const SizedBox(height: 8),
         SectionHeader('Body',
             action: '${system.moveMinutesInWeek(timeNow())} min moved',
             onAction: () => context.push('/move')),
@@ -309,7 +330,8 @@ class MeScreen extends StatelessWidget {
               ],
             ),
           ),
-        const SectionHeader('Direction'),
+        ],
+        if (s == 'direction')
         _LinkGroup(
           id: 'direction',
           core: const {'/for-you', '/goals', '/growth', '/values'},
@@ -470,7 +492,7 @@ class MeScreen extends StatelessWidget {
               ),
           ],
         ),
-        const SectionHeader('Practice'),
+        if (s == 'practice')
         _LinkGroup(
           id: 'practice',
           core: const {'/learning', '/playbook', '/focus'},
@@ -574,7 +596,7 @@ class MeScreen extends StatelessWidget {
               ),
           ],
         ),
-        const SectionHeader('People'),
+        if (s == 'people')
         _LinkGroup(
           id: 'people',
           core: const {'/people', '/promises', '/conversations'},
@@ -742,7 +764,7 @@ class MeScreen extends StatelessWidget {
               ),
           ],
         ),
-        const SectionHeader('Hard days'),
+        if (s == 'hard_days')
         _LinkGroup(
           id: 'hard_days',
           core: const {'/setback', '/thought', '/worry', '/rest'},
@@ -821,7 +843,8 @@ class MeScreen extends StatelessWidget {
               ),
           ],
         ),
-        const SectionHeader('Settings'),
+        if (s == 'settings') ...[
+        const SizedBox(height: 8),
         OnoCard(
           padding: EdgeInsets.zero,
           child: Column(
@@ -1037,6 +1060,8 @@ class MeScreen extends StatelessWidget {
                 ? 'Data is on this device with a copy in your private cloud. Export a backup to keep your own copy.'
                 : 'Data is stored on this device. Export a backup before deleting the app or changing phones.',
             style: AppText.small()),
+        ],
+        const SizedBox(height: 16),
       ],
     );
   }
@@ -1299,6 +1324,8 @@ class MeScreen extends StatelessWidget {
 /// Personal patterns from his own logs: days with a habit vs without.
 /// A section of links: its core tools and the ones used in the last 30
 /// days stay in view, the rest fold behind "N more" (remembered).
+/// A section's tools, all of them: the section page is the place to see
+/// every one. [core] keeps the ones a person needs most at the top.
 class _LinkGroup extends StatelessWidget {
   final String id;
   final Set<String> core;
@@ -1307,47 +1334,121 @@ class _LinkGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    bool isCore(LinkRow r) => core.contains((r.route ?? '').split('?').first);
+    final shown = [...rows.where(isCore), ...rows.where((r) => !isCore(r))];
+    return Padding(
+      key: Key('me-section-$id'),
+      padding: const EdgeInsets.only(top: 8),
+      child: OnoCard(
+        padding: EdgeInsets.zero,
+        child: Column(
+          children: [
+            for (var i = 0; i < shown.length; i++) ...[
+              if (i > 0) const Divider(indent: 66),
+              shown[i],
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Looks like a search field; opens Find a tool with the keyboard up.
+class _SearchBox extends StatelessWidget {
+  const _SearchBox();
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+        button: true,
+        label: 'Search all tools',
+        child: InkWell(
+          key: const Key('me-search'),
+          borderRadius: BorderRadius.circular(14),
+          onTap: () => context.push('/tools?focus=1'),
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 48),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: AppColors.card,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.divider),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.search_rounded, color: AppColors.grey, size: 20),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text('Search: sleep, money, a hard talk…',
+                      maxLines: 1, overflow: TextOverflow.ellipsis, style: AppText.body(color: AppColors.grey)),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+}
+
+/// The six sections, one row each.
+class _Sections extends StatelessWidget {
+  const _Sections();
+
+  @override
+  Widget build(BuildContext context) => OnoCard(
+        padding: EdgeInsets.zero,
+        child: Column(
+          children: [
+            for (var i = 0; i < meSections.length; i++) ...[
+              if (i > 0) const Divider(indent: 66),
+              LinkRow(
+                key: Key('me-open-${meSections[i].$1}'),
+                icon: meSections[i].$3,
+                color: meSections[i].$1 == 'settings' ? AppColors.steel : AppColors.accent,
+                title: meSections[i].$2,
+                subtitle: meSections[i].$4,
+                onTap: () => context.push('/me/section?id=${meSections[i].$1}'),
+              ),
+            ],
+          ],
+        ),
+      );
+}
+
+/// Tools used in the last 30 days, so the ones in use are one tap away.
+class _UsedLately extends StatelessWidget {
+  const _UsedLately();
+
+  @override
+  Widget build(BuildContext context) {
     final system = context.watch<PersonalSystemProvider>();
     final recent = system.recentToolRoutes();
-    final openKey = 'me:more:$id';
-    final open = system.isDone(openKey);
-    bool inView(LinkRow r) {
-      final path = (r.route ?? '').split('?').first;
-      return core.contains(path) || recent.contains(path);
-    }
-
-    final shown = open ? rows : rows.where(inView).toList();
-    final hidden = rows.length - rows.where(inView).length;
-    return OnoCard(
-      padding: EdgeInsets.zero,
-      child: Column(
-        children: [
-          for (var i = 0; i < shown.length; i++) ...[
-            if (i > 0) const Divider(indent: 66),
-            shown[i],
-          ],
-          if (hidden > 0) ...[
-            const Divider(height: 1),
-            InkWell(
-              key: Key('me-more-$id'),
-              onTap: () => system.setDone(openKey, !open),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(open ? 'Show fewer' : '$hidden more',
-                          style: AppText.small(color: AppColors.grey)),
-                    ),
-                    Icon(open ? Icons.expand_less_rounded : Icons.expand_more_rounded,
-                        color: AppColors.faint, size: 20),
-                  ],
+    final tools = [
+      for (final t in toolIndex)
+        if (recent.contains(t.route.split('?').first) && (!t.builtInOnly || system.isBuiltInPerson)) t
+    ].take(4).toList();
+    if (tools.isEmpty) return const SizedBox.shrink();
+    return Column(
+      children: [
+        const SectionHeader('Used lately'),
+        OnoCard(
+          padding: EdgeInsets.zero,
+          child: Column(
+            children: [
+              for (var i = 0; i < tools.length; i++) ...[
+                if (i > 0) const Divider(indent: 66),
+                LinkRow(
+                  icon: Icons.history_rounded,
+                  color: AppColors.accent,
+                  title: tools[i].title,
+                  subtitle: tools[i].what,
+                  route: tools[i].route,
+                  onTap: () => context.push(tools[i].route),
                 ),
-              ),
-            ),
-          ],
-        ],
-      ),
+              ],
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

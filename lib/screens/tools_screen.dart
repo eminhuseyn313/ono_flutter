@@ -9,7 +9,9 @@ import '../widgets/ono_ui.dart';
 
 /// Every tool in one searchable list: "Find a tool".
 class ToolsScreen extends StatefulWidget {
-  const ToolsScreen({super.key});
+  /// Opened from Me's search box: the keyboard comes up at once.
+  final bool focus;
+  const ToolsScreen({super.key, this.focus = false});
 
   @override
   State<ToolsScreen> createState() => _ToolsScreenState();
@@ -60,6 +62,7 @@ class _ToolsScreenState extends State<ToolsScreen> {
         const SizedBox(height: 12),
         TextField(
           controller: _query,
+          autofocus: widget.focus,
           onChanged: (_) => setState(() {}),
           style: AppText.body(color: AppColors.white),
           decoration: const InputDecoration(

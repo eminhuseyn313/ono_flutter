@@ -671,22 +671,26 @@ void main() {
     expect((l.data['star'] as List).toSet(), {'Situation', 'Result'});
   });
 
-  testWidgets('Me: core tools and recently used ones show, the rest fold away',
-      (tester) async {
+  testWidgets('Me: a search box, six sections, and the tools used lately', (tester) async {
     final system = await _start(tester);
     await _go(tester, '/profile');
-    await _reach(tester, find.text('Goals'));
+    // The search box opens Find a tool.
+    await _tap(tester, find.byKey(const Key('me-search')));
+    expect(find.text('stress, interview, sleep…'), findsOneWidget);
+    await _go(tester, '/profile');
+    // Me is short: no long lists of tools on it.
     expect(find.text('Courage ladder'), findsNothing);
+    expect(find.text('Gratitude letter'), findsNothing);
+    await _reach(tester, find.byKey(const Key('me-open-people')));
+    expect(find.text('Used lately'), findsNothing);
     system.addCourageStep('Speak first in the meeting', fear: 6);
     await tester.pump(const Duration(milliseconds: 300));
-    await _reach(tester, find.text('Courage ladder'));
-    expect(find.text('Gratitude letter'), findsNothing);
-    await _tap(tester, find.byKey(const Key('me-more-people')));
+    await _reach(tester, find.text('Used lately'));
+    expect(find.text('Courage ladder'), findsOneWidget);
+    // A section opens with every one of its tools.
+    await _tap(tester, find.byKey(const Key('me-open-people')));
     await _reach(tester, find.text('Gratitude letter'));
-    expect(system.isDone('me:more:people'), isTrue);
-    await _go(tester, '/tools');
-    expect(find.text('Used lately'), findsOneWidget);
-    expect(find.text('Courage ladder'), findsWidgets);
+    expect(find.byKey(const Key('me-section-people')), findsOneWidget);
   });
 
   testWidgets('remember someone: the switch, then writing about them', (tester) async {
@@ -892,7 +896,7 @@ void main() {
     debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
     await _start(tester);
-    await _go(tester, '/profile');
+    await _go(tester, '/me/section?id=settings');
     await _tap(tester, find.byKey(const Key('me-iphone')));
     expect(find.text('Match your Focus'), findsOneWidget);
     expect(find.text('Apple Watch'), findsOneWidget);

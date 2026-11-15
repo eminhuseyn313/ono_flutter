@@ -95,7 +95,7 @@ Shared widgets:
 
 ## Routes
 
-Me starts with "Find a tool" (`/tools`: every tool in `toolIndex`, `lib/data/tool_index.dart`, searchable by title, purpose and keywords (a word also matches by its stem, so "anxious" finds "anxiety"); built-in-only tools hidden for anyone else; before a search, "Used lately" lists those in `recentToolRoutes`; general content, tested), then groups its links as Direction, Practice, People, Hard days, then Settings. Each group (`_LinkGroup`) shows its core tools plus any used in the last 30 days (`recentToolRoutes`, from `toolRouteOfLog`; `LinkRow.route`) and folds the rest behind "N more" (`me:more:<group>`, remembered). A new tool gets a `ToolEntry` (its route must exist — tested).
+Me is short (Emin, 15 Nov 2026: too many rows): a search box (`me-search` → `/tools?focus=1`, keyboard up), the progress card and history, mornings, patterns, then "Your tools" — six section rows (`meSections`: Direction, Practice, People, Hard days, Body, Settings; keys `me-open-<id>`) each opening `/me/section?id=<id>` (`MeScreen(section:)`, every tool of that section, core ones first, `me-section-<id>`) — and "Used lately" (up to 4 tools from `recentToolRoutes`). Find a tool (`/tools`: every tool in `toolIndex`, `lib/data/tool_index.dart`, searchable by title, purpose and keywords (a word also matches by its stem, so "anxious" finds "anxiety"); built-in-only tools hidden for anyone else; before a search, "Used lately" lists those in `recentToolRoutes`; general content, tested). A new tool gets a `ToolEntry` (its route must exist — tested).
 
 Bottom tabs: **Today** `/home` · **Program** `/program?tab=0..3` (Journey/Schedule/Body/Reference) · **Log** `/log?add=weight|protein|win|note|blood` · **Me** `/profile`.
 
