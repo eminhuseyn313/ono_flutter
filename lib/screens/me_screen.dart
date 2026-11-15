@@ -1229,9 +1229,10 @@ class MeScreen extends StatelessWidget {
     var days = List<int>.from(system.gymDays);
     showModalBottomSheet<void>(
       useRootNavigator: true,
+      isScrollControlled: true,
       context: context,
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, set) => Padding(
+        builder: (ctx, set) => SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
           child: Column(
             mainAxisSize: MainAxisSize.min,
