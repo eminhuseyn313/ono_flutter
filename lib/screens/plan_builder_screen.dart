@@ -214,7 +214,9 @@ class _PlanBuilderScreenState extends State<PlanBuilderScreen> {
         goalAdded
             ? 'Your plan is ready.'
             : 'Your plan is ready. The goal wasn\'t added — three are already active; close one under Goals first.');
-    context.go('/home');
+    // Give back straight away: what they chose turns into things to read,
+    // watch, do and practise.
+    context.go(newPerson ? '/for-you?first=1' : '/for-you');
   }
 
   Widget _field(TextEditingController c, String label, String hint, {int lines = 1}) => Padding(

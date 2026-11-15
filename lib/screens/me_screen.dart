@@ -312,8 +312,17 @@ class MeScreen extends StatelessWidget {
         const SectionHeader('Direction'),
         _LinkGroup(
           id: 'direction',
-          core: const {'/goals', '/growth', '/values'},
+          core: const {'/for-you', '/goals', '/growth', '/values'},
           rows: [
+              LinkRow(
+                key: const Key('me-for-you'),
+                route: '/for-you',
+                icon: Icons.auto_awesome_outlined,
+                color: AppColors.accent,
+                title: 'Ideas for you',
+                subtitle: 'Books, films, practices and steps from your plan',
+                onTap: () => context.push('/for-you'),
+              ),
               LinkRow(
                 route: '/goals',
                 icon: Icons.flag_circle_outlined,

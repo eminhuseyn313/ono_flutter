@@ -9,6 +9,7 @@ import 'package:ono/data/growth_templates.dart';
 import 'package:ono/data/plan_packs.dart';
 import 'package:ono/data/life_wheel.dart';
 import 'package:ono/data/tool_index.dart';
+import 'package:ono/data/suggestions.dart';
 import 'package:ono/gateways/mock_auth_gateway.dart';
 import 'package:ono/gateways/mock_personal_system_gateway.dart';
 import 'package:ono/providers/auth_provider.dart';
@@ -1853,6 +1854,90 @@ void main() {
     expect(p.dailyCount, picks.length + 1);
     expect(p.logsOf('growth_area').length, 1);
     p.resetProfile();
+  });
+
+  test('for you: what they chose in the plan builder turns into things to use', () async {
+    final p = await _commissioned();
+    final wheel = {for (final a in lifeAreas) a.id: 8}..['money'] = 3..['health'] = 5;
+    p.buildPlan(
+      name: 'Sam Rivera',
+      currentRole: 'Analyst',
+      targetRole: 'Team lead',
+      wheel: wheel,
+      area: areaTemplates.firstWhere((t) => t.id == 't_money'),
+      areaRating: 2,
+      goal: 'Run a half marathon',
+      deadline: DateTime(2027, 4, 1),
+      daily: dailyLibrary.take(3).toList(),
+      replaceDaily: true,
+    );
+    final groups = p.suggestionGroups();
+    expect(groups.length, lifeAreas.length);
+    expect(groups.first.area.id, 'money', reason: 'lowest on the wheel and this month\'s area');
+    expect(groups.first.reasons, contains('you rated it 3/10'));
+    expect(groups.take(3).map((g) => g.area.id), containsAll(['money', 'health', 'career']));
+    final health = groups.firstWhere((g) => g.area.id == 'health');
+    expect(health.reasons, contains('your goal: Run a half marathon'));
+    expect(p.suggestionTags, containsAll(['lead', 'fitness']));
+    // Tagged ones lead; a short list mixes kinds.
+    expect(health.items.first.tags, contains('fitness'));
+    final career = groups.firstWhere((g) => g.area.id == 'career');
+    expect(career.items.first.tags, contains('lead'));
+    final money = groups.first.items.take(4).map((s) => s.kind).toSet();
+    expect(money.length, greaterThanOrEqualTo(3));
+
+    // A book goes on the learning list, a practice becomes a daily item
+    // with its cue and minimum, a step goes into this week's three.
+    final book = suggestionLibrary.firstWhere((s) => s.id == 'm_psych');
+    expect(p.takeSuggestion(book).ok, isTrue);
+    expect(p.learning.first.text, book.title);
+    expect(p.learning.first.str('kind'), 'Book');
+    expect(p.suggestionTaken(book), isTrue);
+    final film = suggestionLibrary.firstWhere((s) => s.kind == 'watch');
+    p.takeSuggestion(film);
+    expect(p.learning.first.str('kind'), 'Film');
+    final practice = suggestionLibrary.firstWhere((s) => s.id == 'm_spend');
+    final before = p.dailyCount;
+    expect(p.takeSuggestion(practice).ok, isTrue);
+    expect(p.dailyCount, before + 1);
+    final item = p.dailyItems.firstWhere((n) => n.title == practice.title);
+    expect(p.cueFor(item.id), practice.cue);
+    expect(p.minimumFor(item.id), practice.minimum);
+    final step = suggestionLibrary.firstWhere((s) => s.id == 'm_auto');
+    expect(p.takeSuggestion(step).ok, isTrue);
+    expect(p.weekOutcomes(p.logicalToday), contains(step.title));
+    // Three steps fill the week; the fourth says so and changes nothing.
+    p.takeSuggestion(suggestionLibrary.firstWhere((s) => s.id == 'm_subs'));
+    p.takeSuggestion(suggestionLibrary.firstWhere((s) => s.id == 'm_buffer'));
+    final full = p.takeSuggestion(suggestionLibrary.firstWhere((s) => s.id == 'h_strength'));
+    expect(full.ok, isFalse);
+
+    // Not for me hides it until restored.
+    final skip = groups.first.items.firstWhere((s) => !p.suggestionTaken(s));
+    p.dismissSuggestion(skip);
+    expect(p.suggestionGroups().first.items, isNot(contains(skip)));
+    expect(p.dismissedSuggestions, 1);
+    p.restoreSuggestions();
+    expect(p.suggestionGroups().first.items, contains(skip));
+    p.resetProfile();
+  });
+
+  test('suggestions are complete: unique ids, known areas and kinds, real routes', () {
+    final ids = suggestionLibrary.map((s) => s.id).toList();
+    expect(ids.toSet().length, ids.length);
+    for (final a in lifeAreas) {
+      final mine = suggestionLibrary.where((s) => s.area == a.id).toList();
+      expect(mine.length, greaterThanOrEqualTo(8), reason: a.id);
+      expect(mine.map((s) => s.kind).toSet(), containsAll(['read', 'watch']), reason: a.id);
+    }
+    for (final s in suggestionLibrary) {
+      expect(suggestionKinds.keys, contains(s.kind), reason: s.id);
+      expect(s.why, isNotEmpty, reason: s.id);
+      if (s.kind == 'tool') expect(appRoutes, contains(s.route), reason: s.id);
+      if (s.kind == 'daily') expect(s.cue, isNotEmpty, reason: s.id);
+    }
+    expect(templateLifeArea.keys.toSet(), areaTemplates.map((t) => t.id).toSet());
+    expect(toolIndex.map((t) => t.route), contains('/for-you'));
   });
 
   test('erase everything: data, profile and reminders gone, back to commission',

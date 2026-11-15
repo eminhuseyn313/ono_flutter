@@ -14,6 +14,7 @@ import '../data/general_program.dart';
 import '../data/growth_templates.dart';
 import '../data/life_wheel.dart';
 import '../data/plan_packs.dart';
+import '../data/suggestions.dart';
 import '../gateways/personal_system_gateway.dart';
 import '../models/personal_system.dart';
 import '../models/state_merge.dart';
@@ -3611,6 +3612,169 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// Reads [text] as a plan (from a file, or pasted from an AI tool) and,
   /// when it reads, makes it theirs: their plan and its profile. The plan
   /// and profile it replaces are kept until [undoPlanImport] or sign-out.
+  // ── For you: suggestions from what they told ONO ────────────────────
+
+  /// Words from where they're heading, their focus and their goals.
+  Set<String> get _aboutWords => {
+        for (final t in [
+          activeProfile.targetRole,
+          activeProfile.currentRole,
+          activeProfile.focus,
+          for (final g in activeGoals) ...[g.text, g.str('why') ?? ''],
+        ])
+          ...t.toLowerCase().split(RegExp(r'[^a-z0-9]+')).where((w) => w.length > 1),
+      };
+
+  /// Tags their role and goals switch on (lead, founder, parent, …).
+  Set<String> get suggestionTags {
+    final words = _aboutWords;
+    return {
+      for (final e in tagWords.entries)
+        if (e.value.any(words.contains)) e.key,
+    };
+  }
+
+  bool suggestionTaken(Suggestion s) {
+    if (isDone('suggest:took:${s.id}')) return true;
+    final t = s.title.toLowerCase();
+    switch (s.kind) {
+      case 'read':
+      case 'watch':
+      case 'listen':
+      case 'course':
+        return learning.any((l) => l.text.toLowerCase() == t);
+      case 'daily':
+        return dailyItems.any((n) => n.title.toLowerCase() == t);
+      case 'step':
+        return weekOutcomes(logicalToday).any((o) => o.toLowerCase() == t);
+    }
+    return false;
+  }
+
+  bool suggestionDismissed(Suggestion s) => isDone('suggest:off:${s.id}');
+
+  /// Every life area, most relevant first, each with why it was chosen
+  /// (empty reasons = not pointed to by anything they said) and its
+  /// suggestions: the ones their role or goal tags first, then a mix of
+  /// kinds. Dismissed ones are left out; taken ones stay, marked.
+  List<SuggestionGroup> suggestionGroups() {
+    final wheel = latestWheel;
+    final target = activeProfile.targetRole.toLowerCase().split(RegExp(r'[^a-z0-9]+')).toSet();
+    final focus = focusArea();
+    final focusTemplate = focus == null
+        ? null
+        : areaTemplates.where((t) => t.id == focus.id || t.name == focus.name).firstOrNull;
+    final tags = suggestionTags;
+    final groups = <SuggestionGroup>[];
+    for (final a in lifeAreas) {
+      var score = 0;
+      final reasons = <String>[];
+      final r = wheel[a.id];
+      if (r != null) {
+        score += (10 - r) * (r <= 6 ? 2 : 1);
+        if (r <= 6) reasons.add('you rated it $r/10');
+      }
+      if (focusTemplate != null && templateLifeArea[focusTemplate.id] == a.id) {
+        score += 8;
+        reasons.add('this month you\'re working on ${focus!.name.toLowerCase()}');
+      }
+      final hits = areaWords[a.id] ?? const [];
+      for (final g in activeGoals) {
+        final gw = '${g.text} ${g.str('why') ?? ''}'.toLowerCase().split(RegExp(r'[^a-z0-9]+')).toSet();
+        if (hits.any(gw.contains)) {
+          score += 6;
+          reasons.add('your goal: ${g.text}');
+          break;
+        }
+      }
+      if (hits.any(target.contains) && activeProfile.targetRole.trim().isNotEmpty) {
+        score += 4;
+        reasons.add('you\'re becoming ${activeProfile.targetRole}');
+      }
+      final pool = [
+        for (final s in suggestionLibrary)
+          if (s.area == a.id && !suggestionDismissed(s)) s
+      ];
+      groups.add(SuggestionGroup(a, reasons, _mixKinds(pool, tags), score));
+    }
+    // Nothing to go on yet: a sensible start.
+    if (groups.every((g) => g.score == 0)) {
+      const start = ['career', 'health', 'mind'];
+      for (final g in groups) {
+        g.score = start.contains(g.area.id) ? 3 - start.indexOf(g.area.id) : 0;
+      }
+    }
+    final order = {for (var i = 0; i < lifeAreas.length; i++) lifeAreas[i].id: i};
+    groups.sort((a, b) => b.score != a.score
+        ? b.score.compareTo(a.score)
+        : order[a.area.id]!.compareTo(order[b.area.id]!));
+    return groups;
+  }
+
+  /// Ones their tags point to first, then one of each kind in turn, so a
+  /// short list holds a book, a practice, a film and a step.
+  static List<Suggestion> _mixKinds(List<Suggestion> pool, Set<String> tags) {
+    final tagged = [for (final s in pool) if (s.tags.any(tags.contains)) s];
+    final rest = [for (final s in pool) if (!tagged.contains(s)) s];
+    final byKind = <String, List<Suggestion>>{};
+    for (final s in rest) {
+      byKind.putIfAbsent(s.kind, () => []).add(s);
+    }
+    const kinds = ['read', 'daily', 'watch', 'step', 'listen', 'tool', 'course'];
+    final mixed = <Suggestion>[...tagged];
+    while (byKind.values.any((l) => l.isNotEmpty)) {
+      for (final k in kinds) {
+        final l = byKind[k];
+        if (l != null && l.isNotEmpty) mixed.add(l.removeAt(0));
+      }
+    }
+    return mixed;
+  }
+
+  /// Puts a suggestion to use: reading, films and podcasts go on the
+  /// learning list, a practice becomes a daily item with its cue and
+  /// minimum, a step goes into this week's three. Tools just open.
+  ({bool ok, String message}) takeSuggestion(Suggestion s) {
+    switch (s.kind) {
+      case 'read':
+      case 'watch':
+      case 'listen':
+      case 'course':
+        const kinds = {'read': 'Book', 'watch': 'Film', 'listen': 'Podcast', 'course': 'Course'};
+        addLearning(s.title, kind: kinds[s.kind]!, by: s.kind == 'watch' ? '' : s.by);
+        setDone('suggest:took:${s.id}', true);
+        return (ok: true, message: 'On your learning list.');
+      case 'daily':
+        final n = addDailyItem(s.title, lane: s.lane, when: s.when, cue: s.cue);
+        if (n == null) {
+          return (ok: false, message: 'Your daily list is full ($maxDailyItems). Retire one under Daily items first.');
+        }
+        if (s.minimum.trim().isNotEmpty) setMinimum(n.id, s.minimum);
+        setDone('suggest:took:${s.id}', true);
+        return (ok: true, message: 'Added to your daily items, with a cue.');
+      case 'step':
+        final week = logicalToday;
+        final o = weekOutcomes(week);
+        final i = o.indexWhere((t) => t.trim().isEmpty);
+        if (i < 0) return (ok: false, message: 'This week\'s three are full. Try it next week.');
+        setWeekOutcome(week, i, s.title);
+        setDone('suggest:took:${s.id}', true);
+        return (ok: true, message: 'In this week\'s three.');
+    }
+    return (ok: true, message: '');
+  }
+
+  void dismissSuggestion(Suggestion s) => setDone('suggest:off:${s.id}', true);
+
+  /// Brings back everything they said "not for me" to.
+  void restoreSuggestions() {
+    final st = _state;
+    if (st == null) return;
+    _update(st.copyWith(done: {for (final d in st.done) if (!d.startsWith('suggest:off:')) d}));
+  }
+
+  int get dismissedSuggestions => _state?.done.where((d) => d.startsWith('suggest:off:')).length ?? 0;
+
   PlanImportResult importPlanText(String text, {bool Function(String route)? routeOk}) {
     final r = importPlan(text, routeOk: routeOk);
     if (!r.ok) return r;
@@ -5334,7 +5498,7 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   // ── Learning queue ───────────────────────────────────────────────────
 
-  static const learningKinds = ['Book', 'Course', 'Podcast', 'Talk', 'Article'];
+  static const learningKinds = ['Book', 'Course', 'Podcast', 'Talk', 'Article', 'Film'];
 
   /// Everything he is learning from, newest first. Status: queue → active
   /// → done. Done means applied: one principle in his words and one
@@ -9231,4 +9395,13 @@ class PlayEntry {
   final DateTime date;
   final bool pinned;
   const PlayEntry(this.key, this.text, this.from, this.date, this.pinned);
+}
+
+/// One life area's suggestions for "For you".
+class SuggestionGroup {
+  final LifeArea area;
+  final List<String> reasons;
+  final List<Suggestion> items;
+  int score;
+  SuggestionGroup(this.area, this.reasons, this.items, this.score);
 }
