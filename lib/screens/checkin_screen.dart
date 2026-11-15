@@ -87,8 +87,9 @@ class _CheckinScreenState extends State<CheckinScreen> {
   @override
   Widget build(BuildContext context) {
     final flagged = _pain >= 5 || _stiffness >= 3;
-    // Shoulder pain and stiffness are the built-in person's condition.
-    final builtIn = context.watch<PersonalSystemProvider>().isBuiltInPerson;
+    // Shoulder pain and stiffness: only when the person's plan names
+    // shoulder limits.
+    final builtIn = context.watch<PersonalSystemProvider>().checksShoulders;
     return OnoPage(
       showBack: true,
       eyebrow: 'Morning check-in · 15 seconds',

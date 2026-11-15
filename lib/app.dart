@@ -64,6 +64,7 @@ class _OnoAppState extends State<OnoApp> with WidgetsBindingObserver {
       calendar: widget.calendar,
     );
     _router = createRouter(_auth);
+    HardwareKeyboard.instance.addHandler(_onKey);
     _auth.addListener(_onAuth);
     // Recovery links, expired sessions and sign-outs elsewhere arrive as
     // events; without this they would never reach the app.
@@ -120,6 +121,28 @@ class _OnoAppState extends State<OnoApp> with WidgetsBindingObserver {
     _router.push(route);
   }
 
+  /// Keyboard shortcuts for the Mac app and the web, on any screen: ⌘K
+  /// (or Ctrl+K) finds a tool, ⌘1–⌘4 open Today, Program, Log and Me.
+  bool _onKey(KeyEvent e) {
+    if (e is! KeyDownEvent || !_auth.isAuthenticated) return false;
+    final k = HardwareKeyboard.instance;
+    if (!k.isMetaPressed && !k.isControlPressed) return false;
+    if (e.logicalKey == LogicalKeyboardKey.keyK) {
+      _router.push('/tools?focus=1');
+      return true;
+    }
+    final tabs = {
+      LogicalKeyboardKey.digit1: '/home',
+      LogicalKeyboardKey.digit2: '/program',
+      LogicalKeyboardKey.digit3: '/log',
+      LogicalKeyboardKey.digit4: '/profile',
+    };
+    final tab = tabs[e.logicalKey];
+    if (tab == null) return false;
+    _router.go(tab);
+    return true;
+  }
+
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
@@ -127,6 +150,7 @@ class _OnoAppState extends State<OnoApp> with WidgetsBindingObserver {
     _auth.removeListener(_onAuth);
     _auth.dispose();
     _system.dispose();
+    HardwareKeyboard.instance.removeHandler(_onKey);
     _router.dispose();
     super.dispose();
   }

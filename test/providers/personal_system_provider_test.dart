@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -4414,6 +4415,57 @@ void main() {
       'start rest Rest Bench press',
       'end',
     ]);
+  });
+
+  test('Ask ONO answers from their own days', () async {
+    final p = await _commissioned();
+    expect(PersonalSystemProvider.askIntent('what should I do right now?'), 'now');
+    expect(PersonalSystemProvider.askIntent('am I missing anything'), 'slipping');
+    expect(PersonalSystemProvider.askIntent('next step for my goal'), 'goals');
+    expect(PersonalSystemProvider.askIntent('a hard talk with my boss'), isNull);
+    // Now: the first open of today's three wins.
+    p.setPriority(p.logicalToday, 0, 'Send the proposal');
+    expect(p.ask('now', _today).lines.first, 'Send the proposal');
+    p.setCheck(p.logicalToday, 'p0', true);
+    // Then the open daily item for this time of day, with its cue.
+    final a = p.ask('What should I do now?', _today);
+    expect(a.title, 'Do this now');
+    expect(p.dailyItems.map((n) => n.title), contains(a.lines.first));
+    // Goals: each goal's next step.
+    p.addLog('goal', text: 'Run 10 km', data: {'status': 'active', 'next': 'Book a 5 km race'});
+    expect(p.ask('goals', _today).lines.single, 'Run 10 km: Book a 5 km race');
+    // Every question answers something, and its links exist.
+    for (final (id, _) in PersonalSystemProvider.askQuestions) {
+      final ans = p.ask(id, _today);
+      expect(ans.lines, isNotEmpty, reason: id);
+      for (final (_, route) in ans.actions) {
+        expect(appRoutes.contains(route) || appRoutes.contains(route.split('?').first), isTrue, reason: route);
+      }
+    }
+    expect(toolIndex.map((t) => t.route), contains('/ask'));
+  });
+
+  test('a full plan switches on only what it includes', () async {
+    final p = await _commissioned();
+    addTearDown(() => planOverride = null);
+    // The example plan names shoulder limits, a public profile, monthly
+    // artifacts, training and readiness: all on.
+    expect(p.isBuiltInPerson, isTrue);
+    expect(p.checksShoulders, isTrue);
+    expect(p.plansPosts, isTrue);
+    expect(p.plansArtifacts, isTrue);
+    expect(p.plansTraining, isTrue);
+    expect(p.tracksReadiness, isTrue);
+    // An AI-written plan with none of them: a full plan, none of the extras.
+    final r = p.importPlanText(File('test/support/partial_plan.json').readAsStringSync());
+    expect(r.ok, isTrue, reason: r.error);
+    expect(p.isBuiltInPerson, isTrue);
+    expect(p.checksShoulders, isFalse);
+    expect(p.plansPosts, isFalse);
+    expect(p.plansArtifacts, isFalse);
+    expect(p.plansTraining, isFalse);
+    expect(p.tracksReadiness, isFalse);
+    p.resetProfile();
   });
 
   test('a full plan loads from their data: imported, copied out, removed', () async {

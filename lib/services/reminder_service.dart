@@ -105,6 +105,7 @@ class LocalReminderService implements ReminderService {
       priority: Priority.high,
     ),
     iOS: DarwinNotificationDetails(),
+    macOS: DarwinNotificationDetails(),
   );
 
   // Silent while ONO is open: the screen that set it shows its own cue.
@@ -117,6 +118,12 @@ class LocalReminderService implements ReminderService {
       priority: Priority.high,
     ),
     iOS: DarwinNotificationDetails(
+      presentAlert: false,
+      presentBanner: false,
+      presentList: false,
+      presentSound: false,
+    ),
+    macOS: DarwinNotificationDetails(
       presentAlert: false,
       presentBanner: false,
       presentList: false,
@@ -139,6 +146,12 @@ class LocalReminderService implements ReminderService {
         android: AndroidInitializationSettings('@mipmap/ic_launcher'),
         // Permission is requested from the Commission flow, not at launch.
         iOS: DarwinInitializationSettings(
+          requestAlertPermission: false,
+          requestBadgePermission: false,
+          requestSoundPermission: false,
+        ),
+        // The Mac app: same reminders, asked for the same way.
+        macOS: DarwinInitializationSettings(
           requestAlertPermission: false,
           requestBadgePermission: false,
           requestSoundPermission: false,
@@ -169,6 +182,11 @@ class LocalReminderService implements ReminderService {
       return await ios.requestPermissions(
               alert: true, badge: true, sound: true) ??
           false;
+    }
+    final mac = _plugin.resolvePlatformSpecificImplementation<
+        MacOSFlutterLocalNotificationsPlugin>();
+    if (mac != null) {
+      return await mac.requestPermissions(alert: true, badge: true, sound: true) ?? false;
     }
     final android = _plugin.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();

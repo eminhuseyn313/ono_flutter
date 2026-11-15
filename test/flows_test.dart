@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -691,6 +692,26 @@ void main() {
     await _tap(tester, find.byKey(const Key('me-open-people')));
     await _reach(tester, find.text('Gratitude letter'));
     expect(find.byKey(const Key('me-section-people')), findsOneWidget);
+  });
+
+  testWidgets('Ask ONO: a question, your own words, and ⌘K finds a tool', (tester) async {
+    final system = await _start(tester);
+    system.setPriority(system.logicalToday, 0, 'Call the bank about the loan');
+    await _go(tester, '/ask');
+    await _tap(tester, find.byKey(const Key('ask-now')));
+    expect(find.text('Do this now'), findsOneWidget);
+    expect(find.text('Call the bank about the loan'), findsOneWidget);
+    // Words it has no answer for bring the tools that fit them.
+    await tester.enterText(find.byKey(const Key('ask-field')), 'negotiate a raise');
+    await _tap(tester, find.byKey(const Key('ask-send')));
+    expect(find.text('Negotiation planner'), findsOneWidget);
+    // Keyboard: ⌘K (Ctrl+K) opens Find a tool, ⌘1 goes to Today.
+    await _go(tester, '/home');
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+    await tester.sendKeyEvent(LogicalKeyboardKey.keyK);
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
+    await _pumpFor(tester, const Duration(milliseconds: 1200));
+    expect(find.text('stress, interview, sleep…'), findsOneWidget);
   });
 
   testWidgets('remember someone: the switch, then writing about them', (tester) async {

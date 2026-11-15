@@ -178,6 +178,11 @@ class BriefInput {
   /// reading list) applies; false for anyone with a plan of their own.
   final bool builtInPlan;
 
+  /// Whether the plan includes a posting habit and monthly artifacts:
+  /// those tasks appear only then.
+  final bool plansPosts;
+  final bool plansArtifacts;
+
   /// People they're helping grow: "Sam: delegating (2 helps this month)".
   final List<String> growingOthers;
 
@@ -260,6 +265,8 @@ class BriefInput {
     this.moveMinutes,
     this.strengthDays = 0,
     this.builtInPlan = true,
+    this.plansPosts = true,
+    this.plansArtifacts = true,
     this.growingOthers = const [],
     this.money,
   }) : profile = profile ?? activeProfile;
@@ -431,11 +438,11 @@ class DeviceBriefGenerator implements BriefGenerator {
     if (input.openUnlocks.isNotEmpty) {
       tasks.add('This month\'s open item: ${input.openUnlocks.first}.');
     }
-    if (input.builtInPlan && input.artifactsThisMonth == 0) {
+    if (input.builtInPlan && input.plansArtifacts && input.artifactsThisMonth == 0) {
       tasks.add(
           'Block 2 × 45 min for the artifact of the month: ${artifactFor(input.programMonth)}.');
     }
-    if (input.builtInPlan && input.programMonth >= 2 && input.postsThisWeek < 2) {
+    if (input.builtInPlan && input.plansPosts && input.programMonth >= 2 && input.postsThisWeek < 2) {
       tasks.add('Publish 2 LinkedIn posts (Tue + Thu). Hook → insight → example → question.');
     }
     if (r.workSituation.trim().isNotEmpty) {

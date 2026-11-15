@@ -8,5 +8,11 @@
 	<true/>
 	<key>com.apple.security.network.server</key>
 	<true/>
+	<!-- Sign-in, sync and the weekly brief talk to Supabase. -->
+	<key>com.apple.security.network.client</key>
+	<true/>
+	<!-- Load a plan file, save a backup or the plan as a file. -->
+	<key>com.apple.security.files.user-selected.read-write</key>
+	<true/>
 </dict>
 </plist>

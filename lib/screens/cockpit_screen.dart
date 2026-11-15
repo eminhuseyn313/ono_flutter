@@ -30,7 +30,7 @@ class _CockpitScreenState extends State<CockpitScreen> {
     final dueReviews = system.dueDecisionReviews(timeNow()).length;
     // Readiness is measured against the built-in plan's bar; anyone else
     // keeps their 1:1s and decisions here.
-    final builtIn = system.isBuiltInPerson;
+    final builtIn = system.tracksReadiness;
     final tab = builtIn ? _tab : _tab.clamp(0, 1);
     final p = activeProfile;
     return OnoPage(

@@ -1,14 +1,11 @@
-// Application-level settings for the Runner target.
-//
-// This may be replaced with something auto-generated from metadata (e.g., pubspec.yaml) in the
-// future. If not, the values below would default to using the project name when this becomes a
-// 'flutter create' template.
+// Application-level settings for the Runner target (the Mac app).
 
-// The application's name. By default this is also the title of the Flutter window.
-PRODUCT_NAME = ono
+// The application's name. By default this is also the title of the window.
+PRODUCT_NAME = ONO
 
-// The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.example.ono
+// The same bundle identifier as the iPhone app, so the Mac app is the same
+// App Store product and signs in to the same account.
+PRODUCT_BUNDLE_IDENTIFIER = com.eminhuseynzade.ono
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2026 com.example. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2026 Emin Huseynzade. All rights reserved.

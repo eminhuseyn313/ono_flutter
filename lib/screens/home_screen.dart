@@ -254,10 +254,21 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               if (!_yesterday && system.hasStarted)
                 Center(
-                  child: TextButton.icon(
-                    onPressed: () => context.push('/need'),
-                    icon: const Icon(Icons.support_rounded, size: 18),
-                    label: const Text('What do you need right now?'),
+                  child: Wrap(
+                    alignment: WrapAlignment.center,
+                    children: [
+                      TextButton.icon(
+                        onPressed: () => context.push('/need'),
+                        icon: const Icon(Icons.support_rounded, size: 18),
+                        label: const Text('What do you need right now?'),
+                      ),
+                      TextButton.icon(
+                        key: const Key('today-ask'),
+                        onPressed: () => context.push('/ask'),
+                        icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
+                        label: const Text('Ask ONO'),
+                      ),
+                    ],
                   ),
                 ),
               // Everything that isn't today's next action: one tap away.

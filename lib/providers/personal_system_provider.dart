@@ -1399,6 +1399,151 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   /// Shoulders need sparing today: pain ≥ 5/10 or morning stiffness of
   /// 30 minutes or more (stiffness bucket ≥ 3).
+  // ── Ask ONO ──────────────────────────────────────────────────────────
+  // Answers from their own data, on the device: nothing is sent. Free text
+  // is matched to a question by its words; anything else gets the tools
+  // that fit it.
+
+  static const askQuestions = [
+    ('now', 'What should I do now?'),
+    ('how', 'How am I doing?'),
+    ('slipping', 'What\'s slipping?'),
+    ('goals', 'What\'s next for my goals?'),
+    ('learned', 'What have I learned?'),
+    ('helps', 'What helps me?'),
+  ];
+
+  // Specific topics first: on a tie ("next step for my goal") they win
+  // over the general "now".
+  static const _askWords = {
+    'goals': ['goal', 'goals', 'target', 'milestone', 'aim'],
+    'slipping': ['slip', 'slipping', 'miss', 'missing', 'behind', 'skip', 'failing', 'stuck'],
+    'learned': ['learn', 'learned', 'learnt', 'lesson', 'lessons', 'playbook', 'rule'],
+    'helps': ['help', 'helps', 'pattern', 'patterns', 'energy', 'sleep', 'works', 'why'],
+    'how': ['how', 'doing', 'progress', 'going', 'streak', 'score'],
+    'now': ['now', 'next', 'do', 'start', 'today', 'focus', 'first'],
+  };
+
+  /// Which question [text] asks, or null.
+  static String? askIntent(String text) {
+    final words = text.toLowerCase().split(RegExp(r'[^a-z]+')).where((w) => w.isNotEmpty).toSet();
+    String? best;
+    var hits = 0;
+    for (final e in _askWords.entries) {
+      final n = e.value.where(words.contains).length;
+      if (n > hits) {
+        hits = n;
+        best = e.key;
+      }
+    }
+    return best;
+  }
+
+  AskAnswer ask(String textOrIntent, DateTime now) {
+    final intent = _askWords.containsKey(textOrIntent) ? textOrIntent : askIntent(textOrIntent);
+    final day = logicalToday;
+    switch (intent) {
+      case 'now':
+        final pr = prioritiesFor(day);
+        for (var i = 0; i < 3; i++) {
+          if (pr[i].trim().isNotEmpty && !priorityDone(day, i)) {
+            return AskAnswer('Do this now', [pr[i].trim(), 'It\'s the first open one of today\'s three.'],
+                const [('Today', '/home')]);
+          }
+        }
+        final when = now.hour < 11 ? 'morning' : now.hour < 17 ? 'day' : 'evening';
+        final open = [for (final n in dailyItems) if (!isChecked(day, n.id)) n];
+        final fit = open.where((n) => n.when == when).firstOrNull ?? open.firstOrNull;
+        if (fit != null) {
+          final cue = cueFor(fit.id);
+          return AskAnswer('Do this now', [
+            fit.title,
+            if (cue.trim().isNotEmpty) cue.trim(),
+            '${open.length} of today\'s list still open.',
+          ], [('Today', '/home'), if (fit.route != null) ('Open it', fit.route!)]);
+        }
+        final o = weekOutcomes(day);
+        for (var i = 0; i < 3; i++) {
+          if (o[i].trim().isNotEmpty && !weekOutcomeDone(day, i)) {
+            return AskAnswer('Do this now', [o[i].trim(), 'Today\'s list is done. This is open in the week\'s three.'],
+                const [('The week', '/week')]);
+          }
+        }
+        final area = focusArea();
+        if (area != null) {
+          final d = drillFor(area, day);
+          return AskAnswer('Do this now', [d.title, d.how, 'Everything else today is done: a rep on ${area.name.toLowerCase()}.'],
+              const [('Growth plan', '/growth')]);
+        }
+        return const AskAnswer('Nothing is waiting', ['Today\'s list and the week\'s three are done or empty. Rest counts too.'],
+            [('Plan the week', '/week')]);
+      case 'how':
+        final lines = <String>[
+          if (latelyLine case final l?) l,
+          if (streak > 0) 'Streak: $streak days.' else 'No streak yet: hold today\'s list to start one.',
+          for (final g in activeGoals)
+            if (goalPace(g) case final pace?) '${g.text}: $pace.',
+        ];
+        return AskAnswer('How you\'re doing',
+            lines.isEmpty ? ['A week of ticks and check-ins gives a real answer here.'] : lines,
+            const [('Me', '/profile')]);
+      case 'slipping':
+        final lines = <String>[
+          if (slippingItem case final n?) '"${n.title}" keeps slipping. Make it smaller or give it a new cue.',
+          for (final g in activeGoals)
+            if (goalPace(g) == 'behind' || goalPace(g) == 'past due') '${g.text} is ${goalPace(g)}.',
+          for (final p in peopleDue.take(2)) 'It\'s been a while since you were in touch with ${p.text}.',
+        ];
+        return AskAnswer('What\'s slipping',
+            lines.isEmpty ? ['Nothing stands out. Keep going.'] : lines,
+            [if (slippingItem != null) ('If–then plans', '/plans'), if (activeGoals.isNotEmpty) ('Goals', '/goals')]);
+      case 'goals':
+        if (activeGoals.isEmpty) {
+          return const AskAnswer('No goal yet', ['One goal gives the rest of ONO something to serve.'],
+              [('Set a goal', '/goals')]);
+        }
+        return AskAnswer('Next for your goals', [
+          for (final g in activeGoals) '${g.text}: ${goalNextStep(g) ?? 'name the next step on the goal'}',
+        ], const [('Goals', '/goals')]);
+      case 'learned':
+        final plays = playbook().take(4).toList();
+        return AskAnswer('What you\'ve learned',
+            plays.isEmpty ? ['Lessons from reps, reviews and books gather in your playbook.'] : [for (final p in plays) p.text],
+            const [('Your playbook', '/playbook')]);
+      case 'helps':
+        final found = patterns().take(3).map((p) => p.sentence).toList();
+        return AskAnswer('What helps you',
+            found.isEmpty
+                ? ['Patterns show after a couple of weeks of ticks and check-ins: what your good days have in common.']
+                : found,
+            const [('Experiments', '/experiments')]);
+    }
+    return const AskAnswer('Not sure yet', ['Try one of the questions above, or search all tools.'], [('Find a tool', '/tools?focus=1')]);
+  }
+
+  // ── What a full plan switches on ────────────────────────────────────
+  // Only what the person's own plan includes: someone else's AI-written
+  // plan never brings another person's health checks or job habits.
+
+  /// Shoulder pain and stiffness in the check-in: the plan names shoulder
+  /// limits (lifts to avoid, shoulder-sparing swaps).
+  bool get checksShoulders =>
+      isBuiltInPerson && (plan.shoulderSparing.isNotEmpty || plan.avoidLifts.isNotEmpty);
+
+  /// A posting habit (LinkedIn) in the brief: the plan has a public profile.
+  bool get plansPosts =>
+      isBuiltInPerson &&
+      [plan.linkedinHeadline, plan.linkedinAbout, plan.linkedinFirstPost].any((t) => t.trim().isNotEmpty);
+
+  /// A monthly piece of work to make: the plan lists them.
+  bool get plansArtifacts => isBuiltInPerson && plan.monthArtifacts.isNotEmpty;
+
+  /// Training sessions in the brief: the plan has training days.
+  bool get plansTraining => isBuiltInPerson && plan.gym.isNotEmpty;
+
+  /// The readiness tab and gap: the plan names the dimensions.
+  bool get tracksReadiness => isBuiltInPerson && plan.readiness.isNotEmpty;
+
   bool shoulderFlag(DateTime date) {
     final c = checkinFor(date);
     if (c == null) return false;
@@ -2779,8 +2924,10 @@ class PersonalSystemProvider extends ChangeNotifier {
             'artifact', monthStart(programMonth), monthStart(programMonth + 1)),
         postsThisWeek: countBetween('linkedin', report.weekStart,
             report.weekStart.plusDays(7)),
-        gymDays: isBuiltInPerson ? gymDays : const [],
+        gymDays: plansTraining ? gymDays : const [],
         builtInPlan: isBuiltInPerson,
+        plansPosts: plansPosts,
+        plansArtifacts: plansArtifacts,
         openUnlocks: !isBuiltInPerson
             ? const []
             : unlocksFor(programMonth)
@@ -2791,7 +2938,7 @@ class PersonalSystemProvider extends ChangeNotifier {
         avgEnergy: averageOf(weekCheckins, 'energy'),
         avgSleep: averageOf(weekCheckins, 'sleep'),
         wakeSpread: wakeSpread(report.weekStart),
-        readinessGap: isBuiltInPerson ? readinessGap?.name : null,
+        readinessGap: tracksReadiness ? readinessGap?.name : null,
         openFollowUps: openFollowUps.length,
         patterns: patterns().map((p) => p.sentence).take(3).toList(),
         deepWorkHours: focusMinutesInWeek(report.weekStart) / 60,
@@ -2877,8 +3024,9 @@ class PersonalSystemProvider extends ChangeNotifier {
         feedbackThisMonth: focusArea() == null
             ? 0
             : feedbackIn(focusArea()!.id, programMonth).length,
-        shoulderFlagDays:
-            weekCheckins.where((c) => shoulderFlag(c.date)).length,
+        shoulderFlagDays: !checksShoulders
+            ? 0
+            : weekCheckins.where((c) => shoulderFlag(c.date)).length,
       ));
       final s = _state!;
       final others = s.briefs
@@ -9507,4 +9655,12 @@ class SuggestionNudge {
   final Suggestion suggestion;
   final String why;
   const SuggestionNudge(this.suggestion, this.why);
+}
+
+/// An answer from Ask ONO: a title, a few lines, and where to act on it.
+class AskAnswer {
+  final String title;
+  final List<String> lines;
+  final List<(String, String)> actions;
+  const AskAnswer(this.title, this.lines, this.actions);
 }

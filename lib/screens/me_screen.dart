@@ -72,6 +72,18 @@ class MeScreen extends StatelessWidget {
         const SizedBox(height: 20),
         // Me starts with what someone came for: finding the right tool.
         const _SearchBox(),
+        const SizedBox(height: 10),
+        OnoCard(
+          padding: EdgeInsets.zero,
+          child: LinkRow(
+            key: const Key('me-ask'),
+            icon: Icons.chat_bubble_outline_rounded,
+            color: AppColors.accent,
+            title: 'Ask ONO',
+            subtitle: 'What should I do now? What\'s slipping?',
+            onTap: () => context.push('/ask'),
+          ),
+        ),
         const SizedBox(height: 12),
         OnoCard(
           color: AppColors.navy,
@@ -415,7 +427,7 @@ class MeScreen extends StatelessWidget {
                     : system.values.map((v) => v.name).join(' · '),
                 onTap: () => context.push('/values'),
               ),
-              if (system.isBuiltInPerson)
+              if (system.tracksReadiness)
                 LinkRow(
                 route: '/cockpit?tab=2',
                   icon: Icons.trending_up_rounded,
@@ -1550,7 +1562,7 @@ class _Mornings extends StatelessWidget {
               Expanded(child: StatTile(avg('energy', 1), 'energy', unit: '/5')),
               Expanded(child: StatTile(avg('sleep', 1), 'sleep', unit: 'h')),
               Expanded(
-                  child: system.isBuiltInPerson
+                  child: system.checksShoulders
                       ? StatTile(avg('pain', 1), 'shoulder pain', unit: '/10')
                       : StatTile(moodWord(), 'mood')),
             ],
@@ -1570,7 +1582,7 @@ class _Mornings extends StatelessWidget {
                 key: const Key('feelings-named'),
                 style: AppText.small(color: AppColors.white)),
           ],
-          if (month.length >= 2 && system.isBuiltInPerson) ...[
+          if (month.length >= 2 && system.checksShoulders) ...[
             const SizedBox(height: 14),
             Text('SHOULDER PAIN · 30 DAYS', style: AppText.eyebrow()),
             const SizedBox(height: 8),
@@ -1584,7 +1596,7 @@ class _Mornings extends StatelessWidget {
               unit: '/10',
             ),
           ],
-          if (flags >= 3 && system.isBuiltInPerson) ...[
+          if (flags >= 3 && system.checksShoulders) ...[
             const SizedBox(height: 12),
             OnoCard(
               accent: AppColors.warning,
