@@ -4273,8 +4273,8 @@ void main() {
     final p = await _commissioned();
     addTearDown(() => planOverride = null);
     expect(p.hasPersonalPlan, isFalse);
-    expect(p.importPlanText('not a plan'), isFalse);
-    expect(p.importPlanText('{"format":1}'), isFalse, reason: 'no person');
+    expect(p.importPlanText('not a plan').ok, isFalse);
+    expect(p.importPlanText('{"format":1}').ok, isFalse, reason: 'no person');
     final mine = {
       'format': 1,
       'profile': builtInProfile.copyWith(name: 'Rae Lindqvist', firstName: 'Rae').toJson(),
@@ -4287,7 +4287,10 @@ void main() {
         {'h': 7, 'm': 0, 'title': 'Swim', 'detail': '', 'lane': 'body', 'icon': 'water_drop'}
       ],
     };
-    expect(p.importPlanText(jsonEncode(mine)), isTrue);
+    final r = p.importPlanText(jsonEncode(mine));
+    expect(r.ok, isTrue);
+    expect(r.loaded, contains('3 daily items'));
+    expect(p.canUndoPlanImport, isTrue);
     expect(p.hasPersonalPlan, isTrue);
     expect(plan.profile!.name, 'Rae Lindqvist');
     expect(activeProfile.firstName, 'Rae');
@@ -4301,8 +4304,15 @@ void main() {
     // Someone else's profile on the same data: the general app.
     p.saveProfile(activeProfile.copyWith(name: 'Sam Rivera', firstName: 'Sam'));
     expect(p.isBuiltInPerson, isFalse);
-    p.resetProfile();
+    p.saveProfile(activeProfile.copyWith(name: 'Rae Lindqvist', firstName: 'Rae'));
+    // Undo puts back what was there before the load: no plan, no profile.
+    p.undoPlanImport();
+    expect(p.hasPersonalPlan, isFalse);
+    expect(p.profileEdited, isFalse);
+    expect(p.canUndoPlanImport, isFalse);
+    expect(p.importPlanText(text).ok, isTrue);
     p.setPersonalPlan(null);
+    p.resetProfile();
     expect(p.hasPersonalPlan, isFalse);
     expect(planOverride, isNull);
   });

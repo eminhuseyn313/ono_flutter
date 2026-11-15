@@ -260,6 +260,9 @@ const _openDay = ScheduleBlock(0, 0, 'Your day', '', 'mind', Icons.wb_twilight_r
 
 List<GymDay> get gymPlan => plan.gym;
 
+/// Stands in when a plan has no training days.
+const noGymDay = GymDay(id: 'none', letter: '', name: 'Training', weekday: 1, exercises: [], finisher: '');
+
 /// The gym day (A/B/C) that falls on [date]. [days] maps A, B, C to
 /// weekdays (default Mon / Wed / Thu, as in the profile).
 GymDay? gymDayFor(DateTime date,

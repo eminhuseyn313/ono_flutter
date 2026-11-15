@@ -890,14 +890,14 @@ class MeScreen extends StatelessWidget {
                   if (picked != null) system.setProgramStart(picked);
                 },
               ),
-              if (system.isBuiltInPerson) ...[
+              if (system.isBuiltInPerson && gymPlan.isNotEmpty) ...[
                 const Divider(indent: 66),
                 LinkRow(
                   icon: Icons.fitness_center_rounded,
                   color: AppColors.body,
                   title: 'Gym days',
                   subtitle: [
-                    for (var i = 0; i < 3; i++)
+                    for (var i = 0; i < gymPlan.length && i < system.gymDays.length; i++)
                       '${gymPlan[i].letter} ${weekdayName(system.gymDays[i]).substring(0, 3)}'
                   ].join(' · '),
                   onTap: () => _gymDaysSheet(context, system),
@@ -986,10 +986,10 @@ class MeScreen extends StatelessWidget {
                 key: const Key('me-plan-file'),
                 icon: Icons.description_outlined,
                 color: AppColors.steel,
-                title: system.hasPersonalPlan ? 'Your full plan' : 'Load a full plan',
+                title: system.hasPersonalPlan ? 'Your full plan' : 'Get a full plan, made for you',
                 subtitle: system.hasPersonalPlan
                     ? 'Loaded · copy, replace or remove it'
-                    : 'One someone prepared for you, or your saved copy',
+                    : 'An AI writes it from your answers; you load it',
                 onTap: () => context.push('/plan-file'),
               ),
               const Divider(indent: 66),

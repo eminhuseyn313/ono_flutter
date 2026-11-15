@@ -5,6 +5,8 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show IconData, Icons;
 
+import '../data/plan_import.dart';
+import '../data/plan_prompt.dart';
 import '../data/checkups.dart';
 import '../data/daily_library.dart';
 import '../data/emin_system.dart';
@@ -145,6 +147,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     // Home Screen widget.
     // Their plan and profile leave with them.
     planOverride = null;
+    _beforePlanImport = null;
     _appliedPlanData = null;
     setProfileOverride(null);
     _widgetTimer?.cancel();
@@ -577,7 +580,7 @@ class PersonalSystemProvider extends ChangeNotifier {
       final g = gymDayOn(d);
       if (g != null) return (date: d, day: g);
     }
-    return (date: dayOnly(from), day: gymPlan.first);
+    return (date: dayOnly(from), day: gymPlan.firstOrNull ?? noGymDay);
   }
 
   // ── Daily checks ─────────────────────────────────────────────────────
@@ -3020,7 +3023,7 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// sleep times; anyone else gets their day shape (empty until shaped),
   /// without the work block on a day off.
   List<ScheduleBlock> scheduleFor(DateTime day) {
-    if (isBuiltInPerson) {
+    if (isBuiltInPerson && dailySchedule.isNotEmpty) {
       if (isWorkDay(day)) return dailySchedule;
       return _shapeBlocks(dailySchedule.first.minuteOfDay, null, dailySchedule.last.minuteOfDay);
     }
@@ -3108,7 +3111,8 @@ class PersonalSystemProvider extends ChangeNotifier {
         var title = 'ONO';
         switch (def.id) {
           case 'scan':
-            final src = domainScanRotation.firstWhere((s) => s.weekday == wd);
+            final src = domainScanRotation.where((s) => s.weekday == wd).firstOrNull;
+            if (src == null) break;
             title = 'Domain scan · ${src.title}';
             body =
                 'D3 + creatine + omega-3 with breakfast. Then 15 min: ${src.detail}.';
@@ -3604,17 +3608,64 @@ class PersonalSystemProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// [text] is a plan file's contents; false when it isn't one.
-  bool importPlanText(String text) {
-    try {
-      final m = jsonDecode(text);
-      if (m is! Map || m['format'] == null || m['profile'] is! Map) return false;
-      final p = PlanContent.fromJson(m);
-      if (!p.isPersonal) return false;
-      setPersonalPlan(p);
-      return true;
-    } catch (_) {
-      return false;
+  /// Reads [text] as a plan (from a file, or pasted from an AI tool) and,
+  /// when it reads, makes it theirs: their plan and its profile. The plan
+  /// and profile it replaces are kept until [undoPlanImport] or sign-out.
+  PlanImportResult importPlanText(String text, {bool Function(String route)? routeOk}) {
+    final r = importPlan(text, routeOk: routeOk);
+    if (!r.ok) return r;
+    final oldPlan = _planLog?.data['plan'];
+    _beforePlanImport = (
+      plan: oldPlan is Map ? PlanContent.fromJson(oldPlan) : null,
+      profile: _profileLog == null ? null : Profile.fromJson(_profileLog!.data),
+    );
+    setPersonalPlan(r.plan);
+    saveProfile(r.plan!.profile!);
+    return r;
+  }
+
+  ({PlanContent? plan, Profile? profile})? _beforePlanImport;
+
+  /// The prompt to copy into an AI tool, with what they already told ONO:
+  /// their profile, life wheel, goals, this month's area, daily items and
+  /// the shape of their day. Nothing from their logs or people.
+  String planPromptText() {
+    String hm(int m) =>
+        '${((m ~/ 60) % 24).toString().padLeft(2, '0')}:${(m % 60).toString().padLeft(2, '0')}';
+    final p = activeProfile;
+    final wheel = latestWheel;
+    final d = dayShape;
+    final area = focusArea();
+    return planPrompt(programDays: programDays, about: [
+      if (p.name.isNotEmpty) 'Name: ${p.name}',
+      if (p.currentRole.isNotEmpty || p.targetRole.isNotEmpty)
+        'Now: ${p.currentRole.isEmpty ? '—' : p.currentRole}; becoming: ${p.targetRole.isEmpty ? '—' : p.targetRole}',
+      if (p.organisation.isNotEmpty) 'Organisation: ${p.organisation}',
+      if (p.location.isNotEmpty) 'Location: ${p.location}',
+      if (wheel.isNotEmpty)
+        'Life wheel (1-10): ${[for (final a in lifeAreas) if (wheel[a.id] != null) '${a.name} ${wheel[a.id]}'].join(', ')}',
+      for (final g in activeGoals)
+        'Goal: ${g.text}${(g.str('why') ?? '').isEmpty ? '' : ' (why: ${g.str('why')})'}',
+      if (area != null) 'Growing this month: ${area.name}',
+      if (dailyItems.isNotEmpty) 'Daily items now: ${dailyItems.map((n) => n.title).join('; ')}',
+      if (d != null)
+        'My day: up ${hm(d.wake)}${d.workStart < d.workEnd ? ', work ${hm(d.workStart)}-${hm(d.workEnd)}' : ''}, lights out ${hm(d.bed)}; work days ${[for (final w in workDays) const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][w - 1]].join(' ')}',
+    ]);
+  }
+
+  /// A plan was just loaded here and can be taken back.
+  bool get canUndoPlanImport => _beforePlanImport != null;
+
+  /// Puts back the plan and profile from before the last load.
+  void undoPlanImport() {
+    final b = _beforePlanImport;
+    if (b == null) return;
+    _beforePlanImport = null;
+    setPersonalPlan(b.plan);
+    if (b.profile == null) {
+      resetProfile();
+    } else {
+      saveProfile(b.profile!);
     }
   }
 
@@ -5949,7 +6000,7 @@ class PersonalSystemProvider extends ChangeNotifier {
       if (own.isNotEmpty) return own.first;
       return areaById('t_health');
     }
-    return readinessGap == null ? growthAreas.first : areaById(readinessGap!.id);
+    return readinessGap == null ? (growthAreas.firstOrNull ?? areaById('t_health')) : areaById(readinessGap!.id);
   }
 
   /// Focuses on [areaId]; a template (`t_…`) first becomes an area of

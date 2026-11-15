@@ -728,9 +728,9 @@ class _Body extends StatelessWidget {
                     child: Row(
                       children: [
                         Text(
-                            gymPlan
-                                .firstWhere((g) => g.id == s.str('day'),
-                                    orElse: () => gymPlan.first)
+                            (gymPlan.where((g) => g.id == s.str('day')).firstOrNull ??
+                                    gymPlan.firstOrNull ??
+                                    noGymDay)
                                 .letter,
                             style:
                                 AppText.serif(size: 22, color: AppColors.body)),

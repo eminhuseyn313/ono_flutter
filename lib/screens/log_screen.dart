@@ -630,8 +630,9 @@ class _EntryRow extends StatelessWidget {
       case 'protein':
         return '+${e.number('g')} g';
       case 'gym':
-        final d = gymPlan.firstWhere((g) => g.id == e.str('day'),
-            orElse: () => gymPlan.first);
+        final d = gymPlan.where((g) => g.id == e.str('day')).firstOrNull ??
+            gymPlan.firstOrNull ??
+            noGymDay;
         return 'Day ${d.letter} ${d.name} · ${((e.number('volume') ?? 0) / 1000).toStringAsFixed(1)} t${e.data['zone2'] == true ? ' · Zone 2' : ''}';
       case 'blood':
         return '${e.str('test')}: ${e.number('value')} ${e.str('unit') ?? ''}';

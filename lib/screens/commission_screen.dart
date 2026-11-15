@@ -270,9 +270,13 @@ class _CommissionScreenState extends State<CommissionScreen> {
   Widget _anchors() => _page(
         'Commission · 3 of 5',
         'Anchors',
-        'Your day is fixed by the profile: wake 06:00, ritual 06:05, desk 07:45, lunch read 12:00, gym 19:00, bed 22:30. Confirm the gym days and today\'s weight.',
         [
-          for (var i = 0; i < 3; i++) ...[
+          if (dailySchedule.isNotEmpty)
+            'Your day comes from your plan: ${dailySchedule.take(6).map((b) => '${b.title.toLowerCase()} ${b.timeLabel}').join(', ')}.',
+          gymPlan.isEmpty ? 'Confirm today\'s weight.' : 'Confirm the gym days and today\'s weight.',
+        ].join(' '),
+        [
+          for (var i = 0; i < gymPlan.length && i < _gymDays.length; i++) ...[
             Text('DAY ${gymPlan[i].letter} · ${gymPlan[i].name.toUpperCase()}',
                 style: AppText.eyebrow()),
             const SizedBox(height: 8),

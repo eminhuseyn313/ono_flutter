@@ -69,8 +69,9 @@ class _GymSessionScreenState extends State<GymSessionScreen> {
     _system = system;
     _day = widget.dayId == null
         ? system.nextGymDay(timeNow()).day
-        : gymPlan.firstWhere((g) => g.id == widget.dayId,
-            orElse: () => gymPlan.first);
+        : gymPlan.where((g) => g.id == widget.dayId).firstOrNull ??
+            gymPlan.firstOrNull ??
+            noGymDay;
     _sparing = system.shoulderFlag(timeNow());
     final last = system.lastSessionFor(_day.id);
     final lastByName = <String, List<Map<String, dynamic>>>{};

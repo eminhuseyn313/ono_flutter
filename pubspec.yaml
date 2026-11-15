@@ -36,6 +36,7 @@ dependencies:
   quick_actions: ^1.1.1
   device_calendar: ^3.9.0
   sign_in_with_apple: ^8.2.0
+  file_picker: ^10.2.4
 
 dev_dependencies:
   flutter_test:

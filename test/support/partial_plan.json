@@ -1,0 +1,39 @@
+{
+  "ono_plan_version": 1,
+  "profile": {
+    "name": "Rae Lindqvist",
+    "current_role": "Staff nurse",
+    "target_role": "Ward manager",
+    "organisation": "City Hospital",
+    "key_people": [{"name": "Tom", "relation": "Partner", "every": 7, "primary": true}, "Mina"],
+    "context": "Works rotating shifts, two young children, wants to lead a ward within a year."
+  },
+  "daily_items": [
+    {"title": "Ten-minute walk after a shift", "lane": "health", "when": "evening", "cue": "When I clock out, I walk the long way to the car", "minimum": "Two minutes outside"},
+    {"title": "Read 10 pages", "lane": "learning", "when": "evening", "minimum": "One page"},
+    {"title": "One question before advice", "lane": "career", "when": "day", "route": "/growth"},
+    {"title": "Phones away at dinner", "lane": "family", "when": "evening"}
+  ],
+  "schedule": [
+    {"time": "06:30", "title": "Up, water, kids", "lane": "family"},
+    {"time": "07:30", "title": "Shift", "lane": "career"},
+    {"time": "19:30", "title": "Home time", "lane": "family"},
+    {"time": "22:30", "title": "Sleep", "lane": "sleep"}
+  ],
+  "growth_areas": [
+    {"name": "Leading a team", "bar": "Calm, clear handovers and people who speak up",
+     "drills": ["Ask one question first in every huddle", {"title": "Name one thing that went well", "how": "At handover", "signal": "Someone mentions it later"}]}
+  ],
+  "books": [
+    {"title": "The Making of a Manager", "author": "Julie Zhuo", "month": 1, "why": "First-time lead, practical"},
+    {"title": "Piranesi", "author": "Susanna Clarke", "kind": "novel", "month": 2}
+  ],
+  "films": [{"title": "Twelve Angry Men", "year": 1957, "why": "Leading a room without authority"}],
+  "practices": [{"name": "Box breathing", "lane": "mind", "what": "In 4, hold 4, out 4, hold 4, four rounds", "when": "Before a hard conversation", "why": "Slows the heart rate", "source": "Common clinical practice"}],
+  "month_themes": [{"month": 1, "theme": "Find a rhythm around shifts"}, {"month": 2, "theme": "Lead one huddle a week"}],
+  "unlocks": [{"month": 2, "kind": "skill", "title": "Shadow the ward manager for a day", "detail": "Ask in month 1"}],
+  "milestones": [{"month": 3, "targets": ["Lead the morning huddle twice a week"]}],
+  "coach_tips": ["Small and daily beats big and rare.", {"title": "Shifts", "content": "On night weeks, the minimum is the plan."}],
+  "cards": [{"front": "Your rule for a hard shift?", "back": "Water, food, then decide."}],
+  "weekly_review_questions": ["What gave me energy this week?", "Who did I help grow?"]
+}
