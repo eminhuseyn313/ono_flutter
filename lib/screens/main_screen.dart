@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../theme/app_theme.dart';
+import '../widgets/desktop_shell.dart';
 
 /// Shell widget with a solid, docked bottom navigation bar.
 ///
@@ -23,6 +24,10 @@ class MainScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final index = _currentIndex(context);
 
+    // Beside the desktop sidebar the tabs are already on screen.
+    if (DesktopScope.of(context)) {
+      return Scaffold(backgroundColor: AppColors.background, body: child);
+    }
     return Scaffold(
       backgroundColor: AppColors.background,
       body: child,

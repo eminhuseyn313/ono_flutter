@@ -15,6 +15,7 @@ import 'services/health_service.dart';
 import 'services/reminder_service.dart';
 import 'services/widget_sync.dart';
 import 'theme/app_theme.dart';
+import 'widgets/desktop_shell.dart';
 
 /// The app, independent of where data lives. `main.dart` wires it to
 /// on-device storage; `main_production.dart` to Supabase.
@@ -186,7 +187,7 @@ class _OnoAppState extends State<OnoApp> with WidgetsBindingObserver {
             value: dark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
             child: KeyedSubtree(
               key: ValueKey(dark),
-              child: PhoneFrame(child: child ?? const SizedBox()),
+              child: DesktopShell(router: _router, child: child ?? const SizedBox()),
             ),
           ),
         ),
