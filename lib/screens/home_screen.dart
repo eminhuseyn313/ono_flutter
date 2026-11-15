@@ -1791,6 +1791,72 @@ class _PromptsState extends State<_Prompts> {
             ),
           ],
         ),
+      // A daily item that keeps slipping: shrink it before it becomes a
+      // reason to quit the whole list.
+      if (system.slippingItem case final n? when !_snoozed(system, 'slip'))
+        _setupRow(
+            context,
+            system,
+            'slip',
+            Icons.compress_rounded,
+            AppColors.mind,
+            '"${n.title}" keeps slipping',
+            'Make it smaller or give it a new cue. A small version you do beats a big one you skip.',
+            '/plans'),
+      // Something for you: one idea a day, from their plan and what they do.
+      if (system.suggestionNudge(now) case final nudge?)
+        Column(
+          key: const Key('for-you-nudge'),
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            _row(
+                context,
+                Icons.auto_awesome_outlined,
+                AppColors.accent,
+                nudge.suggestion.title,
+                '${nudge.why}${nudge.suggestion.by.isEmpty ? '' : ' · ${nudge.suggestion.by}'}',
+                '/for-you'),
+            Wrap(
+              alignment: WrapAlignment.end,
+              children: [
+                TextButton(
+                  key: const Key('for-you-nudge-take'),
+                  onPressed: () {
+                    final s = nudge.suggestion;
+                    if (s.kind == 'tool') {
+                      system.setDone(PersonalSystemProvider.nudgeSeenKey(system.logicalToday), true);
+                      context.push(s.route);
+                      return;
+                    }
+                    final r = system.takeSuggestion(s);
+                    if (r.ok) system.setDone(PersonalSystemProvider.nudgeSeenKey(system.logicalToday), true);
+                    if (r.message.isNotEmpty) toast(context, r.message);
+                  },
+                  style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      minimumSize: const Size(0, 44),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+                  child: Text(switch (nudge.suggestion.kind) {
+                    'daily' => 'Add as a daily item',
+                    'step' => 'Add to this week',
+                    'tool' => 'Open',
+                    _ => 'Add to my list',
+                  }),
+                ),
+                TextButton(
+                  key: const Key('for-you-nudge-skip'),
+                  onPressed: () =>
+                      system.setDone(PersonalSystemProvider.nudgeSeenKey(system.logicalToday), true),
+                  style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      minimumSize: const Size(0, 44),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+                  child: Text('Not now', style: AppText.small()),
+                ),
+              ],
+            ),
+          ],
+        ),
       // Last: a look back, at most once a week.
       if (system.onThisDay(now) case final o?)
         Column(

@@ -3741,7 +3741,8 @@ class PersonalSystemProvider extends ChangeNotifier {
       case 'listen':
       case 'course':
         const kinds = {'read': 'Book', 'watch': 'Film', 'listen': 'Podcast', 'course': 'Course'};
-        addLearning(s.title, kind: kinds[s.kind]!, by: s.kind == 'watch' ? '' : s.by);
+        final l = addLearning(s.title, kind: kinds[s.kind]!, by: s.kind == 'watch' ? '' : s.by);
+        if (l != null) updateLog(l.copyWith(data: {...l.data, 'suggestion': s.id}));
         setDone('suggest:took:${s.id}', true);
         return (ok: true, message: 'On your learning list.');
       case 'daily':
@@ -3762,6 +3763,101 @@ class PersonalSystemProvider extends ChangeNotifier {
         return (ok: true, message: 'In this week\'s three.');
     }
     return (ok: true, message: '');
+  }
+
+  /// The life area a learning item or daily item belongs to, when it
+  /// came from (or matches) a suggestion.
+  String? _suggestionArea({String? id, String? title}) {
+    for (final s in suggestionLibrary) {
+      if ((id != null && s.id == id) || (title != null && s.title.toLowerCase() == title.toLowerCase())) {
+        return s.area;
+      }
+    }
+    return null;
+  }
+
+  Suggestion? _nextIn(String area, Set<String> kinds) {
+    for (final g in suggestionGroups()) {
+      if (g.area.id != area) continue;
+      for (final s in g.items) {
+        if (kinds.contains(s.kind) && !suggestionTaken(s)) return s;
+      }
+    }
+    return null;
+  }
+
+  static String nudgeSeenKey(DateTime day) => 'suggest:today:${dateKey(dayOnly(day))}';
+
+  /// A daily item that keeps slipping: on the list for 14+ days, 7+ days
+  /// counted, done on under a third of them. The one that slips most.
+  NonNegotiable? get slippingItem {
+    if (firstTickDay == null) return null;
+    final today = logicalToday;
+    final days = [
+      for (var i = 1; i <= 14; i++)
+        if (!today.minusDays(i).isBefore(journeyStart) && !isPaused(today.minusDays(i))) today.minusDays(i)
+    ];
+    final counted = [for (final d in days) if (!isExcused(d)) d];
+    if (counted.length < 7) return null;
+    final rates = itemRates(counted);
+    NonNegotiable? worst;
+    var low = 1 / 3;
+    for (final n in dailyItems) {
+      final on = counted.where((d) => itemIdsOn(d).contains(n.id)).length;
+      final r = rates[n.id] ?? 1;
+      if (on >= 7 && r < low) {
+        low = r;
+        worst = n;
+      }
+    }
+    return worst;
+  }
+
+  /// One thing for Today, at most once a day ("Not now" or using it hides
+  /// it until tomorrow). It follows what they do: a book just finished
+  /// brings the next one in that part of life, a practice from here kept
+  /// for two weeks brings one more, otherwise it is the next idea from
+  /// their most relevant areas, a different one each day.
+  SuggestionNudge? suggestionNudge(DateTime now) {
+    final day = logicalToday;
+    if (!hasStarted || isDone(nudgeSeenKey(day))) return null;
+    // A book (or film, talk…) finished in the last week.
+    for (final l in learning) {
+      if (l.str('status') != 'done') continue;
+      final f = DateTime.tryParse(l.str('finished') ?? '');
+      if (f == null || day.daysSince(dayOnly(f)) > 7) continue;
+      final area = _suggestionArea(id: l.str('suggestion'), title: l.text) ?? suggestionGroups().first.area.id;
+      final next = _nextIn(area, const {'read', 'watch', 'listen', 'course'});
+      if (next != null) return SuggestionNudge(next, 'You finished ${l.text}. Next:');
+    }
+    // A practice from here, kept on 85%+ of the last 14 days.
+    final today = logicalToday;
+    final last14 = [
+      for (var i = 1; i <= 14; i++)
+        if (!today.minusDays(i).isBefore(journeyStart) && !isExcused(today.minusDays(i))) today.minusDays(i)
+    ];
+    if (last14.length >= 10) {
+      final rates = itemRates(last14);
+      for (final l in logsOf('daily_item')) {
+        final area = _suggestionArea(title: l.text);
+        if (area == null || day.daysSince(dayOnly(l.date)) < 14) continue;
+        final id = l.str('id');
+        if (id == null || !dailyItems.any((n) => n.id == id) || (rates[id] ?? 0) < 0.85) continue;
+        if (dailyCount >= maxDailyItems) break;
+        final next = _nextIn(area, const {'daily'});
+        if (next != null) return SuggestionNudge(next, 'You\'ve kept "${l.text}" for two weeks. Ready for one more?');
+      }
+    }
+    // Otherwise the next idea, rotating through the top areas by day.
+    final pool = [
+      for (final g in suggestionGroups().take(3))
+        for (final s in g.items.take(6))
+          if (!suggestionTaken(s)) (s, g),
+    ];
+    if (pool.isEmpty) return null;
+    final pick = pool[day.daysSince(DateTime(2026)) % pool.length];
+    final why = pick.$2.reasons.isEmpty ? 'For ${pick.$2.area.name.toLowerCase()}' : 'Because ${pick.$2.reasons.first}';
+    return SuggestionNudge(pick.$1, why);
   }
 
   void dismissSuggestion(Suggestion s) => setDone('suggest:off:${s.id}', true);
@@ -9404,4 +9500,11 @@ class SuggestionGroup {
   final List<Suggestion> items;
   int score;
   SuggestionGroup(this.area, this.reasons, this.items, this.score);
+}
+
+/// Today's one suggestion and the line that says why.
+class SuggestionNudge {
+  final Suggestion suggestion;
+  final String why;
+  const SuggestionNudge(this.suggestion, this.why);
 }

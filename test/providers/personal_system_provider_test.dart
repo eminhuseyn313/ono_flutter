@@ -1922,6 +1922,68 @@ void main() {
     p.resetProfile();
   });
 
+  test('for you on Today: one idea a day that follows what they do', () async {
+    final p = await _commissioned();
+    final wheel = {for (final a in lifeAreas) a.id: 8}..['money'] = 3;
+    p.buildPlan(
+      name: 'Sam Rivera',
+      currentRole: 'Analyst',
+      targetRole: 'Analyst',
+      wheel: wheel,
+      area: areaTemplates.firstWhere((t) => t.id == 't_money'),
+      areaRating: 2,
+      daily: dailyLibrary.where((d) => d.area == 'health').take(3).toList(),
+      replaceDaily: true,
+    );
+    final first = p.suggestionNudge(_today)!;
+    expect(first.why, startsWith('Because'));
+    // Another day, another idea.
+    p.clock = () => _today.plusDays(1);
+    expect(p.suggestionNudge(_today.plusDays(1))!.suggestion.id, isNot(first.suggestion.id));
+    // "Not now" hides it until tomorrow.
+    p.setDone(PersonalSystemProvider.nudgeSeenKey(p.logicalToday), true);
+    expect(p.suggestionNudge(_today.plusDays(1)), isNull);
+    p.clock = () => _today;
+
+    // A book from here, finished: the next one from that part of life.
+    final book = suggestionLibrary.firstWhere((s) => s.id == 'f_gathering');
+    p.takeSuggestion(book);
+    final l = p.learning.first;
+    p.applyLearning(l.id, principle: 'Purpose first', experiment: 'Dinner with a question');
+    final next = p.suggestionNudge(_today)!;
+    expect(next.why, 'You finished ${book.title}. Next:');
+    expect(next.suggestion.area, 'family');
+    expect({'read', 'watch', 'listen', 'course'}, contains(next.suggestion.kind));
+    final done = p.learningById(l.id)!;
+    p.updateLog(done.copyWith(data: {...done.data, 'status': 'queue'}));
+    expect(p.suggestionNudge(_today)!.why, isNot(startsWith('You finished')));
+
+    // A practice from here kept for two weeks: one more from that area.
+    p.clock = () => _today.minusDays(20);
+    final walk = suggestionLibrary.firstWhere((s) => s.id == 'h_walk');
+    p.takeSuggestion(walk);
+    p.clock = () => _today;
+    final item = p.dailyItems.firstWhere((n) => n.title == walk.title);
+    for (var i = 1; i <= 14; i++) {
+      p.setCheck(_today.minusDays(i), item.id, true);
+    }
+    final more = p.suggestionNudge(_today)!;
+    expect(more.why, contains('two weeks'));
+    expect(more.suggestion.kind, 'daily');
+    expect(more.suggestion.area, 'health');
+
+    // An item that keeps slipping is named; one that holds is not.
+    expect(p.slippingItem, isNotNull);
+    expect(p.slippingItem!.id, isNot(item.id));
+    for (final n in p.dailyItems) {
+      for (var i = 1; i <= 14; i++) {
+        p.setCheck(_today.minusDays(i), n.id, true);
+      }
+    }
+    expect(p.slippingItem, isNull);
+    p.resetProfile();
+  });
+
   test('suggestions are complete: unique ids, known areas and kinds, real routes', () {
     final ids = suggestionLibrary.map((s) => s.id).toList();
     expect(ids.toSet().length, ids.length);
