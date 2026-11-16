@@ -46,7 +46,15 @@ say "Putting ONO in Applications…"
 rm -rf "/Applications/ONO.app"
 cp -R "$APP" /Applications/ || fail "Couldn't copy to Applications. Drag $APP there yourself."
 open "/Applications/ONO.app"
-say "Done. ONO is in Applications and the Dock can keep it (right-click → Options → Keep in Dock)."
+
+# Keep ONO in the Dock (once) and open it when the Mac starts.
+if ! defaults read com.apple.dock persistent-apps 2>/dev/null | grep -q "/Applications/ONO.app"; then
+  defaults write com.apple.dock persistent-apps -array-add \
+    '<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>file:///Applications/ONO.app/</string><key>_CFURLStringType</key><integer>15</integer></dict></dict></dict>' \
+    && killall Dock 2>/dev/null
+fi
+osascript -e 'tell application "System Events" to if not (exists login item "ONO") then make login item at end with properties {path:"/Applications/ONO.app", hidden:false}' >/dev/null 2>&1 || true
+say "Done. ONO is in the Dock and opens when your Mac starts (System Settings → General → Login Items to change that)."
 if [ "$SIGNED" = 0 ]; then
   cat <<'MSG'
 
