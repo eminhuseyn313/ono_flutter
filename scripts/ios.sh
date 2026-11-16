@@ -120,7 +120,7 @@ run_logged() {
     echo
     echo "──── What went wrong (full log: $log) ────"
     grep -E "error:|Error:|ERROR|failed|Failed|Signing|provisioning|ONOWatch|ONOWidget" "$log" \
-      | grep -v "^warning" | sort -u | head -25
+      | grep -v "^warning" | grep -v "^ *export " | sort -u | head -25
     echo "──────────────────────────────────────────"
     echo "Copy the lines above (or send $log) to get it fixed."
   fi

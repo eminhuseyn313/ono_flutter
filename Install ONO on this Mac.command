@@ -13,14 +13,21 @@ say "Building ONO for the Mac (5–10 minutes the first time)…"
 # signed-in account (Xcode → Settings → Accounts) makes the profile.
 SIGNED=1
 flutter build macos --config-only --release -t lib/main_production.dart >/dev/null 2>&1 || true
-if ! run_logged build/mac-install.log xcodebuild -workspace macos/Runner.xcworkspace -scheme Runner \
-    -configuration Release -derivedDataPath build/macos -allowProvisioningUpdates build; then
+# -allowProvisioningDeviceRegistration lets Xcode add this Mac to your
+# developer account the first time (Apple requires it for a signed app).
+if ! run_logged build/mac-install.log xcodebuild -quiet -workspace macos/Runner.xcworkspace -scheme Runner \
+    -configuration Release -derivedDataPath build/macos \
+    -allowProvisioningUpdates -allowProvisioningDeviceRegistration build; then
   SIGNED=0
   say "Signing didn't work — building without Sign in with Apple so you have ONO now…"
-  if ! run_logged build/mac-install-local.log xcodebuild -workspace macos/Runner.xcworkspace -scheme Runner \
+  # The unsigned build uses the entitlements without Sign in with Apple:
+  # swapped in for this build only, then put back.
+  cp macos/Runner/Release.entitlements build/Release.entitlements.keep
+  cp macos/Runner/Local.entitlements macos/Runner/Release.entitlements
+  trap 'cp build/Release.entitlements.keep macos/Runner/Release.entitlements 2>/dev/null' EXIT
+  if ! run_logged build/mac-install-local.log xcodebuild -quiet -workspace macos/Runner.xcworkspace -scheme Runner \
       -configuration Release -derivedDataPath build/macos \
-      CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM= \
-      CODE_SIGN_ENTITLEMENTS=Runner/Local.entitlements build; then
+      CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM= build; then
     cat <<'MSG'
 
 The Mac build failed. Copy the error lines above and send them to Claude.
@@ -29,6 +36,7 @@ MSG
     read -r -p "Press Enter to close…" _
     exit 1
   fi
+  cp build/Release.entitlements.keep macos/Runner/Release.entitlements
 fi
 
 APP="build/macos/Build/Products/Release/ONO.app"
