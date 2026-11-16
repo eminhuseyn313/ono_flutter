@@ -35,6 +35,13 @@ Every time: double-click **ONO to TestFlight**. It updates the code, builds with
 
 The first time only: App Store Connect → ONO → TestFlight → Internal Testing → add yourself. On the iPhone, install the **TestFlight** app, accept the invite and install ONO. Later uploads appear there by themselves.
 
+### Xcode Cloud: every push becomes a TestFlight build (Emin, 16 Nov 2026)
+Apple builds ONO on its own Macs when `main` changes and sends it to TestFlight; nothing to run. Free with the paid program (25 hours a month; one iPhone + Mac build is roughly 30–40 minutes).
+- `ios/ci_scripts/ci_post_clone.sh` and `macos/ci_scripts/ci_post_clone.sh` call `scripts/xcode_cloud_setup.sh`: install Flutter stable, `pub get`, switch on health, widget, apple and watch (iPhone), `flutter build <platform> --config-only` from `lib/main_production.dart` with `CI_BUILD_NUMBER`, `pod install`.
+- Build numbers: Xcode Cloud's own. Set App Store Connect → ONO → Xcode Cloud → Settings → Build Number → next build number **1000**, above the launcher's builds (commit count + 100). After that, the launcher's lower numbers are refused, so Xcode Cloud is the way to upload.
+- Set-up once (Xcode on the Mac): open `ios/Runner.xcworkspace` → Product → Xcode Cloud → Create Workflow → product ONO → grant access to the GitHub repo when asked → edit the workflow: Start Condition = Branch Changes on `main`; Action = Archive, iOS, TestFlight (Internal Testing only); Post-Action = TestFlight Internal Testing → group "Me". Then a second workflow for the Mac: in App Store Connect → ONO → Xcode Cloud → Manage Workflows → duplicate it, set the project to `macos/Runner.xcworkspace`, scheme Runner, Archive macOS.
+- A failed build emails you; its log is in App Store Connect → Xcode Cloud → the build → ci_post_clone.
+
 ### Mac and other people (Emin, 16 Nov 2026)
 - **Mac:** ONO to TestFlight asks "1) iPhone 2) Mac 3) both". The Mac app shares the iPhone app's record (same bundle ID). Once: App Store Connect → ONO → Add Platform → macOS. Testers install the **TestFlight** app from the Mac App Store; no Terminal, which suits a managed work Mac. Logs: `build/mac-testflight.log`, `build/mac-upload.log`.
 - **Testers who aren't you (external testing):** App Store Connect → ONO → TestFlight → External Testing → + group (e.g. "Friends"), add the build, fill Test Information (what to test, a feedback email, and a sign-in for the reviewer — ONO needs an account, so create a test account with email and password). The first build of each version goes through a short Beta App Review (usually a day). Then add testers by email or switch on a **public link** to share. Up to 10,000 testers; builds last 90 days.
