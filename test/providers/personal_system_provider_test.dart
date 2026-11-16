@@ -28,6 +28,7 @@ import 'package:ono/services/widget_sync.dart';
 import '../support/fake_calendar.dart';
 import '../support/fake_health.dart';
 import 'package:ono/services/live_timer.dart';
+import 'package:ono/services/notification_actions.dart';
 import 'package:ono/time.dart';
 
 /// Friday 2 Oct 2026, noon. The program starts Tue 1 Sep → day 32, month 2.
@@ -4419,6 +4420,86 @@ void main() {
       'start rest Rest Bench press',
       'end',
     ]);
+  });
+
+  test('notification buttons: Done ticks the item, even while ONO was closed', () async {
+    final p = await _commissioned();
+    final bed = p.plannedReminders().firstWhere((r) => r.key == 'bed');
+    expect(bed.itemId, 'bed', reason: 'its notification gets a Done button');
+    expect(p.plannedReminders().firstWhere((r) => r.key == 'gym').itemId, isNull);
+    // What a notification carries survives the trip; old ones are a route.
+    final payload = NotificationActions.payload(route: bed.route, key: 'bed', item: 'bed', title: bed.title, body: bed.body);
+    final back = NotificationActions.parse(payload);
+    expect((back.route, back.key, back.item, back.title), (bed.route, 'bed', 'bed', bed.title));
+    expect(NotificationActions.parse('/gym').route, '/gym');
+    // Before 04:00 a tap counts for the night before.
+    expect(NotificationActions.dayOf(DateTime(2026, 10, 3, 1, 30)), DateTime(2026, 10, 2));
+    // Done while closed: recorded, then applied when ONO looks.
+    await NotificationActions.recordDone('bed', _today);
+    expect(p.isChecked(p.logicalToday, 'bed'), isFalse);
+    expect(await p.applyDeviceTicks(), 1);
+    expect(p.isChecked(p.logicalToday, 'bed'), isTrue);
+    expect(await p.applyDeviceTicks(), 0, reason: 'taken once');
+    // An item not on the list is ignored.
+    await NotificationActions.recordDone('nope', _today);
+    expect(await p.applyDeviceTicks(), 0);
+  });
+
+  test('plan the day: today\'s three get a time, a nudge at each start', () async {
+    final reminders = _RecordingReminders();
+    final p = await _commissioned(reminders: reminders);
+    final day = p.logicalToday; // Friday noon
+    p.setPriority(day, 0, 'Send the proposal');
+    p.setPriority(day, 1, 'Call the bank');
+    expect(p.unplacedThree(day), ['Send the proposal', 'Call the bank']);
+    final slots = p.openSlots(day, 50);
+    expect(slots, isNotEmpty);
+    expect(slots.first, greaterThanOrEqualTo(12 * 60), reason: 'from now, not the morning');
+    expect(p.setDayBlock(day, title: 'Send the proposal', start: 14 * 60, minutes: 50, kind: 'three'), isTrue);
+    expect(p.unplacedThree(day), ['Call the bank']);
+    // A free slot never overlaps what's planned.
+    for (final s in p.openSlots(day, 60)) {
+      expect(s + 60 <= 14 * 60 || s >= 14 * 60 + 50, isTrue, reason: '$s');
+    }
+    expect(p.nextBlock(_today)!.title, 'Send the proposal');
+    await Future<void>.delayed(Duration.zero);
+    expect(reminders.once.keys, contains(PersonalSystemProvider.dayPlanBase));
+    // During the block, Ask ONO's "now" is the block.
+    p.clock = () => DateTime(_today.year, _today.month, _today.day, 14, 10);
+    expect(p.ask('now', p.clock()).lines.first, 'Send the proposal');
+    p.clock = () => _today;
+    // Moving keeps one block; removing clears its nudge.
+    final id = p.dayPlanFor(day).single.id;
+    p.setDayBlock(day, id: id, title: 'Send the proposal', start: 16 * 60, minutes: 50, kind: 'three');
+    expect(p.dayPlanFor(day).single.start, 16 * 60);
+    p.removeDayBlock(day, id);
+    await Future<void>.delayed(Duration.zero);
+    expect(p.dayPlanFor(day), isEmpty);
+    expect(reminders.once.keys, isNot(contains(PersonalSystemProvider.dayPlanBase)));
+  });
+
+  test('readiness: how hard today should push, from their own signals', () async {
+    final p = await _commissioned();
+    final day = dayOnly(_today);
+    expect(p.readinessFor(day), isNull, reason: 'nothing to go on yet');
+    // A rough night and low energy: go easy.
+    p.addLog('checkin', date: day, data: {'energy': 2, 'mood': -1, 'sleep': 5.5});
+    var r = p.readinessFor(day)!;
+    expect(r.level, 'easy');
+    expect(r.reasons, containsAll(['Energy 2/5', 'Slept 5.5 h', 'Mood low']));
+    // A good night and high energy: push.
+    final c = p.checkinFor(day)!;
+    p.updateLog(c.copyWith(data: {'energy': 5, 'mood': 1, 'sleep': 8.0}));
+    r = p.readinessFor(day)!;
+    expect(r.level, 'push');
+    // HRV well below their own usual pulls it back to steady.
+    for (var i = 1; i <= 10; i++) {
+      p.addLog('vitals', date: day.minusDays(i), data: {'hrv': 60, 'rhr': 55});
+    }
+    p.addLog('vitals', date: day, data: {'hrv': 40, 'rhr': 63});
+    r = p.readinessFor(day)!;
+    expect(r.reasons, containsAll(['HRV below your usual', 'Resting heart rate up']));
+    expect(r.level, 'steady');
   });
 
   test('notification centre: every notification opens what it is about', () async {

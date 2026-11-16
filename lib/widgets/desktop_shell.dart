@@ -187,6 +187,7 @@ const _main = [
 ];
 
 const _grow = [
+  _NavEntry('Plan the day', Icons.view_timeline_outlined, '/plan-day'),
   _NavEntry('Notifications', Icons.notifications_none_rounded, '/inbox'),
   _NavEntry('Ask ONO', Icons.chat_bubble_outline_rounded, '/ask'),
   _NavEntry('Ideas for you', Icons.auto_awesome_outlined, '/for-you'),
@@ -363,6 +364,17 @@ class _Glance extends StatelessWidget {
                 ],
               ),
             ),
+            if (system.readinessFor(day) case final r?) ...[
+              const SizedBox(height: 12),
+              Text(r.title, key: const Key('glance-readiness'), style: AppText.heading()),
+              Text([r.advice, ...r.reasons].join(' · '), style: AppText.small()),
+            ],
+            const SizedBox(height: 16),
+            _Heading('Your day plan', onTap: () => router.push('/plan-day')),
+            if (system.nextBlock(timeNow()) case final b?)
+              Text('${DayBlock.clock(b.start)}  ${b.title}', key: const Key('glance-next-block'), style: AppText.body(color: AppColors.white))
+            else
+              Text('Nothing timed yet. Give one of today\'s three a time.', style: AppText.small()),
             const SizedBox(height: 16),
             _Heading('Today\'s three', onTap: () => router.go('/home')),
             if (pr.every((t) => t.trim().isEmpty))

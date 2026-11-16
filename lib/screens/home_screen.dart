@@ -264,6 +264,15 @@ class _HomeScreenState extends State<HomeScreen> {
                         label: const Text('What do you need right now?'),
                       ),
                       TextButton.icon(
+                        key: const Key('today-plan-day'),
+                        onPressed: () => context.push('/plan-day'),
+                        icon: const Icon(Icons.view_timeline_outlined, size: 18),
+                        label: Text(switch (system.nextBlock(timeNow())) {
+                          final b? => 'Next: ${DayBlock.clock(b.start)} ${b.title.length > 24 ? '${b.title.substring(0, 23)}…' : b.title}',
+                          null => 'Plan the day',
+                        }),
+                      ),
+                      TextButton.icon(
                         key: const Key('today-ask'),
                         onPressed: () => context.push('/ask'),
                         icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
@@ -939,7 +948,8 @@ class _FreshStartCard extends StatelessWidget {
               ),
               IconButton(
                 tooltip: 'Dismiss',
-                visualDensity: VisualDensity.compact,
+                // 44 pt, Apple's minimum for a tap target.
+                constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
                 onPressed: () => system.setDone(fs.key, true),
                 icon: Icon(Icons.close_rounded,
                     size: 18, color: AppColors.grey),
@@ -2124,45 +2134,83 @@ class _CheckinCard extends StatelessWidget {
         ),
       );
     }
-    // A low morning changes what today asks: scaling the plan down keeps
-    // the habit through bad days.
-    final energy = c.number('energy')?.toInt();
-    final sleep = c.number('sleep')?.toDouble();
-    final low = (energy != null && energy <= 2) || (sleep != null && sleep > 0 && sleep < 6);
+    // Readiness: how hard today should push, from the check-in, sleep and
+    // (with Apple Health) HRV and resting heart rate. An easy morning
+    // offers a minimum day: scaling down keeps the habit through bad days.
+    final r = system.readinessFor(today);
     final lowKey = 'lowday:${dateKey(today)}';
-    if (low &&
+    final seenKey = 'ready:${dateKey(today)}';
+    final easy = r?.level == 'easy';
+    final offerMinimum = easy &&
         system.hardDayOn(today) == null &&
         !system.isExcused(today) &&
         // A re-entry day is already a minimum day.
         !system.isMinimumDay(today) &&
-        !system.isDone(lowKey)) {
+        !system.isDone(lowKey);
+    if (r != null && (offerMinimum || (!easy && !system.isDone(seenKey)))) {
+      final n = system.itemIdsOn(system.logicalToday).length;
+      final color = switch (r.level) {
+        'push' => AppColors.accent,
+        'easy' => AppColors.mind,
+        _ => AppColors.skill,
+      };
       return Padding(
         padding: const EdgeInsets.only(top: 12),
         child: OnoCard(
-          key: const Key('low-morning'),
+          key: Key(easy ? 'low-morning' : 'readiness'),
           padding: const EdgeInsets.fromLTRB(16, 14, 8, 6),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('A low morning', style: AppText.heading()),
+              Row(
+                children: [
+                  Icon(
+                      switch (r.level) {
+                        'push' => Icons.bolt_rounded,
+                        'easy' => Icons.spa_outlined,
+                        _ => Icons.horizontal_rule_rounded,
+                      },
+                      color: color,
+                      size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(r.title, style: AppText.heading())),
+                ],
+              ),
               const SizedBox(height: 4),
               Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: Text(
-                    '${energy != null && energy <= 2 ? 'Energy $energy/5' : 'Under 6 hours of sleep'}. Make today a minimum day? ${PersonalSystemProvider.minTargetOf(system.itemIdsOn(system.logicalToday).length)} of ${system.itemIdsOn(system.logicalToday).length} counts, smallest versions are fine.',
+                    easy
+                        ? '${r.advice} ${PersonalSystemProvider.minTargetOf(n)} of $n counts today.'
+                        : r.advice,
                     style: AppText.small()),
               ),
+              if (r.reasons.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [for (final why in r.reasons) Tag(why, color: color)],
+                ),
+              ],
               Wrap(
                 spacing: 12,
                 children: [
-                  TextButton(
-                    onPressed: () => system.setHardDay(today, 'minimum'),
-                    child: const Text('Make it a minimum day'),
-                  ),
-                  TextButton(
-                    onPressed: () => system.setDone(lowKey, true),
-                    child: const Text('Full plan today'),
-                  ),
+                  if (easy) ...[
+                    TextButton(
+                      onPressed: () => system.setHardDay(today, 'minimum'),
+                      child: const Text('Make it a minimum day'),
+                    ),
+                    TextButton(
+                      onPressed: () => system.setDone(lowKey, true),
+                      child: const Text('Full plan today'),
+                    ),
+                  ] else
+                    TextButton(
+                      key: const Key('readiness-ok'),
+                      onPressed: () => system.setDone(seenKey, true),
+                      child: const Text('Got it'),
+                    ),
                 ],
               ),
             ],

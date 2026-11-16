@@ -4,6 +4,9 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
+import '../time.dart';
+import 'notification_actions.dart';
+
 /// One weekly-repeating notification.
 class PlannedReminder {
   final int id;
@@ -18,6 +21,9 @@ class PlannedReminder {
   /// notification centre.
   final String key;
 
+  /// The daily item it is about: its notification gets a Done button.
+  final String? itemId;
+
   /// Already done today: the weekly repeat starts from next week's day,
   /// so a calm app doesn't nag about what's finished.
   final bool skipToday;
@@ -31,6 +37,7 @@ class PlannedReminder {
     required this.body,
     required this.route,
     this.key = '',
+    this.itemId,
     this.skipToday = false,
   });
 }
@@ -109,8 +116,21 @@ class LocalReminderService implements ReminderService {
       importance: Importance.high,
       priority: Priority.high,
     ),
-    iOS: DarwinNotificationDetails(),
-    macOS: DarwinNotificationDetails(),
+    iOS: DarwinNotificationDetails(categoryIdentifier: NotificationActions.nudgeCategory),
+    macOS: DarwinNotificationDetails(categoryIdentifier: NotificationActions.nudgeCategory),
+  );
+
+  // About a daily item: Done and In 1 hour on the notification.
+  static const _itemDetails = NotificationDetails(
+    android: AndroidNotificationDetails(
+      'ono_schedule',
+      'Daily schedule',
+      channelDescription: 'Reminders at the times in your ONO schedule',
+      importance: Importance.high,
+      priority: Priority.high,
+    ),
+    iOS: DarwinNotificationDetails(categoryIdentifier: NotificationActions.itemCategory),
+    macOS: DarwinNotificationDetails(categoryIdentifier: NotificationActions.itemCategory),
   );
 
   // Silent while ONO is open: the screen that set it shows its own cue.
@@ -147,32 +167,24 @@ class LocalReminderService implements ReminderService {
       // Unknown zone name — fall back to UTC; times may be offset.
     }
     await _plugin.initialize(
-      settings: const InitializationSettings(
-        android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+      settings: InitializationSettings(
+        android: const AndroidInitializationSettings('@mipmap/ic_launcher'),
         // Permission is requested from the Commission flow, not at launch.
-        iOS: DarwinInitializationSettings(
-          requestAlertPermission: false,
-          requestBadgePermission: false,
-          requestSoundPermission: false,
-        ),
+        iOS: _darwinSettings,
         // The Mac app: same reminders, asked for the same way.
-        macOS: DarwinInitializationSettings(
-          requestAlertPermission: false,
-          requestBadgePermission: false,
-          requestSoundPermission: false,
-        ),
+        macOS: _darwinSettings,
       ),
-      onDidReceiveNotificationResponse: (r) {
-        final route = r.payload;
-        if (route != null && route.isNotEmpty) onOpen(route);
+      onDidReceiveNotificationResponse: (r) async {
+        if (await handleNotificationAction(_plugin, r)) return;
+        final route = NotificationActions.parse(r.payload).route;
+        if (route.isNotEmpty) onOpen(route);
       },
+      onDidReceiveBackgroundNotificationResponse: onoNotificationInBackground,
     );
     final launch = await _plugin.getNotificationAppLaunchDetails();
-    final route = launch?.notificationResponse?.payload;
+    final route = NotificationActions.parse(launch?.notificationResponse?.payload).route;
     _ready = true;
-    if (launch?.didNotificationLaunchApp == true &&
-        route != null &&
-        route.isNotEmpty) {
+    if (launch?.didNotificationLaunchApp == true && route.isNotEmpty) {
       onOpen(route);
     }
     if (_pending != null) await sync(_pending!);
@@ -244,10 +256,11 @@ class LocalReminderService implements ReminderService {
         title: r.title,
         body: r.body,
         scheduledDate: _next(r.weekday, r.hour, r.minute, skipToday: r.skipToday),
-        notificationDetails: _details,
+        notificationDetails: r.itemId != null ? _itemDetails : _details,
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
-        payload: r.route,
+        payload: NotificationActions.payload(
+            route: r.route, key: r.key, item: r.itemId, title: r.title, body: r.body),
       );
     }
   }
@@ -266,7 +279,7 @@ class LocalReminderService implements ReminderService {
         scheduledDate: tz.TZDateTime.from(at, tz.local),
         notificationDetails: _onceDetails,
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-        payload: route,
+        payload: NotificationActions.payload(route: route, title: title, body: body),
       );
     } catch (_) {
       // Notifications off: the in-app timer still works.
@@ -289,4 +302,69 @@ class LocalReminderService implements ReminderService {
       if (t.weekday == weekday && t.isAfter(now)) return t;
     }
   }
+}
+
+/// Asking for permission happens on Today; the buttons are declared here.
+final _darwinSettings = DarwinInitializationSettings(
+  requestAlertPermission: false,
+  requestBadgePermission: false,
+  requestSoundPermission: false,
+  notificationCategories: [
+    DarwinNotificationCategory(NotificationActions.itemCategory, actions: [
+      DarwinNotificationAction.plain(NotificationActions.done, 'Done'),
+      DarwinNotificationAction.plain(NotificationActions.later, 'In 1 hour'),
+    ]),
+    DarwinNotificationCategory(NotificationActions.nudgeCategory, actions: [
+      DarwinNotificationAction.plain(NotificationActions.later, 'In 1 hour'),
+    ]),
+  ],
+);
+
+/// A button on a notification: Done records the tick; In 1 hour sends the
+/// same notification again an hour from now. Returns whether it was one.
+Future<bool> handleNotificationAction(FlutterLocalNotificationsPlugin plugin, NotificationResponse r) async {
+  final p = NotificationActions.parse(r.payload);
+  switch (r.actionId) {
+    case NotificationActions.done:
+      if (p.item != null) {
+        await NotificationActions.recordDone(p.item!, timeNow());
+        NotificationActions.onTicks?.call();
+      }
+      return true;
+    case NotificationActions.later:
+      try {
+        tzdata.initializeTimeZones();
+        await plugin.zonedSchedule(
+          id: onceIdBase + 300 + ((r.id ?? 0) % 90),
+          title: p.title.isEmpty ? 'ONO' : p.title,
+          body: p.body,
+          scheduledDate: tz.TZDateTime.now(tz.UTC).add(const Duration(hours: 1)),
+          notificationDetails: NotificationDetails(
+            iOS: DarwinNotificationDetails(
+                categoryIdentifier: p.item != null ? NotificationActions.itemCategory : NotificationActions.nudgeCategory),
+            macOS: DarwinNotificationDetails(
+                categoryIdentifier: p.item != null ? NotificationActions.itemCategory : NotificationActions.nudgeCategory),
+          ),
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+          payload: r.payload,
+        );
+      } catch (_) {
+        // Notifications off: nothing to bring back.
+      }
+      return true;
+  }
+  return false;
+}
+
+/// The same, when ONO isn't running (iOS starts a short background engine;
+/// AppDelegate registers the plugins for it).
+@pragma('vm:entry-point')
+Future<void> onoNotificationInBackground(NotificationResponse r) async {
+  final plugin = FlutterLocalNotificationsPlugin();
+  try {
+    await plugin.initialize(settings: InitializationSettings(iOS: _darwinSettings, macOS: _darwinSettings));
+  } catch (_) {
+    // Already set up in this engine.
+  }
+  await handleNotificationAction(plugin, r);
 }

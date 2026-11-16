@@ -19,6 +19,7 @@ import '../gateways/personal_system_gateway.dart';
 import '../models/personal_system.dart';
 import '../models/state_merge.dart';
 import '../services/live_timer.dart';
+import '../services/notification_actions.dart';
 import '../services/brief_generator.dart';
 import '../services/calendar_service.dart';
 import '../services/health_service.dart';
@@ -51,6 +52,8 @@ class PersonalSystemProvider extends ChangeNotifier {
         _widgets = widgets {
     // A tick sent from the watch while ONO is open lands at once.
     widgets?.listenForTicks(() => refreshWidget());
+    // So does "Done" on a notification.
+    NotificationActions.onTicks = () => applyDeviceTicks();
   }
 
   final WidgetSync? _widgets;
@@ -261,9 +264,20 @@ class PersonalSystemProvider extends ChangeNotifier {
   /// Records the ticks made on the widget or the watch since ONO last
   /// looked: only items on that day's list, within the 48-hour window.
   Future<int> applyDeviceTicks() async {
-    final w = _widgets;
-    if (w == null || !isCommissioned) return 0;
+    if (!isCommissioned) return 0;
     var n = 0;
+    // "Done" on a notification: always a tick on, never off.
+    for (final t in await NotificationActions.takeTicks()) {
+      final d = DateTime.tryParse(t.date);
+      if (d == null) continue;
+      final day = dayOnly(d);
+      if (day.isAfter(dayOnly(_now)) || logicalToday.daysSince(day) > 1) continue;
+      if (!itemIdsOn(day).contains(t.id)) continue;
+      setCheck(day, t.id, true);
+      n++;
+    }
+    final w = _widgets;
+    if (w == null) return n;
     for (final t in await w.takeTicks()) {
       final d = DateTime.tryParse(t.date);
       if (d == null) continue;
@@ -287,9 +301,10 @@ class PersonalSystemProvider extends ChangeNotifier {
 
   /// Push now (app start, back to foreground).
   Future<void> refreshWidget() async {
+    // Ticks from notifications, the widget and the watch, on every device.
+    await applyDeviceTicks();
     final w = _widgets;
     if (w == null || !isCommissioned) return;
-    await applyDeviceTicks();
     await w.push(widgetSnapshot());
   }
 
@@ -1284,7 +1299,10 @@ class PersonalSystemProvider extends ChangeNotifier {
       if (lastWeek.length < 3) return null;
       final rates = itemRates(lastWeek).entries.toList()
         ..sort((a, b) => a.value.compareTo(b.value));
-      final weakest = dailyItem(rates.first.key)!;
+      // No daily items yet (a newcomer): nothing to name.
+      if (rates.isEmpty) return null;
+      final weakest = dailyItem(rates.first.key);
+      if (weakest == null) return null;
       // Rates leave excused days out; count against the days that counted.
       final counted = lastWeek.where((x) => !isExcused(x)).length;
       if (counted == 0) return null;
@@ -1444,6 +1462,10 @@ class PersonalSystemProvider extends ChangeNotifier {
     final day = logicalToday;
     switch (intent) {
       case 'now':
+        if (nextBlock(now) case final b? when b.start <= now.hour * 60 + now.minute) {
+          return AskAnswer('Do this now', [b.title, 'On your plan until ${DayBlock.clock(b.start + b.minutes)}.'],
+              const [('Your day plan', '/plan-day')]);
+        }
         final pr = prioritiesFor(day);
         for (var i = 0; i < 3; i++) {
           if (pr[i].trim().isNotEmpty && !priorityDone(day, i)) {
@@ -1519,6 +1541,190 @@ class PersonalSystemProvider extends ChangeNotifier {
             const [('Experiments', '/experiments')]);
     }
     return const AskAnswer('Not sure yet', ['Try one of the questions above, or search all tools.'], [('Find a tool', '/tools?focus=1')]);
+  }
+
+  // ── Plan the day: a time for what matters (Sunsama / Structured) ─────
+  // One `day_plan` log per day: blocks with a start (minutes after
+  // midnight), a length and a kind (three | focus | other). Each block
+  // still ahead today gets a one-off nudge at its start.
+
+  static const dayPlanBase = onceIdBase + 200;
+  static const maxDayBlocks = 12;
+
+  List<DayBlock> dayPlanFor(DateTime day) {
+    final l = logsOn(dayOnly(day), 'day_plan');
+    if (l.isEmpty) return const [];
+    final raw = (l.last.data['blocks'] as List?) ?? const [];
+    return [
+      for (final b in raw)
+        if (b is Map)
+          DayBlock('${b['id']}', '${b['title']}', (b['start'] as num).toInt(), (b['minutes'] as num).toInt(),
+              '${b['kind'] ?? 'other'}')
+    ]..sort((a, b) => a.start.compareTo(b.start));
+  }
+
+  void _saveDayPlan(DateTime day, List<DayBlock> blocks) {
+    _upsertDayLog('day_plan', dayOnly(day), {
+      'blocks': [for (final b in blocks) b.toJson()],
+    });
+    if (dayOnly(day) == logicalToday) _syncDayPlanNudges();
+  }
+
+  /// Adds or moves a block (same id). Refuses past [maxDayBlocks].
+  bool setDayBlock(DateTime day, {String? id, required String title, required int start, required int minutes, String kind = 'other'}) {
+    if (title.trim().isEmpty) return false;
+    final blocks = [...dayPlanFor(day)];
+    final key = id ?? 'b_${_uid()}';
+    blocks.removeWhere((b) => b.id == key);
+    if (blocks.length >= maxDayBlocks) return false;
+    blocks.add(DayBlock(key, title.trim(), start.clamp(0, 24 * 60 - 1), minutes.clamp(5, 12 * 60), kind));
+    _saveDayPlan(day, blocks);
+    return true;
+  }
+
+  void removeDayBlock(DateTime day, String id) =>
+      _saveDayPlan(day, [for (final b in dayPlanFor(day)) if (b.id != id) b]);
+
+  /// Today's three not yet given a time (and not done).
+  List<String> unplacedThree(DateTime day) {
+    final placed = {for (final b in dayPlanFor(day)) b.title.toLowerCase()};
+    final pr = prioritiesFor(day);
+    return [
+      for (var i = 0; i < 3; i++)
+        if (pr[i].trim().isNotEmpty && !priorityDone(day, i) && !placed.contains(pr[i].trim().toLowerCase())) pr[i].trim()
+    ];
+  }
+
+  /// Start times (minutes) where [minutes] fit on [day]: from now (today)
+  /// or the start of the day, within waking hours (their day's shape,
+  /// else 07:00–22:00), around meetings and blocks already planned.
+  List<int> openSlots(DateTime day, int minutes, {int count = 4}) {
+    final d = dayOnly(day);
+    final shape = dayShape;
+    final wake = shape?.wake ?? 7 * 60;
+    final bed = shape != null && shape.bed > shape.wake ? shape.bed : 22 * 60;
+    var cursor = wake;
+    if (d == dayOnly(_now)) {
+      final nowMin = _now.hour * 60 + _now.minute;
+      cursor = max(cursor, ((nowMin + 14) ~/ 15) * 15);
+    }
+    final busy = <(int, int)>[
+      for (final m in meetingsFor(d)) (m.start.hour * 60 + m.start.minute, m.end.hour * 60 + m.end.minute),
+      for (final b in dayPlanFor(d)) (b.start, b.start + b.minutes),
+    ]..sort((a, b) => a.$1.compareTo(b.$1));
+    final out = <int>[];
+    while (cursor + minutes <= bed && out.length < count) {
+      final clash = busy.where((b) => b.$1 < cursor + minutes && b.$2 > cursor).toList();
+      if (clash.isEmpty) {
+        out.add(cursor);
+        cursor += max(minutes, 60);
+      } else {
+        final end = clash.map((b) => b.$2).reduce(max);
+        cursor = ((end + 14) ~/ 15) * 15;
+      }
+    }
+    return out;
+  }
+
+  /// The block happening now, else the next one today.
+  DayBlock? nextBlock(DateTime now) {
+    final m = now.hour * 60 + now.minute;
+    for (final b in dayPlanFor(now)) {
+      if (b.start + b.minutes > m) return b;
+    }
+    return null;
+  }
+
+  Future<void> _syncDayPlanNudges() async {
+    final r = _reminders;
+    if (r == null) return;
+    for (var i = 0; i < maxDayBlocks; i++) {
+      await r.cancel(dayPlanBase + i);
+    }
+    final d = logicalToday;
+    var i = 0;
+    for (final b in dayPlanFor(d)) {
+      final at = DateTime(d.year, d.month, d.day, b.start ~/ 60, b.start % 60);
+      if (!at.isAfter(_now)) continue;
+      await r.notifyOnce(dayPlanBase + i++, at,
+          title: 'Now: ${b.title}',
+          body: '${b.minutes} min, as you planned. One thing, everything else closed.',
+          route: b.kind == 'focus' ? '/focus' : '/plan-day');
+    }
+  }
+
+  // ── Readiness: how hard today should push ───────────────────────────
+  // From their own signals only (Oura and Whoop style, without a device):
+  // the morning check-in, sleep, and — with Apple Health — HRV and resting
+  // heart rate against their own usual. Never a medical judgement.
+
+  static double? _median(List<num> v) {
+    if (v.isEmpty) return null;
+    final s = [...v]..sort();
+    final m = s.length ~/ 2;
+    return s.length.isOdd ? s[m].toDouble() : (s[m - 1] + s[m]) / 2;
+  }
+
+  /// Today's readiness, once there's a check-in or a night of sleep.
+  DayReadiness? readinessFor(DateTime day) {
+    final d = dayOnly(day);
+    final c = checkinFor(d);
+    final healthSleep = sleepHoursFor(d);
+    if (c == null && healthSleep == null) return null;
+    var score = 0;
+    final reasons = <String>[];
+    final energy = c?.number('energy')?.toInt();
+    if (energy != null) {
+      final e = energy <= 1 ? -2 : energy == 2 ? -1 : energy >= 4 ? 1 : 0;
+      score += e;
+      reasons.add('Energy $energy/5');
+    }
+    final sleep = (c?.number('sleep')?.toDouble() ?? 0) > 0 ? c!.number('sleep')!.toDouble() : healthSleep;
+    if (sleep != null && sleep > 0) {
+      score += sleep < 6 ? -2 : sleep < 7 ? -1 : sleep >= 7.5 ? 1 : 0;
+      reasons.add('Slept ${sleep.toStringAsFixed(sleep % 1 == 0 ? 0 : 1)} h');
+    }
+    final mood = c?.number('mood')?.toInt();
+    if (mood != null && mood <= -1) {
+      score -= 1;
+      reasons.add('Mood low');
+    }
+    // HRV and resting heart rate against their own last 30 mornings.
+    final vitals = logsOn(d, 'vitals');
+    if (vitals.isNotEmpty) {
+      final past = [
+        for (var i = 1; i <= 30; i++) ...logsOn(d.minusDays(i), 'vitals'),
+      ];
+      final hrv = vitals.last.number('hrv');
+      final usualHrv = _median([for (final v in past) if (v.number('hrv') case final h?) h]);
+      if (hrv != null && usualHrv != null && past.length >= 5) {
+        if (hrv < usualHrv * 0.85) {
+          score -= 1;
+          reasons.add('HRV below your usual');
+        } else if (hrv > usualHrv * 1.05) {
+          score += 1;
+          reasons.add('HRV above your usual');
+        }
+      }
+      final rhr = vitals.last.number('rhr');
+      final usualRhr = _median([for (final v in past) if (v.number('rhr') case final r?) r]);
+      if (rhr != null && usualRhr != null && past.length >= 5 && rhr > usualRhr + 5) {
+        score -= 1;
+        reasons.add('Resting heart rate up');
+      }
+    }
+    if (checksShoulders && shoulderFlag(d)) {
+      score -= 1;
+      reasons.add('Shoulders flared');
+    }
+    if (hardDayOn(d.minusDays(1)) == 'sick') {
+      score -= 1;
+      reasons.add('Ill yesterday');
+    }
+    // A very low morning is always easy, whatever else looks fine.
+    final floor = (energy != null && energy <= 2) || (sleep != null && sleep > 0 && sleep < 6);
+    final level = score <= -2 || floor ? 'easy' : score >= 2 ? 'push' : 'steady';
+    return DayReadiness(level, score, reasons);
   }
 
   // ── What a full plan switches on ────────────────────────────────────
@@ -2409,7 +2615,7 @@ class PersonalSystemProvider extends ChangeNotifier {
     'goal': '/goals', 'goal_value': '/goals', 'growth_focus': '/growth', 'rep': '/growth',
     'odyssey': '/odyssey', 'best_future': '/best-future', 'strengths': '/strengths',
     'strength_use': '/strengths', 'life_story': '/chapters', 'values': '/values',
-    'values_check': '/values', 'value_act': '/values', 'look_forward': '/week', 'money_check': '/money',
+    'values_check': '/values', 'value_act': '/values', 'look_forward': '/week', 'day_plan': '/plan-day', 'money_check': '/money',
     'quarterly_review': '/quarter', 'story': '/stories', 'year_review': '/year',
     'letter': '/letters', 'learning': '/learning', 'feynman': '/learning', 'aar': '/aar',
     'courage': '/courage', 'focus': '/focus', 'anki': '/review', 'automaticity': '/habits',
@@ -3235,6 +3441,10 @@ class PersonalSystemProvider extends ChangeNotifier {
   Future<bool> requestReminderPermission() async =>
       await _reminders?.requestPermission() ?? false;
 
+  Map<String, String> get _itemForReminder => {
+        for (final e in itemReminder.entries) e.value: e.key,
+      };
+
   /// Concrete notifications for the coming week, with today's content.
   List<PlannedReminder> plannedReminders() {
     if (!isCommissioned) return const [];
@@ -3315,6 +3525,11 @@ class PersonalSystemProvider extends ChangeNotifier {
           // land on Today opens its own detail in the notification centre.
           route: notificationRoute(def.id, def.route),
           key: def.id,
+          // About a daily item on the list: the notification gets Done.
+          itemId: switch (_itemForReminder[def.id]) {
+            final item? when dailyItems.any((n) => n.id == item) => item,
+            _ => null,
+          },
           skipToday: wd == _now.weekday && reminderDoneToday(def.id),
         ));
       }
@@ -9738,4 +9953,44 @@ class InboxItem {
     required this.done,
     required this.sent,
   });
+}
+
+/// How hard today should push: push, steady or easy, with the reasons.
+class DayReadiness {
+  /// 'push' | 'steady' | 'easy'.
+  final String level;
+  final int score;
+  final List<String> reasons;
+  const DayReadiness(this.level, this.score, this.reasons);
+
+  String get title => switch (level) {
+        'push' => 'Ready to push',
+        'easy' => 'Go easy today',
+        _ => 'A steady day',
+      };
+
+  String get advice => switch (level) {
+        'push' => 'A good day for the hardest of your three, or a stretch rep.',
+        'easy' => 'Make it a minimum day: the smallest versions count, and the streak holds.',
+        _ => 'Your normal plan fits today.',
+      };
+}
+
+/// A block of time on the day plan.
+class DayBlock {
+  final String id;
+  final String title;
+
+  /// Minutes after midnight.
+  final int start;
+  final int minutes;
+
+  /// 'three' (one of today's three) | 'focus' | 'other'.
+  final String kind;
+  const DayBlock(this.id, this.title, this.start, this.minutes, this.kind);
+
+  Map<String, dynamic> toJson() => {'id': id, 'title': title, 'start': start, 'minutes': minutes, 'kind': kind};
+
+  static String clock(int minute) =>
+      '${(minute ~/ 60).toString().padLeft(2, '0')}:${(minute % 60).toString().padLeft(2, '0')}';
 }

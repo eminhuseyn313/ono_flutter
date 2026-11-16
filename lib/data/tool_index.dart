@@ -61,6 +61,8 @@ const List<ToolEntry> toolIndex = [
       words: ['schedule', 'wake', 'bedtime']),
   ToolEntry('Build your plan', 'Who you\'re becoming, one goal, a few daily items', '/start', 'Plan',
       words: ['start', 'setup', 'onboarding']),
+  ToolEntry('Plan the day', 'Give today\'s three and deep work a time, beside your meetings', '/plan-day', 'Plan',
+      words: ['timeline', 'schedule', 'calendar', 'time block', 'timebox', 'plan', 'day']),
   ToolEntry('Notifications', 'What ONO sent you today, and what each one asks', '/inbox', 'Plan',
       words: ['notification', 'notifications', 'reminder', 'reminders', 'inbox', 'alerts', 'bell']),
   ToolEntry('Ask ONO', 'What to do now, how you\'re doing, what\'s slipping — from your own days', '/ask', 'Plan',

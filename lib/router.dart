@@ -82,6 +82,7 @@ import 'screens/plan_file_screen.dart';
 import 'screens/for_you_screen.dart';
 import 'screens/ask_screen.dart';
 import 'screens/inbox_screen.dart';
+import 'screens/day_plan_screen.dart';
 import 'screens/week_screen.dart';
 import 'screens/values_screen.dart';
 import 'screens/weekly_coaching_screen.dart';
@@ -150,6 +151,7 @@ const appRoutes = [
   '/for-you',
   '/ask',
   '/inbox',
+  '/plan-day',
   '/packs',
   '/partner',
   '/coach-report',
@@ -287,6 +289,7 @@ GoRouter createRouter(AuthProvider authProvider,
       _slide('/privacy', (_) => const PrivacyScreen()),
       _slide('/plan-file', (_) => const PlanFileScreen()),
       _slide('/ask', (_) => const AskScreen()),
+      _slide('/plan-day', (_) => const DayPlanScreen()),
       _slide('/inbox', (s) => InboxScreen(focus: s.uri.queryParameters['id'])),
       _slide('/for-you', (s) => ForYouScreen(first: s.uri.queryParameters['first'] == '1')),
       _slide('/packs', (_) => const PacksScreen()),

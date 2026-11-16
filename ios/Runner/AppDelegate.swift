@@ -5,6 +5,9 @@ import UIKit
 import UserNotifications
 import WatchConnectivity
 import WidgetKit
+// Notification buttons (Done, In 1 hour) work while ONO is closed: the
+// plugin starts a short background engine that needs the plugins too.
+import flutter_local_notifications
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
@@ -21,6 +24,9 @@ import WidgetKit
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+    FlutterLocalNotificationsPlugin.setPluginRegistrantCallback { registry in
+      GeneratedPluginRegistrant.register(with: registry)
+    }
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "OnoLiveTimer") {
       OnoLiveTimer.register(messenger: registrar.messenger())
     }

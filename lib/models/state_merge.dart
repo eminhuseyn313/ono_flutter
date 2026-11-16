@@ -61,7 +61,7 @@ const _idLists = {'logs', 'evidence', 'reports', 'briefs', 'custom_cards'};
 /// otherwise both keep theirs, and the app would show only one.
 const _dailyTypes = {
   'checkin', 'week_plan', 'shutdown', 'hard_day', 'detach', 'daily_list',
-  'partner_checkin', 'us_checkin', 'values_check', 'sleep', 'vitals',
+  'partner_checkin', 'us_checkin', 'values_check', 'sleep', 'vitals', 'day_plan',
   // One per week (dated its Monday) or per month (dated its first day).
   'lesson', 'value_act', 'load_check', 'look_forward',
 };

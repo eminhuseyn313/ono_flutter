@@ -307,6 +307,7 @@ class _LogScreenState extends State<LogScreen> {
                   'negotiation',
                   'value_act',
                   'look_forward',
+                  'day_plan',
                   'personal_plan',
                   'daily_list'
                 }.contains(e.type))

@@ -752,6 +752,19 @@ void main() {
     await _reach(tester, find.byKey(const Key('inbox-bed')));
   });
 
+  testWidgets('plan the day: give one of today\'s three a time', (tester) async {
+    final system = await _start(tester);
+    system.setPriority(system.logicalToday, 0, 'Draft the budget');
+    await _go(tester, '/plan-day');
+    await _tap(tester, find.byKey(const Key('place-Draft the budget')));
+    final slot = find.byWidgetPredicate((w) => w.key is ValueKey<String> && (w.key as ValueKey<String>).value.startsWith('slot-'));
+    if (slot.evaluate().isEmpty) return; // late in the day: no free time left
+    await tester.tap(slot.first);
+    await _pumpFor(tester, const Duration(milliseconds: 600));
+    expect(system.dayPlanFor(system.logicalToday).single.title, 'Draft the budget');
+    expect(find.text('Draft the budget'), findsWidgets);
+  });
+
   testWidgets('remember someone: the switch, then writing about them', (tester) async {
     final system = await _start(tester);
     final p = system.addPerson('Ana Silva', role: 'Grandmother', every: 14);
