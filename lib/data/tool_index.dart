@@ -61,6 +61,8 @@ const List<ToolEntry> toolIndex = [
       words: ['schedule', 'wake', 'bedtime']),
   ToolEntry('Build your plan', 'Who you\'re becoming, one goal, a few daily items', '/start', 'Plan',
       words: ['start', 'setup', 'onboarding']),
+  ToolEntry('Notifications', 'What ONO sent you today, and what each one asks', '/inbox', 'Plan',
+      words: ['notification', 'notifications', 'reminder', 'reminders', 'inbox', 'alerts', 'bell']),
   ToolEntry('Ask ONO', 'What to do now, how you\'re doing, what\'s slipping — from your own days', '/ask', 'Plan',
       words: ['ask', 'question', 'coach', 'what now', 'advice', 'chat']),
   ToolEntry('Ideas for you', 'Books, films, podcasts, practices and steps picked from your plan', '/for-you', 'Plan',

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'inbox_screen.dart';
 
 import '../data/emin_personal_content.dart';
 import '../data/emin_system.dart';
@@ -390,6 +391,8 @@ class _Header extends StatelessWidget {
                   '${weekdayName(now.weekday).substring(0, 3)} ${shortDate(now)} · $day',
                   style: AppText.small(color: AppColors.grey)),
             ),
+            const InboxBell(),
+            const SizedBox(width: 6),
             // The streak badge shows while there is a streak; a lost one
             // isn't kept on screen as a grey zero.
             if (system.streak > 0)

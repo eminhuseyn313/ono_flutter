@@ -81,6 +81,7 @@ import 'data/emin_system.dart';
 import 'screens/plan_file_screen.dart';
 import 'screens/for_you_screen.dart';
 import 'screens/ask_screen.dart';
+import 'screens/inbox_screen.dart';
 import 'screens/week_screen.dart';
 import 'screens/values_screen.dart';
 import 'screens/weekly_coaching_screen.dart';
@@ -148,6 +149,7 @@ const appRoutes = [
   '/plan-file',
   '/for-you',
   '/ask',
+  '/inbox',
   '/packs',
   '/partner',
   '/coach-report',
@@ -285,6 +287,7 @@ GoRouter createRouter(AuthProvider authProvider,
       _slide('/privacy', (_) => const PrivacyScreen()),
       _slide('/plan-file', (_) => const PlanFileScreen()),
       _slide('/ask', (_) => const AskScreen()),
+      _slide('/inbox', (s) => InboxScreen(focus: s.uri.queryParameters['id'])),
       _slide('/for-you', (s) => ForYouScreen(first: s.uri.queryParameters['first'] == '1')),
       _slide('/packs', (_) => const PacksScreen()),
       _slide('/partner', (_) => const PartnerScreen()),

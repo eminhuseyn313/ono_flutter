@@ -187,6 +187,7 @@ const _main = [
 ];
 
 const _grow = [
+  _NavEntry('Notifications', Icons.notifications_none_rounded, '/inbox'),
   _NavEntry('Ask ONO', Icons.chat_bubble_outline_rounded, '/ask'),
   _NavEntry('Ideas for you', Icons.auto_awesome_outlined, '/for-you'),
   _NavEntry('Goals', Icons.flag_circle_outlined, '/goals'),

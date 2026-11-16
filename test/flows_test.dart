@@ -739,6 +739,19 @@ void main() {
     tester.view.reset();
   });
 
+  testWidgets('a notification opens its own page, and the action is right there', (tester) async {
+    final system = await _start(tester);
+    // As a tapped notification does.
+    await _go(tester, '/inbox?id=bed');
+    expect(find.byKey(const Key('inbox-bed')), findsOneWidget);
+    await _tap(tester, find.byKey(const Key('inbox-act-bed')));
+    expect(system.isChecked(system.logicalToday, 'bed'), isTrue);
+    // Today's bell opens the centre.
+    await _go(tester, '/home');
+    await _tap(tester, find.byKey(const Key('inbox-bell')));
+    await _reach(tester, find.byKey(const Key('inbox-bed')));
+  });
+
   testWidgets('remember someone: the switch, then writing about them', (tester) async {
     final system = await _start(tester);
     final p = system.addPerson('Ana Silva', role: 'Grandmother', every: 14);

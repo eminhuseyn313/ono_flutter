@@ -14,6 +14,10 @@ class PlannedReminder {
   final String body;
   final String route;
 
+  /// The reminder it comes from (its `ReminderDef` id), for the
+  /// notification centre.
+  final String key;
+
   /// Already done today: the weekly repeat starts from next week's day,
   /// so a calm app doesn't nag about what's finished.
   final bool skipToday;
@@ -26,6 +30,7 @@ class PlannedReminder {
     required this.title,
     required this.body,
     required this.route,
+    this.key = '',
     this.skipToday = false,
   });
 }

@@ -4363,8 +4363,12 @@ void main() {
   test('midday and evening reminders name what is open of today\'s three', () async {
     final p = await _commissioned(); // Friday 2 Oct
     p.saveProfile(builtInProfile.copyWith(name: 'Sam Rivera', firstName: 'Sam'));
-    PlannedReminder at(String route, int wd, String label) => p.plannedReminders()
-        .firstWhere((r) => r.route == route && r.weekday == wd && r.title == label);
+    // The day's own notifications open their page in the notification
+    // centre: '/home' here means "about the day", found by route.
+    PlannedReminder at(String route, int wd, String label) => p.plannedReminders().firstWhere((r) =>
+        (r.route == route || (route == '/home' && r.route.startsWith('/inbox?id='))) &&
+        r.weekday == wd &&
+        r.title == label);
     expect(at('/home', 5, 'Your daily items').body, isNot(contains('Still open')));
     p.setPriority(dayOnly(_today), 0, 'Send the proposal');
     p.setPriority(dayOnly(_today), 1, 'Call the bank');
@@ -4415,6 +4419,39 @@ void main() {
       'start rest Rest Bench press',
       'end',
     ]);
+  });
+
+  test('notification centre: every notification opens what it is about', () async {
+    final p = await _commissioned();
+    // The day's own notifications open their page in the centre; the rest
+    // open their tool.
+    final planned = p.plannedReminders();
+    for (final r in planned) {
+      expect(r.route, isNot('/home'), reason: r.key);
+      expect(appRoutes.contains(r.route.split('?').first) || appRoutes.contains(r.route), isTrue, reason: r.route);
+    }
+    expect(planned.firstWhere((r) => r.key == 'bed').route, '/inbox?id=bed');
+    expect(planned.firstWhere((r) => r.key == 'gym').route, '/gym');
+    // Late evening: what fired today, newest first, and what it ticks.
+    p.clock = () => DateTime(_today.year, _today.month, _today.day, 23, 0);
+    final inbox = p.inboxToday();
+    expect(inbox, isNotEmpty);
+    final sent = inbox.where((i) => i.sent).toList();
+    for (var i = 1; i < sent.length; i++) {
+      expect(sent[i - 1].at.isAfter(sent[i].at) || sent[i - 1].at == sent[i].at, isTrue);
+    }
+    final bed = inbox.firstWhere((i) => i.id == 'bed');
+    expect(bed.sent, isTrue);
+    expect(bed.itemId, 'bed');
+    expect(bed.done, isFalse);
+    final before = p.inboxOpen;
+    p.setCheck(p.logicalToday, 'bed', true);
+    expect(p.inboxToday().firstWhere((i) => i.id == 'bed').done, isTrue);
+    expect(p.inboxOpen, before - 1);
+    // Morning: later ones are not sent yet.
+    p.clock = () => DateTime(_today.year, _today.month, _today.day, 6, 30);
+    expect(p.inboxToday().firstWhere((i) => i.id == 'bed').sent, isFalse);
+    p.clock = () => _today;
   });
 
   test('Ask ONO answers from their own days', () async {

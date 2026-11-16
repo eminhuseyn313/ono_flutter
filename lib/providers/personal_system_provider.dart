@@ -3311,7 +3311,10 @@ class PersonalSystemProvider extends ChangeNotifier {
           minute: def.minute,
           title: title,
           body: body,
-          route: def.route,
+          // A notification opens what it's about: one that would only
+          // land on Today opens its own detail in the notification centre.
+          route: notificationRoute(def.id, def.route),
+          key: def.id,
           skipToday: wd == _now.weekday && reminderDoneToday(def.id),
         ));
       }
@@ -3329,11 +3332,55 @@ class PersonalSystemProvider extends ChangeNotifier {
           title: 'Worry time',
           body: '${parkedWorries.length} parked — a next step, or let it go.',
           route: '/worry',
+          key: 'worry',
         ));
       }
     }
     return out;
   }
+
+  /// Where tapping a notification goes: its tool, or — for one that is
+  /// about the day itself — its own page in the notification centre.
+  static String notificationRoute(String id, String route) =>
+      route.split('?').first == '/home' ? '/inbox?id=$id' : route;
+
+  /// The notification centre for today: every notification planned for
+  /// today, with the words it carries, whether its thing is done, and the
+  /// daily item it ticks (if any). Earlier ones first come last-fired
+  /// first; later ones follow in time order.
+  List<InboxItem> inboxToday() {
+    final now = _now;
+    final today = dayOnly(now);
+    final itemFor = <String, String>{
+      for (final e in itemReminder.entries) e.value: e.key,
+    };
+    final out = <InboxItem>[];
+    for (final r in plannedReminders()) {
+      if (r.weekday != today.weekday) continue;
+      final at = DateTime(today.year, today.month, today.day, r.hour, r.minute);
+      final item = itemFor[r.key];
+      final onList = item != null && itemIdsOn(logicalToday).contains(item);
+      final done = r.skipToday ||
+          reminderDoneToday(r.key) ||
+          (onList && isChecked(logicalToday, item));
+      out.add(InboxItem(
+        id: r.key,
+        at: at,
+        title: r.title,
+        body: r.body,
+        route: r.route.startsWith('/inbox') ? '/home' : r.route,
+        itemId: onList ? item : null,
+        done: done,
+        sent: !at.isAfter(now) && !r.skipToday,
+      ));
+    }
+    final past = out.where((i) => !i.at.isAfter(now)).toList()..sort((a, b) => b.at.compareTo(a.at));
+    final later = out.where((i) => i.at.isAfter(now)).toList()..sort((a, b) => a.at.compareTo(b.at));
+    return [...past, ...later];
+  }
+
+  /// Sent today and its thing still open: the bell's number.
+  int get inboxOpen => inboxToday().where((i) => i.sent && !i.done).length;
 
   static const worryReminderBase = 950;
 
@@ -9663,4 +9710,32 @@ class AskAnswer {
   final List<String> lines;
   final List<(String, String)> actions;
   const AskAnswer(this.title, this.lines, this.actions);
+}
+
+/// One notification in the notification centre.
+class InboxItem {
+  final String id;
+  final DateTime at;
+  final String title;
+  final String body;
+
+  /// Where acting on it goes (Today for the day's own notifications).
+  final String route;
+
+  /// The daily item it ticks, when it is about one on today's list.
+  final String? itemId;
+  final bool done;
+
+  /// Its time has come today (and it wasn't skipped as already done).
+  final bool sent;
+  const InboxItem({
+    required this.id,
+    required this.at,
+    required this.title,
+    required this.body,
+    required this.route,
+    required this.itemId,
+    required this.done,
+    required this.sent,
+  });
 }
