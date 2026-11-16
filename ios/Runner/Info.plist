@@ -24,6 +24,12 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>ONO opens your photos only when you choose a file to load, such as a plan or a backup.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>ONO never uses the camera on its own; a file picker may offer it when you choose a file.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>ONO doesn't use your location.</string>
 	<key>NSCalendarsUsageDescription</key>
 	<string>ONO shows today's meetings and reminds you to prepare 10 minutes before each. It only reads your calendar.</string>
 	<key>NSCalendarsFullAccessUsageDescription</key>
