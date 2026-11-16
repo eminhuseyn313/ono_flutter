@@ -10,8 +10,8 @@ source "$(dirname "$0")/scripts/mac_testflight.sh"
 need_xcode
 maybe_upgrade_flutter
 
-echo "Upload which?  1) iPhone   2) Mac   3) both"
-read -r -p "[3]: " WHICH
+echo "Upload which?  1) iPhone   2) Mac   3) both  (both in 10 seconds)"
+read -r -t 10 -p "[3]: " WHICH || true
 WHICH=${WHICH:-3}
 
 # Every upload needs a higher build number: the number of commits on main
