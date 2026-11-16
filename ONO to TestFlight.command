@@ -5,14 +5,31 @@
 # and the app created once in App Store Connect (see RELEASE.md, step 3).
 source "$(dirname "$0")/scripts/common.sh"
 source "$(dirname "$0")/scripts/ios.sh"
+source "$(dirname "$0")/scripts/mac_testflight.sh"
 
 need_xcode
 maybe_upgrade_flutter
-ask_capabilities_once
+
+echo "Upload which?  1) iPhone   2) Mac   3) both"
+read -r -p "[3]: " WHICH
+WHICH=${WHICH:-3}
 
 # Every upload needs a higher build number: the number of commits on main
 # only grows. (+100 keeps it above builds numbered by hand before.)
 BUILD=$(( $(git rev-list --count HEAD) + 100 ))
+
+if [ "$WHICH" = 2 ]; then
+  mac_testflight "$BUILD" || fail "Mac upload didn't finish (see above)."
+  cat <<'TXT'
+Apple processes it for 5–15 minutes. Then App Store Connect → ONO →
+TestFlight → macOS builds; testers install it with the TestFlight app on
+their Mac (from the Mac App Store).
+TXT
+  read -r -p "Press Enter to close…" _
+  exit 0
+fi
+
+ask_capabilities_once
 ARCHIVE=build/ios/archive/Runner.xcarchive
 rm -rf "$ARCHIVE" build/ios/testflight
 
@@ -43,6 +60,9 @@ TXT
 fi
 
 say "Uploaded build $BUILD."
+if [ "$WHICH" = 3 ]; then
+  mac_testflight "$BUILD" || echo "(The iPhone build is uploaded; only the Mac one needs another try.)"
+fi
 cat <<'TXT'
 Apple processes it for 5–15 minutes (you get an email). Then:
   1. App Store Connect → ONO → TestFlight → Internal Testing → add yourself

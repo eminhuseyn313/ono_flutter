@@ -35,6 +35,11 @@ Every time: double-click **ONO to TestFlight**. It updates the code, builds with
 
 The first time only: App Store Connect → ONO → TestFlight → Internal Testing → add yourself. On the iPhone, install the **TestFlight** app, accept the invite and install ONO. Later uploads appear there by themselves.
 
+### Mac and other people (Emin, 16 Nov 2026)
+- **Mac:** ONO to TestFlight asks "1) iPhone 2) Mac 3) both". The Mac app shares the iPhone app's record (same bundle ID). Once: App Store Connect → ONO → Add Platform → macOS. Testers install the **TestFlight** app from the Mac App Store; no Terminal, which suits a managed work Mac. Logs: `build/mac-testflight.log`, `build/mac-upload.log`.
+- **Testers who aren't you (external testing):** App Store Connect → ONO → TestFlight → External Testing → + group (e.g. "Friends"), add the build, fill Test Information (what to test, a feedback email, and a sign-in for the reviewer — ONO needs an account, so create a test account with email and password). The first build of each version goes through a short Beta App Review (usually a day). Then add testers by email or switch on a **public link** to share. Up to 10,000 testers; builds last 90 days.
+- **Feedback:** testers take a screenshot in ONO (or open TestFlight → ONO → Send Beta Feedback) and write a note; it arrives under TestFlight → Feedback, with crashes beside it.
+
 If the upload is refused, the launcher says why and opens the archive in Xcode; Distribute App → App Store Connect → Upload does the same by hand.
 
 ## 4. Public App Store release
