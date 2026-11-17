@@ -1388,6 +1388,28 @@ void main() {
     p.clock = () => _today;
   });
 
+  test('goals: proof of progress gathers values, milestones and done outcomes', () async {
+    final p = await _commissioned(briefs: DeviceBriefGenerator());
+    final day = dayOnly(_today);
+    final g = p.saveGoal(
+        title: 'Run 10 km', unit: 'km', start: 3, target: 10, milestones: ['First 5 km'])!;
+    expect(p.goalProof(g.id).length, 1, reason: 'only the start so far');
+    p.logGoalValue(g.id, 5);
+    p.toggleMilestone(g.id, 0);
+    p.setWeekOutcome(day, 0, 'Three runs this week');
+    p.setWeekOutcomeGoal(day, 0, g.id);
+    p.toggleWeekOutcome(day, 0);
+    p.setWeekOutcome(day, 1, 'Not for this goal');
+    p.toggleWeekOutcome(day, 1);
+    final proof = p.goalProof(g.id);
+    expect(proof.map((e) => e.kind).toSet(), {'start', 'value', 'milestone', 'week'});
+    expect(proof.where((e) => e.kind == 'week').single.text, 'Three runs this week');
+    expect(p.goalProofText(g.id), contains('5 km'));
+    // Unticking a milestone takes it out of the proof.
+    p.toggleMilestone(g.id, 0);
+    expect(p.goalProof(g.id).any((e) => e.kind == 'milestone'), isFalse);
+  });
+
   test('goals: milestones, at most three active, closing and deleting', () async {
     final p = await _commissioned(briefs: DeviceBriefGenerator());
     final hop = p.saveGoal(

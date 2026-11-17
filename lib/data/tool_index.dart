@@ -69,6 +69,8 @@ const List<ToolEntry> toolIndex = [
       words: ['ask', 'question', 'coach', 'what now', 'advice', 'chat']),
   ToolEntry('Ideas for you', 'Books, films, podcasts, practices and steps picked from your plan', '/for-you', 'Plan',
       words: ['suggestions', 'recommendations', 'books', 'films', 'movies', 'podcasts', 'ideas', 'reading']),
+  ToolEntry('More from your plan', 'Parts of a loaded plan ONO has no screen for yet, as written', '/plan-more', 'Plan',
+      words: ['plan', 'sections', 'extra', 'ai plan', 'rest of my plan']),
   ToolEntry('Plan packs', 'Start from a ready plan, or share yours', '/packs', 'Plan',
       words: ['template', 'share', 'marathon', 'parent', 'manager', 'exam', 'burnout']),
   ToolEntry('Promises', 'What you said you\'d do — kept or renegotiated in time', '/promises', 'Plan',

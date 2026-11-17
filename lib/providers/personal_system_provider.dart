@@ -5809,7 +5809,69 @@ class PersonalSystemProvider extends ChangeNotifier {
         .toList();
     if (i < 0 || i >= ms.length) return;
     ms[i]['done'] = !(ms[i]['done'] == true);
+    // The day it was reached, for the goal's proof of progress.
+    ms[i]['done_on'] = ms[i]['done'] == true ? dateKey(logicalToday) : null;
     updateLog(g.copyWith(data: {...g.data, 'milestones': ms}));
+  }
+
+  /// Proof of progress: what moved this goal, oldest first — measurements,
+  /// milestones reached, the week's three that served it and were done,
+  /// practice reps in its growth areas with their lessons, and how it closed.
+  List<ProofEntry> goalProof(String id) {
+    final g = goalById(id);
+    if (g == null) return const [];
+    final out = <ProofEntry>[
+      ProofEntry(dayOnly(g.createdAt), 'start', 'Set the goal: ${g.text.trim()}'),
+    ];
+    String num(double v) => formatGoalNumber(g, v);
+    final unit = (g.str('unit') ?? '').trim();
+    for (final v in goalValues(id)) {
+      final value = v.number('value')?.toDouble();
+      if (value == null) continue;
+      out.add(ProofEntry(v.date, 'value', '${num(value)}${unit.isEmpty ? '' : ' $unit'}'));
+    }
+    for (final m in (g.data['milestones'] as List? ?? const [])) {
+      final on = DateTime.tryParse('${(m as Map)['done_on'] ?? ''}');
+      if (m['done'] == true && on != null) {
+        out.add(ProofEntry(on, 'milestone', 'Reached: ${m['text']}'));
+      }
+    }
+    for (final w in logsOf('week_plan')) {
+      final goals = (w.data['goals'] as List?) ?? const [];
+      for (var i = 0; i < 3; i++) {
+        if (i < goals.length && goals[i] == id && weekOutcomeDone(w.date, i)) {
+          final t = weekOutcomes(w.date)[i].trim();
+          if (t.isNotEmpty) out.add(ProofEntry(w.date, 'week', t));
+        }
+      }
+    }
+    final areas = {for (final a in (g.data['areas'] as List? ?? const [])) '$a'};
+    if (areas.isNotEmpty) {
+      for (final r in logsOf('rep')) {
+        if (!areas.contains(r.str('area')) || r.date.isBefore(dayOnly(g.createdAt))) continue;
+        final lesson = (r.str('lesson') ?? '').trim();
+        final did = r.text.trim().isEmpty ? (r.str('drill') ?? 'A practice rep') : r.text.trim();
+        out.add(ProofEntry(r.date, 'rep', lesson.isEmpty ? did : '$did — learned: $lesson'));
+      }
+    }
+    final closed = DateTime.tryParse(g.str('closed_on') ?? '');
+    if (closed != null) {
+      final st = g.str('status');
+      out.add(ProofEntry(closed, 'closed', st == 'achieved' ? 'Achieved' : st == 'dropped' ? 'Let go' : 'Closed'));
+    }
+    out.sort((a, b) => a.date.compareTo(b.date));
+    return out;
+  }
+
+  /// The proof as text to copy (for a review, a coach or yourself).
+  String goalProofText(String id) {
+    final g = goalById(id);
+    if (g == null) return '';
+    final b = StringBuffer('Proof of progress: ${g.text.trim()}\n');
+    for (final e in goalProof(id)) {
+      b.writeln('${dateKey(e.date)}  ${e.text}');
+    }
+    return b.toString().trimRight();
   }
 
   List<({String text, bool done})> milestonesOf(LogEntry g) => [
@@ -9993,4 +10055,14 @@ class DayBlock {
 
   static String clock(int minute) =>
       '${(minute ~/ 60).toString().padLeft(2, '0')}:${(minute % 60).toString().padLeft(2, '0')}';
+}
+
+/// One line of a goal's proof of progress.
+class ProofEntry {
+  final DateTime date;
+
+  /// start, value, milestone, week, rep or closed.
+  final String kind;
+  final String text;
+  const ProofEntry(this.date, this.kind, this.text);
 }

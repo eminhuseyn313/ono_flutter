@@ -481,6 +481,7 @@ class _GoalScreenState extends State<GoalScreen> {
             ],
           ),
         ],
+        _GoalProof(goalId: g.id),
         const SizedBox(height: 18),
         if (active) ...[
           GhostButton('Edit', icon: Icons.edit_outlined,
@@ -523,6 +524,79 @@ class _GoalScreenState extends State<GoalScreen> {
           ),
         ],
         const SizedBox(height: 16),
+      ],
+    );
+  }
+}
+
+/// Proof of progress: the measurements, milestones, finished outcomes and
+/// practice behind the goal, newest first, with a copy for a review.
+class _GoalProof extends StatefulWidget {
+  final String goalId;
+  const _GoalProof({required this.goalId});
+
+  @override
+  State<_GoalProof> createState() => _GoalProofState();
+}
+
+class _GoalProofState extends State<_GoalProof> {
+  bool _all = false;
+  static const _shown = 6;
+
+  static IconData _icon(String kind) => switch (kind) {
+        'value' => Icons.show_chart_rounded,
+        'milestone' => Icons.flag_rounded,
+        'week' => Icons.check_circle_outline_rounded,
+        'rep' => Icons.fitness_center_rounded,
+        'closed' => Icons.emoji_events_outlined,
+        _ => Icons.play_arrow_rounded,
+      };
+
+  static String _day(DateTime d) {
+    const m = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return '${d.day} ${m[d.month - 1]}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final system = context.watch<PersonalSystemProvider>();
+    final proof = system.goalProof(widget.goalId).reversed.toList();
+    // Only the start (and the close): nothing done in between to show.
+    if (proof.every((e) => e.kind == 'start' || e.kind == 'closed')) return const SizedBox.shrink();
+    final shown = _all ? proof : proof.take(_shown).toList();
+    return Column(
+      key: const Key('goal-proof'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SectionHeader('Proof of progress', action: 'Copy', onAction: () {
+          Clipboard.setData(ClipboardData(text: system.goalProofText(widget.goalId)));
+          toast(context, 'Copied — paste it into a review or a message.');
+        }),
+        OnoCard(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          child: Column(
+            children: [
+              for (final e in shown)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(_icon(e.kind), size: 16, color: AppColors.accent),
+                      const SizedBox(width: 10),
+                      SizedBox(width: 52, child: Text(_day(e.date), style: AppText.small())),
+                      Expanded(child: Text(e.text, style: AppText.body(color: AppColors.white))),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
+        if (proof.length > _shown)
+          TextButton(
+            onPressed: () => setState(() => _all = !_all),
+            child: Text(_all ? 'Show less' : 'Show all ${proof.length}'),
+          ),
       ],
     );
   }

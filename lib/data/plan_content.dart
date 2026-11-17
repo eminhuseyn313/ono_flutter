@@ -273,6 +273,11 @@ class PlanContent {
   final List<String> weeklyReviewQuestions;
   final List<StudyCard> seedCards;
 
+  /// Sections a plan holds that ONO has no screen for yet (an AI may write
+  /// "weekly_rituals" or "nutrition"), kept as written and shown on
+  /// "More from your plan" so nothing in a plan is lost.
+  final Map<String, dynamic> extras;
+
   const PlanContent({
     this.profile,
     this.manifesto = const [],
@@ -328,9 +333,26 @@ class PlanContent {
     this.coachTips = const [],
     this.weeklyReviewQuestions = const [],
     this.seedCards = const [],
+    this.extras = const {},
   });
 
   static const empty = PlanContent();
+
+  /// Keys ONO reads (its own and the names AI tools often use instead).
+  static final Set<String> knownKeys = {
+    ...const PlanContent().toJson().keys,
+    'format', 'profile', 'ono_plan', 'plan', 'onoPlan', 'person', 'me', 'key_people', 'keyPeople', 'people',
+    'name', 'full_name', 'fullName',
+    'dailyItems', 'daily', 'habits', 'day', 'daily_schedule', 'training', 'workouts',
+    'growthAreas', 'areas', 'reading', 'movies', 'listening', 'daily_reads', 'scans',
+    'reading_rotation', 'practices', 'tools', 'monthThemes', 'months', 'artifacts',
+    'milestones', 'morning_ritual', 'coach_notes', 'tips', 'cards', 'flashcards',
+    'weekly_questions',
+  };
+
+  /// A section is worth keeping when it holds something.
+  static bool _hasContent(Object? v) =>
+      (v is List && v.isNotEmpty) || (v is Map && v.isNotEmpty) || (v is String && v.trim().length > 20);
 
   /// A person's plan is loaded (rather than the general app's nothing).
   bool get isPersonal => profile != null && profile!.name.trim().isNotEmpty;
@@ -393,6 +415,7 @@ class PlanContent {
         'coach_tips': coachTips,
         'weekly_review_questions': weeklyReviewQuestions,
         'seed_cards': [for (final c in seedCards) c.toJson()],
+        ...extras,
       };
 
   factory PlanContent.fromJson(Map m) => PlanContent(
@@ -460,6 +483,10 @@ class PlanContent {
             StudyCard('${e['id']}', '${e['front'] ?? ''}', '${e['back'] ?? ''}',
                 source: '${e['source'] ?? 'seed'}')
         ],
+        extras: {
+          for (final e in m.entries)
+            if (!knownKeys.contains('${e.key}') && _hasContent(e.value)) '${e.key}': e.value
+        },
       );
 }
 

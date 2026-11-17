@@ -80,6 +80,7 @@ import 'widgets/ono_ui.dart';
 import 'data/emin_system.dart';
 import 'screens/plan_file_screen.dart';
 import 'screens/for_you_screen.dart';
+import 'screens/plan_more_screen.dart';
 import 'screens/ask_screen.dart';
 import 'screens/inbox_screen.dart';
 import 'screens/day_plan_screen.dart';
@@ -149,6 +150,7 @@ const appRoutes = [
   '/privacy',
   '/plan-file',
   '/for-you',
+  '/plan-more',
   '/ask',
   '/inbox',
   '/plan-day',
@@ -292,6 +294,7 @@ GoRouter createRouter(AuthProvider authProvider,
       _slide('/plan-day', (_) => const DayPlanScreen()),
       _slide('/inbox', (s) => InboxScreen(focus: s.uri.queryParameters['id'])),
       _slide('/for-you', (s) => ForYouScreen(first: s.uri.queryParameters['first'] == '1')),
+      _slide('/plan-more', (s) => const PlanMoreScreen()),
       _slide('/packs', (_) => const PacksScreen()),
       _slide('/partner', (_) => const PartnerScreen()),
       _slide('/coach-report', (_) => const RecordScreen(initialFor: 1)),

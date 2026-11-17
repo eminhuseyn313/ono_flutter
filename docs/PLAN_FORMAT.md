@@ -73,3 +73,5 @@ Rules:
 
 ## Other sections
 Files saved from ONO also carry sections an AI rarely writes: `lane_focus`, `evening_focus` (weekday → text), `shoulder_sparing`, `avoid_lifts`, `lift_swaps`, `supplements_morning`/`supplements_night`, `bloodwork`, `face_notes`, `beard_spec`, `wardrobe`, `outfits`, `watch_rule`, `grooming_routine`, `skincare_plan`, `linkedin_*`, `domain_thesis`, `key_data`, `certificates`, `evidence_sections`, `evidence_seeds`, `path_steps`, `work_day_only_items`, `item_reminder`, `manifesto`. They load as they are (see `PlanContent.fromJson` in `lib/data/plan_content.dart`).
+
+Any other section (say `nutrition` or `weekly_rituals`) is kept exactly as written, saved again with the plan, named in the load report and shown on **More from your plan** (`/plan-more`) as lists and titled entries, so nothing an AI writes is lost.

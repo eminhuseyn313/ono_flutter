@@ -36,6 +36,42 @@ void main() {
     expect(r.loaded.first, startsWith('Profile: '));
   });
 
+  test('sections ONO has no screen for are kept, shown and saved again', () {
+    final full = File('test/support/example_plan.json').readAsStringSync();
+    expect(importPlan(full, routeOk: _routeOk).plan!.extras, isEmpty,
+        reason: 'a plan in ONO\'s own format has nothing extra');
+    final partial = File('test/support/partial_plan.json').readAsStringSync();
+    expect(importPlan(partial, routeOk: _routeOk).plan!.extras, isEmpty,
+        reason: 'aliases ONO reads are not extras');
+    const answer = '{"profile": {"name": "Sam Lee"}, "habits": ["Walk"],'
+        ' "nutrition": [{"title": "Breakfast", "what": "Eggs and fruit"}],'
+        ' "weeklyRituals": {"sunday": "Plan the week"}, "empty_bit": [], "note": "ok"}';
+    final r = importPlan(answer, routeOk: _routeOk);
+    final p = r.plan!;
+    expect(p.extras.keys, ['nutrition', 'weeklyRituals']);
+    expect(r.loaded.last, contains('Nutrition, Weekly rituals'));
+    final again = PlanContent.fromJson(jsonDecode(jsonEncode(p.toJson())) as Map);
+    expect(again.extras.keys, ['nutrition', 'weeklyRituals'], reason: 'they survive saving');
+    expect(planSectionTitle('weekly_rituals'), 'Weekly rituals');
+  });
+
+  test('loading a new version says what changes', () {
+    final text = File('test/support/example_plan.json').readAsStringSync();
+    final v1 = importPlan(text, routeOk: _routeOk).plan!;
+    expect(planChanges(v1, v1), isEmpty);
+    final m = jsonDecode(text) as Map;
+    final items = (m['daily_items'] as List).cast<Map>();
+    final removed = items.removeAt(0);
+    items.add({'id': 'd_new', 'title': 'Ten minutes outside', 'lane': 'body', 'when': 'day'});
+    m['nutrition'] = ['More protein at breakfast'];
+    final v2 = importPlan(jsonEncode(m), routeOk: _routeOk).plan!;
+    final c = planChanges(v1, v2);
+    final daily = c.firstWhere((l) => l.startsWith('Daily items'));
+    expect(daily, contains('1 added (Ten minutes outside)'));
+    expect(daily, contains('1 removed (${removed['title']})'));
+    expect(c.last, 'Other sections: added Nutrition');
+  });
+
   test('an AI answer with chat, fences and loose formats still loads', () {
     const answer = '''Sure! Here is your ONO plan:
 

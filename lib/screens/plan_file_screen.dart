@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -39,7 +40,44 @@ class _PlanFileScreenState extends State<PlanFileScreen> {
     return appRoutes.contains(r) || appRoutes.contains(path) || appRoutes.any((a) => a.split('?').first == path);
   }
 
-  void _load(PersonalSystemProvider system, String text) {
+  Future<void> _load(PersonalSystemProvider system, String text) async {
+    // Replacing a plan: show what changes first. Logs are never touched.
+    if (system.hasPersonalPlan) {
+      final preview = importPlan(text, routeOk: _routeOk);
+      if (preview.ok) {
+        final changes = planChanges(plan, preview.plan!);
+        final go = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text(changes.isEmpty ? 'Nothing changes' : 'What changes'),
+            content: SingleChildScrollView(
+              child: Column(
+                key: const Key('plan-changes'),
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (changes.isEmpty)
+                    const Text('This plan is the same as the one you have.')
+                  else
+                    for (final c in changes)
+                      Padding(padding: const EdgeInsets.only(bottom: 6), child: Text('• $c')),
+                  const SizedBox(height: 6),
+                  Text('Everything you logged stays. You can undo this after.', style: AppText.small()),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Keep mine')),
+              TextButton(
+                  key: const Key('plan-changes-apply'),
+                  onPressed: () => Navigator.of(ctx).pop(true),
+                  child: const Text('Update my plan')),
+            ],
+          ),
+        );
+        if (go != true || !mounted) return;
+      }
+    }
     final r = system.importPlanText(text, routeOk: _routeOk);
     FocusManager.instance.primaryFocus?.unfocus();
     setState(() => _result = r);
@@ -142,6 +180,13 @@ class _PlanFileScreenState extends State<PlanFileScreen> {
         GhostButton('Load what I pasted',
             icon: Icons.download_done_rounded,
             onPressed: _text.text.trim().isEmpty ? null : () => _load(system, _text.text)),
+        if (loaded && plan.extras.isNotEmpty) ...[
+          const SizedBox(height: 10),
+          GhostButton('More from your plan (${plan.extras.length})',
+              key: const Key('plan-more-link'),
+              icon: Icons.unfold_more_rounded,
+              onPressed: () => context.push('/plan-more')),
+        ],
         if (loaded) ...[
           const SectionHeader('Keep it safe'),
           Text('Your plan syncs with your account. A copy of your own is good too.', style: AppText.small()),

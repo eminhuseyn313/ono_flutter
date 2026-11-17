@@ -110,7 +110,19 @@ List<String> _summary(PlanContent p) => [
       if (p.ritual.isNotEmpty) 'A morning ritual of ${p.ritual.length} steps',
       if (p.coachTips.isNotEmpty) '${p.coachTips.length} coach notes',
       if (p.seedCards.isNotEmpty) '${p.seedCards.length} cards to remember',
+      if (p.extras.isNotEmpty)
+        '${p.extras.length} more ${p.extras.length == 1 ? 'section' : 'sections'} (${p.extras.keys.map(planSectionTitle).join(', ')}): under "More from your plan"',
     ];
+
+/// "weekly_rituals" or "weeklyRituals" → "Weekly rituals".
+String planSectionTitle(String key) {
+  final words = key
+      .replaceAllMapped(RegExp(r'([a-z])([A-Z])'), (m) => '${m[1]} ${m[2]}')
+      .replaceAll(RegExp(r'[_\-]+'), ' ')
+      .trim()
+      .toLowerCase();
+  return words.isEmpty ? key : '${words[0].toUpperCase()}${words.substring(1)}';
+}
 
 class _Normaliser {
   final bool Function(String) routeOk;
@@ -645,4 +657,78 @@ class _Normaliser {
     }
     return out;
   }
+}
+
+/// What loading [next] over [current] would change, one line per part, in
+/// words ("Daily items: 2 added (Walk, Read), 1 removed (Stretch)"). Empty
+/// when nothing changes. What you logged is never touched either way.
+List<String> planChanges(PlanContent current, PlanContent next) {
+  final out = <String>[];
+  String names(Iterable<String> xs) {
+    final l = xs.toList();
+    return l.length <= 3 ? l.join(', ') : '${l.take(3).join(', ')} and ${l.length - 3} more';
+  }
+
+  void byId<T>(String part, List<T> a, List<T> b, String Function(T) id, String Function(T) title,
+      [Object? Function(T)? shape]) {
+    final was = {for (final x in a) id(x): x};
+    final now = {for (final x in b) id(x): x};
+    final added = [for (final e in now.entries) if (!was.containsKey(e.key)) title(e.value)];
+    final removed = [for (final e in was.entries) if (!now.containsKey(e.key)) title(e.value)];
+    final changed = [
+      for (final e in now.entries)
+        if (was.containsKey(e.key) &&
+            (title(was[e.key] as T) != title(e.value) ||
+                (shape != null && '${shape(was[e.key] as T)}' != '${shape(e.value)}')))
+          title(e.value)
+    ];
+    final bits = [
+      if (added.isNotEmpty) '${added.length} added (${names(added)})',
+      if (removed.isNotEmpty) '${removed.length} removed (${names(removed)})',
+      if (changed.isNotEmpty) '${changed.length} changed (${names(changed)})',
+    ];
+    if (bits.isNotEmpty) out.add('$part: ${bits.join(', ')}');
+  }
+
+  final a = current.profile, b = next.profile;
+  if (a?.name != b?.name) out.add('Name: ${a?.name ?? '—'} → ${b?.name ?? '—'}');
+  if ((a?.targetRole ?? '') != (b?.targetRole ?? '')) {
+    out.add('Becoming: ${a?.targetRole.isEmpty ?? true ? '—' : a!.targetRole} → ${b?.targetRole.isEmpty ?? true ? '—' : b!.targetRole}');
+  }
+  byId('Daily items', current.dailyItems, next.dailyItems, (x) => x.id, (x) => x.title,
+      (x) => '${x.lane}|${x.when}');
+  final cueChanged = [
+    for (final n in next.dailyItems)
+      if (current.dailyItems.any((o) => o.id == n.id) && (current.cues[n.id] ?? '') != (next.cues[n.id] ?? ''))
+        n.title
+  ];
+  if (cueChanged.isNotEmpty) out.add('If-then plans: ${cueChanged.length} changed (${names(cueChanged)})');
+  byId('Growth areas', current.growthAreas, next.growthAreas, (x) => x.id, (x) => x.name,
+      (x) => x.drills.map((d) => d.title).join('|'));
+  byId('Training days', current.gym, next.gym, (x) => x.id, (x) => x.name,
+      (x) => x.exercises.map((e) => e.name).join('|'));
+  byId('Reminders', current.reminders, next.reminders, (x) => x.id, (x) => x.label,
+      (x) => '${x.hour}:${x.minute}');
+  byId('Books', [...current.books, ...current.novels], [...next.books, ...next.novels], (x) => x.title, (x) => x.title);
+  byId('Films', current.films, next.films, (x) => x.title, (x) => x.title);
+  byId('Practices', current.protocols, next.protocols, (x) => x.id, (x) => x.name);
+  byId('Cards to remember', current.seedCards, next.seedCards, (x) => x.id, (x) => x.front);
+  if (current.schedule.length != next.schedule.length ||
+      [for (var i = 0; i < next.schedule.length; i++) next.schedule[i].title].join() !=
+          [for (var i = 0; i < current.schedule.length; i++) current.schedule[i].title].join()) {
+    out.add('Your day: ${current.schedule.length} → ${next.schedule.length} blocks');
+  }
+  final themes = {...current.monthThemes.keys, ...next.monthThemes.keys}
+      .where((m) => current.monthThemes[m] != next.monthThemes[m])
+      .length;
+  if (themes > 0) out.add('Month themes: $themes changed');
+  final extraBits = [
+    for (final k in next.extras.keys)
+      if (!current.extras.containsKey(k)) 'added ${planSectionTitle(k)}'
+      else if (jsonEncode(current.extras[k]) != jsonEncode(next.extras[k])) 'changed ${planSectionTitle(k)}',
+    for (final k in current.extras.keys)
+      if (!next.extras.containsKey(k)) 'removed ${planSectionTitle(k)}',
+  ];
+  if (extraBits.isNotEmpty) out.add('Other sections: ${extraBits.join(', ')}');
+  return out;
 }
