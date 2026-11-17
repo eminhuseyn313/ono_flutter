@@ -1,6 +1,7 @@
 import 'dart:io' show Platform;
 
 import 'package:device_calendar/device_calendar.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 import '../models/personal_system.dart';
 import 'calendar_service.dart';
@@ -63,5 +64,24 @@ class DeviceCalendarService implements CalendarService {
       return const [];
     }
     return out.values.toList()..sort((a, b) => a.start.compareTo(b.start));
+  }
+
+  @override
+  Future<bool> addEvent(String title, DateTime start, DateTime end, {String note = ''}) async {
+    try {
+      final calendars = (await _plugin.retrieveCalendars()).data ?? const [];
+      final writable = [for (final c in calendars) if (c.isReadOnly != true && c.id != null) c];
+      if (writable.isEmpty) return false;
+      final cal = writable.firstWhere((c) => c.isDefault == true, orElse: () => writable.first);
+      final r = await _plugin.createOrUpdateEvent(Event(cal.id,
+          title: title,
+          // The instant is what matters; the calendar shows it in local time.
+          start: tz.TZDateTime.from(start, tz.UTC),
+          end: tz.TZDateTime.from(end, tz.UTC),
+          description: note));
+      return r?.isSuccess == true;
+    } catch (_) {
+      return false;
+    }
   }
 }

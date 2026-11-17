@@ -31,6 +31,9 @@ abstract class CalendarService {
 
   /// Timed events overlapping [day], from every calendar, by start time.
   Future<List<Meeting>> meetingsOn(DateTime day);
+
+  /// Puts an event in the default calendar; false when it couldn't.
+  Future<bool> addEvent(String title, DateTime start, DateTime end, {String note = ''});
 }
 
 class NoopCalendarService implements CalendarService {
@@ -41,6 +44,8 @@ class NoopCalendarService implements CalendarService {
   Future<bool> connect() async => false;
   @override
   Future<List<Meeting>> meetingsOn(DateTime day) async => const [];
+  @override
+  Future<bool> addEvent(String title, DateTime start, DateTime end, {String note = ''}) async => false;
 }
 
 CalendarService createCalendarService() => impl.createCalendarService();

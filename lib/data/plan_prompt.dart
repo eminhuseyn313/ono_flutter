@@ -63,14 +63,19 @@ Rules:
 
 /// The prompt for one person, built from what they already told ONO.
 /// [about] holds lines like "Name: …"; empty lines are left out.
-String planPrompt({required List<String> about, int programDays = 90}) {
+String planPrompt({required List<String> about, int programDays = 90, List<String> record = const []}) {
   final lines = [for (final l in about) if (l.trim().isNotEmpty) '- ${l.trim()}'];
+  final done = [for (final l in record) if (l.trim().isNotEmpty) '- ${l.trim()}'];
   return '''You are an expert coach and planner. Build me a complete personal development plan for the app ONO: my daily habits, the shape of my day, training, what to read, watch and listen to, practices for hard moments, the skills I'm growing, monthly themes and milestones, and short coach notes.
 
 What I've told ONO so far:
 ${lines.isEmpty ? '- (nothing yet)' : lines.join('\n')}
 - Plan length: $programDays days (${(programDays / 30).round()} months).
-
+${done.isEmpty ? '' : '''
+What actually happened so far (from what I logged):
+${done.join('\n')}
+Keep what is working. Make what keeps slipping smaller, or give it a better time and cue. Build on the lessons.
+'''}
 Before writing the plan, ask me up to 6 short questions about anything you need (for example: my work and what success looks like, my health and any limits, my mornings and evenings, family, money, what I've tried before). Wait for my answers. Then write the plan.
 
 $planFormatSpec''';

@@ -1551,6 +1551,43 @@ class PersonalSystemProvider extends ChangeNotifier {
   static const dayPlanBase = onceIdBase + 200;
   static const maxDayBlocks = 12;
 
+  /// Blocks of [day]'s plan not yet in the calendar and still ahead.
+  List<DayBlock> blocksForCalendar(DateTime day) {
+    final d = dayOnly(day);
+    return [
+      for (final b in dayPlanFor(d))
+        if (!isDone('calendar:block:${b.id}') && DateTime(d.year, d.month, d.day, 0, b.start + b.minutes).isAfter(_now)) b
+    ];
+  }
+
+  /// Puts [day]'s planned blocks still ahead into the calendar, once each
+  /// (Things/Sunsama style: the plan shows where the rest of life is
+  /// planned). Returns what happened, in words.
+  Future<String> addDayPlanToCalendar(DateTime day) async {
+    if (!_calendar.isSupported) return 'Adding to your calendar works in the iPhone app.';
+    if (!calendarConnected) {
+      final problem = await connectCalendar();
+      if (problem != null) return problem;
+    }
+    final d = dayOnly(day);
+    var added = 0;
+    for (final b in blocksForCalendar(d)) {
+      final start = DateTime(d.year, d.month, d.day, 0, b.start);
+      final ok = await _calendar.addEvent(b.title, start, start.add(Duration(minutes: b.minutes)),
+          note: 'Planned in ONO');
+      if (!ok) break;
+      setDone('calendar:block:${b.id}', true);
+      added++;
+    }
+    await syncCalendar();
+    if (added == 0) return 'Couldn\'t add to your calendar. Check ONO is allowed full access in Settings → Privacy & Security → Calendars.';
+    return added == 1 ? 'Added 1 block to your calendar.' : 'Added $added blocks to your calendar.';
+  }
+
+  /// A calendar event that is one of [day]'s planned blocks (added by ONO).
+  bool isPlannedBlock(DateTime day, Meeting m) => dayPlanFor(day).any((b) =>
+      isDone('calendar:block:${b.id}') && b.title == m.title && b.start == m.start.hour * 60 + m.start.minute);
+
   List<DayBlock> dayPlanFor(DateTime day) {
     final l = logsOn(dayOnly(day), 'day_plan');
     if (l.isEmpty) return const [];
@@ -4320,7 +4357,24 @@ class PersonalSystemProvider extends ChangeNotifier {
       if (dailyItems.isNotEmpty) 'Daily items now: ${dailyItems.map((n) => n.title).join('; ')}',
       if (d != null)
         'My day: up ${hm(d.wake)}${d.workStart < d.workEnd ? ', work ${hm(d.workStart)}-${hm(d.workEnd)}' : ''}, lights out ${hm(d.bed)}; work days ${[for (final w in workDays) const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][w - 1]].join(' ')}',
-    ]);
+    ], record: planRecordLines());
+  }
+
+  /// What really happened, for a new plan to build on: how the daily plan
+  /// held, what keeps slipping, goals' pace and their own lessons. Empty
+  /// in the first week (nothing to learn from yet).
+  List<String> planRecordLines() {
+    if (programDay < 7 && cycle == 1) return const [];
+    final out = <String>[
+      'Day $programDay of $programDays${cycle > 1 ? ' (program $cycle)' : ''}',
+      if (latelyLine case final l?) 'Daily plan lately: $l',
+      if (streak > 0) 'Current streak: $streak days',
+      if (slippingItem case final n?) 'Keeps slipping: ${n.title}',
+      for (final g in activeGoals)
+        if (goalPace(g) case final pace?) 'Goal "${g.text.trim()}": $pace',
+      for (final e in playbook().take(4)) 'A lesson I wrote: ${e.text.trim()}',
+    ];
+    return out;
   }
 
   /// A plan was just loaded here and can be taken back.

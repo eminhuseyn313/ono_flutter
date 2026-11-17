@@ -1388,6 +1388,21 @@ void main() {
     p.clock = () => _today;
   });
 
+  test('plan prompt: carries what happened once there is a week to learn from', () async {
+    final p = await _commissioned(briefs: DeviceBriefGenerator());
+    // (This program started a month ago; a first week gets no record.)
+    final g = p.saveGoal(title: 'Run 10 km', unit: 'km', start: 3, target: 10,
+        deadline: dayOnly(_today).plusDays(90))!;
+    p.clock = () => _today.plusDays(10);
+    final lines = p.planRecordLines();
+    expect(lines.first, startsWith('Day '));
+    expect(lines.any((l) => l.startsWith('Goal "${g.text}"')), isTrue);
+    final prompt = p.planPromptText();
+    expect(prompt, contains('What actually happened so far'));
+    expect(prompt, contains('Make what keeps slipping smaller'));
+    p.clock = () => _today;
+  });
+
   test('goals: proof of progress gathers values, milestones and done outcomes', () async {
     final p = await _commissioned(briefs: DeviceBriefGenerator());
     final day = dayOnly(_today);
@@ -4465,6 +4480,25 @@ void main() {
     // An item not on the list is ignored.
     await NotificationActions.recordDone('nope', _today);
     expect(await p.applyDeviceTicks(), 0);
+  });
+
+  test('plan the day: blocks go into the calendar once, and show once', () async {
+    final cal = FakeCalendarService();
+    final p = PersonalSystemProvider(
+        gateway: MockPersonalSystemGateway(), reminders: _RecordingReminders(), calendar: cal)
+      ..clock = () => _today;
+    await p.load('test');
+    await p.commission(start: _start, gymDays: const [1, 3, 5], reminders: const {});
+    final day = p.logicalToday;
+    p.setDayBlock(day, title: 'Write the plan', start: 15 * 60, minutes: 50, kind: 'focus');
+    p.setDayBlock(day, title: 'Already over', start: 8 * 60, minutes: 30, kind: 'other');
+    expect(p.blocksForCalendar(day).map((b) => b.title), ['Write the plan'], reason: 'only what is still ahead');
+    expect(await p.addDayPlanToCalendar(day), 'Added 1 block to your calendar.');
+    expect(cal.added.single.title, 'Write the plan');
+    expect(cal.added.single.start, DateTime(day.year, day.month, day.day, 15));
+    expect(p.blocksForCalendar(day), isEmpty, reason: 'never added twice');
+    final back = p.meetingsFor(day).single;
+    expect(p.isPlannedBlock(day, back), isTrue, reason: 'the screen shows it once, as the block');
   });
 
   test('plan the day: today\'s three get a time, a nudge at each start', () async {

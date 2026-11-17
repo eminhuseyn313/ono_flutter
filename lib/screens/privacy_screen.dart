@@ -113,7 +113,7 @@ class PrivacyScreen extends StatelessWidget {
               _point(
                   Icons.event_note_outlined,
                   'Calendar',
-                  'Meetings are read to plan your day and kept in memory only. They are never saved, exported or synced.'),
+                  'Meetings are read to plan your day and kept in memory only. They are never saved, exported or synced. ONO writes to your calendar only when you tap "Put these in my calendar" on Plan the day.'),
               _point(
                   Icons.favorite_border_rounded,
                   'Health',

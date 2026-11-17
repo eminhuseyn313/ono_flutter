@@ -16,4 +16,16 @@ class FakeCalendarService implements CalendarService {
               m.end.isAfter(DateTime(day.year, day.month, day.day)))
             m
       ];
+
+  /// Events ONO put in the calendar (they show as meetings too).
+  final added = <Meeting>[];
+
+  @override
+  Future<bool> addEvent(String title, DateTime start, DateTime end, {String note = ''}) async {
+    if (!grant) return false;
+    final m = Meeting(id: 'added-${added.length}', title: title, start: start, end: end);
+    added.add(m);
+    meetings = [...meetings, m];
+    return true;
+  }
 }

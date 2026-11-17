@@ -94,7 +94,8 @@ class DayPlanScreen extends StatelessWidget {
     final now = timeNow();
     final day = system.logicalToday;
     final blocks = system.dayPlanFor(day);
-    final meetings = system.meetingsFor(day);
+    // Blocks ONO put in the calendar come back as events: show them once.
+    final meetings = [for (final m in system.meetingsFor(day)) if (!system.isPlannedBlock(day, m)) m];
     final nowMin = _minuteOf(now);
     final toPlace = system.unplacedThree(day);
     // Meetings and blocks in one timeline, by start.
@@ -172,6 +173,16 @@ class DayPlanScreen extends StatelessWidget {
                   ),
               ],
             ),
+          ),
+        if (system.calendarSupported && system.blocksForCalendar(day).isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: GhostButton('Put these in my calendar',
+                key: const Key('plan-to-calendar'),
+                icon: Icons.event_available_outlined, onPressed: () async {
+              final msg = await system.addDayPlanToCalendar(day);
+              if (context.mounted) toast(context, msg);
+            }),
           ),
         if (meetings.isEmpty && !system.calendarConnected)
           Padding(
