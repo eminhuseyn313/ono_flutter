@@ -1457,7 +1457,48 @@ class PersonalSystemProvider extends ChangeNotifier {
     return best;
   }
 
+  /// The person [text] names (from People), or null.
+  LogEntry? askedAbout(String text) {
+    for (final p in people) {
+      if (names(p, text)) return p;
+    }
+    return null;
+  }
+
+  /// Before you call or meet them: when you were last in touch, what to
+  /// ask, what is open between you.
+  AskAnswer personAnswer(LogEntry p) {
+    final name = p.text.trim();
+    if (isRemembered(p)) {
+      return AskAnswer(name, ['You keep them among the people you remember.'],
+          [('Remember them', '/remember?id=${p.id}')]);
+    }
+    final last = lastContact(p);
+    final days = last == null ? null : logicalToday.daysSince(dayOnly(last));
+    final every = p.number('every')?.toInt();
+    final ask = (p.str('ask_about') ?? '').trim();
+    final q = nextQuestionFor(p);
+    final ritual = ritualOf(p).trim();
+    return AskAnswer(name, [
+      days == null
+          ? 'No contact logged yet.'
+          : days == 0
+              ? 'In touch today.'
+              : 'Last in touch ${days == 1 ? 'yesterday' : '$days days ago'}.',
+      if (every != null && (days == null || days > every)) 'Due: you wanted to be in touch every $every days.',
+      if (ask.isNotEmpty) 'Ask about: $ask' else if (q != null) 'Something to learn about them: ${q.$2}',
+      if (ritual.isNotEmpty) 'Your ritual: $ritual',
+      for (final b in betweenYou(p).take(3)) '${b.$1}: ${b.$2}',
+    ], [
+      ('Their page', '/people?id=${p.id}'),
+      ('What you know', '/know?id=${p.id}'),
+    ]);
+  }
+
   AskAnswer ask(String textOrIntent, DateTime now) {
+    if (!_askWords.containsKey(textOrIntent)) {
+      if (askedAbout(textOrIntent) case final p?) return personAnswer(p);
+    }
     final intent = _askWords.containsKey(textOrIntent) ? textOrIntent : askIntent(textOrIntent);
     final day = logicalToday;
     switch (intent) {

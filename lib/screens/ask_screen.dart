@@ -31,7 +31,7 @@ class _AskScreenState extends State<AskScreen> {
     final q = question.trim();
     if (q.isEmpty) return;
     final answer = system.ask(intent ?? q, timeNow());
-    final known = intent != null || PersonalSystemProvider.askIntent(q) != null;
+    final known = intent != null || PersonalSystemProvider.askIntent(q) != null || system.askedAbout(q) != null;
     final tools = known
         ? const <ToolEntry>[]
         : [
@@ -75,7 +75,7 @@ class _AskScreenState extends State<AskScreen> {
           onSubmitted: (v) => _ask(system, v),
           style: AppText.body(color: AppColors.white),
           decoration: InputDecoration(
-            hintText: 'Or ask in your own words',
+            hintText: 'Or ask in your own words, or type a name',
             suffixIcon: IconButton(
               key: const Key('ask-send'),
               tooltip: 'Ask',

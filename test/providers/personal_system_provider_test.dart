@@ -4482,6 +4482,24 @@ void main() {
     expect(await p.applyDeviceTicks(), 0);
   });
 
+  test('ask ONO: a name answers about that person', () async {
+    final p = await _commissioned(briefs: DeviceBriefGenerator());
+    final sam = p.addPerson('Sam Rivera', role: 'Friend', every: 14);
+    p.updatePerson(sam, askAbout: 'the new job');
+    p.addPromise(what: 'Send the book list', to: 'Sam', by: dayOnly(_today).plusDays(3));
+    expect(p.askedAbout('When did I last talk to Sam?')!.id, sam.id);
+    final a = p.ask('When did I last talk to Sam?', _today);
+    // (askAbout was saved on the latest copy of the person.)
+    expect(a.title, 'Sam Rivera');
+    expect(a.lines.first, 'No contact logged yet.');
+    expect(a.lines, contains('Ask about: the new job'));
+    expect(a.lines.any((l) => l.contains('Send the book list')), isTrue);
+    expect(a.actions.first.$2, '/people?id=${sam.id}');
+    p.logTouch(p.people.firstWhere((x) => x.id == sam.id));
+    expect(p.ask('sam', _today).lines.first, 'In touch today.');
+    expect(p.ask('What should I do now?', _today).title, isNot('Sam Rivera'));
+  });
+
   test('plan the day: blocks go into the calendar once, and show once', () async {
     final cal = FakeCalendarService();
     final p = PersonalSystemProvider(
