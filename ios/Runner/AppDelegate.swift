@@ -232,12 +232,15 @@ final class OnoWatch: NSObject, WCSessionDelegate {
   }
 
   private func send() {
+    // Property-list values only.
+    let clean = context.filter { $0.value is String || $0.value is NSNumber }
+    // Kept for the watch to ask for while the app isn't running (cleared
+    // with the rest on sign-out).
+    UserDefaults(suiteName: OnoWatch.appGroup)?.set(clean, forKey: "watch_context")
     let s = WCSession.default
     guard WCSession.isSupported(), s.activationState == .activated,
           s.isPaired, s.isWatchAppInstalled
     else { return }
-    // Property-list values only.
-    let clean = context.filter { $0.value is String || $0.value is NSNumber }
     try? s.updateApplicationContext(clean)
   }
 
@@ -275,6 +278,20 @@ final class OnoWatch: NSObject, WCSessionDelegate {
 
   func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {
     receive(message)
+  }
+
+  /// The watch asks for the latest copy ("want"), or sends a tick and waits.
+  /// iOS may have woken ONO in the background for this: answer from what
+  /// was saved, without the Flutter side.
+  func session(_ session: WCSession, didReceiveMessage message: [String: Any],
+               replyHandler: @escaping ([String: Any]) -> Void) {
+    if message["want"] != nil {
+      let saved = UserDefaults(suiteName: OnoWatch.appGroup)?.dictionary(forKey: "watch_context")
+      replyHandler(saved ?? (context.isEmpty ? [:] : context.filter { $0.value is String || $0.value is NSNumber }))
+    } else {
+      receive(message)
+      replyHandler([:])
+    }
   }
 
   func session(_ session: WCSession, didReceiveUserInfo userInfo: [String: Any] = [:]) {

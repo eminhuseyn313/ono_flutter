@@ -37,11 +37,13 @@ final class PhoneLink: NSObject, ObservableObject, WCSessionDelegate {
     }
   }
 
-  var isToday: Bool {
+  /// The day ONO counts as today: before 04:00 it is still the night
+  /// before, as on the iPhone.
+  static func today() -> String {
     let f = DateFormatter()
     f.calendar = Calendar(identifier: .gregorian)
     f.dateFormat = "yyyy-MM-dd"
-    return day == f.string(from: Date())
+    return f.string(from: Date().addingTimeInterval(-4 * 3600))
   }
 
   private func load(_ c: [String: Any]) {
@@ -55,6 +57,16 @@ final class PhoneLink: NSObject, ObservableObject, WCSessionDelegate {
       items = list
     } else {
       items = []
+    }
+    // A copy from an earlier day: today's list is the same list, unticked,
+    // so the watch works without opening the iPhone. The iPhone checks each
+    // tick against that day's list when it records it.
+    let now = PhoneLink.today()
+    if !day.isEmpty && day != now {
+      for i in items.indices { items[i].d = false }
+      score = 0
+      first = ""
+      day = now
     }
     timerTitle = c["timer_title"] as? String ?? ""
     let ms = (c["timer_ends"] as? NSNumber)?.doubleValue ?? 0
@@ -87,6 +99,21 @@ final class PhoneLink: NSObject, ObservableObject, WCSessionDelegate {
                error: Error?) {
     let c = session.receivedApplicationContext
     if !c.isEmpty { DispatchQueue.main.async { self.take(c) } }
+    refresh()
+  }
+
+  /// Asks the iPhone for its latest copy. iOS wakes ONO in the background
+  /// to answer, so the iPhone app doesn't need to be open.
+  func refresh() {
+    let s = WCSession.default
+    guard s.activationState == .activated, s.isReachable else { return }
+    s.sendMessage(["want": "today"], replyHandler: { reply in
+      if !reply.isEmpty { DispatchQueue.main.async { self.take(reply) } }
+    }, errorHandler: nil)
+  }
+
+  func sessionReachabilityDidChange(_ session: WCSession) {
+    refresh()
   }
 
   func session(_ session: WCSession, didReceiveApplicationContext context: [String: Any]) {
@@ -124,8 +151,8 @@ struct TodayView: View {
             }
           }
         }
-        if !link.isToday || link.items.isEmpty {
-          Text("Open ONO on your iPhone to start today.")
+        if link.items.isEmpty {
+          Text("Open ONO on your iPhone once to connect your watch.")
             .font(.footnote)
             .foregroundStyle(.secondary)
         } else {
@@ -164,5 +191,6 @@ struct TodayView: View {
       .navigationTitle("ONO")
     }
     .tint(accent)
+    .onAppear { link.refresh() }
   }
 }

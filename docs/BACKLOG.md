@@ -28,3 +28,21 @@ What works today: any plan that loads (file or paste) becomes the person's own �
 3. **Watch: hard-moment button** — one tap starts the breathing tool with haptics; one tap logs a win.
 4. ✅ Done 17 Nov 2026 (on each goal, with Copy). **Proof of progress** — a timeline per goal of the numbers, milestones, wins and lessons behind it, for reviews and for motivation.
 5. **Share with a coach or partner** — a read-only weekly page you choose to send (goals, held days, the week's three), never notes or private writing.
+
+## D. Experience (Emin, 18 Nov 2026)
+
+1. ✅ **Watch without opening the iPhone.** A new day rolls the watch's list over, and the watch asks the iPhone (woken in the background) for the latest copy.
+2. **Notifications that do more** (lower priority; "when I say it, give me"): today a notification is marked done or snoozed from its buttons; tapping should always open exactly what it's about, with richer actions (log a number, write a line) from the notification itself.
+3. **Less text, more glance.** Me (and the app as a whole) reads as a lot of text. Pass: one line per row, numbers and small charts instead of sentences, details one tap away.
+4. **Pull to keep going.** What makes people come back for progress (not for streaks alone): visible proof (the goal timeline), a weekly "what changed" moment, and Ask ONO as the front door.
+
+## E. An ecosystem (Emin, 18 Nov 2026: Paya, Oku, Oruta)
+
+Ideas to discuss; nothing built. ONO stays the plan and the reflection; each other app owns one domain and reports back.
+
+1. **One account, one profile.** Sign in once (Supabase or Sign in with Apple), the same name, goals and life areas in every app.
+2. **Each app feeds ONO's daily list.** A gym session or health check in Paya ticks ONO's training item and fills its "Body" numbers; a book finished in a reading app becomes a learning item to apply.
+3. **ONO sends the plan out.** A goal like "first half marathon" creates the training block in Paya; a book on ONO's list appears in the reading app.
+4. **One weekly brief across apps.** The Sunday brief reads all of them and says what moved.
+5. **Shared growth packs.** A plan pack (e.g. "back from burnout") carries parts for each app.
+6. **Privacy the same everywhere.** Each app shares only what the person allows, listed on one page.
