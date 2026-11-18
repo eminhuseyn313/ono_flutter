@@ -1429,11 +1429,13 @@ class PersonalSystemProvider extends ChangeNotifier {
     ('goals', 'What\'s next for my goals?'),
     ('learned', 'What have I learned?'),
     ('helps', 'What helps me?'),
+    ('week', 'How was my week?'),
   ];
 
   // Specific topics first: on a tie ("next step for my goal") they win
   // over the general "now".
   static const _askWords = {
+    'week': ['week', 'weekly', 'recap', 'summary', 'review'],
     'goals': ['goal', 'goals', 'target', 'milestone', 'aim'],
     'slipping': ['slip', 'slipping', 'miss', 'missing', 'behind', 'skip', 'failing', 'stuck'],
     'learned': ['learn', 'learned', 'learnt', 'lesson', 'lessons', 'playbook', 'rule'],
@@ -1502,6 +1504,29 @@ class PersonalSystemProvider extends ChangeNotifier {
     final intent = _askWords.containsKey(textOrIntent) ? textOrIntent : askIntent(textOrIntent);
     final day = logicalToday;
     switch (intent) {
+      case 'week':
+        final start = weekStartOf(day);
+        final days = [
+          for (var d = start; !d.isAfter(day); d = d.plusDays(1))
+            if (!d.isBefore(dayOnly(journeyStart)) && !isExcused(d) && !isPaused(d)) d
+        ];
+        // Today is still open: count it only once it's held.
+        final closed = [for (final d in days) if (d.isBefore(day) || isHeld(d)) d];
+        final held = closed.where(isHeld).length;
+        final (done, set) = weekOutcomeScore(day);
+        final wins = winsInWeek(start);
+        final reached = activePeople.where((p) => !(lastContact(p)?.isBefore(start) ?? true)).length;
+        final reps = repsInWeek(day);
+        return AskAnswer('Your week so far', [
+          if (closed.isEmpty) 'The week has just started.' else 'Daily plan held on $held of ${closed.length} days.',
+          if (set > 0) 'The week\'s three: $done of $set done.' else 'No week\'s three set yet.',
+          if (wins.isEmpty) 'No wins written yet.' else 'Wins: ${wins.take(3).map((w) => w.text.trim()).join('; ')}',
+          if (reps > 0) '$reps practice ${reps == 1 ? 'rep' : 'reps'}.',
+          if (activePeople.isNotEmpty) 'In touch with $reached of ${activePeople.length} of your people.',
+        ], [
+          ('The week', '/week'),
+          if (day.weekday >= DateTime.friday) ('Sunday report', '/weekly-coaching'),
+        ]);
       case 'now':
         if (nextBlock(now) case final b? when b.start <= now.hour * 60 + now.minute) {
           return AskAnswer('Do this now', [b.title, 'On your plan until ${DayBlock.clock(b.start + b.minutes)}.'],

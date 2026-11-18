@@ -4482,6 +4482,19 @@ void main() {
     expect(await p.applyDeviceTicks(), 0);
   });
 
+  test('ask ONO: how was my week', () async {
+    final p = await _commissioned(briefs: DeviceBriefGenerator());
+    expect(PersonalSystemProvider.askIntent('How was my week?'), 'week');
+    final day = p.logicalToday;
+    p.setWeekOutcome(day, 0, 'Ship the draft');
+    p.toggleWeekOutcome(day, 0);
+    p.addLog('win', text: 'Finished the draft');
+    final a = p.ask('week', _today);
+    expect(a.title, 'Your week so far');
+    expect(a.lines, contains('The week\'s three: 1 of 1 done.'));
+    expect(a.lines.any((l) => l.contains('Finished the draft')), isTrue);
+  });
+
   test('ask ONO: a name answers about that person', () async {
     final p = await _commissioned(briefs: DeviceBriefGenerator());
     final sam = p.addPerson('Sam Rivera', role: 'Friend', every: 14);
