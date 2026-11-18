@@ -132,6 +132,17 @@ class _OnoAppState extends State<OnoApp> with WidgetsBindingObserver {
       _router.push('/tools?focus=1');
       return true;
     }
+    // Write a note, or ask ONO, from anywhere (once there's a program).
+    if (_system.isCommissioned) {
+      if (e.logicalKey == LogicalKeyboardKey.keyN) {
+        _router.go('/log?add=note');
+        return true;
+      }
+      if (e.logicalKey == LogicalKeyboardKey.keyJ) {
+        _router.push('/ask');
+        return true;
+      }
+    }
     final tabs = {
       LogicalKeyboardKey.digit1: '/home',
       LogicalKeyboardKey.digit2: '/program',

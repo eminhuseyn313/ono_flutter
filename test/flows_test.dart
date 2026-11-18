@@ -712,6 +712,13 @@ void main() {
     await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
     await _pumpFor(tester, const Duration(milliseconds: 1200));
     expect(find.text('stress, interview, sleep…'), findsOneWidget);
+    // ⌘J (Ctrl+J) asks ONO from anywhere.
+    await _go(tester, '/home');
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+    await tester.sendKeyEvent(LogicalKeyboardKey.keyJ);
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
+    await _pumpFor(tester, const Duration(milliseconds: 1200));
+    expect(find.byKey(const Key('ask-field')), findsOneWidget);
   });
 
   testWidgets('Continue with Apple shows on the iPhone and the Mac, not elsewhere', (tester) async {
