@@ -10,8 +10,13 @@ source "$(dirname "$0")/scripts/mac_testflight.sh"
 need_xcode
 maybe_upgrade_flutter
 
-echo "Upload which?  1) iPhone   2) Mac   3) both  (both in 10 seconds)"
-read -r -t 10 -p "[3]: " WHICH || true
+# "Send ONO to TestFlight" sets ONO_WHICH=3: both, no question.
+if [ -n "${ONO_WHICH:-}" ]; then
+  WHICH=$ONO_WHICH
+else
+  echo "Upload which?  1) iPhone   2) Mac   3) both  (both in 10 seconds)"
+  read -r -t 10 -p "[3]: " WHICH || true
+fi
 WHICH=${WHICH:-3}
 
 # Every upload needs a higher build number: the number of commits on main
