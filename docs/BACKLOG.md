@@ -33,7 +33,7 @@ What works today: any plan that loads (file or paste) becomes the person's own �
 
 1. ✅ **Watch without opening the iPhone.** A new day rolls the watch's list over, and the watch asks the iPhone (woken in the background) for the latest copy.
 2. **Notifications that do more** (lower priority; "when I say it, give me"): today a notification is marked done or snoozed from its buttons; tapping should always open exactly what it's about, with richer actions (log a number, write a line) from the notification itself.
-3. **Less text, more glance.** Me (and the app as a whole) reads as a lot of text. Pass: one line per row, numbers and small charts instead of sentences, details one tap away.
+3. ◐ Me done 18 Nov 2026 (titles only, one-line progress card, connections moved to their sections). Next: Today and the section pages. **Less text, more glance.** Me (and the app as a whole) reads as a lot of text. Pass: one line per row, numbers and small charts instead of sentences, details one tap away.
 4. **Pull to keep going.** What makes people come back for progress (not for streaks alone): visible proof (the goal timeline), a weekly "what changed" moment, and Ask ONO as the front door.
 
 ## E. An ecosystem (Emin, 18 Nov 2026: Paya, Oku, Oruta)

@@ -80,7 +80,6 @@ class MeScreen extends StatelessWidget {
             icon: Icons.chat_bubble_outline_rounded,
             color: AppColors.accent,
             title: 'Ask ONO',
-            subtitle: 'What should I do now? What\'s slipping?',
             onTap: () => context.push('/ask'),
           ),
         ),
@@ -118,14 +117,18 @@ class MeScreen extends StatelessWidget {
                   value: system.hasStarted
                       ? (system.programDay / system.programDays).clamp(0.0, 1.0)
                       : 0),
-              const SizedBox(height: 6),
+              const SizedBox(height: 8),
+              // One line of where you are; the details live a tap away.
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  system.daysHeld == 0
-                      ? 'Hold your daily list once and it counts here. One slip is always forgiven.'
-                      : '${system.daysHeldThisMonth} held this month · one slip is forgiven',
-                  style: AppText.small().copyWith(fontSize: 11.5)),
+                    [
+                      'Month ${system.programMonth} · ${system.phase.name}',
+                      'ends ${shortDate(system.programEnd)}${system.programEnd.year != timeNow().year ? ' ${system.programEnd.year}' : ''}',
+                      if (system.pausedDays > 0) 'paused ${system.pausedDays} d',
+                      if (system.daysHeldThisMonth > 0) '${system.daysHeldThisMonth} held this month',
+                    ].join(' · '),
+                    style: AppText.small()),
               ),
               if (system.latelyLine case final l?) ...[
                 const SizedBox(height: 6),
@@ -133,24 +136,11 @@ class MeScreen extends StatelessWidget {
                   alignment: Alignment.centerLeft,
                   child: Text(l,
                       key: const Key('me-lately'),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: AppText.small(color: AppColors.white)),
                 ),
               ],
-              const SizedBox(height: 4),
-              SizedBox(
-                width: double.infinity,
-                child: Wrap(
-                  alignment: WrapAlignment.spaceBetween,
-                  spacing: 12,
-                  children: [
-                    Text('Month ${system.programMonth} · ${system.phase.name}',
-                        style: AppText.small()),
-                    Text(
-                        'Ends ${shortDate(system.programEnd)}${system.programEnd.year != timeNow().year ? ' ${system.programEnd.year}' : ''}${system.pausedDays > 0 ? ' · paused ${system.pausedDays} d' : ''}',
-                        style: AppText.small()),
-                  ],
-                ),
-              ),
             ],
           ),
         ),
@@ -169,62 +159,6 @@ class MeScreen extends StatelessWidget {
                       ? null
                       : system.scoreOutOf10(d),
                 ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Text('Less', style: AppText.small().copyWith(fontSize: 11)),
-                    const SizedBox(width: 6),
-                    for (final s in [0, 3, 6, 8, 10])
-                      Container(
-                        width: 10,
-                        height: 10,
-                        margin: const EdgeInsets.only(right: 3),
-                        decoration: BoxDecoration(
-                            color: heatColor(s),
-                            borderRadius: BorderRadius.circular(2)),
-                      ),
-                    Text('more · your daily list',
-                        style: AppText.small().copyWith(fontSize: 11)),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-        if (system.isBuiltInPerson) ...[
-          const SectionHeader('Protocol mastery'),
-          OnoCard(
-            padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
-            child: Column(
-              children: [
-                for (final p in protocols)
-                  InkWell(
-                    onTap: () =>
-                        context.push(protocolTools[p.id] ?? '/protocols'),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      child: Row(
-                        children: [
-                          Icon(p.icon, size: 18, color: AppColors.lane(p.lane)),
-                          const SizedBox(width: 12),
-                          Expanded(child: Text(p.name, style: AppText.body())),
-                          Text('${system.usesOf(p.id)}',
-                              style: AppText.small(color: AppColors.white)
-                                  .copyWith(fontWeight: FontWeight.w700)),
-                          const SizedBox(width: 10),
-                          SizedBox(
-                            width: 86,
-                            child: Text(system.masteryOf(p.id),
-                                textAlign: TextAlign.right,
-                                style: AppText.small(
-                                    color: system.usesOf(p.id) >= 20
-                                        ? AppColors.accent
-                                        : AppColors.grey)),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
               ],
             ),
           ),
@@ -234,8 +168,6 @@ class MeScreen extends StatelessWidget {
               action: 'Check in', onAction: () => context.push('/checkin')),
           const _Mornings(),
         ],
-        const _AppleHealth(),
-        const _CalendarLink(),
         // Patterns and experiments need a couple of weeks of days first
         // (an experiment already running always shows).
         if (system.programDay >= 14 ||
@@ -250,7 +182,7 @@ class MeScreen extends StatelessWidget {
               color: AppColors.mind,
               title: 'Experiments',
               subtitle: system.experimentsWith('running').isEmpty
-                  ? 'Test a change for 1–3 weeks, keep it or drop it'
+                  ? null
                   : 'Running: ${system.experimentsWith('running').map((e) => e.text).join(' · ')}',
               onTap: () => context.push('/experiments'),
             ),
@@ -343,6 +275,7 @@ class MeScreen extends StatelessWidget {
             ),
           ),
         ],
+        if (s == 'body') const _AppleHealth(),
         if (s == 'direction')
         _LinkGroup(
           id: 'direction',
@@ -608,6 +541,44 @@ class MeScreen extends StatelessWidget {
               ),
           ],
         ),
+        if (s == 'practice' && system.isBuiltInPerson) ...[
+          const SectionHeader('Protocol mastery'),
+          OnoCard(
+            padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
+            child: Column(
+              children: [
+                for (final p in protocols)
+                  InkWell(
+                    onTap: () =>
+                        context.push(protocolTools[p.id] ?? '/protocols'),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      child: Row(
+                        children: [
+                          Icon(p.icon, size: 18, color: AppColors.lane(p.lane)),
+                          const SizedBox(width: 12),
+                          Expanded(child: Text(p.name, style: AppText.body())),
+                          Text('${system.usesOf(p.id)}',
+                              style: AppText.small(color: AppColors.white)
+                                  .copyWith(fontWeight: FontWeight.w700)),
+                          const SizedBox(width: 10),
+                          SizedBox(
+                            width: 86,
+                            child: Text(system.masteryOf(p.id),
+                                textAlign: TextAlign.right,
+                                style: AppText.small(
+                                    color: system.usesOf(p.id) >= 20
+                                        ? AppColors.accent
+                                        : AppColors.grey)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
         if (s == 'people')
         _LinkGroup(
           id: 'people',
@@ -855,6 +826,7 @@ class MeScreen extends StatelessWidget {
               ),
           ],
         ),
+        if (s == 'settings') const _CalendarLink(),
         if (s == 'settings') ...[
         const SizedBox(height: 8),
         OnoCard(
@@ -1418,7 +1390,6 @@ class _Sections extends StatelessWidget {
                 icon: meSections[i].$3,
                 color: meSections[i].$1 == 'settings' ? AppColors.steel : AppColors.accent,
                 title: meSections[i].$2,
-                subtitle: meSections[i].$4,
                 onTap: () => context.push('/me/section?id=${meSections[i].$1}'),
               ),
             ],
@@ -1453,7 +1424,6 @@ class _UsedLately extends StatelessWidget {
                   icon: Icons.history_rounded,
                   color: AppColors.accent,
                   title: tools[i].title,
-                  subtitle: tools[i].what,
                   route: tools[i].route,
                   onTap: () => context.push(tools[i].route),
                 ),
@@ -1475,9 +1445,7 @@ class _Patterns extends StatelessWidget {
     final found = system.patterns();
     if (found.isEmpty) {
       return const EmptyNote(
-          'Patterns show here once there are 5+ days with and without a habit: '
-          'sleep vs your daily list, bedtime vs morning energy, caffeine vs sleep. '
-          'Morning check-ins make them appear sooner.',
+          'Patterns appear after a couple of weeks. Check-ins bring them sooner.',
           icon: Icons.insights_rounded);
     }
     return OnoCard(
@@ -1517,7 +1485,7 @@ class _Patterns extends StatelessWidget {
               ),
             ),
           const SizedBox(height: 10),
-          Text('Last 60 days of your own logs. Patterns, not proof.',
+          Text('Last 60 days. Patterns, not proof.',
               style:
                   AppText.small(color: AppColors.faint).copyWith(fontSize: 12)),
         ],
@@ -1536,7 +1504,7 @@ class _Mornings extends StatelessWidget {
     final week = system.checkinsEnding(today, 7);
     if (week.isEmpty) {
       return const EmptyNote(
-          'No check-ins yet. Thirty seconds each morning shows how sleep, energy and mood move together.',
+          'No check-ins yet. Thirty seconds a morning.',
           icon: Icons.wb_twilight_rounded);
     }
     String avg(String key, int digits) {
@@ -1568,12 +1536,7 @@ class _Mornings extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 4),
-          Text(
-              week.length < 3
-                  ? week.length == 1
-                      ? 'Your first check-in this week. Averages mean more after a few.'
-                      : 'Your first ${week.length} check-ins this week. Averages mean more after a few.'
-                  : 'Averages of the last ${week.length} check-ins',
+          Text('Last ${week.length} ${week.length == 1 ? 'check-in' : 'check-ins'}',
               style: AppText.small().copyWith(fontSize: 11.5)),
           if (system.feelingsNamed().isNotEmpty) ...[
             const SizedBox(height: 10),
@@ -1631,11 +1594,7 @@ class _CalendarLink extends StatelessWidget {
           icon: Icons.event_rounded,
           color: AppColors.skill,
           title: on ? 'Calendar connected' : 'Connect your calendar',
-          subtitle: on
-              ? 'Today shows your meetings; a nudge 10 min before each. Tap to disconnect.'
-              : activeProfile.keyPeopleNames.isEmpty
-                  ? 'Today shows your meetings and a breathing nudge 10 min before each. Read-only, stays on the phone.'
-                  : 'Today shows your meetings; 10 min before each: sigh, or six questions for ${activeProfile.keyPeopleNames}. Read-only, stays on the phone.',
+          subtitle: on ? 'Meetings on Today · tap to disconnect' : 'Meetings on Today, a nudge before each · read-only',
           onTap: () async {
             if (on) {
               await system.disconnectCalendar();
@@ -1670,9 +1629,7 @@ class _AppleHealth extends StatelessWidget {
             icon: Icons.favorite_outline_rounded,
             color: AppColors.danger,
             title: 'Connect Apple Health',
-            subtitle: system.isBuiltInPerson
-                ? 'Sleep fills the check-in and ticks "bed by 22:30"; HRV and resting heart rate; weigh-ins go to Health'
-                : 'Sleep fills the check-in; HRV and resting heart rate; weigh-ins go to Health',
+            subtitle: 'Sleep fills your check-in; heart rate and weigh-ins sync',
             onTap: () async {
               final err = await system.connectHealth();
               if (context.mounted) {
